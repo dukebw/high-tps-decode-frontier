@@ -1,0 +1,687 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Baseten Ramp Plan — DeepSeek V4 Flash → Kernel Depth → Blackwell</title>
+<style>
+  :root {
+    --bg: #f6f7f9;
+    --paper: #ffffff;
+    --ink: #121417;
+    --muted: #5d6673;
+    --faint: #eef1f5;
+    --line: #dce2ea;
+    --blue: #2563eb;
+    --blue-soft: #e8f0ff;
+    --green: #059669;
+    --green-soft: #e7f7f1;
+    --amber: #d97706;
+    --amber-soft: #fff4df;
+    --purple: #7c3aed;
+    --purple-soft: #f1eafe;
+    --red: #dc2626;
+    --red-soft: #fff0f0;
+    --cyan: #0891b2;
+    --cyan-soft: #e8f8fc;
+    --shadow: 0 14px 40px rgba(15, 23, 42, 0.08);
+    --radius: 18px;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: radial-gradient(circle at top left, #eef4ff 0, transparent 32rem), var(--bg);
+    color: var(--ink);
+    font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    line-height: 1.45;
+  }
+  a { color: var(--blue); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  .page { max-width: 1240px; margin: 0 auto; padding: 34px 22px 60px; }
+  header.hero {
+    background: linear-gradient(135deg, #111827 0%, #1e293b 58%, #334155 100%);
+    color: #fff;
+    padding: 38px;
+    border-radius: 26px;
+    box-shadow: var(--shadow);
+    position: relative;
+    overflow: hidden;
+  }
+  header.hero:after {
+    content: "";
+    position: absolute;
+    inset: auto -130px -180px auto;
+    width: 420px;
+    height: 420px;
+    border-radius: 50%;
+    background: rgba(96, 165, 250, 0.20);
+  }
+  .eyebrow { letter-spacing: .12em; text-transform: uppercase; font-size: 12px; color: #bfdbfe; font-weight: 800; }
+  h1 { margin: 8px 0 14px; font-size: clamp(34px, 5vw, 62px); line-height: 0.98; max-width: 1000px; }
+  .hero p { max-width: 870px; color: #dbeafe; font-size: 18px; margin: 0; }
+  .hero-grid { display: grid; grid-template-columns: 1.6fr 1fr; gap: 22px; margin-top: 28px; position: relative; z-index: 1; }
+  .hero-card { background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.14); border-radius: 18px; padding: 18px; backdrop-filter: blur(8px); }
+  .hero-card h3 { margin: 0 0 8px; font-size: 15px; color: #bfdbfe; text-transform: uppercase; letter-spacing: .08em; }
+  .hero-card .big { font-size: 28px; font-weight: 850; line-height: 1.08; }
+  .hero-card ul { margin: 12px 0 0 18px; padding: 0; color: #e5eefc; }
+  .badge-row { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 18px; }
+  .badge { display: inline-flex; align-items: center; gap: 7px; padding: 7px 10px; border-radius: 999px; background: rgba(255,255,255,0.10); border: 1px solid rgba(255,255,255,0.18); color: #f8fafc; font-size: 12px; font-weight: 700; }
+  section { margin-top: 26px; }
+  .section-title { display: flex; align-items: baseline; justify-content: space-between; gap: 20px; margin: 0 0 12px; }
+  h2 { margin: 0; font-size: 28px; letter-spacing: -0.02em; }
+  .subtitle { color: var(--muted); max-width: 760px; margin: 6px 0 0; }
+  .grid { display: grid; gap: 18px; }
+  .grid.two { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .grid.three { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .grid.four { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .card { background: var(--paper); border: 1px solid var(--line); border-radius: var(--radius); padding: 20px; box-shadow: 0 8px 24px rgba(15, 23, 42, 0.045); }
+  .card h3 { margin: 0 0 8px; font-size: 18px; }
+  .card p { margin: 8px 0; color: var(--muted); }
+  .card ul { margin: 10px 0 0 18px; padding: 0; color: #303741; }
+  .pill { display: inline-block; font-size: 12px; font-weight: 800; letter-spacing: .04em; text-transform: uppercase; border-radius: 999px; padding: 5px 9px; margin-bottom: 10px; }
+  .pill.blue { color: #1d4ed8; background: var(--blue-soft); }
+  .pill.green { color: #047857; background: var(--green-soft); }
+  .pill.amber { color: #b45309; background: var(--amber-soft); }
+  .pill.purple { color: #6d28d9; background: var(--purple-soft); }
+  .pill.cyan { color: #0e7490; background: var(--cyan-soft); }
+  .pill.red { color: #b91c1c; background: var(--red-soft); }
+  .thesis { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr 1fr; gap: 10px; }
+  .step { background: var(--paper); border: 1px solid var(--line); border-radius: 16px; padding: 14px; position: relative; min-height: 126px; }
+  .step:not(:last-child):after { content: "→"; position: absolute; right: -15px; top: 48%; font-weight: 900; color: #94a3b8; z-index: 2; }
+  .step .num { width: 26px; height: 26px; display: grid; place-items: center; border-radius: 50%; background: #111827; color: #fff; font-weight: 900; font-size: 13px; margin-bottom: 10px; }
+  .step strong { display: block; font-size: 15px; }
+  .step span { display: block; color: var(--muted); font-size: 13px; margin-top: 6px; }
+  .anatomy { display: grid; grid-template-columns: 1.1fr 1fr; gap: 18px; align-items: stretch; }
+  .anatomy-map { min-height: 430px; padding: 0; overflow: hidden; }
+  .svg-wrap { width: 100%; height: 100%; background: linear-gradient(180deg, #fff, #f8fafc); border-radius: var(--radius); }
+  .legend { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+  .legend span { display: inline-flex; align-items: center; gap: 6px; color: var(--muted); font-size: 12px; }
+  .dot { width: 9px; height: 9px; border-radius: 99px; display: inline-block; }
+  .dot.blue { background: var(--blue); } .dot.green { background: var(--green); } .dot.amber { background: var(--amber); } .dot.purple { background: var(--purple); } .dot.cyan { background: var(--cyan); } .dot.red { background: var(--red); }
+  .gantt { background: var(--paper); border: 1px solid var(--line); border-radius: var(--radius); padding: 16px; overflow-x: auto; box-shadow: 0 8px 24px rgba(15, 23, 42, 0.045); }
+  .gantt-grid { min-width: 1000px; display: grid; grid-template-columns: 170px repeat(21, 1fr); gap: 4px; align-items: center; }
+  .gantt-cell, .gantt-head, .gantt-label { min-height: 28px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 11px; }
+  .gantt-head { color: #64748b; font-weight: 800; background: #f1f5f9; }
+  .gantt-label { justify-content: flex-start; color: #334155; font-weight: 800; padding-left: 8px; }
+  .gantt-cell { background: #f8fafc; border: 1px solid #eef2f7; }
+  .bar { color: white; font-weight: 900; border: none; }
+  .b-blue { background: var(--blue); } .b-green { background: var(--green); } .b-amber { background: var(--amber); } .b-purple { background: var(--purple); } .b-cyan { background: var(--cyan); } .b-red { background: var(--red); }
+  .week-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; }
+  .week-card { background: var(--paper); border: 1px solid var(--line); border-radius: var(--radius); padding: 18px; box-shadow: 0 8px 24px rgba(15, 23, 42, 0.045); }
+  .week-card h3 { margin: 4px 0 6px; font-size: 21px; }
+  .week-card .goal { color: var(--muted); margin: 0 0 14px; }
+  details.day { border-top: 1px solid var(--faint); padding: 12px 0; }
+  details.day:first-of-type { border-top: none; }
+  details.day summary { cursor: pointer; list-style: none; display: flex; align-items: center; justify-content: space-between; gap: 12px; font-weight: 850; }
+  details.day summary::-webkit-details-marker { display: none; }
+  .day-tag { font-size: 11px; padding: 4px 7px; border-radius: 999px; background: #f1f5f9; color: #475569; font-weight: 800; white-space: nowrap; }
+  .day-body { color: var(--muted); font-size: 14px; margin-top: 8px; }
+  .day-body ul { margin-top: 8px; }
+  .artifact { background: #f8fafc; border: 1px dashed #cbd5e1; border-radius: 12px; padding: 10px; margin-top: 9px; color: #334155; font-size: 13px; }
+  .matrix { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+  table { width: 100%; border-collapse: collapse; background: var(--paper); border-radius: var(--radius); overflow: hidden; border: 1px solid var(--line); }
+  th, td { padding: 12px 13px; border-bottom: 1px solid var(--faint); text-align: left; vertical-align: top; font-size: 14px; }
+  th { background: #f8fafc; color: #334155; font-size: 12px; text-transform: uppercase; letter-spacing: .06em; }
+  tr:last-child td { border-bottom: none; }
+  code, pre { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace; }
+  code { background: #f1f5f9; padding: 1px 5px; border-radius: 6px; font-size: 0.92em; }
+  pre { background: #0f172a; color: #e2e8f0; border-radius: 14px; padding: 14px; overflow: auto; font-size: 13px; line-height: 1.45; }
+  .checklist { display: grid; gap: 10px; }
+  .check { display: grid; grid-template-columns: 28px 1fr; gap: 10px; align-items: start; padding: 12px; background: #f8fafc; border: 1px solid var(--faint); border-radius: 14px; }
+  .box { width: 22px; height: 22px; border: 2px solid #94a3b8; border-radius: 6px; background: white; }
+  .check strong { display: block; }
+  .check span { color: var(--muted); font-size: 13px; }
+  .effort { display: grid; gap: 12px; }
+  .effort-row { display: grid; grid-template-columns: 150px 1fr 52px; gap: 10px; align-items: center; font-size: 13px; }
+  .track { height: 16px; background: #eef2f7; border-radius: 999px; overflow: hidden; }
+  .fill { height: 100%; border-radius: 999px; }
+  .sources { font-size: 12px; color: var(--muted); }
+  .sources ol { padding-left: 20px; }
+  .sources li { margin: 7px 0; }
+  .note { background: #fff7ed; border: 1px solid #fed7aa; border-radius: 16px; padding: 16px; color: #7c2d12; }
+  .note strong { color: #9a3412; }
+  @media (max-width: 980px) {
+    .hero-grid, .grid.two, .grid.three, .grid.four, .anatomy, .matrix, .week-grid { grid-template-columns: 1fr; }
+    .thesis { grid-template-columns: 1fr; }
+    .step:not(:last-child):after { content: "↓"; right: 50%; top: auto; bottom: -19px; transform: translateX(50%); }
+  }
+  @media print {
+    body { background: #fff; }
+    .page { max-width: none; padding: 0; }
+    section, .card, .week-card, .gantt { break-inside: avoid; }
+  }
+</style>
+</head>
+<body>
+<div class="page">
+  <header class="hero">
+    <div class="eyebrow">Baseten ramp-up plan · DeepSeek V4 Flash as forcing function</div>
+    <h1>Top-down model analysis → deep kernel expertise → production inference instincts</h1>
+    <p>
+      A 21-day plan that starts from the current DeepSeek-V4-Flash architecture and turns each architectural feature into a concrete kernel-learning exercise: hybrid attention, compressed KV, MoE grouped GEMM, FP4/FP8 scaling, MTP/speculative decode, and Blackwell B200 primitives.
+    </p>
+    <div class="hero-grid">
+      <div class="hero-card">
+        <h3>North star</h3>
+        <div class="big">By day 21, have a compact DeepSeek-V4-Flash performance dossier plus a kernel ladder repo.</div>
+        <ul>
+          <li>Architecture memo: what kernels matter and why.</li>
+          <li>Microbenchmarks: attention, sparse/compressed attention, MoE dispatch/GEMM, logits/sampling.</li>
+          <li>Blackwell notes: TMA, TMEM, tcgen05, CuTe/CUTLASS/FA4 mapping.</li>
+          <li>Capstone: benchmark → profile → patch → before/after report.</li>
+        </ul>
+      </div>
+      <div class="hero-card">
+        <h3>Constraint</h3>
+        <div class="big">Do not burn the whole ramp fighting full-model infra.</div>
+        <ul>
+          <li>Run V4 Flash if B200/GB200 access is easy.</li>
+          <li>Otherwise analyze the real config/recipes and use proxy shapes/models.</li>
+          <li>Kernel depth comes from targeted microbenchmarks, not from merely booting a 284B model.</li>
+        </ul>
+      </div>
+    </div>
+    <div class="badge-row">
+      <span class="badge">DeepSeek-V4-Flash: 284B / 13B active</span>
+      <span class="badge">1M context</span>
+      <span class="badge">Hybrid CSA/HCA/DSA attention</span>
+      <span class="badge">FP4 experts + FP8 remainder</span>
+      <span class="badge">B200: TMA · TMEM · tcgen05</span>
+      <span class="badge">FA4 · CUTLASS · CuTeDSL</span>
+    </div>
+  </header>
+
+  <section>
+    <div class="section-title">
+      <div>
+        <h2>The updated thesis</h2>
+        <p class="subtitle">Keep the original Baseten loop—real workload, benchmark, profile, diagnose, patch—but make DeepSeek-V4-Flash the top-level workload that drives the kernel curriculum.</p>
+      </div>
+    </div>
+    <div class="thesis">
+      <div class="step"><div class="num">1</div><strong>Autopsy V4 Flash</strong><span>Extract architecture, precision, attention patterns, MoE shapes, MTP, runtime support.</span></div>
+      <div class="step"><div class="num">2</div><strong>Predict bottlenecks</strong><span>Use symbolic FLOP/byte models before touching Nsight: attention bytes, MoE GEMM, routing, KV/cache pressure.</span></div>
+      <div class="step"><div class="num">3</div><strong>Build microkernels</strong><span>Target the suspicious kernels: online softmax, sparse indexer, grouped GEMM, FP4 scale layout, logits/top-k.</span></div>
+      <div class="step"><div class="num">4</div><strong>Map to Blackwell</strong><span>Study why FA4/CUTLASS/CuTeDSL exploit TMA, TMEM, tcgen05, CTA-pairs, block scaling.</span></div>
+      <div class="step"><div class="num">5</div><strong>Capstone report</strong><span>Produce a Baseten-style artifact: baseline, trace, bottleneck, intervention, delta, next experiment.</span></div>
+    </div>
+  </section>
+
+  <section>
+    <div class="section-title">
+      <div>
+        <h2>DeepSeek-V4-Flash kernel anatomy</h2>
+        <p class="subtitle">Treat each model feature as a hypothesis about the kernel/runtime path. The point is not “learn DeepSeek facts”; the point is to turn a frontier model into a concrete kernel reading and benchmarking map.</p>
+      </div>
+    </div>
+    <div class="anatomy">
+      <div class="card anatomy-map">
+        <div class="svg-wrap">
+          <svg viewBox="0 0 760 520" width="100%" height="100%" role="img" aria-label="DeepSeek V4 Flash kernel anatomy map">
+            <defs>
+              <marker id="arrow" markerWidth="10" markerHeight="10" refX="7" refY="3" orient="auto" markerUnits="strokeWidth">
+                <path d="M0,0 L0,6 L8,3 z" fill="#64748b" />
+              </marker>
+              <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+                <feDropShadow dx="0" dy="8" stdDeviation="9" flood-opacity="0.12"/>
+              </filter>
+            </defs>
+            <rect x="26" y="26" width="712" height="462" rx="24" fill="#ffffff" stroke="#dce2ea"/>
+            <text x="380" y="64" text-anchor="middle" font-size="26" font-weight="900" fill="#111827">DeepSeek-V4-Flash layer → kernel map</text>
+            <text x="380" y="92" text-anchor="middle" font-size="13" fill="#64748b">Use this as the daily checklist for what to understand, benchmark, and profile.</text>
+
+            <rect x="288" y="116" width="184" height="58" rx="16" fill="#e8f0ff" stroke="#93c5fd" filter="url(#shadow)"/>
+            <text x="380" y="139" text-anchor="middle" font-size="15" font-weight="900" fill="#1d4ed8">Input tokens</text>
+            <text x="380" y="159" text-anchor="middle" font-size="12" fill="#334155">1M context target</text>
+
+            <line x1="380" y1="174" x2="380" y2="212" stroke="#64748b" stroke-width="2" marker-end="url(#arrow)"/>
+            <rect x="90" y="212" width="220" height="92" rx="16" fill="#e8f8fc" stroke="#67e8f9" filter="url(#shadow)"/>
+            <text x="200" y="236" text-anchor="middle" font-size="15" font-weight="900" fill="#0e7490">Hybrid attention</text>
+            <text x="200" y="258" text-anchor="middle" font-size="12" fill="#334155">SWA + compressed KV</text>
+            <text x="200" y="277" text-anchor="middle" font-size="12" fill="#334155">CSA / DSA / HCA</text>
+            <text x="200" y="295" text-anchor="middle" font-size="12" fill="#334155">FA4 + sparse indexers</text>
+
+            <rect x="380" y="212" width="220" height="92" rx="16" fill="#e7f7f1" stroke="#86efac" filter="url(#shadow)"/>
+            <text x="490" y="236" text-anchor="middle" font-size="15" font-weight="900" fill="#047857">MoE experts</text>
+            <text x="490" y="258" text-anchor="middle" font-size="12" fill="#334155">router → top-k → dispatch</text>
+            <text x="490" y="277" text-anchor="middle" font-size="12" fill="#334155">FP4 expert weights</text>
+            <text x="490" y="295" text-anchor="middle" font-size="12" fill="#334155">grouped / mega GEMM</text>
+
+            <line x1="380" y1="174" x2="200" y2="212" stroke="#64748b" stroke-width="2" marker-end="url(#arrow)"/>
+            <line x1="380" y1="174" x2="490" y2="212" stroke="#64748b" stroke-width="2" marker-end="url(#arrow)"/>
+
+            <rect x="90" y="354" width="160" height="70" rx="15" fill="#fff4df" stroke="#fbbf24" filter="url(#shadow)"/>
+            <text x="170" y="378" text-anchor="middle" font-size="14" font-weight="900" fill="#b45309">MTP / specdec</text>
+            <text x="170" y="399" text-anchor="middle" font-size="12" fill="#334155">acceptance + KV coherency</text>
+
+            <rect x="288" y="354" width="160" height="70" rx="15" fill="#f1eafe" stroke="#c4b5fd" filter="url(#shadow)"/>
+            <text x="368" y="378" text-anchor="middle" font-size="14" font-weight="900" fill="#6d28d9">mHC / Sinkhorn</text>
+            <text x="368" y="399" text-anchor="middle" font-size="12" fill="#334155">fused reductions</text>
+
+            <rect x="486" y="354" width="160" height="70" rx="15" fill="#fff0f0" stroke="#fca5a5" filter="url(#shadow)"/>
+            <text x="566" y="378" text-anchor="middle" font-size="14" font-weight="900" fill="#b91c1c">Sampling / logits</text>
+            <text x="566" y="399" text-anchor="middle" font-size="12" fill="#334155">top-k, masks, structured output</text>
+
+            <line x1="200" y1="304" x2="170" y2="354" stroke="#64748b" stroke-width="2" marker-end="url(#arrow)"/>
+            <line x1="200" y1="304" x2="368" y2="354" stroke="#64748b" stroke-width="2" marker-end="url(#arrow)"/>
+            <line x1="490" y1="304" x2="566" y2="354" stroke="#64748b" stroke-width="2" marker-end="url(#arrow)"/>
+
+            <rect x="210" y="455" width="340" height="38" rx="14" fill="#111827"/>
+            <text x="380" y="479" text-anchor="middle" font-size="14" font-weight="900" fill="#fff">Benchmark → Nsight → kernel/runtime patch → report</text>
+          </svg>
+        </div>
+      </div>
+      <div class="grid">
+        <div class="card">
+          <span class="pill cyan">Attention</span>
+          <h3>Primary kernel thesis</h3>
+          <p>V4 Flash is a long-context model first. Hybrid attention reduces KV/cache pressure, but it creates new kernel complexity: compressed KV pools, sparse indexer metadata, prefix-cache coherence, and attention kernels that are no longer “just dense causal FA”.</p>
+          <ul>
+            <li>Study dense FA first, then sparse/compressed variants.</li>
+            <li>Map prefill, decode, and append separately.</li>
+            <li>Track online softmax, metadata prep, and KV memory traffic as distinct costs.</li>
+          </ul>
+        </div>
+        <div class="card">
+          <span class="pill green">MoE</span>
+          <h3>Secondary kernel thesis</h3>
+          <p>13B active parameters makes expert compute smaller per token than the total model suggests, but routing, ragged expert batches, FP4 scales, and all-to-all/dispatch can dominate if the engine does not align with model shape.</p>
+          <ul>
+            <li>Grouped GEMM: fixed N/K, variable M per expert.</li>
+            <li>Dispatch/combine: local vs EP, NVLink overlap, CUDA graph constraints.</li>
+            <li>FP4 experts: scale layout and epilogue conversion are first-class kernel details.</li>
+          </ul>
+        </div>
+        <div class="card">
+          <span class="pill amber">Serving</span>
+          <h3>Production thesis</h3>
+          <p>Every kernel win must survive the serving layer: OpenAI-compatible behavior, streaming, structured output, cancellation, batching, MTP/specdecode, prefix reuse, and customer workload distributions.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="section-title">
+      <div>
+        <h2>Blackwell B200 kernel primitive map</h2>
+        <p class="subtitle">This is the mental model to build while reading FA4, CUTLASS, and CuTeDSL. The hard part is no longer only coalescing and occupancy; it is overlapping the full pipeline and using Blackwell’s new data paths correctly.</p>
+      </div>
+    </div>
+    <div class="grid two">
+      <div class="card">
+        <svg viewBox="0 0 760 300" width="100%" role="img" aria-label="B200 kernel pipeline GMEM TMA SMEM TMEM TCGEN05">
+          <defs>
+            <marker id="arr2" markerWidth="10" markerHeight="10" refX="7" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L8,3 z" fill="#64748b" /></marker>
+          </defs>
+          <rect x="20" y="54" width="116" height="78" rx="14" fill="#e8f0ff" stroke="#93c5fd"/>
+          <text x="78" y="86" text-anchor="middle" font-size="16" font-weight="900" fill="#1d4ed8">GMEM</text>
+          <text x="78" y="108" text-anchor="middle" font-size="12" fill="#334155">Q/K/V, weights</text>
+
+          <line x1="136" y1="93" x2="202" y2="93" stroke="#64748b" stroke-width="2" marker-end="url(#arr2)"/>
+          <text x="169" y="78" text-anchor="middle" font-size="11" fill="#64748b">TMA</text>
+
+          <rect x="202" y="54" width="116" height="78" rx="14" fill="#e8f8fc" stroke="#67e8f9"/>
+          <text x="260" y="86" text-anchor="middle" font-size="16" font-weight="900" fill="#0e7490">SMEM</text>
+          <text x="260" y="108" text-anchor="middle" font-size="12" fill="#334155">tiles + descriptors</text>
+
+          <line x1="318" y1="93" x2="384" y2="93" stroke="#64748b" stroke-width="2" marker-end="url(#arr2)"/>
+          <text x="351" y="78" text-anchor="middle" font-size="11" fill="#64748b">tcgen05.mma</text>
+
+          <rect x="384" y="54" width="116" height="78" rx="14" fill="#f1eafe" stroke="#c4b5fd"/>
+          <text x="442" y="86" text-anchor="middle" font-size="16" font-weight="900" fill="#6d28d9">TMEM</text>
+          <text x="442" y="108" text-anchor="middle" font-size="12" fill="#334155">accumulators</text>
+
+          <line x1="500" y1="93" x2="566" y2="93" stroke="#64748b" stroke-width="2" marker-end="url(#arr2)"/>
+          <text x="533" y="78" text-anchor="middle" font-size="11" fill="#64748b">tcgen05.ld</text>
+
+          <rect x="566" y="54" width="116" height="78" rx="14" fill="#fff4df" stroke="#fbbf24"/>
+          <text x="624" y="86" text-anchor="middle" font-size="16" font-weight="900" fill="#b45309">RMEM</text>
+          <text x="624" y="108" text-anchor="middle" font-size="12" fill="#334155">epilogue</text>
+
+          <path d="M624 132 C624 178 78 178 78 132" fill="none" stroke="#94a3b8" stroke-dasharray="6 5" stroke-width="2" marker-end="url(#arr2)"/>
+          <text x="350" y="191" text-anchor="middle" font-size="12" fill="#64748b">store / next tile / overlap copy + math + epilogue</text>
+
+          <rect x="120" y="226" width="520" height="44" rx="14" fill="#111827"/>
+          <text x="380" y="253" text-anchor="middle" font-size="14" font-weight="900" fill="#fff">Goal: reason about pipeline bubbles, not just isolated kernel occupancy.</text>
+        </svg>
+      </div>
+      <div class="card">
+        <span class="pill purple">What to internalize</span>
+        <h3>B200 learning objectives</h3>
+        <div class="checklist">
+          <div class="check"><div class="box"></div><div><strong>tcgen05 / UMMA</strong><span>How Blackwell replaces Hopper WGMMA paths, why accumulators move into TMEM, and how 1SM vs 2SM MMA changes launch/sync.</span></div></div>
+          <div class="check"><div class="box"></div><div><strong>TMA and multicast</strong><span>How GMEM→SMEM bulk copy is described, staged, synchronized, and overlapped with MMA.</span></div></div>
+          <div class="check"><div class="box"></div><div><strong>TMEM lifecycle</strong><span>Allocation, accumulation, copy-out to RMEM, epilogue fusion, and why register pressure changes.</span></div></div>
+          <div class="check"><div class="box"></div><div><strong>Block-scaled FP4/FP8</strong><span>Scale tensor layout, NVFP4/MXFP4 differences, and where dequantization belongs: pre-kernel, mainloop, or epilogue.</span></div></div>
+          <div class="check"><div class="box"></div><div><strong>Warp specialization</strong><span>DMA warp, MMA warp, epilogue warp, producer/consumer barriers, and pipeline fill/drain costs.</span></div></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="section-title">
+      <div>
+        <h2>21-day roadmap</h2>
+        <p class="subtitle">Assuming you start today, day 1 is May 19 and day 21 is June 8. The plan is intentionally top-down in week 1, kernel-depth-heavy in week 2, and Baseten-style capstone in week 3.</p>
+      </div>
+    </div>
+    <div class="gantt">
+      <div class="gantt-grid">
+        <div></div>
+        <div class="gantt-head">D1</div><div class="gantt-head">D2</div><div class="gantt-head">D3</div><div class="gantt-head">D4</div><div class="gantt-head">D5</div><div class="gantt-head">D6</div><div class="gantt-head">D7</div>
+        <div class="gantt-head">D8</div><div class="gantt-head">D9</div><div class="gantt-head">D10</div><div class="gantt-head">D11</div><div class="gantt-head">D12</div><div class="gantt-head">D13</div><div class="gantt-head">D14</div>
+        <div class="gantt-head">D15</div><div class="gantt-head">D16</div><div class="gantt-head">D17</div><div class="gantt-head">D18</div><div class="gantt-head">D19</div><div class="gantt-head">D20</div><div class="gantt-head">D21</div>
+
+        <div class="gantt-label">V4 architecture</div>
+        <div class="gantt-cell bar b-blue">map</div><div class="gantt-cell bar b-blue">model</div><div class="gantt-cell bar b-blue">runtime</div><div class="gantt-cell"></div><div class="gantt-cell"></div><div class="gantt-cell"></div><div class="gantt-cell bar b-blue">memo</div>
+        <div class="gantt-cell"></div><div class="gantt-cell"></div><div class="gantt-cell"></div><div class="gantt-cell"></div><div class="gantt-cell"></div><div class="gantt-cell"></div><div class="gantt-cell"></div>
+        <div class="gantt-cell bar b-blue">target</div><div class="gantt-cell"></div><div class="gantt-cell"></div><div class="gantt-cell"></div><div class="gantt-cell"></div><div class="gantt-cell"></div><div class="gantt-cell bar b-blue">pack</div>
+
+        <div class="gantt-label">Attention kernels</div>
+        <div class="gantt-cell"></div><div class="gantt-cell"></div><div class="gantt-cell"></div><div class="gantt-cell bar b-cyan">dense</div><div class="gantt-cell bar b-cyan">sparse</div><div class="gantt-cell"></div><div class="gantt-cell"></div>
+        <div class="gantt-cell"></div><div class="gantt-cell bar b-cyan">online</div><div class="gantt-cell"></div><div class="gantt-cell"></div><div class="gantt-cell"></div><div class="gantt-cell"></div><div class="gantt-cell bar b-cyan">FA4</div>
+        <div class="gantt-cell"></div><div class="gantt-cell"></div><div class="gantt-cell bar b-cyan">trace</div><div class="gantt-cell bar b-cyan">patch</div><div class="gantt-cell"></div><div class="gantt-cell"></div><div class="gantt-cell"></div>
+
+        <div class="gantt-label">MoE / GEMM</div>
+        <div class="gantt-cell"></div><div class="gantt-cell"></div><div class="gantt-cell"></div><div class="gantt-cell"></div><div class="gantt-cell"></div><div class="gantt-cell bar b-green">routing</div><div class="gantt-cell"></div>
+        <div class="gantt-cell"></div><div class="gantt-cell"></div><div class="gantt-cell"></div><div class="gantt-cell"></div><div class="gantt-cell bar b-green">CUTLASS</div><div class="gantt-cell bar b-green">B200</div><div class="gantt-cell"></div>
+        <div class="gantt-cell"></div><div class="gantt-cell"></div><div class="gantt-cell bar b-green">trace</div><div class="gantt-cell"></div><div class="gantt-cell bar b-green">patch</div><div class="gantt-cell"></div><div class="gantt-cell"></div>
+
+        <div class="gantt-label">CuTe / Blackwell</div>
+        <div class="gantt-cell"></div><div class="gantt-cell"></div><div class="gantt-cell"></div><div class="gantt-cell"></div><div class="gantt-cell"></div><div class="gantt-cell"></div><div class="gantt-cell"></div>
+        <div class="gantt-cell"></div><div class="gantt-cell"></div><div class="gantt-cell"></div><div class="gantt-cell bar b-purple">CuTe</div><div class="gantt-cell bar b-purple">GEMM</div><div class="gantt-cell bar b-purple">TMA</div><div class="gantt-cell bar b-purple">FA4</div>
+        <div class="gantt-cell"></div><div class="gantt-cell"></div><div class="gantt-cell"></div><div class="gantt-cell"></div><div class="gantt-cell"></div><div class="gantt-cell"></div><div class="gantt-cell bar b-purple">notes</div>
+
+        <div class="gantt-label">Serving / report</div>
+        <div class="gantt-cell"></div><div class="gantt-cell"></div><div class="gantt-cell bar b-amber">support</div><div class="gantt-cell"></div><div class="gantt-cell"></div><div class="gantt-cell"></div><div class="gantt-cell bar b-amber">prior</div>
+        <div class="gantt-cell"></div><div class="gantt-cell"></div><div class="gantt-cell"></div><div class="gantt-cell"></div><div class="gantt-cell"></div><div class="gantt-cell"></div><div class="gantt-cell"></div>
+        <div class="gantt-cell bar b-amber">setup</div><div class="gantt-cell bar b-amber">bench</div><div class="gantt-cell bar b-amber">profile</div><div class="gantt-cell bar b-amber">patch</div><div class="gantt-cell bar b-amber">patch</div><div class="gantt-cell bar b-amber">write</div><div class="gantt-cell bar b-amber">prep</div>
+      </div>
+    </div>
+    <div class="legend">
+      <span><i class="dot blue"></i> architecture/model</span>
+      <span><i class="dot cyan"></i> attention</span>
+      <span><i class="dot green"></i> MoE/GEMM</span>
+      <span><i class="dot purple"></i> Blackwell/CuTe</span>
+      <span><i class="dot amber"></i> serving/report</span>
+    </div>
+  </section>
+
+  <section>
+    <div class="section-title">
+      <div>
+        <h2>Week-by-week detailed plan</h2>
+        <p class="subtitle">Each day should end with an artifact. The artifact matters because it forces the Baseten operating loop: prediction → measurement → evidence → next action.</p>
+      </div>
+    </div>
+    <div class="week-grid">
+      <div class="week-card">
+        <span class="pill blue">Week 1</span>
+        <h3>Top-down V4 Flash autopsy</h3>
+        <p class="goal">Goal: convert model architecture into a prioritized kernel hypothesis list.</p>
+
+        <details class="day" open><summary>D1 · Architecture map <span class="day-tag">read + diagram</span></summary><div class="day-body"><ul><li>Read DeepSeek model card, API release, vLLM recipe, SGLang day-0 post.</li><li>Extract: attention types, MoE active/total params, precision split, context length, MTP/specdecode knobs, runtime support.</li><li>Draw one transformer block with all kernels and metadata paths.</li></ul><div class="artifact"><strong>Artifact:</strong> <code>v4_flash_kernel_map.md</code> with “known / unknown / must measure”.</div></div></details>
+        <details class="day"><summary>D2 · Per-token performance model <span class="day-tag">math</span></summary><div class="day-body"><ul><li>Build symbolic FLOP/byte equations for dense attention, SWA, compressed attention, MoE expert GEMMs, routing, logits.</li><li>Use variables when exact config details are missing; the skill is bottleneck prediction, not pretending precision.</li><li>Classify each component as likely compute-bound, memory-bound, metadata-bound, or launch/scheduling-bound.</li></ul><div class="artifact"><strong>Artifact:</strong> notebook with roofline-style table and bottleneck priors.</div></div></details>
+        <details class="day"><summary>D3 · Runtime support reconnaissance <span class="day-tag">vLLM / SGLang / TRT-LLM</span></summary><div class="day-body"><ul><li>Check what is actually supported today: V4 Flash, MTP, FP4/FP8, compressed attention, prefix cache, EP/TP.</li><li>Do not spend the day making the full model run unless hardware is already available.</li><li>Pick a proxy workload if needed: Qwen/DeepSeek-V3.2/Mixtral-like MoE plus long-context attention shapes.</li></ul><div class="artifact"><strong>Artifact:</strong> runtime support matrix and selected capstone path.</div></div></details>
+        <details class="day"><summary>D4 · Dense attention baseline <span class="day-tag">FA mental model</span></summary><div class="day-body"><ul><li>Implement naive attention, PyTorch SDPA call, and FlashAttention call for controlled shapes.</li><li>Sweep head dim, sequence length, prefill vs decode, causal vs non-causal.</li><li>Profile memory traffic and online softmax behavior.</li></ul><div class="artifact"><strong>Artifact:</strong> attention benchmark harness with plots.</div></div></details>
+        <details class="day"><summary>D5 · Sparse/compressed attention toy <span class="day-tag">V4-like</span></summary><div class="day-body"><ul><li>Build a toy SWA + compressed-KV attention benchmark: local window plus compressed coarse tokens.</li><li>Implement metadata/index preparation separately from the attention compute path.</li><li>Measure when metadata/indexing dominates and when attention compute dominates.</li></ul><div class="artifact"><strong>Artifact:</strong> toy compressed-attention microbench + one-page lessons.</div></div></details>
+        <details class="day"><summary>D6 · MoE routing and grouped GEMM toy <span class="day-tag">dispatch</span></summary><div class="day-body"><ul><li>Implement router/top-k, token grouping, ragged expert batches, scatter/combine.</li><li>Benchmark uniform vs skewed routing; small vs large batch; prefill vs decode shapes.</li><li>Compare placeholder GEMM, PyTorch grouped execution, Triton grouped GEMM, and library paths where possible.</li></ul><div class="artifact"><strong>Artifact:</strong> MoE bottleneck table: routing, grouping, GEMM, combine.</div></div></details>
+        <details class="day"><summary>D7 · Synthesis memo <span class="day-tag">prioritize</span></summary><div class="day-body"><ul><li>Rank kernel families by expected leverage for V4 Flash serving.</li><li>Write “what I would inspect first in a Baseten trace”.</li><li>Choose week-2 deep dives based on evidence, not vibes.</li></ul><div class="artifact"><strong>Artifact:</strong> <code>week1_v4_flash_kernel_hypotheses.md</code>.</div></div></details>
+      </div>
+
+      <div class="week-card">
+        <span class="pill purple">Week 2</span>
+        <h3>Kernel depth ladder</h3>
+        <p class="goal">Goal: build working understanding from Triton/CUDA up to CuTeDSL, CUTLASS, FA4, and Blackwell primitives.</p>
+
+        <details class="day" open><summary>D8 · Triton reductions and logits <span class="day-tag">SIMT</span></summary><div class="day-body"><ul><li>Implement RMSNorm, LayerNorm, residual+RMSNorm, top-k/top-p/logit mask.</li><li>Use these to rehearse vectorized loads, reductions, register pressure, and occupancy.</li><li>Run Nsight Compute on at least one kernel.</li></ul><div class="artifact"><strong>Artifact:</strong> correctness tests + benchmark table + NCU notes.</div></div></details>
+        <details class="day"><summary>D9 · Triton attention internals <span class="day-tag">online softmax</span></summary><div class="day-body"><ul><li>Implement a small FlashAttention-style online softmax kernel or heavily modify an existing tutorial.</li><li>Vary block sizes and num warps; track L2/HBM behavior and arithmetic intensity.</li><li>Write exactly why the kernel is memory-bound or compute-bound in each regime.</li></ul><div class="artifact"><strong>Artifact:</strong> “online softmax invariants” note + benchmark sweeps.</div></div></details>
+        <details class="day"><summary>D10 · CUDA C++ kernel pass <span class="day-tag">control</span></summary><div class="day-body"><ul><li>Write one CUDA C++ version of a reduction/logits kernel.</li><li>Practice cooperative groups/CUB where appropriate, vectorized loads, shared memory, and launch bounds.</li><li>Compare to Triton for both speed and debuggability.</li></ul><div class="artifact"><strong>Artifact:</strong> CUDA-vs-Triton comparison memo.</div></div></details>
+        <details class="day"><summary>D11 · CuTe layout algebra <span class="day-tag">foundation</span></summary><div class="day-body"><ul><li>Work through CuTe/CuTeDSL basics: tensors, layouts, tiling, partitioning, copy atoms.</li><li>Take one tiny GEMM/copy example and explain every layout transformation.</li><li>Do not skip layout algebra: it is the language used by FA4/CUTLASS.</li></ul><div class="artifact"><strong>Artifact:</strong> annotated CuTe layout notebook.</div></div></details>
+        <details class="day"><summary>D12 · CUTLASS grouped GEMM <span class="day-tag">MoE</span></summary><div class="day-body"><ul><li>Run CUTLASS profiler or examples for dense and grouped GEMM; focus on MoE-like variable-M shapes.</li><li>Study epilogue fusion, grouped scheduling, persistent kernels, block-scaled types.</li><li>Map DeepGEMM’s “group only M-axis” idea to CUTLASS grouped kernels.</li></ul><div class="artifact"><strong>Artifact:</strong> MoE GEMM shape table + library-choice notes.</div></div></details>
+        <details class="day"><summary>D13 · Blackwell TMA/TMEM/tcgen05 <span class="day-tag">B200</span></summary><div class="day-body"><ul><li>Walk through CUTLASS/CuTe Blackwell examples: simple tcgen05 MMA, TMA, multicast, 2SM MMA, TMA epilogue.</li><li>Draw the data path: GMEM→TMA→SMEM, tcgen05.mma→TMEM, tcgen05.ld→RMEM, epilogue→GMEM.</li><li>If you have B200 access, modify one tile shape or epilogue and profile it.</li></ul><div class="artifact"><strong>Artifact:</strong> annotated Blackwell GEMM pipeline diagram.</div></div></details>
+        <details class="day"><summary>D14 · FA4 deep read / reproduction <span class="day-tag">attention peak</span></summary><div class="day-body"><ul><li>Read FA4 for algorithm/kernel co-design: non-matmul bottlenecks, softmax changes, pipeline overlap, TMEM/2CTA behavior.</li><li>If on B200/H100, reproduce at least a subset of FA4 vs PyTorch/FA2/cuDNN/Triton.</li><li>If not, produce a “what would I profile on B200?” plan with expected NCU counters.</li></ul><div class="artifact"><strong>Artifact:</strong> FA4 anatomy memo + reproduction or dry-run protocol.</div></div></details>
+      </div>
+
+      <div class="week-card">
+        <span class="pill amber">Week 3</span>
+        <h3>Baseten-style capstone</h3>
+        <p class="goal">Goal: one polished investigation that shows you can move from model/workload to measured performance action.</p>
+
+        <details class="day" open><summary>D15 · Capstone setup <span class="day-tag">target</span></summary><div class="day-body"><ul><li>Target A: DeepSeek-V4-Flash on B200/GB200 if accessible.</li><li>Target B: V4 Flash architecture analysis + proxy model/shape workload if full model is impractical.</li><li>Define ISL/OSL/concurrency grid: e.g. 128/128, 4K/256, 32K/512, plus one long-context stress case.</li></ul><div class="artifact"><strong>Artifact:</strong> benchmark plan with exact commands and acceptance criteria.</div></div></details>
+        <details class="day"><summary>D16 · Baseline curves <span class="day-tag">no optimization yet</span></summary><div class="day-body"><ul><li>Run throughput, TTFT, TPOT, p95 latency, memory, and GPU utilization sweeps.</li><li>Separate prefill-heavy, decode-heavy, and mixed batches.</li><li>Record model/runtime config and actual git SHAs.</li></ul><div class="artifact"><strong>Artifact:</strong> baseline dashboard table + plots.</div></div></details>
+        <details class="day"><summary>D17 · Profile and diagnose <span class="day-tag">Nsight</span></summary><div class="day-body"><ul><li>Use Nsight Systems for timeline gaps and CPU/GPU overlap.</li><li>Use Nsight Compute for one attention or GEMM kernel.</li><li>Pick one bottleneck: attention/KV, MoE GEMM, routing/dispatch, logits/sampling, CPU scheduling, or runtime config.</li></ul><div class="artifact"><strong>Artifact:</strong> trace screenshots + bottleneck hypothesis.</div></div></details>
+        <details class="day"><summary>D18 · Patch path A <span class="day-tag">attention/runtime</span></summary><div class="day-body"><ul><li>Try one credible intervention: attention backend, chunked prefill, prefix-cache knob, batch/concurrency shaping, FA backend, or CUDA graph setting.</li><li>Keep the patch small enough to attribute causality.</li></ul><div class="artifact"><strong>Artifact:</strong> patch A before/after table.</div></div></details>
+        <details class="day"><summary>D19 · Patch path B <span class="day-tag">MoE/logits</span></summary><div class="day-body"><ul><li>Try one MoE/GEMM/logits intervention: grouped-GEMM path, routing layout, logit-mask kernel, top-k sampling, or FP4 scale handling.</li><li>If no code patch is feasible, do a config/library swap and explain why it is the right production move.</li></ul><div class="artifact"><strong>Artifact:</strong> patch B before/after table.</div></div></details>
+        <details class="day"><summary>D20 · Write the report <span class="day-tag">evidence</span></summary><div class="day-body"><ul><li>Use the Baseten shape: workload, hardware/runtime/config, baseline, hypothesis, profiler evidence, intervention, result, caveats, next 3 experiments.</li><li>Include failed hypotheses if they were evidence-producing.</li></ul><div class="artifact"><strong>Artifact:</strong> 3–5 page performance bring-up report.</div></div></details>
+        <details class="day"><summary>D21 · Day-one Baseten pack <span class="day-tag">handoff</span></summary><div class="day-body"><ul><li>Create a repo README, benchmark scripts, kernel ladder index, report PDF/HTML, and “questions for week 1 at Baseten”.</li><li>Write what you know well vs what context you need from Baseten’s internal stack.</li></ul><div class="artifact"><strong>Artifact:</strong> day-one pack you can reference immediately.</div></div></details>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="section-title">
+      <div>
+        <h2>Kernel depth curriculum, tied to V4 Flash</h2>
+        <p class="subtitle">This is the mapping from model feature to the exact kernel expertise to build.</p>
+      </div>
+    </div>
+    <table>
+      <thead><tr><th>V4 Flash feature</th><th>Kernel skill to build</th><th>Concrete exercise</th><th>Profiler question</th></tr></thead>
+      <tbody>
+        <tr><td><strong>1M context + hybrid attention</strong><br/>SWA + compressed/sparse paths</td><td>FA-style online softmax; sparse metadata; KV layout; prefill vs decode separation</td><td>Dense FA baseline → windowed attention → compressed KV + top-k indexer toy</td><td>Is time going to HBM/KV reads, softmax/non-matmul work, metadata prep, or tensor core math?</td></tr>
+        <tr><td><strong>FP4/FP8 mixed weights</strong><br/>FP4 experts, FP8 attention/norm/router</td><td>Block scaling, scale-tensor layout, epilogue conversion, low-precision data movement</td><td>Run/modify blockscaled GEMM examples; build FP8×FP4 toy dequant epilogue</td><td>Are scale loads/layout or conversion overheads visible? Does epilogue fusion help or hurt?</td></tr>
+        <tr><td><strong>MoE 13B active</strong><br/>router/top-k/experts/combine</td><td>Ragged grouped GEMM, expert load imbalance, dispatch/combine, persistent kernels</td><td>MoE toy with uniform/skewed routing; compare PyTorch, Triton, CUTLASS/DeepGEMM-style paths</td><td>Is the bottleneck grouping/dispatch, GEMM, all-to-all, scatter/combine, or graph/static-shape constraints?</td></tr>
+        <tr><td><strong>MTP/speculative decoding</strong></td><td>Draft/target scheduling, acceptance-rate math, KV coherence, logits/sampling kernels</td><td>Specdecode simulator + top-k/logit-mask kernel + benchmark with structured-output mask</td><td>Does speculation reduce TPOT or just add overhead under batch pressure?</td></tr>
+        <tr><td><strong>mHC / fused transformations</strong></td><td>Fused reductions, numerics, tensor layout, stability-sensitive kernels</td><td>Implement reduction-heavy toy kernel; inspect TileLang/Sinkhorn-style descriptions if relevant</td><td>Are reductions memory-bound? Is fusion increasing register pressure too much?</td></tr>
+        <tr><td><strong>Blackwell target</strong><br/>B200/GB200</td><td>TMA, TMEM, tcgen05, CuTe layout algebra, warp specialization, 2SM MMA</td><td>Modify CuTe Blackwell examples; annotate FA4 pipeline; measure tile/pipeline variants if hardware exists</td><td>Where are pipeline bubbles? Are MMA, TMA, softmax, and epilogue overlapped?</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section>
+    <div class="section-title">
+      <div>
+        <h2>Daily time budget</h2>
+        <p class="subtitle">The original plan’s 3–5 focused hours/day still fits. The main change is making each block produce a V4/kernel artifact.</p>
+      </div>
+    </div>
+    <div class="grid two">
+      <div class="card">
+        <div class="effort">
+          <div class="effort-row"><strong>Perf prediction</strong><div class="track"><div class="fill" style="width:14%; background: var(--blue)"></div></div><span>20m</span></div>
+          <div class="effort-row"><strong>Implementation</strong><div class="track"><div class="fill" style="width:48%; background: var(--green)"></div></div><span>90m</span></div>
+          <div class="effort-row"><strong>Profiling</strong><div class="track"><div class="fill" style="width:32%; background: var(--purple)"></div></div><span>60m</span></div>
+          <div class="effort-row"><strong>Memo</strong><div class="track"><div class="fill" style="width:20%; background: var(--amber)"></div></div><span>30m</span></div>
+        </div>
+      </div>
+      <div class="card">
+        <span class="pill green">Rule</span>
+        <h3>Every day ends with one of these</h3>
+        <div class="checklist">
+          <div class="check"><div class="box"></div><div><strong>A diagram</strong><span>Architecture, kernel pipeline, runtime path, or data layout.</span></div></div>
+          <div class="check"><div class="box"></div><div><strong>A benchmark table</strong><span>Shapes, dtype, backend, p50/p95, throughput, utilization, notes.</span></div></div>
+          <div class="check"><div class="box"></div><div><strong>A profiler observation</strong><span>One concrete Nsight/PyTorch-profiler finding and the next experiment it implies.</span></div></div>
+          <div class="check"><div class="box"></div><div><strong>A failed hypothesis</strong><span>Allowed, as long as it changes your next decision.</span></div></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="section-title">
+      <div>
+        <h2>Benchmark harness shape</h2>
+        <p class="subtitle">Keep it boring, reproducible, and traceable. You are warming up for production model performance, not writing a toy benchmark that only works on your laptop.</p>
+      </div>
+    </div>
+    <div class="grid two">
+      <div class="card">
+        <h3>Repo layout</h3>
+<pre>baseten-v4-flash-ramp/
+  README.md
+  configs/
+    v4_flash_notes.yaml
+    proxy_shapes.yaml
+  benches/
+    bench_attention.py
+    bench_compressed_attention.py
+    bench_moe_grouped_gemm.py
+    bench_logits_sampling.py
+    bench_serving.py
+  kernels/
+    triton/
+    cuda_ext/
+    cute_dsl/
+  traces/
+    nsys/
+    ncu/
+  reports/
+    week1_hypotheses.md
+    fa4_anatomy.md
+    capstone_report.html</pre>
+      </div>
+      <div class="card">
+        <h3>Minimum benchmark metadata</h3>
+<pre>model_or_proxy: DeepSeek-V4-Flash / proxy
+runtime: vLLM / SGLang / TensorRT-LLM / microbench
+hardware: GPU, driver, CUDA, clock state
+shape: batch, seq_len_q, seq_len_kv, head_dim, heads
+phase: prefill / decode / append / mixed
+dtype: bf16 / fp8 / fp4+fp8
+metric: TTFT, TPOT, tok/s/GPU, latency p50/p95
+profiler: torch.profiler / nsys / ncu
+hypothesis: what should dominate and why
+result: what dominated and evidence</pre>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="section-title">
+      <div>
+        <h2>Hardware fallback plan</h2>
+        <p class="subtitle">You can get useful preparation without full B200 access. The only unacceptable outcome is spending three weeks blocked on infra.</p>
+      </div>
+    </div>
+    <div class="matrix">
+      <div class="card">
+        <span class="pill green">If B200 / GB200 access exists</span>
+        <h3>Run the real stack where possible</h3>
+        <ul>
+          <li>Install CUDA 13.x/CuTeDSL-compatible environment if needed.</li>
+          <li>Try FA4 and Blackwell CUTLASS examples directly.</li>
+          <li>Run one DeepSeek-V4-Flash or V4-like serving baseline if memory/topology allows.</li>
+          <li>Profile one attention or MoE kernel with Nsight Compute.</li>
+          <li>Make the capstone about real B200 evidence.</li>
+        </ul>
+      </div>
+      <div class="card">
+        <span class="pill amber">If only H100/A100/local exists</span>
+        <h3>Still make the ramp valuable</h3>
+        <ul>
+          <li>Use official config/recipes for V4 Flash analysis.</li>
+          <li>Use H100 for FA3/FA4-supported subsets where possible; A100 for FA2/Triton/CUDA basics.</li>
+          <li>Use proxy MoE shapes and long-context microbenchmarks.</li>
+          <li>Read B200/CuTe/FA4 deeply and write “expected B200 profiler signatures”.</li>
+          <li>Make the capstone about diagnosis quality plus a credible next B200 experiment.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="section-title">
+      <div>
+        <h2>Reading queue, in order</h2>
+        <p class="subtitle">Read to unblock daily work. Do not let reading replace implementation and profiling.</p>
+      </div>
+    </div>
+    <table>
+      <thead><tr><th>Priority</th><th>Read</th><th>Reason</th><th>Stop when you can answer…</th></tr></thead>
+      <tbody>
+        <tr><td>1</td><td>DeepSeek V4 model card + official release + vLLM/SGLang recipes</td><td>Defines the workload: hybrid attention, MoE, 1M context, FP4/FP8, MTP.</td><td>What are the top five kernels/runtime components this model stresses?</td></tr>
+        <tr><td>2</td><td>FA4 paper/blog + implementation notes</td><td>Current north-star for attention on Blackwell; connects algorithm design to kernel pipeline design.</td><td>Why does B200 make non-matmul work the limiting factor, and what does FA4 do about it?</td></tr>
+        <tr><td>3</td><td>CuTeDSL quick start + CUTLASS Blackwell examples</td><td>Gives the vocabulary: layouts, copy atoms, TMA, tcgen05, TMEM, epilogues, grouped kernels.</td><td>Can you explain a Blackwell GEMM from GMEM load to epilogue store?</td></tr>
+        <tr><td>4</td><td>DeepGEMM + FlashInfer docs/repos</td><td>Shows production-ish MoE/GEMM/attention kernel abstractions used around DeepSeek-style serving.</td><td>When should you reach for library kernels instead of writing Triton/CUDA?</td></tr>
+        <tr><td>5</td><td>TensorRT-LLM/vLLM/SGLang serving docs</td><td>Connects kernels to TTFT/TPOT, batching, KV cache, prefix cache, guided/structured output, MTP/specdecode.</td><td>What config change would you try before writing a kernel?</td></tr>
+        <tr><td>6</td><td>Colfax, Veitner, GPU MODE, ThunderKittens/ParallelKittens</td><td>Deepens mental models and exposes alternate implementation styles.</td><td>Can you compare implementation tradeoffs across Triton, CuTeDSL, CUTLASS, TileLang, and CUDA C++?</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section>
+    <div class="section-title">
+      <div>
+        <h2>Capstone report template</h2>
+        <p class="subtitle">Use this exact structure so the final artifact resembles something useful on a model-performance team.</p>
+      </div>
+    </div>
+    <div class="grid two">
+      <div class="card">
+<pre>Title: Performance bring-up for DeepSeek-V4-Flash-like serving
+
+1. Workload and user goal
+2. Model facts and architecture-derived bottleneck priors
+3. Hardware/runtime/config
+4. Baseline metrics and benchmark methodology
+5. Profiler evidence
+6. Bottleneck diagnosis
+7. Intervention A and result
+8. Intervention B and result
+9. What got worse / regression risk
+10. Next 3 experiments
+11. Production caveats</pre>
+      </div>
+      <div class="card">
+        <span class="pill red">Quality bar</span>
+        <h3>No vibes. Evidence only.</h3>
+        <ul>
+          <li>Every claim has one of: formula, benchmark number, profiler screenshot, config diff, or source citation.</li>
+          <li>Separate “real DeepSeek run” from “proxy-shape inference”.</li>
+          <li>Separate kernel speedup from end-to-end serving improvement.</li>
+          <li>Explicitly mention feature caveats: streaming, structured output, cancellation, OpenAI compatibility, prefix cache, MTP/specdecode.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="section-title">
+      <div>
+        <h2>Day-one Baseten questions</h2>
+        <p class="subtitle">These are tuned for this ramp plan and your background: show you can own a performance investigation without assuming the answer is always “write a custom kernel.”</p>
+      </div>
+    </div>
+    <div class="grid three">
+      <div class="card"><span class="pill blue">Workload</span><h3>What should I reproduce first?</h3><p>Which current customer/model/workload has the highest model-performance leverage: TTFT, TPOT, throughput, cost, long context, MoE, structured output, or reliability?</p></div>
+      <div class="card"><span class="pill green">Runtime</span><h3>Which path is strategic?</h3><p>For current frontier open models, where does Baseten prefer TensorRT-LLM, SGLang, vLLM, FlashInfer, custom CUDA/Triton, or upstream patches?</p></div>
+      <div class="card"><span class="pill purple">Kernels</span><h3>Where do custom kernels live?</h3><p>What is the review bar for correctness, numerics, shapes, profiler evidence, regression tests, and production feature compatibility?</p></div>
+      <div class="card"><span class="pill cyan">Measurement</span><h3>What is the benchmark standard?</h3><p>What datasets, ISL/OSL distributions, concurrency sweeps, p50/p95 metrics, hardware clock settings, and traces count as reproducible?</p></div>
+      <div class="card"><span class="pill amber">Infra</span><h3>What should I not reinvent?</h3><p>Which internal tools already exist for traces, microbenchmarks, runtime configs, deployment packaging, and regression dashboards?</p></div>
+      <div class="card"><span class="pill red">Ownership</span><h3>What first project fits two weeks?</h3><p>Ask for a bounded project where you can produce a clean before/after report, even if the result is a config/runtime fix rather than a kernel.</p></div>
+    </div>
+  </section>
+
+  <section>
+    <div class="note">
+      <strong>Important scope note:</strong> DeepSeek-V4-Flash and the surrounding runtime support are evolving quickly. Treat this plan as a study scaffold, not a claim that every recipe or backend is stable. The durable skill is the loop: model fact → performance hypothesis → microbench/profiler evidence → targeted intervention → production-aware report.
+    </div>
+  </section>
+
+  <section class="sources">
+    <h2>Sources and anchors used while preparing this plan</h2>
+    <ol>
+      <li>Attached Baseten ramp plan: emphasizes the model-performance operating loop, kernel reps, serving diagnosis, and capstone artifact.</li>
+      <li>DeepSeek official model card and API release: DeepSeek-V4-Flash parameters, active parameters, 1M context, mixed FP4+FP8 precision, and architecture notes.</li>
+      <li>vLLM recipe and SGLang Day-0 DeepSeek-V4 post: practical runtime framing around hybrid attention, prefix-cache/coherence, MTP, kernels, and deployment.</li>
+      <li>FlashAttention-4 paper/blog: B200 attention performance, CuTeDSL implementation, and algorithm/kernel co-design.</li>
+      <li>NVIDIA CUTLASS/CuTeDSL documentation and Blackwell tutorial materials: CUDA 13.1 support, TCGen05, TMA, TMEM, and Blackwell examples.</li>
+      <li>DeepGEMM and FlashInfer repositories: MoE grouped GEMM, FP8/FP4 paths, Mega MoE, attention/GEMM/MoE kernel library capabilities.</li>
+    </ol>
+  </section>
+</div>
+</body>
+</html>

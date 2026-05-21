@@ -1,0 +1,691 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Sparse Attention for Video Diffusion — FA4 Follow-on Ramp</title>
+  <style>
+    :root {
+      --bg: #0b1020;
+      --bg2: #111827;
+      --panel: rgba(255,255,255,0.075);
+      --panel2: rgba(255,255,255,0.11);
+      --ink: #eef2ff;
+      --muted: #b8c2d8;
+      --faint: #7f8aa3;
+      --line: rgba(255,255,255,0.14);
+      --blue: #7dd3fc;
+      --cyan: #67e8f9;
+      --green: #86efac;
+      --yellow: #fde68a;
+      --orange: #fdba74;
+      --red: #fca5a5;
+      --purple: #c4b5fd;
+      --pink: #f9a8d4;
+      --shadow: 0 18px 60px rgba(0,0,0,0.38);
+      --radius: 22px;
+      --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      --sans: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      font-family: var(--sans);
+      color: var(--ink);
+      background:
+        radial-gradient(circle at 12% 5%, rgba(125,211,252,0.20), transparent 32%),
+        radial-gradient(circle at 84% 10%, rgba(196,181,253,0.23), transparent 34%),
+        radial-gradient(circle at 50% 90%, rgba(134,239,172,0.13), transparent 38%),
+        linear-gradient(180deg, #070b16 0%, var(--bg) 38%, #080b13 100%);
+      line-height: 1.55;
+    }
+    a { color: var(--cyan); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    .page { max-width: 1240px; margin: 0 auto; padding: 34px 22px 80px; }
+    .hero {
+      position: relative;
+      border: 1px solid var(--line);
+      border-radius: 32px;
+      padding: 38px;
+      background: linear-gradient(135deg, rgba(255,255,255,0.13), rgba(255,255,255,0.055));
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+    .hero:before {
+      content: "";
+      position: absolute;
+      width: 530px; height: 530px;
+      right: -220px; top: -220px;
+      background: radial-gradient(circle, rgba(103,232,249,0.18), transparent 68%);
+      pointer-events: none;
+    }
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 7px 12px;
+      border-radius: 999px;
+      border: 1px solid rgba(125,211,252,0.32);
+      background: rgba(125,211,252,0.09);
+      color: var(--blue);
+      font-size: 13px;
+      letter-spacing: .02em;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+    h1 {
+      margin: 18px 0 12px;
+      font-size: clamp(32px, 5.2vw, 70px);
+      line-height: 0.98;
+      letter-spacing: -0.055em;
+      max-width: 980px;
+    }
+    .subtitle {
+      max-width: 970px;
+      color: var(--muted);
+      font-size: clamp(17px, 2vw, 22px);
+      margin: 0 0 24px;
+    }
+    .hero-grid {
+      display: grid;
+      grid-template-columns: 1.25fr .75fr;
+      gap: 22px;
+      margin-top: 26px;
+    }
+    .answer-card, .mini-card, .section, .method-card, .lane, .metric-card {
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: var(--panel);
+      box-shadow: 0 10px 34px rgba(0,0,0,.19);
+      backdrop-filter: blur(12px);
+    }
+    .answer-card { padding: 24px; background: linear-gradient(135deg, rgba(134,239,172,.12), rgba(125,211,252,.08)); }
+    .answer-card h2, .mini-card h3 { margin: 0 0 10px; }
+    .answer-card .big { font-size: 28px; line-height: 1.14; letter-spacing: -.03em; font-weight: 850; }
+    .answer-card p { margin-bottom: 0; color: var(--muted); }
+    .mini-stack { display: grid; gap: 14px; }
+    .mini-card { padding: 18px; }
+    .mini-card .num { font-size: 36px; font-weight: 900; line-height: 1; letter-spacing: -.04em; color: var(--blue); }
+    .mini-card .label { color: var(--muted); font-size: 14px; margin-top: 6px; }
+    .toc {
+      display: flex; flex-wrap: wrap; gap: 10px;
+      margin: 26px 0 10px;
+    }
+    .toc a {
+      color: var(--ink);
+      padding: 9px 12px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: rgba(255,255,255,.055);
+      font-size: 14px;
+    }
+    .section {
+      margin-top: 26px;
+      padding: clamp(22px, 3.4vw, 36px);
+    }
+    .section h2 {
+      margin: 0 0 12px;
+      font-size: clamp(26px, 3.1vw, 42px);
+      letter-spacing: -.04em;
+      line-height: 1.05;
+    }
+    .section > p.lead { color: var(--muted); font-size: 18px; max-width: 1000px; margin: 0 0 24px; }
+    .grid-2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; }
+    .grid-3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; }
+    .grid-4 { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; }
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 5px 10px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: .015em;
+      border: 1px solid rgba(255,255,255,.17);
+      background: rgba(255,255,255,.07);
+      color: var(--muted);
+      white-space: nowrap;
+    }
+    .pill.green { color: var(--green); border-color: rgba(134,239,172,.28); background: rgba(134,239,172,.08); }
+    .pill.yellow { color: var(--yellow); border-color: rgba(253,230,138,.31); background: rgba(253,230,138,.08); }
+    .pill.orange { color: var(--orange); border-color: rgba(253,186,116,.31); background: rgba(253,186,116,.08); }
+    .pill.purple { color: var(--purple); border-color: rgba(196,181,253,.31); background: rgba(196,181,253,.08); }
+    .pill.blue { color: var(--blue); border-color: rgba(125,211,252,.31); background: rgba(125,211,252,.08); }
+    .viz-card { border: 1px solid var(--line); border-radius: var(--radius); background: rgba(255,255,255,.055); padding: 20px; min-height: 100%; }
+    .viz-title { font-weight: 900; letter-spacing: -.02em; font-size: 20px; margin-bottom: 10px; }
+    .small { color: var(--muted); font-size: 14px; }
+    .code {
+      font-family: var(--mono);
+      font-size: 13px;
+      color: #dbeafe;
+      background: rgba(2,6,23,.54);
+      border: 1px solid rgba(148,163,184,.18);
+      border-radius: 14px;
+      padding: 12px 14px;
+      overflow-x: auto;
+    }
+    .split-label {
+      display: grid; grid-template-columns: 1fr auto 1fr; gap: 14px; align-items: center; margin-top: 18px;
+    }
+    .split-label .line { height: 1px; background: var(--line); }
+    .split-label .txt { color: var(--faint); font-size: 12px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }
+    .pipeline { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 12px; margin-top: 18px; }
+    .pipe-step {
+      position: relative;
+      min-height: 108px;
+      border-radius: 18px;
+      padding: 16px 14px;
+      background: rgba(255,255,255,.06);
+      border: 1px solid var(--line);
+    }
+    .pipe-step:after {
+      content: "→";
+      position: absolute;
+      right: -13px; top: 40%;
+      color: var(--faint);
+      font-weight: 900;
+    }
+    .pipe-step:last-child:after { display: none; }
+    .pipe-step strong { display: block; font-size: 15px; }
+    .pipe-step span { display: block; color: var(--muted); font-size: 13px; margin-top: 6px; }
+    .heatmap {
+      display: grid;
+      grid-template-columns: repeat(12, 1fr);
+      gap: 4px;
+      padding: 12px;
+      border-radius: 18px;
+      background: rgba(2,6,23,.42);
+      border: 1px solid rgba(255,255,255,.1);
+    }
+    .cell { aspect-ratio: 1; border-radius: 5px; background: rgba(148,163,184,.18); }
+    .cell.hot { background: rgba(125,211,252,.72); box-shadow: 0 0 12px rgba(125,211,252,.28); }
+    .cell.warm { background: rgba(196,181,253,.56); }
+    .cell.local { background: rgba(134,239,172,.62); }
+    .cell.approx { background: rgba(253,230,138,.52); }
+    .matrix-legend { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+    .legend-dot { width: 10px; height: 10px; border-radius: 99px; display: inline-block; margin-right: 6px; }
+    .legend { font-size: 12px; color: var(--muted); }
+    .compare {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 18px;
+    }
+    .compare .box { padding: 20px; border: 1px solid var(--line); border-radius: 20px; background: rgba(255,255,255,.055); }
+    .compare h3 { margin: 0 0 12px; }
+    .bulletline { display: grid; gap: 10px; margin-top: 12px; }
+    .bulletline div { display: grid; grid-template-columns: 22px 1fr; gap: 9px; color: var(--muted); }
+    .bulletline b { color: var(--ink); }
+    .axis-card { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; margin-top: 16px; }
+    .axis {
+      position: relative;
+      min-height: 420px;
+      border: 1px solid var(--line);
+      border-radius: 22px;
+      background: linear-gradient(135deg, rgba(125,211,252,.06), rgba(196,181,253,.06));
+      padding: 44px 20px 20px 58px;
+      overflow: hidden;
+    }
+    .axis:before { content: "kernel/product complexity →"; position: absolute; bottom: 12px; left: 58px; right: 18px; color: var(--faint); font-size: 12px; border-top: 1px solid rgba(255,255,255,.14); padding-top: 6px; }
+    .axis:after { content: "training required →"; position: absolute; left: 12px; bottom: 48px; color: var(--faint); font-size: 12px; transform: rotate(-90deg); transform-origin: left bottom; border-top: 1px solid rgba(255,255,255,.14); padding-top: 6px; width: 230px; }
+    .bubble {
+      position: absolute;
+      min-width: 68px;
+      text-align: center;
+      padding: 7px 9px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,.22);
+      background: rgba(255,255,255,.11);
+      font-weight: 900;
+      font-size: 12px;
+      box-shadow: 0 8px 24px rgba(0,0,0,.22);
+      cursor: default;
+    }
+    .bubble.free { background: rgba(134,239,172,.16); color: var(--green); }
+    .bubble.train { background: rgba(253,186,116,.16); color: var(--orange); }
+    .bubble.full { background: rgba(249,168,212,.16); color: var(--pink); }
+    .bubble.watch { background: rgba(196,181,253,.16); color: var(--purple); }
+    .quadrants { display:grid; grid-template-columns: 1fr; gap: 12px; }
+    .quad { padding: 15px; border: 1px solid var(--line); border-radius: 18px; background: rgba(255,255,255,.055); }
+    .quad h4 { margin: 0 0 6px; }
+    .quad p { margin: 0; color: var(--muted); font-size: 14px; }
+    .method-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+    .method-card { padding: 18px; background: rgba(255,255,255,.06); }
+    .method-card header { display: flex; gap: 10px; align-items: flex-start; justify-content: space-between; margin-bottom: 10px; }
+    .method-card h3 { margin: 0; font-size: 20px; letter-spacing: -.02em; }
+    .method-card p { color: var(--muted); margin: 8px 0 0; font-size: 14px; }
+    .method-card .tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 12px; }
+    .method-card .why { margin-top: 12px; padding-top: 12px; border-top: 1px solid rgba(255,255,255,.11); font-size: 13px; color: var(--muted); }
+    .baseline-stack { display: grid; gap: 12px; margin-top: 16px; }
+    .layer {
+      display: grid; grid-template-columns: 130px 1fr 150px;
+      gap: 16px; align-items: center;
+      padding: 16px;
+      border-radius: 18px;
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,.055);
+    }
+    .layer .rank { font-size: 32px; font-weight: 950; color: var(--blue); letter-spacing: -.05em; }
+    .layer h3 { margin: 0; }
+    .layer p { margin: 4px 0 0; color: var(--muted); }
+    .layer .stance { text-align: right; font-weight: 900; color: var(--green); }
+    .kernel-map { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+    .lane { padding: 20px; }
+    .lane h3 { margin: 0 0 12px; }
+    .node-list { display: grid; gap: 10px; }
+    .node { display: grid; grid-template-columns: 30px 1fr; gap: 10px; align-items: start; padding: 11px 12px; border: 1px solid rgba(255,255,255,.11); border-radius: 14px; background: rgba(255,255,255,.045); }
+    .node .icon { width: 30px; height: 30px; border-radius: 9px; display: grid; place-items: center; background: rgba(125,211,252,.12); color: var(--blue); font-weight: 900; }
+    .node strong { display: block; }
+    .node span { color: var(--muted); font-size: 13px; }
+    .timeline { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-top: 18px; }
+    .day {
+      min-height: 220px;
+      padding: 18px;
+      border-radius: 22px;
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,.06);
+      position: relative;
+      overflow: hidden;
+    }
+    .day:before {
+      content: attr(data-day);
+      position: absolute;
+      right: 12px; top: 4px;
+      font-weight: 950;
+      font-size: 58px;
+      color: rgba(255,255,255,.055);
+      letter-spacing: -.06em;
+    }
+    .day h3 { margin: 0 0 8px; position: relative; }
+    .day p { color: var(--muted); margin: 0; position: relative; font-size: 14px; }
+    .day .deliverable { margin-top: 12px; padding: 10px; border-radius: 12px; background: rgba(134,239,172,.08); border: 1px solid rgba(134,239,172,.16); color: var(--green); font-size: 13px; font-weight: 750; }
+    .decision { display: grid; gap: 12px; }
+    .decision-row { display: grid; grid-template-columns: 210px 1fr; gap: 12px; align-items: stretch; }
+    .decision-q, .decision-a {
+      padding: 16px;
+      border-radius: 18px;
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,.055);
+    }
+    .decision-q { color: var(--yellow); font-weight: 900; }
+    .decision-a { color: var(--muted); }
+    .bar-chart { display: grid; gap: 12px; margin-top: 12px; }
+    .bar-row { display: grid; grid-template-columns: 145px 1fr 82px; gap: 12px; align-items: center; }
+    .bar-label { color: var(--muted); font-size: 13px; }
+    .bar-track { height: 14px; border-radius: 999px; background: rgba(255,255,255,.08); overflow: hidden; border: 1px solid rgba(255,255,255,.08); }
+    .bar { height: 100%; border-radius: 999px; background: linear-gradient(90deg, rgba(125,211,252,.8), rgba(196,181,253,.88)); }
+    .bar-val { font-family: var(--mono); color: var(--ink); font-size: 12px; }
+    .source-list { columns: 2; column-gap: 34px; color: var(--muted); font-size: 14px; }
+    .source-list li { break-inside: avoid; margin: 0 0 9px; }
+    .callout {
+      padding: 18px 20px;
+      border-radius: 20px;
+      border: 1px solid rgba(253,230,138,.26);
+      background: rgba(253,230,138,.08);
+      color: #fff7d1;
+      margin-top: 18px;
+    }
+    .table-wrap { overflow-x: auto; border-radius: 18px; border: 1px solid var(--line); }
+    table { width: 100%; border-collapse: collapse; min-width: 880px; background: rgba(255,255,255,.045); }
+    th, td { padding: 13px 14px; border-bottom: 1px solid rgba(255,255,255,.09); text-align: left; vertical-align: top; }
+    th { color: var(--ink); font-size: 12px; text-transform: uppercase; letter-spacing: .07em; background: rgba(255,255,255,.07); }
+    td { color: var(--muted); font-size: 14px; }
+    tr:last-child td { border-bottom: none; }
+    .footer { margin-top: 28px; color: var(--faint); font-size: 13px; text-align: center; }
+    sup { font-size: 11px; color: var(--cyan); }
+
+    @media (max-width: 940px) {
+      .hero { padding: 26px; }
+      .hero-grid, .grid-2, .grid-3, .grid-4, .compare, .axis-card, .kernel-map { grid-template-columns: 1fr; }
+      .pipeline { grid-template-columns: 1fr; }
+      .pipe-step:after { content: "↓"; right: 50%; top: auto; bottom: -18px; }
+      .method-grid { grid-template-columns: 1fr; }
+      .layer { grid-template-columns: 1fr; }
+      .layer .stance { text-align: left; }
+      .timeline { grid-template-columns: 1fr; }
+      .decision-row { grid-template-columns: 1fr; }
+      .source-list { columns: 1; }
+      .axis { min-height: 500px; }
+    }
+
+    @media print {
+      body { background: #fff; color: #111827; }
+      .page { max-width: none; }
+      .hero, .section, .answer-card, .mini-card, .method-card, .lane, .viz-card { box-shadow: none; background: #fff; border-color: #d1d5db; }
+      a { color: #0369a1; }
+      .toc { display:none; }
+    }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <section class="hero">
+      <span class="eyebrow">FA4 follow-on module · Video diffusion sparse attention</span>
+      <h1>Sparse Attention for Video Diffusion, Presented as a Kernel-Depth Ramp</h1>
+      <p class="subtitle">A visual study plan for moving from exact dense attention on Blackwell to structured sparsity, token layout, block metadata, and production video-generation baselines.</p>
+
+      <div class="hero-grid">
+        <div class="answer-card">
+          <div class="big">Recommendation: include it after FA4 as a 2–4 day specialized module.</div>
+          <p>FA4 teaches how to make exact dense attention fast. Sparse video attention teaches when dense attention is the wrong operator, and how to turn structure into wall-clock speed without breaking temporal quality.</p>
+        </div>
+        <div class="mini-stack">
+          <div class="mini-card"><div class="num">3D</div><div class="label">tokens: frames × latent H × latent W</div></div>
+          <div class="mini-card"><div class="num">N²</div><div class="label">dense self-attention cost per denoising step</div></div>
+          <div class="mini-card"><div class="num">FA4</div><div class="label">still the baseline to beat on B200/GB200</div></div>
+        </div>
+      </div>
+
+      <nav class="toc" aria-label="Page sections">
+        <a href="#why">Why this matters</a>
+        <a href="#taxonomy">Taxonomy</a>
+        <a href="#methods">Methods</a>
+        <a href="#baselines">Baselines</a>
+        <a href="#kernel">Kernel depth</a>
+        <a href="#curriculum">Curriculum</a>
+        <a href="#decision">Decision guide</a>
+        <a href="#sources">Sources</a>
+      </nav>
+    </section>
+
+    <section id="why" class="section">
+      <h2>Why video diffusion attention is a different beast from LLM decode</h2>
+      <p class="lead">The conceptual shift is from “read a growing KV cache efficiently” to “avoid recomputing huge bidirectional 3D attention maps across many denoising steps.”</p>
+
+      <div class="compare">
+        <div class="box">
+          <h3>LLM decode attention</h3>
+          <div class="bulletline">
+            <div><span>▸</span><span><b>Structure:</b> causal, autoregressive.</span></div>
+            <div><span>▸</span><span><b>Dataflow:</b> one/few query tokens attend to cached K/V.</span></div>
+            <div><span>▸</span><span><b>Common bottleneck:</b> KV-cache bandwidth and scheduler/batching interactions.</span></div>
+            <div><span>▸</span><span><b>Sparse idea:</b> skip KV blocks or exploit long-context locality.</span></div>
+          </div>
+        </div>
+        <div class="box">
+          <h3>Video DiT diffusion attention</h3>
+          <div class="bulletline">
+            <div><span>▸</span><span><b>Structure:</b> mostly bidirectional 3D latent attention.</span></div>
+            <div><span>▸</span><span><b>Dataflow:</b> Q/K/V change every denoising step.</span></div>
+            <div><span>▸</span><span><b>Common bottleneck:</b> repeated full attention over frame × height × width tokens.</span></div>
+            <div><span>▸</span><span><b>Sparse idea:</b> exploit spatial/temporal locality, head specialization, block patterns, timestep redundancy, or semantic clustering.</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="pipeline">
+        <div class="pipe-step"><strong>Video latent</strong><span>T frames × H × W latent positions</span></div>
+        <div class="pipe-step"><strong>Flatten tokens</strong><span>N = T · H · W, often huge</span></div>
+        <div class="pipe-step"><strong>Dense attention</strong><span>QKᵀ + softmax + PV over N² pairs</span></div>
+        <div class="pipe-step"><strong>Denoising loop</strong><span>Repeat attention across many timesteps</span></div>
+        <div class="pipe-step"><strong>Acceleration target</strong><span>Reduce attention work without temporal artifacts</span></div>
+      </div>
+
+      <div class="grid-2" style="margin-top:18px;">
+        <div class="viz-card">
+          <div class="viz-title">Dense vs sparse attention map</div>
+          <div class="heatmap" aria-label="attention sparsity visualization">
+            <!-- 12x12 cells generated manually for robust standalone HTML -->
+            <span class="cell hot"></span><span class="cell warm"></span><span class="cell"></span><span class="cell"></span><span class="cell"></span><span class="cell"></span><span class="cell"></span><span class="cell"></span><span class="cell"></span><span class="cell"></span><span class="cell"></span><span class="cell"></span>
+            <span class="cell local"></span><span class="cell hot"></span><span class="cell warm"></span><span class="cell"></span><span class="cell"></span><span class="cell"></span><span class="cell"></span><span class="cell"></span><span class="cell"></span><span class="cell"></span><span class="cell"></span><span class="cell"></span>
+            <span class="cell"></span><span class="cell local"></span><span class="cell hot"></span><span class="cell warm"></span><span class="cell"></span><span class="cell"></span><span class="cell"></span><span class="cell"></span><span class="cell approx"></span><span class="cell"></span><span class="cell"></span><span class="cell"></span>
+            <span class="cell"></span><span class="cell"></span><span class="cell local"></span><span class="cell hot"></span><span class="cell warm"></span><span class="cell"></span><span class="cell"></span><span class="cell"></span><span class="cell approx"></span><span class="cell"></span><span class="cell"></span><span class="cell"></span>
+            <span class="cell"></span><span class="cell"></span><span class="cell"></span><span class="cell local"></span><span class="cell hot"></span><span class="cell warm"></span><span class="cell"></span><span class="cell"></span><span class="cell"></span><span class="cell approx"></span><span class="cell"></span><span class="cell"></span>
+            <span class="cell"></span><span class="cell"></span><span class="cell"></span><span class="cell"></span><span class="cell local"></span><span class="cell hot"></span><span class="cell warm"></span><span class="cell"></span><span class="cell"></span><span class="cell approx"></span><span class="cell"></span><span class="cell"></span>
+            <span class="cell"></span><span class="cell"></span><span class="cell"></span><span class="cell"></span><span class="cell"></span><span class="cell local"></span><span class="cell hot"></span><span class="cell warm"></span><span class="cell"></span><span class="cell"></span><span class="cell approx"></span><span class="cell"></span>
+            <span class="cell"></span><span class="cell"></span><span class="cell warm"></span><span class="cell"></span><span class="cell"></span><span class="cell"></span><span class="cell local"></span><span class="cell hot"></span><span class="cell warm"></span><span class="cell"></span><span class="cell approx"></span><span class="cell"></span>
+            <span class="cell"></span><span class="cell"></span><span class="cell warm"></span><span class="cell"></span><span class="cell"></span><span class="cell"></span><span class="cell"></span><span class="cell local"></span><span class="cell hot"></span><span class="cell warm"></span><span class="cell"></span><span class="cell approx"></span>
+            <span class="cell"></span><span class="cell"></span><span class="cell"></span><span class="cell"></span><span class="cell warm"></span><span class="cell"></span><span class="cell"></span><span class="cell"></span><span class="cell local"></span><span class="cell hot"></span><span class="cell warm"></span><span class="cell"></span>
+            <span class="cell"></span><span class="cell"></span><span class="cell"></span><span class="cell"></span><span class="cell warm"></span><span class="cell"></span><span class="cell"></span><span class="cell"></span><span class="cell"></span><span class="cell local"></span><span class="cell hot"></span><span class="cell warm"></span>
+            <span class="cell"></span><span class="cell"></span><span class="cell"></span><span class="cell"></span><span class="cell"></span><span class="cell warm"></span><span class="cell"></span><span class="cell"></span><span class="cell"></span><span class="cell"></span><span class="cell local"></span><span class="cell hot"></span>
+          </div>
+          <div class="matrix-legend">
+            <span class="legend"><i class="legend-dot" style="background:rgba(125,211,252,.72)"></i>critical/exact</span>
+            <span class="legend"><i class="legend-dot" style="background:rgba(134,239,172,.62)"></i>local window</span>
+            <span class="legend"><i class="legend-dot" style="background:rgba(253,230,138,.52)"></i>approximate/low precision</span>
+            <span class="legend"><i class="legend-dot" style="background:rgba(148,163,184,.18)"></i>skipped</span>
+          </div>
+        </div>
+        <div class="viz-card">
+          <div class="viz-title">The useful warning</div>
+          <p class="small">FLOP sparsity is not wall-clock sparsity. If selected K/V blocks are scattered, you can save theoretical work but lose tensor-core efficiency, coalescing, occupancy, or load balance. That is why token permutation, block lists, and hardware-aware kernels are central.</p>
+          <div class="code">Speedup ≠ dense_FLOPs / sparse_FLOPs
+Speedup ≈ f(mask_cost,
+            metadata_loads,
+            block_contiguity,
+            tensor_core_util,
+            load_balance,
+            quality_budget)</div>
+        </div>
+      </div>
+    </section>
+
+    <section id="taxonomy" class="section">
+      <h2>Taxonomy: what changes weights, and what is plug-and-play?</h2>
+      <p class="lead">For a Baseten-style model performance ramp, separate methods by deployment friction. Training-free methods are better for quick production experiments; trainable methods define the frontier but require model adaptation and validation.</p>
+
+      <div class="axis-card">
+        <div class="axis" aria-label="training requirement versus complexity scatter">
+          <span class="bubble free" style="left:72px; bottom:74px;">STA</span>
+          <span class="bubble free" style="left:168px; bottom:106px;">SVG</span>
+          <span class="bubble free" style="left:258px; bottom:128px;">SVG2</span>
+          <span class="bubble free" style="left:352px; bottom:142px;">PISA</span>
+          <span class="bubble free" style="left:250px; bottom:210px;">SVOO</span>
+          <span class="bubble free" style="left:390px; bottom:208px;">NABLA</span>
+          <span class="bubble train" style="left:112px; bottom:272px;">VSA</span>
+          <span class="bubble train" style="left:232px; bottom:310px;">SALAD</span>
+          <span class="bubble train" style="left:335px; bottom:330px;">Sparge2</span>
+          <span class="bubble full" style="left:412px; bottom:362px;">BLADE</span>
+          <span class="bubble full" style="left:475px; bottom:382px;">Turbo</span>
+          <span class="bubble watch" style="left:440px; bottom:290px;">MonarchRT</span>
+        </div>
+        <div class="quadrants">
+          <div class="quad"><h4><span class="pill green">Post-training / inference-time</span></h4><p>STA, SVG, SVG2, AdaSpa, Sparse-vDiT, PISA, SVOO, PASA, NABLA, SpargeAttention, XAttention. Best first experiments.</p></div>
+          <div class="quad"><h4><span class="pill yellow">Hybrid</span></h4><p>Radial Attention can be used on pretrained models for speed, but long-video extension uses LoRA-style finetuning.</p></div>
+          <div class="quad"><h4><span class="pill orange">Requires training or finetuning</span></h4><p>VSA, SALAD, SpargeAttention2, Sparse Forcing, MonarchRT. Better for learning the frontier than for immediate drop-in serving.</p></div>
+          <div class="quad"><h4><span class="pill purple">Full-stack acceleration</span></h4><p>BLADE and TurboDiffusion combine attention changes with step distillation and/or quantization. Very important baselines, but not pure kernel papers.</p></div>
+        </div>
+      </div>
+
+      <div class="table-wrap" style="margin-top:18px;">
+        <table>
+          <thead>
+            <tr><th>Class</th><th>Typical deployment</th><th>Kernel lesson</th><th>Risk</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Static local / tiled sparsity</td><td>No weight updates</td><td>Tile windows, boundary handling, block-sparse Q×K scheduling</td><td>Locality assumption may fail on global motion or semantic correspondences</td></tr>
+            <tr><td>Dynamic block selection</td><td>No weight updates, but online scoring/search</td><td>Mask generation overhead, ragged block lists, per-head load balance</td><td>Scoring may erase speedup or route inconsistently across frames</td></tr>
+            <tr><td>Semantic permutation</td><td>No finetuning, but extra clustering/permutation kernels</td><td>Make sparse useful work contiguous enough for tensor cores</td><td>Permutation overhead and memory movement</td></tr>
+            <tr><td>Exact + approximate blocks</td><td>No weight updates</td><td>Preserve quality at high sparsity by approximating non-critical blocks</td><td>Approximation math may be workload/model sensitive</td></tr>
+            <tr><td>Trainable sparse operators</td><td>Finetune/distill model with sparse attention in the loop</td><td>Operator and model co-design; sparse op becomes architecture</td><td>Data, evaluation, and release/serving complexity</td></tr>
+            <tr><td>Caching/broadcasting</td><td>No weight updates</td><td>Exploit timestep redundancy instead of changing attention layout</td><td>Can beat sparse kernels in production, so it must be in the baseline set</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section id="methods" class="section">
+      <h2>Method map: papers and what each teaches</h2>
+      <p class="lead">Numbers below are self-reported and not directly comparable across papers because models, GPUs, resolutions, timesteps, and baselines differ. Treat them as a reading/benchmarking guide, not a leaderboard.</p>
+
+      <div class="split-label"><div class="line"></div><div class="txt">Training-free / post-training first</div><div class="line"></div></div>
+      <div class="method-grid" style="margin-top:14px;">
+        <article class="method-card"><header><h3>STA</h3><span class="pill green">no training</span></header><p>Sliding Tile Attention: local spatiotemporal tile windows plus a hardware-aware kernel. The cleanest “sparse video kernel” starting point.</p><div class="tags"><span class="pill blue">tile locality</span><span class="pill blue">custom kernel</span><span class="pill blue">HunyuanVideo</span></div><div class="why">Study for: how to make 2D/3D local attention hardware-efficient rather than just masking dense attention.</div></article>
+        <article class="method-card"><header><h3>SVG / Sparse VideoGen</h3><span class="pill green">no training</span></header><p>Classifies heads into spatial vs temporal sparse patterns with online profiling, tensor layout transforms, and custom kernels.</p><div class="tags"><span class="pill blue">head specialization</span><span class="pill blue">online profiling</span><span class="pill blue">layout transform</span></div><div class="why">Study for: connecting attention-map structure to runtime layout and kernel design.</div></article>
+        <article class="method-card"><header><h3>AdaSpa</h3><span class="pill green">no training</span></header><p>Dynamic blockified sparse patterns with online precise search; exploits timestep stability of sparse patterns in long video generation.</p><div class="tags"><span class="pill blue">dynamic masks</span><span class="pill blue">pattern reuse</span><span class="pill blue">HunyuanVideo</span></div><div class="why">Study for: deciding when mask/search overhead amortizes across diffusion timesteps.</div></article>
+        <article class="method-card"><header><h3>Sparse-vDiT</h3><span class="pill green">offline profiling</span></header><p>Finds diagonal, multi-diagonal, and vertical-stripe sparsity patterns and uses pattern-optimized sparse kernels.</p><div class="tags"><span class="pill blue">offline search</span><span class="pill blue">structured patterns</span><span class="pill blue">Wan/Hunyuan/CogVideoX</span></div><div class="why">Study for: layer/head-specific pattern choice and the gap between theoretical FLOP cuts and actual speedups.</div></article>
+        <article class="method-card"><header><h3>SVG2</h3><span class="pill green">no training</span></header><p>Uses semantic-aware token clustering/permutation so critical tokens become more contiguous and GPU-friendly.</p><div class="tags"><span class="pill blue">k-means</span><span class="pill blue">permutation</span><span class="pill blue">contiguity</span></div><div class="why">Study for: the core kernel lesson that sparse tokens must be packed, not scattered.</div></article>
+        <article class="method-card"><header><h3>PISA</h3><span class="pill green">no training</span></header><p>Piecewise Sparse Attention computes critical blocks exactly and approximates non-critical blocks instead of dropping them outright.</p><div class="tags"><span class="pill blue">exact + approximate</span><span class="pill blue">Taylor approx</span><span class="pill blue">quality preservation</span></div><div class="why">Study for: high-sparsity quality preservation and the “do less work without deleting all context” design pattern.</div></article>
+        <article class="method-card"><header><h3>SVOO</h3><span class="pill green">no training</span></header><p>Offline layer-wise sensitivity profiling plus online bidirectional Q/K co-clustering; recent and strong as a training-free baseline.</p><div class="tags"><span class="pill blue">layer heterogeneity</span><span class="pill blue">QK co-clustering</span><span class="pill blue">Wan2.1</span></div><div class="why">Study for: separating intrinsic per-layer pruning budgets from online input-dependent clustering.</div></article>
+        <article class="method-card"><header><h3>NABLA</h3><span class="pill green">no custom kernel first</span></header><p>Neighborhood-Adaptive Block-Level Attention builds per-head sparse masks from pooled Q/K blocks and plugs into PyTorch FlexAttention.</p><div class="tags"><span class="pill blue">FlexAttention</span><span class="pill blue">block pooling</span><span class="pill blue">STA union</span></div><div class="why">Study for: the fastest prototype path before writing a bespoke low-level sparse kernel.</div></article>
+        <article class="method-card"><header><h3>PASA</h3><span class="pill green">no training</span></header><p>Targets temporal flicker from deterministic sparse routing using precision allocation, grouping, and stochastic selection bias.</p><div class="tags"><span class="pill blue">temporal smoothness</span><span class="pill blue">routing stability</span><span class="pill blue">newer</span></div><div class="why">Study for: quality failure modes unique to video, not just attention-map reconstruction error.</div></article>
+        <article class="method-card"><header><h3>SpargeAttention / XAttention</h3><span class="pill green">generic plug-in</span></header><p>General sparse attention frameworks: SpargeAttn combines sparse + quantized filtering; XAttention scores blocks using antidiagonal sums.</p><div class="tags"><span class="pill blue">generic</span><span class="pill blue">long context</span><span class="pill blue">video evals</span></div><div class="why">Study for: reusable sparse-attention ideas beyond video DiTs, but do not treat them as the most video-specific baselines.</div></article>
+      </div>
+
+      <div class="split-label"><div class="line"></div><div class="txt">Training / finetuning / distillation path</div><div class="line"></div></div>
+      <div class="method-grid" style="margin-top:14px;">
+        <article class="method-card"><header><h3>VSA</h3><span class="pill orange">trainable</span></header><p>Trainable coarse-to-fine sparse attention for video diffusion; can be retrofitted and combined with sparse distillation.</p><div class="tags"><span class="pill orange">operator co-design</span><span class="pill orange">sparse distill</span><span class="pill orange">Wan</span></div><div class="why">Study for: the strongest “attention-only frontier” direction.</div></article>
+        <article class="method-card"><header><h3>BLADE</h3><span class="pill purple">distillation</span></header><p>Adaptive block-sparse attention plus step distillation; excellent end-to-end speedups because it reduces both attention work and diffusion steps.</p><div class="tags"><span class="pill purple">block sparse</span><span class="pill purple">step distill</span><span class="pill purple">Wan/CogVideoX</span></div><div class="why">Study for: why the best production speedup may not be a kernel-only story.</div></article>
+        <article class="method-card"><header><h3>SALAD</h3><span class="pill orange">LoRA finetune</span></header><p>Adds a lightweight linear-attention branch alongside sparse attention with input-dependent gating to reach high sparsity.</p><div class="tags"><span class="pill orange">sparse + linear</span><span class="pill orange">LoRA</span><span class="pill orange">gating</span></div><div class="why">Study for: graceful degradation at high sparsity via a learned fallback branch.</div></article>
+        <article class="method-card"><header><h3>SpargeAttention2</h3><span class="pill orange">distill finetune</span></header><p>Trainable sparse attention with hybrid top-k/top-p masking and distillation-inspired finetuning.</p><div class="tags"><span class="pill orange">top-k + top-p</span><span class="pill orange">95% sparsity</span><span class="pill orange">distillation</span></div><div class="why">Study for: why training can support sparsity levels that training-free methods struggle with.</div></article>
+        <article class="method-card"><header><h3>Radial Attention</h3><span class="pill yellow">hybrid</span></header><p>Static O(n log n) radial/energy-decay mask. Can accelerate pretrained models; long-video extension path uses LoRA.</p><div class="tags"><span class="pill yellow">static pattern</span><span class="pill yellow">O(n log n)</span><span class="pill yellow">LoRA optional</span></div><div class="why">Study for: compact static masks and when position/energy priors are enough.</div></article>
+        <article class="method-card"><header><h3>TurboDiffusion</h3><span class="pill purple">full-stack</span></header><p>Combines low-bit attention, sparse-linear attention, step distillation, W8A8 quantization, and engineering optimizations.</p><div class="tags"><span class="pill purple">quantization</span><span class="pill purple">step distill</span><span class="pill purple">full-stack</span></div><div class="why">Study for: the “customer cares about wall-clock” baseline, not as a pure sparse-attention kernel paper.</div></article>
+      </div>
+    </section>
+
+    <section id="baselines" class="section">
+      <h2>Strongest baseline hierarchy</h2>
+      <p class="lead">The practical question is not “is sparse attention faster than a weak dense baseline?” It is “does this beat the best exact/quantized/cached path on the target GPU, model, resolution, and quality bar?”</p>
+
+      <div class="baseline-stack">
+        <div class="layer"><div class="rank">01</div><div><h3>Best exact dense attention</h3><p>FA4 on B200/GB200 if available. For custom masks, FA4-backed FlexAttention/CuTeDSL is especially relevant.</p></div><div class="stance">must beat</div></div>
+        <div class="layer"><div class="rank">02</div><div><h3>Best post-training acceleration</h3><p>STA, SVG2, AdaSpa, PISA, SVOO, NABLA, plus dense/quantized SageAttention-style baselines.</p></div><div class="stance">first ramp</div></div>
+        <div class="layer"><div class="rank">03</div><div><h3>Trainable sparse attention</h3><p>VSA, SALAD, SpargeAttention2, Radial LoRA, MonarchRT-style parameterizations.</p></div><div class="stance">frontier</div></div>
+        <div class="layer"><div class="rank">04</div><div><h3>Full-stack video acceleration</h3><p>BLADE, TurboDiffusion, step distillation, quantization, few-step models, caching/broadcasting.</p></div><div class="stance">production</div></div>
+      </div>
+
+      <div class="grid-2" style="margin-top:18px;">
+        <div class="viz-card">
+          <div class="viz-title">Reading priority for the ramp</div>
+          <div class="bar-chart">
+            <div class="bar-row"><div class="bar-label">FA4 / Flex+FA4</div><div class="bar-track"><div class="bar" style="width:100%"></div></div><div class="bar-val">must</div></div>
+            <div class="bar-row"><div class="bar-label">STA</div><div class="bar-track"><div class="bar" style="width:90%"></div></div><div class="bar-val">first</div></div>
+            <div class="bar-row"><div class="bar-label">SVG2</div><div class="bar-track"><div class="bar" style="width:86%"></div></div><div class="bar-val">first</div></div>
+            <div class="bar-row"><div class="bar-label">PISA / SVOO</div><div class="bar-track"><div class="bar" style="width:80%"></div></div><div class="bar-val">core</div></div>
+            <div class="bar-row"><div class="bar-label">NABLA</div><div class="bar-track"><div class="bar" style="width:78%"></div></div><div class="bar-val">proto</div></div>
+            <div class="bar-row"><div class="bar-label">VSA / BLADE</div><div class="bar-track"><div class="bar" style="width:68%"></div></div><div class="bar-val">frontier</div></div>
+            <div class="bar-row"><div class="bar-label">TurboDiffusion</div><div class="bar-track"><div class="bar" style="width:55%"></div></div><div class="bar-val">case</div></div>
+          </div>
+        </div>
+        <div class="viz-card">
+          <div class="viz-title">What counts as a fair win?</div>
+          <div class="bulletline">
+            <div><span>1</span><span>Compare against FA4 or best available dense attention, not a naive PyTorch baseline.</span></div>
+            <div><span>2</span><span>Include mask generation, clustering, permutation, metadata, and memory movement in timing.</span></div>
+            <div><span>3</span><span>Track quality: VBench, PSNR/SSIM/LPIPS where applicable, plus temporal flicker and motion smoothness.</span></div>
+            <div><span>4</span><span>Compare against caching/broadcasting such as PAB, because it may win without block-sparse kernels.</span></div>
+            <div><span>5</span><span>Measure actual latency and GPU counters, not just theoretical FLOP reduction.</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="callout"><strong>Important 2026 watchlist:</strong> MonarchRT is worth knowing because it explicitly discusses real-time video diffusion, structured attention parameterization, custom Triton kernels, and B200 comparisons against FA4. I would keep it as a frontier paper, not the first ramp exercise.</div>
+    </section>
+
+    <section id="kernel" class="section">
+      <h2>Kernel-depth bridge: what FA4 teaches vs what sparse video adds</h2>
+      <p class="lead">This is why the module belongs after FA4. Dense attention gives the anatomy; sparse video attention adds metadata, layout, dynamic routing, and quality constraints.</p>
+
+      <div class="kernel-map">
+        <div class="lane">
+          <h3>FA4 / dense exact attention mental model</h3>
+          <div class="node-list">
+            <div class="node"><div class="icon">1</div><div><strong>QKᵀ tiling</strong><span>CTA/warpgroup tiles, MMA scheduling, register/shared/TMEM staging.</span></div></div>
+            <div class="node"><div class="icon">2</div><div><strong>Online softmax</strong><span>max/lse recurrence, exp bottlenecks, numerical stability.</span></div></div>
+            <div class="node"><div class="icon">3</div><div><strong>PV accumulation</strong><span>Tensor-core utilization, epilogue, accumulation format.</span></div></div>
+            <div class="node"><div class="icon">4</div><div><strong>Blackwell features</strong><span>TMA, TMEM, 2-CTA MMA/tcgen05-style knowledge, asynchronous pipelines.</span></div></div>
+            <div class="node"><div class="icon">5</div><div><strong>Scheduling</strong><span>Variable sequence lengths, causal imbalance, persistent work partitioning.</span></div></div>
+          </div>
+        </div>
+        <div class="lane">
+          <h3>Sparse video attention additions</h3>
+          <div class="node-list">
+            <div class="node"><div class="icon">A</div><div><strong>3D token layout</strong><span>token_id ↔ frame, latent_y, latent_x; locality has geometry.</span></div></div>
+            <div class="node"><div class="icon">B</div><div><strong>Mask generation</strong><span>Static tiles, radial masks, top-k blocks, clustering, online QK scoring.</span></div></div>
+            <div class="node"><div class="icon">C</div><div><strong>Metadata execution</strong><span>q-block → k-block lists, ragged batches, per-head/per-layer budgets.</span></div></div>
+            <div class="node"><div class="icon">D</div><div><strong>Tensor-core-friendly sparsity</strong><span>Pack selected work into dense blocks; avoid scattered K/V.</span></div></div>
+            <div class="node"><div class="icon">E</div><div><strong>Video quality risk</strong><span>Flicker, motion inconsistency, identity drift, prompt adherence.</span></div></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid-3" style="margin-top:18px;">
+        <div class="metric-card" style="padding:18px;"><h3 style="margin-top:0;">Measure</h3><p class="small">dense latency, sparse latency, mask/search latency, permutation latency, temporary memory, effective TFLOP/s, bandwidth, occupancy, SM utilization.</p></div>
+        <div class="metric-card" style="padding:18px;"><h3 style="margin-top:0;">Inspect</h3><p class="small">load imbalance across q-blocks, L2 reuse, coalescing, tensor-core utilization, register pressure, CTA scheduling, metadata bandwidth.</p></div>
+        <div class="metric-card" style="padding:18px;"><h3 style="margin-top:0;">Validate</h3><p class="small">VBench-like quality, temporal flicker, motion smoothness, PSNR/SSIM/LPIPS, prompt adherence, seed stability, regression risks.</p></div>
+      </div>
+    </section>
+
+    <section id="curriculum" class="section">
+      <h2>Drop-in curriculum module after FA4</h2>
+      <p class="lead">Keep this narrow. The goal is one benchmark report that says when sparse video attention beats dense FA-class baselines, and when overhead or quality risk erases the win.</p>
+
+      <div class="timeline">
+        <div class="day" data-day="A"><h3>Day A — Map the space</h3><p>Read FA4 recap, STA, SVG2, PISA, SVOO or NABLA, VSA/BLADE, and PAB. Classify each by weight updates, mask type, kernel strategy, and quality metric.</p><div class="deliverable">Deliverable: 1-page taxonomy + baseline hierarchy.</div></div>
+        <div class="day" data-day="B"><h3>Day B — Prototype masks</h3><p>Use PyTorch FlexAttention or Triton to prototype 3D sliding tile, radial, random block-sparse, and top-k block masks over synthetic video latent shapes.</p><div class="deliverable">Deliverable: latency table including mask/search overhead.</div></div>
+        <div class="day" data-day="C"><h3>Day C — Kernel systems pass</h3><p>Implement or inspect one block-sparse forward path. Focus on block lists, memory layout, coalescing, and whether selected K/V blocks are contiguous.</p><div class="deliverable">Deliverable: profiler-backed memo: why speedup appeared or disappeared.</div></div>
+        <div class="day" data-day="D"><h3>Optional Day D — Frontier</h3><p>Read VSA, BLADE, SpargeAttention2, TurboDiffusion, or MonarchRT to understand trainable and full-stack speedup directions.</p><div class="deliverable">Deliverable: “what requires training?” deployment-friction matrix.</div></div>
+      </div>
+
+      <div class="grid-2" style="margin-top:18px;">
+        <div class="viz-card">
+          <div class="viz-title">Synthetic benchmark shape</div>
+          <div class="code">B = 1
+H = 24 or 32 heads
+D = 128
+T = 16 or 32 latent frames
+Y × X = 48×80 or 64×64
+N = T × Y × X
+block = 64 or 128 tokens
+density = 10%, 20%, 40%, 60%</div>
+        </div>
+        <div class="viz-card">
+          <div class="viz-title">Report template</div>
+          <div class="code">1. Dense baseline: FA4 / best SDPA / SageAttention
+2. Sparse prototype: mask + implementation path
+3. Caching baseline: PAB-style broadcast if applicable
+4. Metrics: latency, overhead, memory, quality proxy
+5. Profiler evidence: where time went
+6. Verdict: when sparse is worth production complexity</div>
+        </div>
+      </div>
+    </section>
+
+    <section id="decision" class="section">
+      <h2>Decision guide: should sparse video attention enter your Baseten ramp?</h2>
+      <p class="lead">Yes — but as a compact operator-design module, not the main curriculum spine.</p>
+
+      <div class="decision">
+        <div class="decision-row"><div class="decision-q">Have you studied FA4 first?</div><div class="decision-a">If no, do FA4/CuTeDSL dense attention first. Sparse kernels make more sense once the dense baseline’s tiling, softmax, MMA pipeline, and Blackwell features are clear.</div></div>
+        <div class="decision-row"><div class="decision-q">Do you have B200 access?</div><div class="decision-a">If yes, compare against FA4-backed dense/custom attention. If no, use H100/FA3 or FlexAttention/Triton as a proxy, but avoid overclaiming B200 results.</div></div>
+        <div class="decision-row"><div class="decision-q">Do you want production-ready acceleration?</div><div class="decision-a">Start with training-free methods and caching/broadcasting baselines: STA/SVG2/PISA/SVOO/NABLA/PAB/SageAttention. Measure total wall-clock, not isolated math.</div></div>
+        <div class="decision-row"><div class="decision-q">Do you want frontier research depth?</div><div class="decision-a">Read VSA, BLADE, SpargeAttention2, SALAD, TurboDiffusion, and MonarchRT. These teach model/operator co-design but require finetuning/distillation or custom model variants.</div></div>
+        <div class="decision-row"><div class="decision-q">What should be the output?</div><div class="decision-a">A benchmark/profiler memo: dense baseline, sparse implementation, overhead accounting, quality risks, and a clear recommendation about whether sparse attention is worth production complexity.</div></div>
+      </div>
+    </section>
+
+    <section id="sources" class="section">
+      <h2>Source appendix</h2>
+      <p class="lead">Primary and near-primary sources used for the visual plan. Many reported speedups are from paper abstracts or project pages; they should be re-benchmarked for the exact GPU/runtime/model/resolution.</p>
+      <ol class="source-list">
+        <li><a href="https://arxiv.org/html/2603.05451v1">FlashAttention-4: Algorithm and Kernel Pipelining Co-Design for Blackwell GPUs</a></li>
+        <li><a href="https://pytorch.org/blog/flexattention-flashattention-4-fast-and-flexible/">PyTorch: FlexAttention + FlashAttention-4</a></li>
+        <li><a href="https://arxiv.org/abs/2502.04507">Fast Video Generation with Sliding Tile Attention</a></li>
+        <li><a href="https://arxiv.org/abs/2502.01776">Sparse VideoGen: Accelerating Video Diffusion Transformers with Spatial-Temporal Sparsity</a></li>
+        <li><a href="https://arxiv.org/abs/2502.21079">AdaSpa: Training-free and Adaptive Sparse Attention for Efficient Long Video Generation</a></li>
+        <li><a href="https://arxiv.org/abs/2506.03065">Sparse-vDiT: Sparse Attention for Video Diffusion Transformers</a></li>
+        <li><a href="https://arxiv.org/html/2505.18875v1">Sparse VideoGen2: Semantic-aware permutation for sparse video attention</a></li>
+        <li><a href="https://arxiv.org/abs/2602.01077">PISA: Piecewise Sparse Attention Is Wiser for Efficient Diffusion Transformers</a></li>
+        <li><a href="https://arxiv.org/abs/2603.18636">SVOO: Offline Layer-wise Sparsity Profiling and Online Bidirectional Co-Clustering</a></li>
+        <li><a href="https://arxiv.org/abs/2604.12219">PASA: Precision-Allocated Sparse Attention for Smooth Video Generation</a></li>
+        <li><a href="https://arxiv.org/abs/2507.13546">NABLA: Neighborhood-Adaptive Block-Level Attention</a></li>
+        <li><a href="https://openreview.net/forum?id=VrYCLQ5inI">VSA: Faster Video Diffusion with Trainable Sparse Attention</a></li>
+        <li><a href="https://openreview.net/forum?id=O9J20MsmRl">BLADE: Block-Sparse Attention Meets Step Distillation</a></li>
+        <li><a href="https://arxiv.org/abs/2601.16515">SALAD: High-Sparsity Attention via Sparse + Linear Attention</a></li>
+        <li><a href="https://arxiv.org/abs/2602.13515">SpargeAttention2: Trainable Sparse Attention via Hybrid Top-k + Top-p Masking</a></li>
+        <li><a href="https://arxiv.org/abs/2506.19852">Radial Attention: O(n log n) Sparse Attention with Energy Decay</a></li>
+        <li><a href="https://arxiv.org/abs/2408.12588">Pyramid Attention Broadcast</a></li>
+        <li><a href="https://arxiv.org/abs/2410.02367">SageAttention: Accurate 8-bit Attention for Plug-and-play Inference Acceleration</a></li>
+        <li><a href="https://arxiv.org/abs/2502.18137">SpargeAttention: Accurate and Training-free Sparse Attention</a></li>
+        <li><a href="https://arxiv.org/abs/2503.16428">XAttention: Block Sparse Attention with Antidiagonal Scoring</a></li>
+        <li><a href="https://arxiv.org/abs/2512.16093">TurboDiffusion: Accelerating Video Diffusion Models by 100–200 Times</a></li>
+        <li><a href="https://arxiv.org/html/2604.21221v1">Sparse Forcing: Native Trainable Sparse Attention for Autoregressive Video Diffusion</a></li>
+        <li><a href="https://arxiv.org/abs/2602.12271">MonarchRT: Efficient Attention for Real-Time Video Generation</a></li>
+      </ol>
+      <div class="footer">Prepared as a standalone visual ramp-up page. Last checked: May 20, 2026.</div>
+    </section>
+  </main>
+</body>
+</html>
