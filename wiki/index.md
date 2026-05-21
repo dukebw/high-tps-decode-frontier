@@ -8,7 +8,7 @@ This wiki is organized primarily around research questions, with source notes an
 
 ## Source Notes
 
-- [Baseten ramp plan: DeepSeek V4 Flash, kernel depth, Blackwell](source-notes/baseten-ramp-plan-deepseek-v4-flash-kernel-depth-blackwell.md)
+- [Model-performance ramp plan: DeepSeek V4 Flash, kernel depth, Blackwell](source-notes/model-performance-ramp-plan-deepseek-v4-flash-kernel-depth-blackwell.md)
 - [Sparse attention for video diffusion: FA4 follow-on ramp](source-notes/sparse-attention-video-diffusion-fa4-follow-on-ramp.md)
 
 ## Operating Documents

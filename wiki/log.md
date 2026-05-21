@@ -9,7 +9,12 @@
 ## [2026-05-21] ingest | Initial HTML ramp sources
 
 - Imported two raw HTML source artifacts into `sources/html/` after a quick scan for obvious credentials, emails, and confidential markers.
-- Created structured source notes for the Baseten DeepSeek V4 Flash ramp plan and the sparse video attention FA4 follow-on ramp.
+- Created structured source notes for the DeepSeek V4 Flash model-performance ramp plan and the sparse video attention FA4 follow-on ramp.
+
+## [2026-05-21] maintenance | Scrubbed company-specific wording
+
+- Replaced company-specific ramp-plan wording in current `main` with neutral model-performance and production-serving language.
+- Renamed the affected HTML source artifact and source note to neutral filenames.
 
 ## [2026-05-21] question | Blackwell kernel frontier
 

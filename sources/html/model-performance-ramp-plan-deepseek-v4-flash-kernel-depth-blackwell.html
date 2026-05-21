@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Baseten Ramp Plan — DeepSeek V4 Flash → Kernel Depth → Blackwell</title>
+<title>Model-Performance Ramp Plan — DeepSeek V4 Flash → Kernel Depth → Blackwell</title>
 <style>
   :root {
     --bg: #f6f7f9;
@@ -155,7 +155,7 @@
 <body>
 <div class="page">
   <header class="hero">
-    <div class="eyebrow">Baseten ramp-up plan · DeepSeek V4 Flash as forcing function</div>
+    <div class="eyebrow">Model-performance ramp-up plan · DeepSeek V4 Flash as forcing function</div>
     <h1>Top-down model analysis → deep kernel expertise → production inference instincts</h1>
     <p>
       A 21-day plan that starts from the current DeepSeek-V4-Flash architecture and turns each architectural feature into a concrete kernel-learning exercise: hybrid attention, compressed KV, MoE grouped GEMM, FP4/FP8 scaling, MTP/speculative decode, and Blackwell B200 primitives.
@@ -195,7 +195,7 @@
     <div class="section-title">
       <div>
         <h2>The updated thesis</h2>
-        <p class="subtitle">Keep the original Baseten loop—real workload, benchmark, profile, diagnose, patch—but make DeepSeek-V4-Flash the top-level workload that drives the kernel curriculum.</p>
+        <p class="subtitle">Keep the original model-performance loop—real workload, benchmark, profile, diagnose, patch—but make DeepSeek-V4-Flash the top-level workload that drives the kernel curriculum.</p>
       </div>
     </div>
     <div class="thesis">
@@ -203,7 +203,7 @@
       <div class="step"><div class="num">2</div><strong>Predict bottlenecks</strong><span>Use symbolic FLOP/byte models before touching Nsight: attention bytes, MoE GEMM, routing, KV/cache pressure.</span></div>
       <div class="step"><div class="num">3</div><strong>Build microkernels</strong><span>Target the suspicious kernels: online softmax, sparse indexer, grouped GEMM, FP4 scale layout, logits/top-k.</span></div>
       <div class="step"><div class="num">4</div><strong>Map to Blackwell</strong><span>Study why FA4/CUTLASS/CuTeDSL exploit TMA, TMEM, tcgen05, CTA-pairs, block scaling.</span></div>
-      <div class="step"><div class="num">5</div><strong>Capstone report</strong><span>Produce a Baseten-style artifact: baseline, trace, bottleneck, intervention, delta, next experiment.</span></div>
+      <div class="step"><div class="num">5</div><strong>Capstone report</strong><span>Produce a production-style artifact: baseline, trace, bottleneck, intervention, delta, next experiment.</span></div>
     </div>
   </section>
 
@@ -364,7 +364,7 @@
     <div class="section-title">
       <div>
         <h2>21-day roadmap</h2>
-        <p class="subtitle">Assuming you start today, day 1 is May 19 and day 21 is June 8. The plan is intentionally top-down in week 1, kernel-depth-heavy in week 2, and Baseten-style capstone in week 3.</p>
+        <p class="subtitle">Assuming you start today, day 1 is May 19 and day 21 is June 8. The plan is intentionally top-down in week 1, kernel-depth-heavy in week 2, and production-style capstone in week 3.</p>
       </div>
     </div>
     <div class="gantt">
@@ -413,7 +413,7 @@
     <div class="section-title">
       <div>
         <h2>Week-by-week detailed plan</h2>
-        <p class="subtitle">Each day should end with an artifact. The artifact matters because it forces the Baseten operating loop: prediction → measurement → evidence → next action.</p>
+        <p class="subtitle">Each day should end with an artifact. The artifact matters because it forces the model-performance operating loop: prediction → measurement → evidence → next action.</p>
       </div>
     </div>
     <div class="week-grid">
@@ -428,7 +428,7 @@
         <details class="day"><summary>D4 · Dense attention baseline <span class="day-tag">FA mental model</span></summary><div class="day-body"><ul><li>Implement naive attention, PyTorch SDPA call, and FlashAttention call for controlled shapes.</li><li>Sweep head dim, sequence length, prefill vs decode, causal vs non-causal.</li><li>Profile memory traffic and online softmax behavior.</li></ul><div class="artifact"><strong>Artifact:</strong> attention benchmark harness with plots.</div></div></details>
         <details class="day"><summary>D5 · Sparse/compressed attention toy <span class="day-tag">V4-like</span></summary><div class="day-body"><ul><li>Build a toy SWA + compressed-KV attention benchmark: local window plus compressed coarse tokens.</li><li>Implement metadata/index preparation separately from the attention compute path.</li><li>Measure when metadata/indexing dominates and when attention compute dominates.</li></ul><div class="artifact"><strong>Artifact:</strong> toy compressed-attention microbench + one-page lessons.</div></div></details>
         <details class="day"><summary>D6 · MoE routing and grouped GEMM toy <span class="day-tag">dispatch</span></summary><div class="day-body"><ul><li>Implement router/top-k, token grouping, ragged expert batches, scatter/combine.</li><li>Benchmark uniform vs skewed routing; small vs large batch; prefill vs decode shapes.</li><li>Compare placeholder GEMM, PyTorch grouped execution, Triton grouped GEMM, and library paths where possible.</li></ul><div class="artifact"><strong>Artifact:</strong> MoE bottleneck table: routing, grouping, GEMM, combine.</div></div></details>
-        <details class="day"><summary>D7 · Synthesis memo <span class="day-tag">prioritize</span></summary><div class="day-body"><ul><li>Rank kernel families by expected leverage for V4 Flash serving.</li><li>Write “what I would inspect first in a Baseten trace”.</li><li>Choose week-2 deep dives based on evidence, not vibes.</li></ul><div class="artifact"><strong>Artifact:</strong> <code>week1_v4_flash_kernel_hypotheses.md</code>.</div></div></details>
+        <details class="day"><summary>D7 · Synthesis memo <span class="day-tag">prioritize</span></summary><div class="day-body"><ul><li>Rank kernel families by expected leverage for V4 Flash serving.</li><li>Write “what I would inspect first in a production serving trace”.</li><li>Choose week-2 deep dives based on evidence, not vibes.</li></ul><div class="artifact"><strong>Artifact:</strong> <code>week1_v4_flash_kernel_hypotheses.md</code>.</div></div></details>
       </div>
 
       <div class="week-card">
@@ -447,7 +447,7 @@
 
       <div class="week-card">
         <span class="pill amber">Week 3</span>
-        <h3>Baseten-style capstone</h3>
+        <h3>Production-style capstone</h3>
         <p class="goal">Goal: one polished investigation that shows you can move from model/workload to measured performance action.</p>
 
         <details class="day" open><summary>D15 · Capstone setup <span class="day-tag">target</span></summary><div class="day-body"><ul><li>Target A: DeepSeek-V4-Flash on B200/GB200 if accessible.</li><li>Target B: V4 Flash architecture analysis + proxy model/shape workload if full model is impractical.</li><li>Define ISL/OSL/concurrency grid: e.g. 128/128, 4K/256, 32K/512, plus one long-context stress case.</li></ul><div class="artifact"><strong>Artifact:</strong> benchmark plan with exact commands and acceptance criteria.</div></div></details>
@@ -455,8 +455,8 @@
         <details class="day"><summary>D17 · Profile and diagnose <span class="day-tag">Nsight</span></summary><div class="day-body"><ul><li>Use Nsight Systems for timeline gaps and CPU/GPU overlap.</li><li>Use Nsight Compute for one attention or GEMM kernel.</li><li>Pick one bottleneck: attention/KV, MoE GEMM, routing/dispatch, logits/sampling, CPU scheduling, or runtime config.</li></ul><div class="artifact"><strong>Artifact:</strong> trace screenshots + bottleneck hypothesis.</div></div></details>
         <details class="day"><summary>D18 · Patch path A <span class="day-tag">attention/runtime</span></summary><div class="day-body"><ul><li>Try one credible intervention: attention backend, chunked prefill, prefix-cache knob, batch/concurrency shaping, FA backend, or CUDA graph setting.</li><li>Keep the patch small enough to attribute causality.</li></ul><div class="artifact"><strong>Artifact:</strong> patch A before/after table.</div></div></details>
         <details class="day"><summary>D19 · Patch path B <span class="day-tag">MoE/logits</span></summary><div class="day-body"><ul><li>Try one MoE/GEMM/logits intervention: grouped-GEMM path, routing layout, logit-mask kernel, top-k sampling, or FP4 scale handling.</li><li>If no code patch is feasible, do a config/library swap and explain why it is the right production move.</li></ul><div class="artifact"><strong>Artifact:</strong> patch B before/after table.</div></div></details>
-        <details class="day"><summary>D20 · Write the report <span class="day-tag">evidence</span></summary><div class="day-body"><ul><li>Use the Baseten shape: workload, hardware/runtime/config, baseline, hypothesis, profiler evidence, intervention, result, caveats, next 3 experiments.</li><li>Include failed hypotheses if they were evidence-producing.</li></ul><div class="artifact"><strong>Artifact:</strong> 3–5 page performance bring-up report.</div></div></details>
-        <details class="day"><summary>D21 · Day-one Baseten pack <span class="day-tag">handoff</span></summary><div class="day-body"><ul><li>Create a repo README, benchmark scripts, kernel ladder index, report PDF/HTML, and “questions for week 1 at Baseten”.</li><li>Write what you know well vs what context you need from Baseten’s internal stack.</li></ul><div class="artifact"><strong>Artifact:</strong> day-one pack you can reference immediately.</div></div></details>
+        <details class="day"><summary>D20 · Write the report <span class="day-tag">evidence</span></summary><div class="day-body"><ul><li>Use the production performance-report shape: workload, hardware/runtime/config, baseline, hypothesis, profiler evidence, intervention, result, caveats, next 3 experiments.</li><li>Include failed hypotheses if they were evidence-producing.</li></ul><div class="artifact"><strong>Artifact:</strong> 3–5 page performance bring-up report.</div></div></details>
+        <details class="day"><summary>D21 · Day-one performance pack <span class="day-tag">handoff</span></summary><div class="day-body"><ul><li>Create a repo README, benchmark scripts, kernel ladder index, report PDF/HTML, and “questions for week 1 on a model-performance team”.</li><li>Write what you know well vs what context you need from the production serving stack.</li></ul><div class="artifact"><strong>Artifact:</strong> day-one pack you can reference immediately.</div></div></details>
       </div>
     </div>
   </section>
@@ -520,7 +520,7 @@
     <div class="grid two">
       <div class="card">
         <h3>Repo layout</h3>
-<pre>baseten-v4-flash-ramp/
+<pre>v4-flash-performance-ramp/
   README.md
   configs/
     v4_flash_notes.yaml
@@ -651,13 +651,13 @@ result: what dominated and evidence</pre>
   <section>
     <div class="section-title">
       <div>
-        <h2>Day-one Baseten questions</h2>
+        <h2>Day-one model-performance questions</h2>
         <p class="subtitle">These are tuned for this ramp plan and your background: show you can own a performance investigation without assuming the answer is always “write a custom kernel.”</p>
       </div>
     </div>
     <div class="grid three">
       <div class="card"><span class="pill blue">Workload</span><h3>What should I reproduce first?</h3><p>Which current customer/model/workload has the highest model-performance leverage: TTFT, TPOT, throughput, cost, long context, MoE, structured output, or reliability?</p></div>
-      <div class="card"><span class="pill green">Runtime</span><h3>Which path is strategic?</h3><p>For current frontier open models, where does Baseten prefer TensorRT-LLM, SGLang, vLLM, FlashInfer, custom CUDA/Triton, or upstream patches?</p></div>
+      <div class="card"><span class="pill green">Runtime</span><h3>Which path is strategic?</h3><p>For current frontier open models, where should a serving team prefer TensorRT-LLM, SGLang, vLLM, FlashInfer, custom CUDA/Triton, or upstream patches?</p></div>
       <div class="card"><span class="pill purple">Kernels</span><h3>Where do custom kernels live?</h3><p>What is the review bar for correctness, numerics, shapes, profiler evidence, regression tests, and production feature compatibility?</p></div>
       <div class="card"><span class="pill cyan">Measurement</span><h3>What is the benchmark standard?</h3><p>What datasets, ISL/OSL distributions, concurrency sweeps, p50/p95 metrics, hardware clock settings, and traces count as reproducible?</p></div>
       <div class="card"><span class="pill amber">Infra</span><h3>What should I not reinvent?</h3><p>Which internal tools already exist for traces, microbenchmarks, runtime configs, deployment packaging, and regression dashboards?</p></div>
@@ -674,7 +674,7 @@ result: what dominated and evidence</pre>
   <section class="sources">
     <h2>Sources and anchors used while preparing this plan</h2>
     <ol>
-      <li>Attached Baseten ramp plan: emphasizes the model-performance operating loop, kernel reps, serving diagnosis, and capstone artifact.</li>
+      <li>Attached model-performance ramp plan: emphasizes the model-performance operating loop, kernel reps, serving diagnosis, and capstone artifact.</li>
       <li>DeepSeek official model card and API release: DeepSeek-V4-Flash parameters, active parameters, 1M context, mixed FP4+FP8 precision, and architecture notes.</li>
       <li>vLLM recipe and SGLang Day-0 DeepSeek-V4 post: practical runtime framing around hybrid attention, prefix-cache/coherence, MTP, kernels, and deployment.</li>
       <li>FlashAttention-4 paper/blog: B200 attention performance, CuTeDSL implementation, and algorithm/kernel co-design.</li>

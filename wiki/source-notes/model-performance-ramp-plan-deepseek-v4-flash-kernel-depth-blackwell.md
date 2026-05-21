@@ -1,8 +1,8 @@
-# Baseten Ramp Plan: DeepSeek V4 Flash, Kernel Depth, Blackwell
+# Model-Performance Ramp Plan: DeepSeek V4 Flash, Kernel Depth, Blackwell
 
-Source: `../../sources/html/baseten-ramp-plan-deepseek-v4-flash-kernel-depth-blackwell.html`
+Source: `../../sources/html/model-performance-ramp-plan-deepseek-v4-flash-kernel-depth-blackwell.html`
 
-Status: summarized from imported raw HTML on 2026-05-21. The source was scanned for obvious credentials, emails, and explicit confidential markers before import.
+Status: summarized from imported HTML on 2026-05-21. The source was scanned for obvious credentials, emails, and explicit confidential markers before import.
 
 ## Summary
 

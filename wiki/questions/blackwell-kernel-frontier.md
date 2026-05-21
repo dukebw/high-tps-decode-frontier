@@ -23,7 +23,7 @@ How should datacenter Blackwell kernel depth move the Pareto frontier for high-t
 
 ## Evidence So Far
 
-- The Baseten DeepSeek V4 Flash ramp source frames model analysis as a forcing function for kernel-learning exercises, including hybrid attention, compressed KV, MoE grouped GEMM, FP4/FP8 scaling, MTP/speculative decode, and Blackwell B200 primitives.
+- The DeepSeek V4 Flash model-performance ramp source frames model analysis as a forcing function for kernel-learning exercises, including hybrid attention, compressed KV, MoE grouped GEMM, FP4/FP8 scaling, MTP/speculative decode, and Blackwell B200 primitives.
 - The sparse video attention source warns that theoretical FLOP sparsity is not wall-clock sparsity; selected work must be laid out and scheduled in a tensor-core-friendly way.
 
 ## First Experiments To Define
