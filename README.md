@@ -1,8 +1,8 @@
 # High TPS Decode Frontier
 
-This is a working research notebook for improving the Pareto frontier of high-throughput text LLM serving, especially tokens/s/user during decode.
+This is a working research notebook for improving the Pareto frontier of high-tokens/s/user vs. throughput for text LLM serving.
 
-The repo also exists as a practice space for systematic performance engineering and kernel authoring. The first research hub is datacenter Blackwell kernel depth: CUDA, CUTLASS, and CuTe DSL, connected back to end-to-end serving metrics instead of isolated microbenchmark wins.
+The repo also exists as a practice space for systematic performance engineering and kernel authoring.
 
 ## Operating Loop
 
@@ -29,7 +29,3 @@ docs/         Background documents, including the LLM-maintained wiki pattern.
 - First kernel stack: CUDA, CUTLASS, and CuTe DSL.
 - First hardware assumption: datacenter Blackwell, especially B200/GB200-class systems.
 - First imported sources: two local HTML ramp documents under `sources/html/`, summarized in `wiki/source-notes/`.
-
-## Notes
-
-This repo is intentionally not a finished library. It should become more useful as sources, questions, benchmarks, profiler evidence, and kernel exercises accumulate.
