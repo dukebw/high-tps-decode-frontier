@@ -6,6 +6,10 @@ This wiki is organized primarily around research questions, with source notes an
 
 - [Blackwell kernel frontier](questions/blackwell-kernel-frontier.md): How should Blackwell kernel depth move the high-throughput decode Pareto frontier?
 
+## Artifacts
+
+- [V4 Flash kernel map](artifacts/v4-flash-kernel-map.md): Initial top-down architecture map for turning DeepSeek-V4-Flash facts into kernel hypotheses.
+
 ## Source Notes
 
 - [Model-performance ramp plan: DeepSeek V4 Flash, kernel depth, Blackwell](source-notes/model-performance-ramp-plan-deepseek-v4-flash-kernel-depth-blackwell.md)
