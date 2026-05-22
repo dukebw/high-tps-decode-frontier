@@ -27,6 +27,7 @@ This wiki is organized primarily around research questions, with source notes an
 - [vLLM DeepSeek V4 Support](source-notes/vllm-deepseek-v4-support.md)
 - [SGLang DeepSeek V4 Cookbook](source-notes/sglang-deepseek-v4-cookbook.md)
 - [TensorRT-LLM DeepSeek Support](source-notes/tensorrt-llm-deepseek-support.md)
+- [TileRT: Speed As The Next Scaling Law](source-notes/tilert-speed-as-the-next-scaling-law.md)
 - [OpenAI MRCR](source-notes/openai-mrcr.md)
 - [LongBench v2](source-notes/longbench-v2.md)
 

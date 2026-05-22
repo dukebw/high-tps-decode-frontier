@@ -98,6 +98,12 @@
 - Decided first-pass baseline points do not require profiler traces. Profiling will be collected manually during follow-up experimentation on selected points.
 - Updated `CONTEXT.md`, the benchmark result template, the V4 Flash investigation, and the InferenceMAX source note.
 
+## [2026-05-22] ingest | TileRT GLM-5.1 decoding source
+
+- Imported TileRT's English and Chinese "Speed as the Next Scaling Law" blog snapshots.
+- Added a structured source note connecting TileRT's persistent Engine Kernel, tile-level scheduling, heterogeneous GPU workers, and GLM-5.1 production-serving claims to the repo's low-TPOT decode and megakernel investigation criteria.
+- Scanned the imported HTML artifacts for obvious credential, private-key, and scrubbed-company markers before adding them to the public repo.
+
 ## [2026-05-21] question | Blackwell kernel frontier
 
 - Created the first research-question page focused on datacenter Blackwell kernels, CUDA, CUTLASS, CuTe DSL, and their connection to high-throughput decode metrics.

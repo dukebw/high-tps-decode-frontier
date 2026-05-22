@@ -26,6 +26,8 @@ This directory contains immutable source artifacts used by the research wiki.
 - `html/tensorrt-llm-supported-models.html`
 - `html/tensorrt-llm-deepseek-v32-blackwell.html`
 - `html/tensorrt-llm-gvr-topk-sparse-attention.html`
+- `html/tilert-speed-as-the-next-scaling-law.html`
+- `html/tilert-speed-as-the-next-scaling-law-zh.html`
 - `github/semianalysisai-inferencex-readme.md`
 - `huggingface/deepseek-ai-deepseek-v4-flash-readme.md`
 - `huggingface/openai-mrcr-dataset-card.html`

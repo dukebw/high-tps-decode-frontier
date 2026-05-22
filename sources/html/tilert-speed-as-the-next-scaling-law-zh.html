@@ -1,0 +1,1017 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>速度：大模型推理的下一个 Scaling Law — TileRT</title>
+  <meta name="description"
+    content="深度解析 TileRT 高性能推理引擎及 GLM-5.1 生产级实践：persistent kernel、tile pipeline、heterogeneous worker，以及 execution continuity 为何正在成为新的 scaling 维度。">
+  <meta property="og:title" content="速度：大模型推理的下一个 Scaling Law">
+  <meta property="og:description" content="深度解析 TileRT 高性能推理引擎及 GLM-5.1 生产级实践。">
+  <meta property="og:type" content="article">
+  <meta property="og:url" content="https://tilert.ai/blog/speed-as-the-next-scaling-law-zh.html">
+  <link rel="icon" href="../tilert-logo.png" type="image/png">
+  <link rel="apple-touch-icon" href="../tilert-logo.png">
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap');
+
+    *,
+    *::before,
+    *::after {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    :root {
+      --color-bg: #0a0e17;
+      --color-bg-alt: #111827;
+      --color-bg-card: #1a2233;
+      --color-primary: #3b82f6;
+      --color-primary-light: #60a5fa;
+      --color-accent: #06b6d4;
+      --color-text: #e2e8f0;
+      --color-text-muted: #94a3b8;
+      --color-text-heading: #f1f5f9;
+      --color-border: #1e293b;
+      --color-code-bg: #0f172a;
+      --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      --font-mono: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', monospace;
+      --radius: 12px;
+    }
+
+    html {
+      scroll-behavior: smooth;
+      scroll-padding-top: 64px;
+    }
+
+    body {
+      font-family: var(--font-sans);
+      background: var(--color-bg);
+      color: var(--color-text);
+      line-height: 1.75;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    a {
+      color: var(--color-primary-light);
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+
+    a:hover {
+      color: var(--color-accent);
+    }
+
+    /* Navbar — mirrors index.html */
+    .navbar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 100;
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      background: rgba(10, 14, 23, 0.8);
+      border-bottom: 1px solid var(--color-border);
+    }
+
+    .navbar-inner {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 0 2rem;
+      height: 64px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .navbar-brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 700;
+      font-size: 1.2rem;
+      color: var(--color-text-heading);
+    }
+
+    .navbar-brand img {
+      width: 38px;
+      height: 38px;
+    }
+
+    .navbar-right {
+      display: flex;
+      align-items: center;
+      gap: 1.25rem;
+    }
+
+    .navbar-lang {
+      font-size: 0.85rem;
+      color: var(--color-text-muted);
+      font-weight: 500;
+      letter-spacing: 0.02em;
+      padding: 0.25rem 0.55rem;
+      border: 1px solid var(--color-border);
+      border-radius: 6px;
+      transition: color 0.2s, border-color 0.2s;
+    }
+
+    .navbar-lang:hover {
+      color: var(--color-text-heading);
+      border-color: rgba(96, 165, 250, 0.4);
+    }
+
+    .navbar-back {
+      font-size: 0.9rem;
+      color: var(--color-text-muted);
+      font-weight: 500;
+    }
+
+    .navbar-back:hover {
+      color: var(--color-text-heading);
+    }
+
+    /* Article container */
+    .article-wrap {
+      max-width: 880px;
+      margin: 0 auto;
+      padding: 7rem 1.5rem 4rem;
+    }
+
+    .article-header {
+      margin-bottom: 3rem;
+      padding-bottom: 2rem;
+      border-bottom: 1px solid var(--color-border);
+    }
+
+    .article-meta {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      font-size: 0.8rem;
+      color: var(--color-text-muted);
+      margin-bottom: 1.25rem;
+      letter-spacing: 0.01em;
+    }
+
+    .article-tag {
+      display: inline-block;
+      font-size: 0.65rem;
+      font-weight: 700;
+      padding: 0.25rem 0.6rem;
+      border-radius: 4px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      background: rgba(96, 165, 250, 0.12);
+      color: var(--color-primary-light);
+    }
+
+    .article-title {
+      font-size: clamp(2rem, 4.5vw, 2.75rem);
+      font-weight: 800;
+      line-height: 1.15;
+      letter-spacing: -0.02em;
+      color: var(--color-text-heading);
+      margin-bottom: 0.85rem;
+    }
+
+    .article-subtitle {
+      font-size: 1.15rem;
+      color: var(--color-text-muted);
+      font-weight: 500;
+      line-height: 1.45;
+    }
+
+    /* Article body */
+    .article-body h2 {
+      font-size: 1.55rem;
+      font-weight: 700;
+      color: var(--color-text-heading);
+      letter-spacing: -0.01em;
+      margin: 3rem 0 1.25rem;
+      line-height: 1.3;
+    }
+
+    .article-body h3 {
+      font-size: 1.15rem;
+      font-weight: 600;
+      color: var(--color-text-heading);
+      margin: 2.25rem 0 0.85rem;
+      line-height: 1.35;
+    }
+
+    .article-body p {
+      font-size: 1rem;
+      color: var(--color-text);
+      margin-bottom: 1.1rem;
+    }
+
+    .article-body ul {
+      margin: 0 0 1.25rem 1.25rem;
+      padding: 0;
+    }
+
+    .article-body li {
+      font-size: 1rem;
+      color: var(--color-text);
+      margin-bottom: 0.4rem;
+      list-style: none;
+      position: relative;
+      padding-left: 1.1rem;
+    }
+
+    .article-body li::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 0.72rem;
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--color-primary-light);
+      opacity: 0.7;
+    }
+
+    .article-body pre {
+      background: var(--color-code-bg);
+      border: 1px solid var(--color-border);
+      border-radius: 8px;
+      padding: 0.9rem 1.1rem;
+      margin: 1rem 0 1.5rem;
+      overflow-x: auto;
+      font-family: var(--font-mono);
+      font-size: 0.88rem;
+      color: #cbd5e1;
+      line-height: 1.6;
+    }
+
+    .article-body hr {
+      border: none;
+      border-top: 1px solid var(--color-border);
+      margin: 2.5rem 0;
+    }
+
+    .article-body strong {
+      color: var(--color-text-heading);
+      font-weight: 600;
+    }
+
+    /* Section separators between major numbered sections */
+    .article-body h2.section-major {
+      margin-top: 4rem;
+      padding-top: 2.5rem;
+      border-top: 1px solid var(--color-border);
+    }
+
+    .article-body h2.section-major:first-of-type {
+      border-top: none;
+      padding-top: 0;
+      margin-top: 3rem;
+    }
+
+    /* Inline figure block */
+    .article-figure {
+      margin: 2.5rem 0 3rem;
+    }
+
+    .article-figure img {
+      display: block;
+      width: 100%;
+      height: auto;
+      border-radius: 8px;
+      border: 1px solid var(--color-border);
+    }
+
+    .article-figure-caption {
+      margin: 0.9rem 0 0;
+      text-align: center;
+      font-size: 0.85rem;
+      color: var(--color-text-muted);
+      letter-spacing: 0.01em;
+    }
+
+    /* ---- Vision infographic (mirrored from index.html) ---- */
+    .vision-infographic {
+      margin: 0 auto;
+      max-width: 100%;
+    }
+
+    .viz-svg {
+      width: 100%;
+      height: auto;
+      display: block;
+      font-family: var(--font-sans);
+    }
+
+    .viz-era-bg,
+    .viz-divider,
+    .viz-era-header,
+    .viz-gap,
+    .viz-anchor,
+    .viz-callout,
+    .viz-label {
+      opacity: 0;
+    }
+
+    .viz-curve {
+      stroke-dasharray: 1500;
+      stroke-dashoffset: 1500;
+    }
+
+    .viz-animate .viz-era-bg,
+    .viz-animate .viz-divider,
+    .viz-animate .viz-era-header,
+    .viz-animate .viz-gap,
+    .viz-animate .viz-anchor,
+    .viz-animate .viz-callout,
+    .viz-animate .viz-label {
+      animation: viz-fade 0.65s ease-out forwards;
+      animation-delay: var(--delay, 0s);
+    }
+
+    .viz-animate .viz-curve {
+      animation: viz-draw 2.2s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+      animation-delay: var(--delay, 0s);
+    }
+
+    @keyframes viz-fade {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+    @keyframes viz-draw {
+      to { stroke-dashoffset: 0; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .viz-animate .viz-era-bg,
+      .viz-animate .viz-divider,
+      .viz-animate .viz-era-header,
+      .viz-animate .viz-gap,
+      .viz-animate .viz-anchor,
+      .viz-animate .viz-callout,
+      .viz-animate .viz-label,
+      .viz-animate .viz-curve {
+        animation: none;
+      }
+    }
+
+    /* Mobile fallback for the figure */
+    .vision-mobile-fallback {
+      display: none;
+    }
+
+    .mobile-era {
+      background: var(--color-bg-card);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius);
+      padding: 1.1rem 1.15rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.4rem;
+    }
+
+    .mobile-era-future {
+      border-color: rgba(96, 165, 250, 0.35);
+      background: linear-gradient(180deg, rgba(59, 130, 246, 0.08) 0%, var(--color-bg-card) 60%);
+    }
+
+    .mobile-era-meta {
+      font-size: 0.78rem;
+      color: var(--color-text-muted);
+    }
+
+    .mobile-era-meta strong {
+      color: var(--color-text-heading);
+      font-weight: 600;
+    }
+
+    .mobile-era-anchor {
+      font-size: 0.95rem;
+      color: var(--color-text);
+      margin: 0;
+      font-weight: 500;
+    }
+
+    .mobile-era-future .mobile-era-anchor {
+      color: var(--color-text-heading);
+    }
+
+    .mobile-era-rows {
+      display: flex;
+      flex-direction: column;
+      gap: 0.45rem;
+      padding-top: 0.6rem;
+      margin-top: 0.2rem;
+      border-top: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .mobile-era-row {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 1rem;
+    }
+
+    .mobile-era-label {
+      font-size: 0.62rem;
+      font-weight: 700;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--color-text-muted);
+      flex-shrink: 0;
+    }
+
+    .mobile-era-value {
+      font-size: 0.85rem;
+      color: var(--color-text);
+      font-family: var(--font-mono);
+      text-align: right;
+    }
+
+    .mobile-era-future .mobile-era-label {
+      color: var(--color-accent);
+    }
+
+    .mobile-era-future .mobile-era-value-speed {
+      color: var(--color-accent);
+      font-weight: 800;
+      letter-spacing: 0.06em;
+      font-size: 1rem;
+      font-family: var(--font-sans);
+    }
+
+    @media (max-width: 768px) {
+      .vision-infographic {
+        display: none;
+      }
+
+      .vision-mobile-fallback {
+        display: flex;
+        flex-direction: column;
+        gap: 0.85rem;
+        max-width: 820px;
+        margin: 0 auto;
+      }
+    }
+
+    /* Footer */
+    .article-footer {
+      margin-top: 4rem;
+      padding-top: 2rem;
+      border-top: 1px solid var(--color-border);
+      font-size: 0.85rem;
+      color: var(--color-text-muted);
+      display: flex;
+      gap: 1.5rem;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .article-footer-links {
+      display: flex;
+      gap: 1.25rem;
+      flex-wrap: wrap;
+    }
+
+    @media (max-width: 640px) {
+      .article-wrap {
+        padding: 6rem 1.25rem 3rem;
+      }
+
+      .article-title {
+        font-size: 1.85rem;
+      }
+
+      .article-subtitle {
+        font-size: 1rem;
+      }
+
+      .article-body h2 {
+        font-size: 1.35rem;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <nav class="navbar">
+    <div class="navbar-inner">
+      <a href="../" class="navbar-brand">
+        <img src="../tilert-logo.png" alt="TileRT Logo">
+        TileRT
+      </a>
+      <div class="navbar-right">
+        <a href="speed-as-the-next-scaling-law.html" class="navbar-lang" lang="en">EN</a>
+        <a href="../#news" class="navbar-back">&larr; 返回首页</a>
+      </div>
+    </div>
+  </nav>
+
+  <article class="article-wrap">
+    <header class="article-header">
+      <div class="article-meta">
+        <span class="article-tag">博客</span>
+        <span>2026-05-21</span>
+        <span>&middot;</span>
+        <span>TileRT 团队</span>
+      </div>
+      <h1 class="article-title">速度：大模型推理的下一个 Scaling Law</h1>
+      <p class="article-subtitle">深度解析 TileRT 高性能推理引擎及 GLM-5.1 生产级实践</p>
+    </header>
+
+    <div class="article-body">
+
+      <h2 class="section-major">一、延迟正在成为新的智能</h2>
+
+      <p>LLM 服务化以来，推理系统的核心矛盾已经经历了几次迁移。</p>
+
+      <p>最早的问题，是如何让超大规模模型真正运行起来。随后，行业开始追求单位成本下更高的请求吞吐，更大的 batch、更深的队列，以及多级 KV cache，逐渐成为推理系统的核心设计方向。</p>
+
+      <p>但实时 AI 交互正在改变这一切。</p>
+
+      <figure class="article-figure">
+        <div class="vision-infographic" aria-label="AI 推理的三个时代">
+          <svg class="viz-svg" viewBox="0 0 1100 480" preserveAspectRatio="xMidYMid meet"
+            xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <linearGradient id="vizValueGrad" x1="0%" y1="100%" x2="100%" y2="0%">
+                <stop offset="0%" stop-color="#475569" />
+                <stop offset="40%" stop-color="#60a5fa" />
+                <stop offset="100%" stop-color="#67e8f9" />
+              </linearGradient>
+              <linearGradient id="vizPremiumFill" x1="0%" y1="0%" x2="100%" y2="0%">
+                <stop offset="0%" stop-color="#60a5fa" stop-opacity="0.1" />
+                <stop offset="100%" stop-color="#67e8f9" stop-opacity="0.4" />
+              </linearGradient>
+              <linearGradient id="vizEra3Bg" x1="0%" y1="0%" x2="0%" y2="100%">
+                <stop offset="0%" stop-color="#60a5fa" stop-opacity="0.07" />
+                <stop offset="100%" stop-color="#60a5fa" stop-opacity="0" />
+              </linearGradient>
+            </defs>
+
+            <rect class="viz-era-bg" style="--delay: 0.05s" x="0" y="0" width="366" height="430" fill="rgba(148,163,184,0.025)" />
+            <rect class="viz-era-bg" style="--delay: 0.20s" x="366" y="0" width="367" height="430" fill="rgba(96,165,250,0.03)" />
+            <rect class="viz-era-bg viz-era-bg-3" style="--delay: 0.35s" x="733" y="0" width="367" height="430" fill="url(#vizEra3Bg)" />
+
+            <line class="viz-divider" style="--delay: 0.5s" x1="366" y1="62" x2="366" y2="420" stroke="#1e293b" stroke-dasharray="3 6" stroke-width="1" opacity="0.6" />
+            <line class="viz-divider viz-divider-cyan" style="--delay: 0.6s" x1="733" y1="62" x2="733" y2="420" stroke="#60a5fa" stroke-dasharray="3 6" stroke-width="1" opacity="0.55" />
+
+            <g class="viz-era-header" style="--delay: 0.4s">
+              <text x="183" y="34" text-anchor="middle" font-size="13" font-weight="700" letter-spacing="0.2em" fill="#64748b">CHAT ERA</text>
+              <text x="183" y="54" text-anchor="middle" font-size="11" font-weight="500" fill="#475569">2023 &mdash; 2024</text>
+            </g>
+            <g class="viz-era-header" style="--delay: 0.55s">
+              <text x="549" y="34" text-anchor="middle" font-size="13" font-weight="700" letter-spacing="0.2em" fill="#64748b">AGENTIC ERA</text>
+              <text x="549" y="54" text-anchor="middle" font-size="11" font-weight="500" fill="#475569">2025 &mdash; Now</text>
+            </g>
+            <g class="viz-era-header" style="--delay: 0.7s">
+              <text x="916" y="34" text-anchor="middle" font-size="13" font-weight="700" letter-spacing="0.2em" fill="#67e8f9">AUTONOMOUS ERA</text>
+              <text x="916" y="54" text-anchor="middle" font-size="11" font-weight="500" fill="#94a3b8">Next two years</text>
+            </g>
+
+            <path class="viz-gap" style="--delay: 0.9s" d="M 20 280 Q 200 274, 366 252 L 366 252 Q 200 295, 20 320 Z" fill="rgba(148,163,184,0.07)" />
+            <path class="viz-gap" style="--delay: 1.1s" d="M 366 252 Q 500 230, 733 195 Q 980 175, 1080 20 L 1080 180 Q 900 200, 733 220 Q 500 242, 366 252 Z" fill="url(#vizPremiumFill)" />
+
+            <path class="viz-curve viz-curve-cost" style="--delay: 0.9s"
+              d="M 20 280 Q 200 274, 366 252 Q 500 242, 733 220 Q 900 200, 1080 180"
+              fill="none" stroke="#94a3b8" stroke-width="2" stroke-dasharray="7 5" stroke-linecap="round" />
+
+            <path class="viz-curve viz-curve-value" style="--delay: 1.2s"
+              d="M 20 320 Q 200 295, 366 252 Q 500 230, 733 195 Q 980 175, 1080 20"
+              fill="none" stroke="url(#vizValueGrad)" stroke-width="3.5" stroke-linecap="round" />
+
+            <text class="viz-label" style="--delay: 2.7s" x="1090" y="24" text-anchor="end" font-size="11" font-weight="600" fill="#67e8f9">model value</text>
+            <text class="viz-label" style="--delay: 2.7s" x="1090" y="195" text-anchor="end" font-size="11" font-weight="500" fill="#94a3b8">compute cost</text>
+
+            <g class="viz-anchor" style="--delay: 1.6s">
+              <rect x="148" y="300" width="70" height="22" rx="5"
+                fill="rgba(96,165,250,0.08)" stroke="rgba(96,165,250,0.28)" stroke-width="1" />
+              <text x="183" y="311" text-anchor="middle" dominant-baseline="central"
+                font-size="12" font-weight="600" fill="#e2e8f0">ChatGPT</text>
+            </g>
+
+            <g class="viz-anchor" style="--delay: 2.0s">
+              <rect x="403" y="240" width="60" height="22" rx="5"
+                fill="rgba(96,165,250,0.08)" stroke="rgba(96,165,250,0.28)" stroke-width="1" />
+              <text x="433" y="251" text-anchor="middle" dominant-baseline="central"
+                font-size="12" font-weight="600" fill="#e2e8f0">Cursor</text>
+              <rect x="520" y="225" width="95" height="22" rx="5"
+                fill="rgba(96,165,250,0.08)" stroke="rgba(96,165,250,0.28)" stroke-width="1" />
+              <text x="568" y="236" text-anchor="middle" dominant-baseline="central"
+                font-size="12" font-weight="600" fill="#e2e8f0">Claude Code</text>
+              <rect x="520" y="256" width="58" height="22" rx="5"
+                fill="rgba(96,165,250,0.08)" stroke="rgba(96,165,250,0.28)" stroke-width="1" />
+              <text x="549" y="267" text-anchor="middle" dominant-baseline="central"
+                font-size="12" font-weight="600" fill="#e2e8f0">Codex</text>
+            </g>
+
+            <g class="viz-anchor" style="--delay: 2.4s">
+              <rect x="827" y="180" width="78" height="22" rx="5"
+                fill="rgba(103,232,249,0.12)" stroke="rgba(103,232,249,0.42)" stroke-width="1" />
+              <text x="866" y="191" text-anchor="middle" dominant-baseline="central"
+                font-size="12" font-weight="600" fill="#e2e8f0">factories</text>
+              <rect x="927" y="180" width="78" height="22" rx="5"
+                fill="rgba(103,232,249,0.12)" stroke="rgba(103,232,249,0.42)" stroke-width="1" />
+              <text x="966" y="191" text-anchor="middle" dominant-baseline="central"
+                font-size="12" font-weight="600" fill="#e2e8f0">agents</text>
+              <rect x="827" y="212" width="78" height="22" rx="5"
+                fill="rgba(103,232,249,0.12)" stroke="rgba(103,232,249,0.42)" stroke-width="1" />
+              <text x="866" y="223" text-anchor="middle" dominant-baseline="central"
+                font-size="12" font-weight="600" fill="#e2e8f0">finance</text>
+              <rect x="927" y="212" width="78" height="22" rx="5"
+                fill="rgba(103,232,249,0.12)" stroke="rgba(103,232,249,0.42)" stroke-width="1" />
+              <text x="966" y="223" text-anchor="middle" dominant-baseline="central"
+                font-size="12" font-weight="600" fill="#e2e8f0">vehicles</text>
+            </g>
+
+            <g class="viz-callout" style="--delay: 2.8s">
+              <text x="183" y="358" text-anchor="middle" font-size="9" font-weight="700" letter-spacing="0.18em" fill="#475569">ECONOMICS</text>
+              <text x="183" y="383" text-anchor="middle" font-size="13" font-family="ui-monospace, 'JetBrains Mono', monospace" fill="#94a3b8">value &lt; cost</text>
+              <text x="183" y="416" text-anchor="middle" font-size="9" font-weight="700" letter-spacing="0.18em" fill="#475569">DEMAND</text>
+              <text x="183" y="441" text-anchor="middle" font-size="13" font-weight="500" fill="#94a3b8">model quality</text>
+            </g>
+
+            <g class="viz-callout" style="--delay: 2.95s">
+              <text x="549" y="358" text-anchor="middle" font-size="9" font-weight="700" letter-spacing="0.18em" fill="#475569">ECONOMICS</text>
+              <text x="549" y="383" text-anchor="middle" font-size="13" font-family="ui-monospace, 'JetBrains Mono', monospace" fill="#94a3b8">value &asymp; cost</text>
+              <text x="549" y="416" text-anchor="middle" font-size="9" font-weight="700" letter-spacing="0.18em" fill="#475569">DEMAND</text>
+              <text x="549" y="441" text-anchor="middle" font-size="13" font-weight="500" fill="#94a3b8">token throughput</text>
+            </g>
+
+            <g class="viz-callout viz-callout-future" style="--delay: 3.1s">
+              <text x="916" y="358" text-anchor="middle" font-size="9" font-weight="700" letter-spacing="0.18em" fill="#67e8f9">ECONOMICS</text>
+              <text x="916" y="383" text-anchor="middle" font-size="14" font-family="ui-monospace, 'JetBrains Mono', monospace" font-weight="700" fill="#67e8f9">value &raquo;&raquo; cost</text>
+              <text x="916" y="416" text-anchor="middle" font-size="9" font-weight="700" letter-spacing="0.18em" fill="#67e8f9">DEMAND</text>
+              <text x="916" y="456" text-anchor="middle" font-size="26" font-weight="800" letter-spacing="0.04em" fill="#67e8f9">SPEED</text>
+            </g>
+          </svg>
+        </div>
+
+        <div class="vision-mobile-fallback">
+          <div class="mobile-era">
+            <div class="mobile-era-meta"><strong>2023 &mdash; 2024</strong> &middot; Chat Era</div>
+            <p class="mobile-era-anchor">ChatGPT</p>
+            <div class="mobile-era-stat">value &lt; cost &middot; model quality</div>
+          </div>
+          <div class="mobile-era">
+            <div class="mobile-era-meta"><strong>2025 &mdash; Now</strong> &middot; Agentic Era</div>
+            <p class="mobile-era-anchor">Cursor &middot; Claude Code &middot; Codex</p>
+            <div class="mobile-era-stat">value &asymp; cost &middot; token throughput</div>
+          </div>
+          <div class="mobile-era mobile-era-future">
+            <div class="mobile-era-meta"><strong>Next two years</strong> &middot; Autonomous Era</div>
+            <p class="mobile-era-anchor">factories &middot; agents &middot; finance &middot; vehicles</p>
+            <div class="mobile-era-stat">value &raquo;&raquo; cost &middot; <strong>SPEED</strong></div>
+          </div>
+        </div>
+
+        <figcaption class="article-figure-caption">
+          AI 推理的三个时代 &mdash; 从模型质量，到 token 吞吐，再到速度，成为下一个 scaling 维度。
+        </figcaption>
+      </figure>
+
+      <p>Agent、语音交互、代码补全、工具调用，以及 Test-Time Scaling 的兴起，正在把推理重新推向 latency-first。用户不再只关心系统总共能生成多少 token，而开始关心下一次响应是否足够快。这也意味着，那些过去被吞吐掩盖的固定开销，正在重新回到关键路径。</p>
+
+      <p>与此同时，Test-Time Scaling 也开始让系统速度直接影响模型能力：在固定延迟预算下，更快的推理意味着更多 rollout、更深的推理路径，以及更强的自验证能力。</p>
+
+      <p>但现有推理系统，大多并不是围绕这一目标设计的。</p>
+
+      <p>无论是传统推理框架，还是长期围绕单个 Kernel 优化的编译器栈，本质上仍建立在&ldquo;吞吐优先&rdquo;的执行假设之上。它们能够在请求充足时有效摊薄开销，却很难在实时交互场景下，把硬件性能真正转化为端到端响应速度。</p>
+
+      <p>正是在这样的背景下，今天，TileRT 首次赋能 GLM-5.1 模型，在其官方极速版推理服务 MaaS 平台上线部署，从最初的实验性原型系统，到今天承载真实生产流量，TileRT 又跨出了重要一步。它不仅完成了一次从 prototype 到 production 的跃迁，也代表着我们对大模型推理执行模型的一次系统性重构。</p>
+
+      <h2 class="section-major">二、推理性能与硬件上限之间的鸿沟</h2>
+
+      <p>今天，一台 8&times;H200 NVL 服务器的聚合内存带宽已经接近 38 TB/s。</p>
+
+      <p>对于 GLM-5.1 模型而言，单次 decode 过程中实际激活的参数量约为 42 GB。仅从理论带宽估算，在不启用 MTP 的情况下，token 生成速度的理论上限接近 1000 token/s。</p>
+
+      <p>但落到真实系统中，端到端速度往往只有几十 token/s，距离理论上限仍隔着一个数量级的性能鸿沟。也正是从这个落差出发，TileRT 团队开始追问：问题的根源究竟在哪里？</p>
+
+      <p>最初，我们以为问题只是 kernel 不够快。直到 profiler 暴露出一些反直觉的现象：GPU 利用率并不低，理论 FLOPS 也并不差，但 token 延迟依然居高不下。</p>
+
+      <p>这意味着，<strong>GPU 并不是没有算力。真正的问题在于，算力被困在了一道道执行边界之间。</strong></p>
+
+      <h3>Runtime 开始进入关键路径</h3>
+
+      <p>今天的大多数推理框架，仍然沿用一种经典执行模型：模型被拆成一连串独立算子，每个 operator 单独启动、同步，并完成各自的内存往返。这套抽象在训练时代非常成功，因为 kernel 足够&ldquo;大&rdquo;，计算能够自然掩盖 launch、同步与 runtime 调度的固定成本。</p>
+
+      <p>但 decode 改变了这一时间尺度。</p>
+
+      <p>在 latency-first 要求下，单个 kernel 的生命周期开始进入微秒级。过去在吞吐场景下被摊薄与掩盖的固定开销，重新浮出水面：kernel launch、跨 kernel barrier、global memory spill，以及网络通信的同步开销，都开始进入关键路径，成为端到端延迟中无法忽视的一部分。</p>
+
+      <p>在性能分析过程中，我们频繁地看到一种反直觉的现象：kernel 还没真正&ldquo;热起来&rdquo;，就已经结束了。</p>
+
+      <p>GPU 被迫不断重复：<code>launch &rarr; load &rarr; compute &rarr; store &rarr; synchronize</code></p>
+
+      <p>每一次 kernel 执行的边界，都会打断数据流、破坏局部性，并迫使执行单元重新同步。很多时候，真正限制系统速度的，并不是某个 GEMM 的计算速度，而是：下一次计算什么时候才能开始。</p>
+
+      <p>过去，runtime 是 GPU 编程的便利层；但在超低延迟推理下，它开始越来越接近性能墙本身。问题开始不再只存在于 kernel 内部，而开始存在于：kernel 与 kernel 之间。</p>
+
+      <p>这也是 TileRT 的起点。</p>
+
+      <h2 class="section-major">三、TileRT：重新思考推理引擎</h2>
+
+      <p>TileRT 的一个核心判断是：当运行时系统（runtime）的任务编排开始进入延迟关键路径时，问题的答案可能已经不只是&ldquo;继续优化运行时系统&rdquo;，而是重新思考推理系统的执行模型。</p>
+
+      <p>传统推理框架中，GPU 执行的是一串彼此独立的 kernel，执行流会不断被 kernel launch、同步、operator 边界与 memory round-trip 切碎。</p>
+
+      <p>而在 TileRT 中，我们开始尝试另一种思路：GPU 不再执行一串离散 kernel，而是持续执行一个长期驻留的任务流水线。</p>
+
+      <h3>从 Runtime Scheduling 到 Persistent Execution</h3>
+
+      <p>TileRT 会在编译期（AOT）将整个模型静态展开为一个常驻 Engine Kernel。</p>
+
+      <figure class="article-figure">
+        <img src="figures/heterogeneous_worker_virtualization.png"
+          alt="Tile-level Task Scheduling：算子被拆解为 tile-level task，调度到 warp group 上，CTA 通过 warp/block specialization 形成异构 worker。" />
+        <figcaption class="article-figure-caption">
+          Tile-level task scheduling &mdash; operator 被拆解为 tile，task 调度到 warp group，CTA 通过 warp/block specialization 成为 heterogeneous worker。
+        </figcaption>
+      </figure>
+
+      <p>在整个解码生命周期中：</p>
+
+      <ul>
+        <li>Host 只启动一次</li>
+        <li>任务执行流（execution flow）持续驻留在 GPU 内部</li>
+        <li>大量运行时调度被前移到编译期</li>
+      </ul>
+
+      <p>传统执行模型更接近&ldquo;operator-by-operator&rdquo;的连续调度，而在 TileRT 中，任务执行流会进一步被组织成持续推进的 tile 计算流水线。</p>
+
+      <p>这里，tile 的意义并不只是更细粒度的任务划分。它本质上是一种新任务调度抽象：计算、通信与异步 IO 会被统一拆解为 tile-level task，并在 GPU 内部持续推进。</p>
+
+      <h3>Warp Specialization 与 Tile-Level Pipeline</h3>
+
+      <p>为了维持这种持续执行，TileRT 在 Engine Kernel 内部进一步采用了激进的 Warp / Block Specialization。</p>
+
+      <p>不同 warp group 会承担不同职责：</p>
+
+      <ul>
+        <li>一部分负责异步数据搬运</li>
+        <li>一部分负责张量计算</li>
+        <li>一部分负责通信重叠</li>
+      </ul>
+
+      <p>过去很多执行阶段必须以：</p>
+
+      <pre><code>load &rarr; barrier &rarr; compute &rarr; barrier</code></pre>
+
+      <p>的方式串行推进。</p>
+
+      <p>而在 TileRT 中，数据搬运、张量计算与通信会开始以 tile 为粒度持续重叠，大量中间结果也不再反复写回 global memory，而会直接停留在 register、shared memory 与 L2 cache 中继续向后流动。</p>
+
+      <p>从 profiler 的角度看，这种变化会非常明显：GPU 不再表现得像&ldquo;不断启动新 kernel&rdquo;，而更像一个持续运行的 execution pipeline。</p>
+
+      <h3>TileRT 想解决的，其实是 Execution Gap</h3>
+
+      <p>随着 decode 延迟被不断压缩，我们逐渐发现，真正吞噬延迟的很多时候并不是计算，而是：</p>
+
+      <ul>
+        <li>kernel 与 kernel 之间的等待</li>
+        <li>通信与计算之间的停顿</li>
+        <li>runtime 与 device 之间的同步</li>
+      </ul>
+
+      <p>TileRT 的很多设计&mdash;&mdash;persistent kernel、tile pipeline、warp specialization&mdash;&mdash;本质上都围绕着同一个目标：尽可能压缩 execution gap。</p>
+
+      <h3>从算子 Runtime 到 GPU 驻留式调度</h3>
+
+      <p>当越来越多调度逻辑被下沉进 kernel 内部后，推理系统本身也开始呈现出一种不同于传统 inference runtime 的形态。</p>
+
+      <p>过去：</p>
+
+      <ul>
+        <li>调度发生在 host runtime</li>
+        <li>同步发生在算子边界</li>
+        <li>通信由外部框架组织</li>
+      </ul>
+
+      <p>而现在，越来越多 execution orchestration 开始驻留在 GPU 内部。</p>
+
+      <p>Runtime 不再不断&ldquo;驱动 GPU&rdquo;，而更像是在初始化与维护一个持续运行的 execution pipeline。</p>
+
+      <h2 class="section-major">四、从 Warp Specialization 到 Heterogeneous Worker</h2>
+
+      <p>Persistent 执行流解决了单卡内部的大量执行空泡。然而，当系统扩展到 8&times;NVL 后，我们开始遇到另一种 boundary：同构并行 abstraction 本身。</p>
+
+      <p>今天的大多数张量并行（TP）框架，都默认所有 GPU rank 执行相同逻辑，并通过同步共同推进执行流。这种方式在稠密训练时代非常自然，但推理开始改变这一点。</p>
+
+      <p>随着稀疏路由、Top-K 选择、动态索引、长上下文 attention 与 MTP 执行不断进入系统，越来越多执行阶段开始表现出一种新的特征：它们并不天然适合同构扩展。</p>
+
+      <p>很多阶段本身计算量并不大，但高度依赖全局信息、动态依赖与同步。如果仍然强行让所有 rank 执行相同逻辑，往往会引入大量重复计算、广播与同步放大。</p>
+
+      <h3>把 Specialization 从 SM 扩展到整个 NVL 域</h3>
+
+      <p>我们后来意识到：既然 warp 可以 specialization，GPU 本身为什么不可以？</p>
+
+      <p>于是，TileRT 开始进一步把 specialization 的思想从 SM 内部向外扩展：</p>
+
+      <pre><code>warp specialization &rarr; block specialization &rarr; GPU specialization</code></pre>
+
+      <p>不同 GPU 不再被视为完全对称的执行单元，而会根据计算密度、通信成本与数据依赖承担不同职责。某种意义上，Heterogeneous Worker 本质上是 Warp Specialization 在更大尺度上的延伸。</p>
+
+      <h3>GLM-5.1 中的异构执行</h3>
+
+      <figure class="article-figure">
+        <img src="figures/execution_glm_5p1.png"
+          alt="GLM-5.1 的 attention 被拆成异构 worker：GPU 1–7 运行 MLA（Projection、Q/K/V、Selection、Attention、All Reduce），GPU 0 运行 Sparse Indexer（Index Q/K、Sparse Index Score、Top-K、Broadcast、All Reduce）。Sparse Index 反馈给 Selection。" />
+        <figcaption class="article-figure-caption">
+          GLM-5.1 中 attention 的异构拆分 &mdash; GPU 0 运行稀疏索引 Worker，GPU 1&ndash;7 运行 MLA Worker。
+        </figcaption>
+      </figure>
+
+      <p>在 GLM-5.1 的执行流中，我们最终把 attention layer 拆成了两类 heterogeneous worker：</p>
+
+      <ul>
+        <li><strong>GPU0：</strong>稀疏索引 Worker</li>
+        <li><strong>GPU1&ndash;7：</strong>MLA Worker</li>
+      </ul>
+
+      <p>其中，稀疏索引 Worker 负责 Top-K 选择、稀疏索引构建与路由决策；而 MLA Worker 则负责 RMSNorm、GEMM、Flash Sparse Attention、AllReduce 等计算密集型 stage。</p>
+
+      <p>这种拆分的关键，并不只是&ldquo;功能划分&rdquo;。更重要的是，不同 execution stage 开始拥有不同的扩展策略。一些阶段更依赖全局信息，同步开销主导计算，因此更适合集中式 execution；另一些阶段则天然适合张量并行。</p>
+
+      <h3>通信开始进入 Tile Flow</h3>
+
+      <p>在传统推理框架中，通信往往仍然是执行流之外的独立阶段。但在 TileRT 中，通信会进一步被下沉进执行流水线内部。整个 attention layer 在 host 侧只对应一次 Engine Kernel 启动，大量广播、归约与同步会直接在 tile-level 任务流水线内部完成。</p>
+
+      <p>过去，执行更接近：</p>
+
+      <pre><code>compute &rarr; sync &rarr; compute</code></pre>
+
+      <p>而现在，则开始越来越接近：</p>
+
+      <pre><code>compute &harr; communication &harr; compute</code></pre>
+
+      <p>持续重叠的执行流水线。</p>
+
+      <h2 class="section-major">五、Production-Ready：从实验室极速版到真实流量</h2>
+
+      <p>极致 benchmark 往往是脆弱的。</p>
+
+      <p>真正困难的问题，从来不是如何在实验室里跑出一个漂亮数字，而是如何让系统在真实生产流量下，持续稳定地接近硬件极限。</p>
+
+      <p>TileRT 从 prototype 走向 production 的过程中，我们越来越明显地感受到：超低延迟推理，本质上是在对执行流水线的持续推进做极限维护。</p>
+
+      <p>很多 benchmark 环境下不会暴露的问题，在真实流量里会被迅速放大。在 benchmark 中，序列长度往往相对稳定，路由模式更加理想，请求到达也更规整，KV cache 生命周期通常较短。</p>
+
+      <p>但真实生产流完全不同。</p>
+
+      <p>长短上下文会持续交织，KV cache 会不断增长、碎片化与迁移，不同请求之间的路由模式也会持续波动。而在 MTP 场景下，accept / reject path 甚至会不断改变执行流本身。</p>
+
+      <h3>从&ldquo;跑得快&rdquo;到&ldquo;持续跑得快&rdquo;</h3>
+
+      <p>过去半年里，TileRT 经历了几轮关键的执行模型重构。但这些重构的核心目标，并不只是继续推高峰值速度，而是解决一个在真实生产环境中更难的问题：如何让执行流持续稳定地跑下去。</p>
+
+      <p>在 v0.1.1 版本中，我们进一步压缩了执行流水线的空泡，并引入更细粒度的 overlap，对 Engine Kernel 内部调度方式进行了重新组织。这类优化不一定会显著抬高理论计算性能上限，却会实实在在地改善端到端延迟，尤其是 tail latency。因为在真实服务里，用户感受到的往往不是&ldquo;最快的一次&rdquo;，而是&ldquo;最慢的那几次&rdquo;。</p>
+
+      <p>到了 v0.1.2-alpha.1，MTP（Multi-Token Prediction）开始进入 TileRT 的执行流。表面上看，MTP 是为了&ldquo;一次生成更多 token&rdquo;；但从系统角度看，它真正带来的挑战，是执行流开始变得动态。accept / reject path 会持续改变 pipeline 的推进方式，而 draft / verify 之间也会引入新的 synchronization dependency。换句话说，系统不仅要跑得快，还要在执行路径不断变化时，依然保持流水线不断流。</p>
+
+      <p>当 v0.1.3 正式支持 GLM-5 模型后，新的系统问题又进一步浮出水面。随着 FP8 与超长上下文场景进入生产环境，KV cache 压力、访存局部性、communication amplification 开始成为影响稳定低延迟的关键因素。此时，瓶颈已经不再只是某个 kernel 是否足够快，而是整个系统能否在复杂负载下持续维持执行流的持续推进。</p>
+
+      <p>接下来，我们即将公布 v0.1.4 版本。这个版本将进一步面向超长上下文生产环境进行优化，并引入全新的 Heterogeneous Worker 执行模型。它的目标，是让 TileRT 不只在理想条件下跑出漂亮数字，而是在真实流量、动态路径、长上下文和复杂通信模式交织的生产环境中，持续稳定地跑得快。</p>
+
+      <h3>真正困难的问题，开始越来越&ldquo;系统&rdquo;</h3>
+
+      <p>随着性能不断逼近硬件边界，我们越来越明显地感受到，真正困难的问题已经不再只是 GEMM 优化、kernel 调优或 operator 融合。</p>
+
+      <p>很多时候，系统不是&ldquo;算得不够快&rdquo;，而是 <strong>任务执行流水线无法持续稳定地流动</strong>。</p>
+
+      <p>今天，TileRT 已经正式承担 GLM-5 / GLM-5.1 的生产流量。但我们越来越觉得，benchmark 其实只是整个系统问题里相对容易的一部分。真正困难的问题，开始越来越接近：</p>
+
+      <ul>
+        <li>runtime architecture</li>
+        <li>distributed scheduling</li>
+        <li>memory system behavior</li>
+        <li>model-system co-design</li>
+      </ul>
+
+      <p>而这，也正在推动推理系统从&ldquo;算子优化&rdquo;逐渐演化为真正的 AI execution infrastructure。</p>
+
+      <h2 class="section-major">六、下一阶段：协同设计</h2>
+
+      <p>当系统性能开始逼近硬件边界后，我们越来越明显地感受到，很多问题已经无法继续通过局部优化解决。</p>
+
+      <p>过去几年，大模型系统优化的大部分工作，本质上都发生在算子 / kernel 层：更快的 GEMM、更激进的融合、更高效的 communication overlap，以及更复杂的 scheduling policy。但很多 bottleneck 已经不再局限于某一个 operator，而开始存在于整个任务流水线本身。</p>
+
+      <p>我们开始越来越频繁地撞上&ldquo;结构性边界&rdquo;：</p>
+
+      <ul>
+        <li>memory hierarchy 与模型结构之间的不匹配</li>
+        <li>communication topology 与 routing pattern 的冲突</li>
+        <li>KV cache 增长与 locality 之间的矛盾</li>
+        <li>dynamic sparsity 对传统同构并行 abstraction 的破坏</li>
+      </ul>
+
+      <p>这些问题有一个共同点：它们已经无法仅靠 runtime 修复。</p>
+
+      <p>很多时候，系统本身已经非常接近硬件极限，但模型结构仍然会不断制造新的执行流碎片。于是我们逐渐意识到：未来的极致性能，不可能只来自推理框架本身，而必须来自更深层次的协同设计。</p>
+
+      <h3>模型、编译器与硬件开始重新耦合</h3>
+
+      <p>过去，模型、编译器与硬件之间更像一种单向适配关系：</p>
+
+      <pre><code>model &rarr; compiler &rarr; hardware</code></pre>
+
+      <p>模型先被设计出来，然后 compiler 尝试 lowering，runtime 尝试调度，kernel 工程师再去&ldquo;补救&rdquo;执行效率问题。</p>
+
+      <p>但在超低延迟推理场景下，这种方式开始越来越困难。随着执行流水线被不断压缩，任何访存局部性被破坏、communication amplification 或 synchronization expansion，都可能直接进入延迟关键路径。</p>
+
+      <p>模型结构本身，也开始越来越直接地影响系统执行行为。</p>
+
+      <h3>TileRT 只是开始</h3>
+
+      <p>TileRT 并不是这个方向的终点，它更像是一次尝试：我们开始不再把推理系统视为&ldquo;一串被 launch 的 kernel&rdquo;，而开始把它视为一个持续流动的任务流水线。</p>
+
+      <p>过去，大模型 Scaling Law 讨论的是参数量、数据量与训练算力；但当推理开始成为 AI 产品真正的核心环节后，速度本身也开始成为一种新的 Scaling Law。</p>
+
+      <p>因为推理速度开始越来越直接地影响模型在固定延迟预算内能够完成的推理深度、交互质量与 Agent 响应能力。</p>
+
+      <h2 class="section-major">七、The speed is all you need</h2>
+
+      <p>如果说过去十年，GPU 的核心任务是尽可能高效地完成大规模并行计算，那么未来几年，它可能会越来越多地承担另一种任务：在极短延迟预算内，持续维持任务流水线。</p>
+
+      <p>这会迫使模型结构、编译器、运行时系统与硬件架构一起发生变化。</p>
+
+      <p>因为速度正在越来越直接地影响：</p>
+
+      <ul>
+        <li>推理深度</li>
+        <li>交互质量</li>
+        <li>Agent 响应能力</li>
+        <li>真实世界生产力</li>
+      </ul>
+
+      <p>而 TileRT，只是这个方向上的一步。</p>
+
+      <h3>合作交流</h3>
+
+      <p>TileRT 团队正在进行高性能 AI 系统的底层构建与极限探索。</p>
+
+      <p>如果你对 GPU architecture、compiler optimization、distributed execution 或 large-scale inference system 有兴趣，欢迎与我们交流或加入我们。</p>
+
+      <ul>
+        <li>开源代码库（部分模块）：
+          <a href="https://github.com/tile-ai/TileRT" target="_blank">github.com/tile-ai/TileRT</a></li>
+        <li>技术与合作交流：
+          <a href="mailto:tile-ai@outlook.com">tile-ai@outlook.com</a></li>
+      </ul>
+
+      <p><strong>The speed is all you need.</strong></p>
+
+    </div>
+
+    <footer class="article-footer">
+      <span>&copy; 2026 TileRT</span>
+      <div class="article-footer-links">
+        <a href="../">首页</a>
+        <a href="../#news">更多文章</a>
+        <a href="https://github.com/tile-ai/TileRT" target="_blank">GitHub</a>
+      </div>
+    </footer>
+  </article>
+
+  <script>
+    (function () {
+      const viz = document.querySelector('.vision-infographic');
+      if (!viz) return;
+
+      function play() {
+        viz.classList.remove('viz-animate');
+        void viz.offsetWidth;
+        viz.classList.add('viz-animate');
+      }
+
+      if (!('IntersectionObserver' in window)) {
+        play();
+        return;
+      }
+
+      let inView = false;
+      const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            if (!inView) {
+              play();
+              inView = true;
+            }
+          } else {
+            inView = false;
+          }
+        });
+      }, { threshold: 0.15 });
+      observer.observe(viz);
+
+      setTimeout(() => {
+        if (!viz.classList.contains('viz-animate')) play();
+      }, 8000);
+    })();
+  </script>
+</body>
+
+</html>
