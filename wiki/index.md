@@ -21,6 +21,7 @@ This wiki is organized primarily around research questions, with source notes an
 ## Source Notes
 
 - [Model-performance ramp plan: DeepSeek V4 Flash, kernel depth, Blackwell](source-notes/model-performance-ramp-plan-deepseek-v4-flash-kernel-depth-blackwell.md)
+- [FlashAttention Papers 1-4](source-notes/flashattention-series.md)
 - [Sparse attention for video diffusion: FA4 follow-on ramp](source-notes/sparse-attention-video-diffusion-fa4-follow-on-ramp.md)
 - [SemiAnalysisAI InferenceX README](source-notes/semianalysisai-inferencex-readme.md)
 - [InferenceMAX: Open Source Inference Benchmarking](source-notes/inferencemax-open-source-inference-benchmarking.md)

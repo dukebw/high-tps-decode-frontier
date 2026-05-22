@@ -140,6 +140,14 @@ _Avoid_: Branch names such as `main` as benchmark provenance
 A top-down architecture map built from public model and runtime sources before local profiling. It lists known facts, unknowns, and kernel hypotheses, but it is not evidence that any path is a bottleneck or optimization win.
 _Avoid_: Treating source-backed architecture analysis as measured performance evidence
 
+**D4 dense attention baseline**:
+The day-4 kernel-ramp artifact from the imported model-performance plan: a controlled dense attention baseline ladder that compares naive attention, PyTorch SDPA, FlashAttention-family or cuDNN attention paths, and profiling evidence across head dimension, sequence length, phase, dtype, and causal/non-causal masking.
+_Avoid_: Treating D4 as only a custom kernel implementation
+
+**D5 sparse/compressed attention toy**:
+The day-5 follow-on kernel-ramp artifact: a toy SWA plus compressed-KV attention benchmark that separates metadata/index preparation from attention compute, so sparse or compressed designs are compared against the D4 dense baseline after all overheads are counted.
+_Avoid_: Claiming sparse/compressed attention wins from FLOP reduction alone
+
 **Compressed Sparse Attention (CSA)**:
 The V4 attention path that compresses KV entries along the sequence dimension and then applies sparse selection over compressed entries, with a sliding-window branch for local tokens.
 _Avoid_: Generic sparse attention

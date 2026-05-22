@@ -118,6 +118,13 @@
 - Added a structured source note connecting TileRT's persistent Engine Kernel, tile-level scheduling, heterogeneous GPU workers, and GLM-5.1 production-serving claims to the repo's low-TPOT decode and megakernel investigation criteria.
 - Scanned the imported HTML artifacts for obvious credential, private-key, and scrubbed-company markers before adding them to the public repo.
 
+## [2026-05-22] ingest | FlashAttention paper series
+
+- Imported PDF snapshots for FlashAttention 1, 2, 3, and 4.
+- Added a structured source note connecting the series to the D4 dense attention baseline and D5 sparse/compressed attention toy benchmark path.
+- Updated `CONTEXT.md` with D4 and D5 glossary entries from the imported model-performance ramp language.
+- Scanned the imported PDFs with binary string search for obvious credential, private-key, and scrubbed-company markers before adding them to the public repo.
+
 ## [2026-05-21] question | Blackwell kernel frontier
 
 - Created the first research-question page focused on datacenter Blackwell kernels, CUDA, CUTLASS, CuTe DSL, and their connection to high-throughput decode metrics.

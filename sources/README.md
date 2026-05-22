@@ -35,3 +35,7 @@ This directory contains immutable source artifacts used by the research wiki.
 - `huggingface/longbench-v2-dataset-card.html`
 - `pdf/deepseek-v4-model-card-en.pdf`
 - `pdf/deepseek-v4-technical-report.pdf`
+- `pdf/flashattention-1-2205.14135.pdf`
+- `pdf/flashattention-2-flash2.pdf`
+- `pdf/flashattention-3-2407.08608.pdf`
+- `pdf/flashattention-4-2603.05451.pdf`
