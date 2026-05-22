@@ -108,6 +108,8 @@ rexec --flush bash benchmarks/scripts/v4-flash-vllm-smoke.sh
 
 The script launches the pinned vLLM image and pinned HF revision from the local HF cache with `HF_HUB_OFFLINE=1`, waits for `/v1/models`, sends one Non-think and one Think High chat request, writes artifacts under `/home/ubuntu/shared/logs/vllm-v4-flash-smoke/<timestamp>/`, and stops the container unless `KEEP_SERVER=1`.
 
+The script itself was verified on `b200-aws2` at `/home/ubuntu/shared/logs/vllm-v4-flash-smoke/20260522T184409Z/` after fixing an early readiness check that could exit before Podman registered the container name.
+
 Completed smoke run on 2026-05-22:
 
 - Run directory: `/home/ubuntu/shared/logs/vllm-v4-flash-smoke/20260522T181009Z/`.

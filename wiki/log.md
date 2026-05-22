@@ -109,6 +109,7 @@
 - Completed the pinned V4 Flash Hugging Face snapshot download on `b200-aws2`; remote logs are mirrored under `~/shared/b200-aws2/logs/v4-flash-download/20260522T1800Z/` and the HF cache was about `844G`.
 - Added `benchmarks/scripts/v4-flash-vllm-smoke.sh` to reproduce the pinned vLLM launch smoke test.
 - Completed a vLLM smoke run on `b200-aws2` with 4xB200, pinned vLLM `0.21.0`, pinned V4 Flash revision `6976c7ff1b30a1b2cb7805021b8ba4684041f136`, FP8 KV cache, DeepGEMM MegaMoE, and MXFP4 indexer cache; Non-think and Think High test requests both returned `323`.
+- Verified the committed smoke script on `b200-aws2` and fixed its readiness loop to monitor the background `docker run` process instead of requiring the Podman container name to appear immediately in `docker ps`.
 - Defined runtime config variants, workload scenarios, fixed concurrency sweep, repetition count, report-only quality matrix, serving correctness checks, and open setup items.
 
 ## [2026-05-22] ingest | TileRT GLM-5.1 decoding source

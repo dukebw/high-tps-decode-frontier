@@ -78,11 +78,13 @@ docker_cmd run --rm \
   --disable-uvicorn-access-log \
   > "$run_dir/server.log" 2>&1 &
 
-printf "%s\n" "$!" > "$run_dir/server.pid"
+server_pid=$!
+printf "%s\n" "$server_pid" > "$run_dir/server.pid"
 
 deadline=$((SECONDS + WAIT_TIMEOUT_S))
 until curl -sf "http://127.0.0.1:$PORT/v1/models" > "$run_dir/models.json"; do
-  if ! docker_cmd ps --filter "name=$name" --format '{{.Names}}' | grep -qx "$name"; then
+  if ! kill -0 "$server_pid" 2>/dev/null; then
+    wait "$server_pid" || true
     printf "vLLM smoke container exited before readiness. Log: %s\n" "$run_dir/server.log" >&2
     exit 1
   fi
