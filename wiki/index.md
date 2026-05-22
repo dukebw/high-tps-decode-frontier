@@ -10,6 +10,10 @@ This wiki is organized primarily around research questions, with source notes an
 
 - [V4 Flash InferenceX-style frontier](investigations/v4-flash-inferencex-frontier.md): Planned serving-frontier investigation for real DeepSeek-V4-Flash on the smallest official Blackwell topology.
 
+## Benchmark Plans
+
+- [V4 Flash baseline benchmark plan](../benchmarks/plans/v4-flash-baseline-plan.md): Concrete first-pass run matrix for vLLM and SGLang V4 Flash baseline selection.
+
 ## Artifacts
 
 - [V4 Flash kernel map](artifacts/v4-flash-kernel-map.md): Initial top-down architecture map for turning DeepSeek-V4-Flash facts into kernel hypotheses.

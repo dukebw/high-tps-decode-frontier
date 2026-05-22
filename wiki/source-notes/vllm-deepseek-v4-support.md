@@ -4,13 +4,15 @@ Sources:
 
 - `../../sources/html/vllm-deepseek-v4-blog.html`
 - `../../sources/html/vllm-recipes-deepseek-v4-flash.html`
+- `../../sources/github/vllm-recipes-deepseek-v4-flash.yaml`
 
 Upstreams:
 
 - https://vllm.ai/blog/2026-04-24-deepseek-v4
 - https://recipes.vllm.ai/deepseek-ai/DeepSeek-V4-Flash
+- https://github.com/vllm-project/recipes/blob/main/models/deepseek-ai/DeepSeek-V4-Flash.yaml
 
-Status: summarized from imported HTML snapshots on 2026-05-22. The sources were scanned for obvious credential patterns before adding them to the public repo.
+Status: summarized from imported HTML and YAML snapshots on 2026-05-22. The sources were scanned for obvious credential patterns before adding them to the public repo; the YAML contains a documented `api_key="EMPTY"` OpenAI client placeholder, not a real credential.
 
 ## Summary
 
@@ -21,8 +23,10 @@ For this repo, vLLM is a likely strongest public reproducible baseline path for 
 ## Key Claims
 
 - vLLM supports `deepseek-ai/DeepSeek-V4-Pro` and `deepseek-ai/DeepSeek-V4-Flash`.
+- The YAML recipe sets minimum vLLM version to `0.20.0` and default strategy to `single_node_tep`.
 - The highlighted V4-Flash command is runnable on 4xB200 or 4xB300.
 - The highlighted V4-Flash command uses `--kv-cache-dtype fp8`, `--block-size 256`, expert parallelism, `--data-parallel-size 4`, CUDA graph compilation settings, FP4 indexer cache, `--tokenizer-mode deepseek_v4`, `--tool-call-parser deepseek_v4`, and `--reasoning-parser deepseek_v4`.
+- The YAML recipe's Blackwell override adds `--attention_config.use_fp4_indexer_cache=True` and `--moe-backend deep_gemm_mega_moe`.
 - vLLM describes `c4a` as roughly 1/4 KV compression with 8-token weighted sums and stride 4.
 - vLLM describes `c128a` as roughly 1/128 KV compression with 128-token weighted sums and stride 128.
 - vLLM uses a short sliding window of size 128 for local information.
@@ -48,12 +52,11 @@ This source gives a concrete open runtime path that can be benchmarked locally o
 
 ## Open Questions
 
-- Which vLLM recipe variant is strongest for the repo's first frontier sweep: single-node DP/EP, H200 PD, or another published configuration?
-- Does vLLM's DeepGEMM MegaMoE planned work exist in the runtime version used for measurement?
+- Does the full `1M` context launch path need any additional vLLM flags beyond the smoke-test command before quality or performance runs?
 - How does vLLM's 256-native-position block abstraction interact with InferenceX-like random prompt/output lengths and prefix-cache-disabled runs?
 
 ## Follow-Ups
 
-- Pin a candidate vLLM image and recipe version in the first planned benchmark record.
-- Compare vLLM and SGLang launch flags before selecting the strongest baseline.
+- Use pinned vLLM image `docker.io/vllm/vllm-openai@sha256:4ac9b7c6dabc3ec762c0edef4e9245abe98373844da91cc53ee42e5c58280c5b` unless a later benchmark plan explicitly supersedes it.
+- Compare the planned vLLM single-node TEP config against the SGLang config matrix before selecting the strongest baseline.
 - Use vLLM's described fusions as a profiler checklist for decode traces.

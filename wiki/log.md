@@ -98,6 +98,19 @@
 - Decided first-pass baseline points do not require profiler traces. Profiling will be collected manually during follow-up experimentation on selected points.
 - Updated `CONTEXT.md`, the benchmark result template, the V4 Flash investigation, and the InferenceMAX source note.
 
+## [2026-05-22] plan | V4 Flash baseline benchmark
+
+- Added `benchmarks/plans/v4-flash-baseline-plan.md` as the concrete first-pass run matrix for vLLM and SGLang baseline selection.
+- Pinned `deepseek-ai/DeepSeek-V4-Flash` to Hugging Face revision `6976c7ff1b30a1b2cb7805021b8ba4684041f136` and listed required model, tokenizer, encoding, inference, index, and weight-shard paths to record in results.
+- Imported the raw vLLM recipe YAML and updated the vLLM source note with the default `single_node_tep` strategy and Blackwell override details.
+- Resolved candidate amd64 container image digests on `b200-aws2`: `docker.io/vllm/vllm-openai@sha256:4ac9b7c6dabc3ec762c0edef4e9245abe98373844da91cc53ee42e5c58280c5b` and `docker.io/lmsysorg/sglang@sha256:015f39a45844be5a7b35270c56dc4d9ebcfe9b0c21a3b4f877a4ee22e795bd7a`.
+- Pulled both pinned images on `b200-aws2`, verified vLLM `0.21.0` and SGLang `0.5.12`, and recorded build commits/image tags in the benchmark plan.
+- Generated the NVIDIA CDI spec on `b200-aws2`; Podman-backed containers need `--device nvidia.com/gpu=all` rather than `--gpus all` for CUDA visibility.
+- Completed the pinned V4 Flash Hugging Face snapshot download on `b200-aws2`; remote logs are mirrored under `~/shared/b200-aws2/logs/v4-flash-download/20260522T1800Z/` and the HF cache was about `844G`.
+- Added `benchmarks/scripts/v4-flash-vllm-smoke.sh` to reproduce the pinned vLLM launch smoke test.
+- Completed a vLLM smoke run on `b200-aws2` with 4xB200, pinned vLLM `0.21.0`, pinned V4 Flash revision `6976c7ff1b30a1b2cb7805021b8ba4684041f136`, FP8 KV cache, DeepGEMM MegaMoE, and MXFP4 indexer cache; Non-think and Think High test requests both returned `323`.
+- Defined runtime config variants, workload scenarios, fixed concurrency sweep, repetition count, report-only quality matrix, serving correctness checks, and open setup items.
+
 ## [2026-05-22] ingest | TileRT GLM-5.1 decoding source
 
 - Imported TileRT's English and Chinese "Speed as the Next Scaling Law" blog snapshots.

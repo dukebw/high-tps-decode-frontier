@@ -23,6 +23,7 @@ Produce a benchmark-driven investigation that establishes the strongest public r
 - Label every number with result provenance: local measured, reproduced public recipe, faithfully cited, or estimated limit.
 - Use pinned live Hugging Face references for official model metadata, tokenizer, encoding, and inference files instead of copying those files into `sources/`, as long as benchmark records capture exact repo IDs, immutable revision commit SHAs, and file paths.
 - Run both workload regimes before declaring the strongest baseline: no-cache public InferenceX scenarios and the first agentic prefix-cache scenario.
+- First concrete benchmark plan: [V4 Flash baseline benchmark plan](../../benchmarks/plans/v4-flash-baseline-plan.md).
 
 ## Benchmark Shape
 
@@ -89,7 +90,7 @@ A megakernel investigation can start only after profiler evidence shows critical
 
 - Between vLLM and SGLang, which runtime path is the strongest public reproducible baseline for V4 Flash on the target Blackwell topology?
 - Has TensorRT-LLM published a reproducible V4 Flash path by benchmark time?
-- Which pinned Hugging Face revision should be used for the first benchmark, and which exact config, tokenizer, encoding, and inference file paths should be recorded?
+- Which exact vLLM and SGLang image digests or source SHAs should be used for the first benchmark?
 - When should the agentic prefix-cache workload expand from 128K total ISL to 512K and 1M variants?
 - Is 3 repetitions per benchmark point sufficient once hardware cost and runtime are known?
 - Which external reference scores from the DeepSeek V4 report and public benchmark leaderboards are comparable enough to list in the first result record?

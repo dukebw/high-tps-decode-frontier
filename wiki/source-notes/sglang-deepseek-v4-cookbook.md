@@ -40,12 +40,12 @@ This source is valuable because it maps the V4 Flash target onto concrete deploy
 
 ## Open Questions
 
-- Which SGLang recipe is strongest for an InferenceX-like random workload on the selected Blackwell topology?
+- Which SGLang recipe emerges strongest for the selected Blackwell topology and workload regime?
 - Are the cookbook's verified recipe sets sufficient for result provenance, or does this repo need to rerun every selected point locally?
 - Does MegaMoE W4A8 or W4A4 pass the report-only quality gate closely enough to serve as the strongest SGLang baseline config?
 
 ## Follow-Ups
 
-- Compare SGLang low-latency, balanced, max-throughput, context-parallel, and PD-disaggregated recipes against vLLM before choosing the first baseline.
+- Compare SGLang low-latency, balanced, max-throughput, and supported MegaMoE variants against vLLM before choosing the first baseline.
 - Add DeepEP dispatch-buffer and MTP settings to any SGLang benchmark metadata.
 - Treat HiCache and prefix caching as separate workload regimes rather than defaulting them on.

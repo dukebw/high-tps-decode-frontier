@@ -6,7 +6,7 @@ This directory contains immutable source artifacts used by the research wiki.
 
 - Keep imported source artifacts unchanged after import unless a public scrub is explicitly requested.
 - Put HTML files under `sources/html/`.
-- Put GitHub README snapshots under `sources/github/`.
+- Put GitHub-hosted snapshots under `sources/github/`.
 - Put Hugging Face README snapshots under `sources/huggingface/`.
 - Put PDF snapshots under `sources/pdf/`.
 - Summarize sources under `wiki/source-notes/` instead of editing raw files.
@@ -29,6 +29,7 @@ This directory contains immutable source artifacts used by the research wiki.
 - `html/tilert-speed-as-the-next-scaling-law.html`
 - `html/tilert-speed-as-the-next-scaling-law-zh.html`
 - `github/semianalysisai-inferencex-readme.md`
+- `github/vllm-recipes-deepseek-v4-flash.yaml`
 - `huggingface/deepseek-ai-deepseek-v4-flash-readme.md`
 - `huggingface/openai-mrcr-dataset-card.html`
 - `huggingface/longbench-v2-dataset-card.html`
