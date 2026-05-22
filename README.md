@@ -22,10 +22,3 @@ benchmarks/   Benchmark conventions, templates, and future measurement harnesses
 kernels/      Kernel-practice conventions, templates, and future CUDA/CUTLASS/CuTe work.
 docs/         Background documents, including the LLM-maintained wiki pattern.
 ```
-
-## Current Focus
-
-- First research question: [Blackwell kernel frontier](wiki/questions/blackwell-kernel-frontier.md).
-- First kernel stack: CUDA, CUTLASS, and CuTe DSL.
-- First hardware assumption: datacenter Blackwell, especially B200/GB200-class systems.
-- First imported sources: two local HTML ramp documents under `sources/html/`, summarized in `wiki/source-notes/`.

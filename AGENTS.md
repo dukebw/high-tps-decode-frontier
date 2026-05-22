@@ -1,6 +1,6 @@
 # Agent Instructions
 
-This repository is a public working notebook for high-throughput text LLM decode research, systematic performance engineering, and kernel authoring practice.
+This repository is a public working notebook for high-TPS (high tokens/s/user and low TPOT) text LLM decode research, systematic performance engineering, and kernel authoring practice.
 
 ## Purpose
 
