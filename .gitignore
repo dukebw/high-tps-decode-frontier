@@ -1,2 +1,4 @@
 mutagen.yml
 mutagen.yml.lock
+__pycache__/
+*.py[cod]
