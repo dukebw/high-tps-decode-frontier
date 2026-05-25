@@ -53,4 +53,6 @@ Each run writes a local bundle like:
   dense_attention.json
 ```
 
+After extracting artifacts, the runner delegates to the generic benchmark artifact previewer. The previewer prints a compact summary for any returned JSON file with a top-level `results` list. If the JSON also includes a top-level `correctness` list, the previewer folds in pass/fail and max-error fields where it can match rows by backend, dtype, and head dimension. The preview is only terminal output; the JSON files remain the source of record.
+
 Use `.remote-runs/` for exploratory evidence. Promote selected results into `benchmarks/results/` only after the benchmark methodology, correctness checks, metadata, and provenance have been reviewed.

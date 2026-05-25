@@ -6,6 +6,7 @@ import json
 import os
 import re
 import subprocess
+import sys
 import tarfile
 from collections.abc import ByteString, Mapping
 from pathlib import Path
@@ -47,6 +48,9 @@ def _find_project_root() -> Path:
 
 
 PROJECT_ROOT = _find_project_root()
+PROJECT_SRC = PROJECT_ROOT / "src"
+if str(PROJECT_SRC) not in sys.path:
+    sys.path.insert(0, str(PROJECT_SRC))
 
 
 image = (
@@ -240,6 +244,30 @@ def _unpack_artifacts(bundle: bytes, output_dir: Path) -> None:
             archive.extractall(output_dir)
 
 
+def _print_artifact_previews(output_dir: Path) -> None:
+    from high_tps_decode_frontier.benchmarks.artifact_preview import print_artifact_previews
+
+    print_artifact_previews(output_dir)
+
+
+def _print_remote_command(output_dir: Path) -> None:
+    try:
+        payload = json.loads((output_dir / "run.json").read_text())
+    except (FileNotFoundError, json.JSONDecodeError):
+        return
+
+    if not isinstance(payload, dict):
+        return
+
+    command = payload.get("command")
+    if not isinstance(command, str) or not command:
+        return
+
+    print()
+    print("remote command")
+    print(command)
+
+
 @app.local_entrypoint()
 def main(
     cmd: str = DEFAULT_COMMAND,
@@ -269,6 +297,8 @@ def main(
     output_dir = PROJECT_ROOT / out / run_id
     _unpack_artifacts(result["artifacts_tgz"], output_dir)
     print(f"wrote {output_dir}")
+    _print_remote_command(output_dir)
+    _print_artifact_previews(output_dir)
 
     exit_code = int(result["exit_code"])
     if exit_code != 0:
