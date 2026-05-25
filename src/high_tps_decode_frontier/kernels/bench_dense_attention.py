@@ -8,9 +8,10 @@ from typing import Literal
 
 import click
 import torch
-import torch.nn.functional as F
 
-Backend = Literal["naive", "sdpa"]
+from .attention_backends import naive
+from .attention_backends.registry import BACKEND_CHOICES, BACKENDS, Backend, parse_backend
+
 DTypeName = Literal["bf16", "fp16", "fp32"]
 
 
@@ -37,30 +38,6 @@ ABS_TOLERANCES: dict[DTypeName, float] = {
 }
 
 
-def _attention_naive(q: torch.Tensor, k: torch.Tensor, v: torch.Tensor) -> torch.Tensor:
-    scale = q.shape[-1] ** -0.5
-    return F.softmax((q @ k.T) * scale, dim=-1) @ v
-
-
-def _attention_sdpa(q: torch.Tensor, k: torch.Tensor, v: torch.Tensor) -> torch.Tensor:
-    out = F.scaled_dot_product_attention(
-        q[None, None, :, :],
-        k[None, None, :, :],
-        v[None, None, :, :],
-        dropout_p=0.0,
-        is_causal=False,
-    )
-    return out.squeeze(0).squeeze(0)
-
-
-def _attention(
-    backend: Backend, q: torch.Tensor, k: torch.Tensor, v: torch.Tensor
-) -> torch.Tensor:
-    if backend == "naive":
-        return _attention_naive(q, k, v)
-    return _attention_sdpa(q, k, v)
-
-
 def _make_tensors(
     seq_len: int,
     prev_seq_len: int,
@@ -70,7 +47,9 @@ def _make_tensors(
 ) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
     generator = torch.Generator(device="cuda")
     generator.manual_seed(seed)
-    q = torch.randn((seq_len, head_dim), dtype=dtype, device="cuda", generator=generator)
+    q = torch.randn(
+        (seq_len, head_dim), dtype=dtype, device="cuda", generator=generator
+    )
     k = torch.randn(
         (prev_seq_len, head_dim), dtype=dtype, device="cuda", generator=generator
     )
@@ -92,8 +71,8 @@ def _correctness_check(
     q, k, v = _make_tensors(check_seq_len, check_seq_len, head_dim, dtype, seed)
 
     with torch.inference_mode():
-        ref = _attention_naive(q.double(), k.double(), v.double())
-        actual = _attention(backend, q, k, v).double()
+        ref = naive.attention(q.double(), k.double(), v.double())
+        actual = BACKENDS[backend].attention(q, k, v).double()
 
     abs_error = (actual - ref).abs()
     max_abs_error = float(abs_error.max().item())
@@ -121,11 +100,12 @@ def _time_attention(
     repeats: int,
 ) -> tuple[list[float], float, int]:
     torch.cuda.reset_peak_memory_stats()
+    attention = BACKENDS[backend].attention
 
     with torch.inference_mode():
         out: torch.Tensor | None = None
         for _ in range(warmup):
-            out = _attention(backend, q, k, v)
+            out = attention(q, k, v)
 
         torch.cuda.synchronize()
 
@@ -134,7 +114,7 @@ def _time_attention(
             start = torch.cuda.Event(enable_timing=True)
             end = torch.cuda.Event(enable_timing=True)
             start.record()
-            out = _attention(backend, q, k, v)
+            out = attention(q, k, v)
             end.record()
             end.synchronize()
             timings_ms.append(float(start.elapsed_time(end)))
@@ -165,7 +145,9 @@ def bench_dense_attention(config: DenseAttentionConfig) -> dict:
     for seq_len in seq_lens:
         for head_dim in head_dims:
             seed = 17 + seq_len * 1009 + head_dim * 9176
-            check = _correctness_check(backend, dtype_name, dtype, seq_len, head_dim, seed)
+            check = _correctness_check(
+                backend, dtype_name, dtype, seq_len, head_dim, seed
+            )
             correctness.append(check)
             if not check["passed"]:
                 raise RuntimeError(
@@ -227,14 +209,6 @@ def _parse_int_csv(value: str, option_name: str) -> list[int]:
     return parsed
 
 
-def _parse_backend(value: str) -> Backend:
-    if value == "naive":
-        return "naive"
-    if value == "sdpa":
-        return "sdpa"
-    raise click.BadParameter("backend must be one of: naive, sdpa")
-
-
 def _parse_dtype(value: str) -> DTypeName:
     if value == "bf16":
         return "bf16"
@@ -247,7 +221,7 @@ def _parse_dtype(value: str) -> DTypeName:
 
 @click.command()
 @click.option(
-    "--backend", type=click.Choice(["naive", "sdpa"]), default="sdpa", show_default=True
+    "--backend", type=click.Choice(BACKEND_CHOICES), default="sdpa", show_default=True
 )
 @click.option(
     "--dtype",
@@ -272,7 +246,7 @@ def main(
     """Benchmark dense attention baselines."""
 
     config = DenseAttentionConfig(
-        backend=_parse_backend(backend),
+        backend=parse_backend(backend),
         dtype=_parse_dtype(dtype),
         seq_lens=tuple(_parse_int_csv(seq_lens, "seq-lens")),
         head_dims=tuple(_parse_int_csv(head_dims, "head-dims")),
