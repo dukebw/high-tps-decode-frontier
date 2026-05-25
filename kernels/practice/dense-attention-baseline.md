@@ -55,6 +55,14 @@ bench-dense-attention \
   --output /tmp/dense_attention.json
 ```
 
+Remote smoke on Modal:
+
+```sh
+modal run src/high_tps_decode_frontier/remote/modal_kernel_run.py \
+  --gpu 'H100!' \
+  --cmd 'python -m high_tps_decode_frontier.kernels.bench_dense_attention --backend sdpa --dtype bf16 --seq-lens 1024 --head-dims 64 --warmup 1 --repeats 1 --output "$HTDF_ARTIFACT_DIR/dense_attention.json"'
+```
+
 ## Profiling Plan
 
 - Tool: ncu

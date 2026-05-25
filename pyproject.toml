@@ -8,6 +8,11 @@ dependencies = [
   "torch>=2.8",
 ]
 
+[project.optional-dependencies]
+remote = [
+  "modal>=1.0",
+]
+
 [project.scripts]
 bench-dense-attention = "high_tps_decode_frontier.kernels.bench_dense_attention:main"
 

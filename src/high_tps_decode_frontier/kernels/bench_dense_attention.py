@@ -2,8 +2,13 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
+from collections.abc import Mapping, Sequence
 
 import click
+
+
+def bench_dense_attention(config: Mapping[str, str | int | Sequence[int]]) -> dict:
+    return {}
 
 
 def _parse_int_csv(value: str, option_name: str) -> list[int]:
@@ -49,7 +54,7 @@ def main(
 ) -> None:
     """Benchmark dense attention baselines."""
 
-    config = {
+    config: dict[str, str | int | Sequence[int]] = {
         "backend": backend,
         "dtype": dtype,
         "seq_lens": _parse_int_csv(seq_lens, "seq-lens"),
@@ -58,9 +63,9 @@ def main(
         "repeats": repeats,
     }
 
-    # Write the config as a stand-in observable behaviour until the actual benchmark is
-    # implemented.
-    rendered = json.dumps(config, indent=2, sort_keys=True)
+    results = bench_dense_attention(config)
+
+    rendered = json.dumps(results, indent=2, sort_keys=True)
     if output is None:
         click.echo(rendered)
         return

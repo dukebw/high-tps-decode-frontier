@@ -1,5 +1,6 @@
-mutagen.yml
-mutagen.yml.lock
+.git/
 .remote-runs/
 __pycache__/
 *.py[cod]
+mutagen.yml
+mutagen.yml.lock

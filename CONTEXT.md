@@ -32,6 +32,14 @@ _Avoid_: Loose folder of related kernels
 Numerical agreement between a kernel or kernel group and a reference implementation under stated tolerances, shapes, dtypes, and edge cases.
 _Avoid_: Performance-only kernel benchmark
 
+**Remote kernel run**:
+A kernel benchmark command executed on a non-local GPU target to gather correctness, timing, machine, and environment evidence for a specific hardware SKU. Remote execution changes result provenance and required metadata, but it does not turn a kernel benchmark into a serving benchmark.
+_Avoid_: Treating remote execution as a benchmark methodology by itself
+
+**Unpromoted run artifact**:
+A raw output bundle from a local or remote run that has not yet been curated into an official benchmark result record. It can provide evidence for investigation work, but it is not a benchmark result until methodology, metadata, correctness, and provenance are reviewed.
+_Avoid_: Committing every exploratory run as a formal benchmark result
+
 **Megakernel**:
 A fused critical-path kernel that treats the GPU like a small VM: work that would normally be split across many kernel launches is scheduled inside one long-running kernel to reduce launch, teardown, synchronization, and memory-pipeline bubbles.
 _Avoid_: Any large kernel, generic kernel group

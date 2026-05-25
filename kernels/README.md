@@ -18,6 +18,10 @@ Each practice item should include:
 
 Use `templates/practice-item-template.md` for new items.
 
+## Remote Runs
+
+Use `docs/remote-kernel-runs.md` for the first Modal-based remote execution path. Remote run bundles under `.remote-runs/` are exploratory artifacts until they are promoted into reviewed benchmark result records.
+
 ## Initial Practice Areas
 
 - Online softmax and dense attention anatomy.
