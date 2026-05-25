@@ -2,20 +2,35 @@ from __future__ import annotations
 
 import json
 import statistics
-from collections.abc import Mapping, Sequence
+from dataclasses import dataclass
 from pathlib import Path
+from typing import Literal
 
 import click
 import torch
 import torch.nn.functional as F
 
-DTYPES = {
+Backend = Literal["naive", "sdpa"]
+DTypeName = Literal["bf16", "fp16", "fp32"]
+
+
+@dataclass(frozen=True)
+class DenseAttentionConfig:
+    backend: Backend
+    dtype: DTypeName
+    seq_lens: tuple[int, ...]
+    head_dims: tuple[int, ...]
+    warmup: int
+    repeats: int
+
+
+DTYPES: dict[DTypeName, torch.dtype] = {
     "bf16": torch.bfloat16,
     "fp16": torch.float16,
     "fp32": torch.float32,
 }
 
-ABS_TOLERANCES = {
+ABS_TOLERANCES: dict[DTypeName, float] = {
     "bf16": 0.125,
     "fp16": 0.05,
     "fp32": 0.01,
@@ -39,13 +54,11 @@ def _attention_sdpa(q: torch.Tensor, k: torch.Tensor, v: torch.Tensor) -> torch.
 
 
 def _attention(
-    backend: str, q: torch.Tensor, k: torch.Tensor, v: torch.Tensor
+    backend: Backend, q: torch.Tensor, k: torch.Tensor, v: torch.Tensor
 ) -> torch.Tensor:
     if backend == "naive":
         return _attention_naive(q, k, v)
-    if backend == "sdpa":
-        return _attention_sdpa(q, k, v)
-    raise ValueError(f"unsupported backend: {backend}")
+    return _attention_sdpa(q, k, v)
 
 
 def _make_tensors(
@@ -67,23 +80,9 @@ def _make_tensors(
     return q, k, v
 
 
-def _ensure_int_sequence(value: str | int | Sequence[int], name: str) -> list[int]:
-    if isinstance(value, str) or isinstance(value, int):
-        raise TypeError(f"{name} must be a sequence of integers")
-
-    return [int(item) for item in value]
-
-
-def _ensure_int(value: str | int | Sequence[int], name: str) -> int:
-    if isinstance(value, Sequence) and not isinstance(value, str):
-        raise TypeError(f"{name} must be an integer")
-
-    return int(value)
-
-
 def _correctness_check(
-    backend: str,
-    dtype_name: str,
+    backend: Backend,
+    dtype_name: DTypeName,
     dtype: torch.dtype,
     seq_len: int,
     head_dim: int,
@@ -114,7 +113,7 @@ def _correctness_check(
 
 
 def _time_attention(
-    backend: str,
+    backend: Backend,
     q: torch.Tensor,
     k: torch.Tensor,
     v: torch.Tensor,
@@ -149,17 +148,17 @@ def _time_attention(
     return timings_ms, checksum, peak_memory_bytes
 
 
-def bench_dense_attention(config: Mapping[str, str | int | Sequence[int]]) -> dict:
+def bench_dense_attention(config: DenseAttentionConfig) -> dict:
     if not torch.cuda.is_available():
         raise RuntimeError("CUDA is required for dense attention benchmark")
 
-    backend = str(config["backend"])
-    dtype_name = str(config["dtype"])
+    backend = config.backend
+    dtype_name = config.dtype
     dtype = DTYPES[dtype_name]
-    seq_lens = _ensure_int_sequence(config["seq_lens"], "seq_lens")
-    head_dims = _ensure_int_sequence(config["head_dims"], "head_dims")
-    warmup = _ensure_int(config["warmup"], "warmup")
-    repeats = _ensure_int(config["repeats"], "repeats")
+    seq_lens = config.seq_lens
+    head_dims = config.head_dims
+    warmup = config.warmup
+    repeats = config.repeats
 
     results = []
     correctness = []
@@ -228,6 +227,24 @@ def _parse_int_csv(value: str, option_name: str) -> list[int]:
     return parsed
 
 
+def _parse_backend(value: str) -> Backend:
+    if value == "naive":
+        return "naive"
+    if value == "sdpa":
+        return "sdpa"
+    raise click.BadParameter("backend must be one of: naive, sdpa")
+
+
+def _parse_dtype(value: str) -> DTypeName:
+    if value == "bf16":
+        return "bf16"
+    if value == "fp16":
+        return "fp16"
+    if value == "fp32":
+        return "fp32"
+    raise click.BadParameter("dtype must be one of: bf16, fp16, fp32")
+
+
 @click.command()
 @click.option(
     "--backend", type=click.Choice(["naive", "sdpa"]), default="sdpa", show_default=True
@@ -254,14 +271,14 @@ def main(
 ) -> None:
     """Benchmark dense attention baselines."""
 
-    config: dict[str, str | int | Sequence[int]] = {
-        "backend": backend,
-        "dtype": dtype,
-        "seq_lens": _parse_int_csv(seq_lens, "seq-lens"),
-        "head_dims": _parse_int_csv(head_dims, "head-dims"),
-        "warmup": warmup,
-        "repeats": repeats,
-    }
+    config = DenseAttentionConfig(
+        backend=_parse_backend(backend),
+        dtype=_parse_dtype(dtype),
+        seq_lens=tuple(_parse_int_csv(seq_lens, "seq-lens")),
+        head_dims=tuple(_parse_int_csv(head_dims, "head-dims")),
+        warmup=warmup,
+        repeats=repeats,
+    )
 
     try:
         results = bench_dense_attention(config)
