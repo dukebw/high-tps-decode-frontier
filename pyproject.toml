@@ -5,6 +5,7 @@ description = "Benchmark-driven kernel investigations for high-TPS LLM decode"
 requires-python = ">=3.10"
 dependencies = [
   "click>=8.1",
+  "ninja>=1.11",
   "torch>=2.8",
 ]
 

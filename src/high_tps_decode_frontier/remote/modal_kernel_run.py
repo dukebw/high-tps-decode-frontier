@@ -55,7 +55,7 @@ if str(PROJECT_SRC) not in sys.path:
 
 image = (
     modal.Image.from_registry("nvidia/cuda:12.8.1-devel-ubuntu22.04", add_python="3.11")
-    .pip_install("click>=8.1", "torch>=2.8")
+    .pip_install("click>=8.1", "ninja>=1.11", "torch>=2.8")
     .add_local_dir(PROJECT_ROOT, remote_path=str(REMOTE_REPO), copy=False)
 )
 
