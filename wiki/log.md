@@ -1,5 +1,12 @@
 # Wiki Log
 
+## [2026-05-28] synthesis | Speculative decode robustness map
+
+- Imported primary source snapshots for the vLLM/EAGLE/TorchSpec EAGLE 3.1 blog and the z-lab DFlash README.
+- Added structured source notes for EAGLE 3.1 and DFlash, preserving the distinction between DFlash as a block-diffusion speculative-decoding algorithm and DeepSeek V4 Flash as the model target.
+- Added a speculative decode robustness map connecting CoCo corrupted-context recovery, TokenSpeed/MTP rollback/state handling, EAGLE 3.1 attention-drift robustness, and DFlash parallel drafting to future serving correctness and quality-gate requirements.
+- Scanned the imported source snapshots for obvious private-key, cloud/API-token, and credential-marker patterns before adding them to the public repo; no secrets were found.
+
 ## [2026-05-28] ingest | CoCo augmentation X thread screenshots
 
 - Added a user-provided screenshot transcript of Fern's X thread on Continuous Coding augmentation and the SolidGoldMagikarp stability problem.

@@ -234,6 +234,7 @@ Before performance runs, verify each runtime config:
 - Can produce both Non-think and Think High outputs using the configured request protocol.
 - Honors requested max output lengths for 1K and 8K OSL scenarios.
 - Records whether MTP/speculative decoding is enabled and how accepted tokens are counted.
+- For any MTP/speculative path, records the draft/verify method, draft model and revision if external, draft-token count or tree/block shape, acceptance length or rate, acceptance by position where available, and rollback/rejection behavior.
 - Records whether MegaMoE, DeepEP, DeepGEMM, FlashInfer, or other specialized backends are active.
 - For no-cache runs, verifies prefix reuse is disabled or avoided by randomization.
 - For prefix-cache runs, verifies target cached-prefix percentage and measured hit rate.

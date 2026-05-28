@@ -17,6 +17,7 @@ This wiki is organized primarily around research questions, with source notes an
 ## Artifacts
 
 - [V4 Flash kernel map](artifacts/v4-flash-kernel-map.md): Initial top-down architecture map for turning DeepSeek-V4-Flash facts into kernel hypotheses.
+- [Speculative decode robustness map](artifacts/speculative-decode-robustness-map.md): Synthesis connecting CoCo, TokenSpeed/MTP, EAGLE 3.1, and DFlash to serving correctness and quality-gate discipline.
 
 ## Source Notes
 
@@ -26,6 +27,8 @@ This wiki is organized primarily around research questions, with source notes an
 - [SemiAnalysisAI InferenceX README](source-notes/semianalysisai-inferencex-readme.md)
 - [InferenceMAX: Open Source Inference Benchmarking](source-notes/inferencemax-open-source-inference-benchmarking.md)
 - [PyTorch TokenSpeed Qwen3.5 Agentic Workloads](source-notes/pytorch-tokenspeed-qwen35-agentic-workloads.md)
+- [vLLM: EAGLE 3.1 Blog](source-notes/vllm-eagle-3-1-blog.md)
+- [z-lab DFlash README](source-notes/z-lab-dflash-readme.md)
 - [X: Fern CoCo Augmentation Thread](source-notes/x-hi-tysam-coco-augmentation-thread.md)
 - [Hazy Research: Look Ma, No Bubbles](source-notes/hazyresearch-look-ma-no-bubbles-megakernel.md)
 - [DeepSeek V4 Preview Release](source-notes/deepseek-v4-preview-release.md)

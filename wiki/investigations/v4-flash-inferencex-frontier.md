@@ -75,6 +75,8 @@ A megakernel investigation can start only after profiler evidence shows critical
 
 - [InferenceMAX: Open Source Inference Benchmarking](../source-notes/inferencemax-open-source-inference-benchmarking.md) defines the frontier methodology this investigation follows.
 - [PyTorch TokenSpeed Qwen3.5 Agentic Workloads](../source-notes/pytorch-tokenspeed-qwen35-agentic-workloads.md) provides an external case study for high-hit-rate multi-turn agentic prefix-cache workloads and hybrid-state serving optimizations, but not a directly comparable V4 Flash baseline.
+- [vLLM: EAGLE 3.1 Blog](../source-notes/vllm-eagle-3-1-blog.md) provides an external speculative-decoding robustness source for attention drift, acceptance-length stability, and vLLM EAGLE 3.1 integration, but not a V4 Flash baseline path.
+- [z-lab DFlash README](../source-notes/z-lab-dflash-readme.md) provides a DFlash block-diffusion speculative-decoding source and runtime recipe signals, with V4 Flash support still marked as coming soon.
 - [X: Fern CoCo Augmentation Thread](../source-notes/x-hi-tysam-coco-augmentation-thread.md) motivates future corrupted-context and rare-token robustness probes for agentic prefix-cache quality gates, but is not a throughput baseline or kernel source.
 - [SemiAnalysisAI InferenceX README](../source-notes/semianalysisai-inferencex-readme.md) establishes InferenceX as a continuous benchmark standard and public reproducible baseline source.
 - [Hazy Research: Look Ma, No Bubbles](../source-notes/hazyresearch-look-ma-no-bubbles-megakernel.md) defines the megakernel concept and the profiler evidence needed before attempting one.
@@ -87,12 +89,14 @@ A megakernel investigation can start only after profiler evidence shows critical
 - [OpenAI MRCR](../source-notes/openai-mrcr.md) provides the explicit 1M-context retrieval/disambiguation quality gate.
 - [LongBench v2](../source-notes/longbench-v2.md) provides the realistic long-context reasoning quality gate.
 - [V4 Flash kernel map](../artifacts/v4-flash-kernel-map.md) is the current top-down architecture-map artifact.
+- [Speculative decode robustness map](../artifacts/speculative-decode-robustness-map.md) connects CoCo, TokenSpeed/MTP, EAGLE 3.1, and DFlash to serving correctness and quality-gate discipline for any future draft-token fast path.
 
 ## Open Questions
 
 - Between vLLM and SGLang, which runtime path is the strongest public reproducible baseline for V4 Flash on the target Blackwell topology?
 - Has TensorRT-LLM published a reproducible V4 Flash path by benchmark time?
 - Which exact vLLM and SGLang image digests or source SHAs should be used for the first benchmark?
+- If external speculative fast paths become available for V4 Flash, how should their acceptance metrics be normalized against model-native MTP and no-spec baselines?
 - When should the agentic prefix-cache workload expand from 128K total ISL to 512K and 1M variants?
 - Is 3 repetitions per benchmark point sufficient once hardware cost and runtime are known?
 - Which external reference scores from the DeepSeek V4 report and public benchmark leaderboards are comparable enough to list in the first result record?
