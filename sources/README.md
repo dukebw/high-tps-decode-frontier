@@ -28,6 +28,7 @@ This directory contains immutable source artifacts used by the research wiki.
 - `html/tensorrt-llm-gvr-topk-sparse-attention.html`
 - `html/tilert-speed-as-the-next-scaling-law.html`
 - `html/tilert-speed-as-the-next-scaling-law-zh.html`
+- `html/pytorch-tokenspeed-qwen35-agentic-workloads.html`
 - `github/semianalysisai-inferencex-readme.md`
 - `github/vllm-recipes-deepseek-v4-flash.yaml`
 - `huggingface/deepseek-ai-deepseek-v4-flash-readme.md`

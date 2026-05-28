@@ -1,5 +1,11 @@
 # Wiki Log
 
+## [2026-05-28] ingest | PyTorch TokenSpeed Qwen3.5 agentic workload source
+
+- Imported PyTorch's TokenSpeed Qwen3.5 agentic-workload article as a raw HTML snapshot.
+- Added a structured source note covering TokenSpeed's hybrid prefix cache, Mamba/GDN state transfer, runtime/fusion optimizations, and reported B200 agentic/long-context benchmark claims.
+- Scanned the imported HTML for obvious private-key and cloud/API-token patterns; the only credential-like matches were public upstream New Relic browser-monitoring identifiers embedded in the PyTorch page.
+
 ## [2026-05-21] setup | Repository skeleton
 
 - Established `sources/`, `wiki/`, `benchmarks/`, `kernels/`, and `docs/` as the top-level research structure.

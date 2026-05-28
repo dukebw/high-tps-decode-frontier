@@ -74,6 +74,7 @@ A megakernel investigation can start only after profiler evidence shows critical
 ## Current Evidence
 
 - [InferenceMAX: Open Source Inference Benchmarking](../source-notes/inferencemax-open-source-inference-benchmarking.md) defines the frontier methodology this investigation follows.
+- [PyTorch TokenSpeed Qwen3.5 Agentic Workloads](../source-notes/pytorch-tokenspeed-qwen35-agentic-workloads.md) provides an external case study for high-hit-rate multi-turn agentic prefix-cache workloads and hybrid-state serving optimizations, but not a directly comparable V4 Flash baseline.
 - [SemiAnalysisAI InferenceX README](../source-notes/semianalysisai-inferencex-readme.md) establishes InferenceX as a continuous benchmark standard and public reproducible baseline source.
 - [Hazy Research: Look Ma, No Bubbles](../source-notes/hazyresearch-look-ma-no-bubbles-megakernel.md) defines the megakernel concept and the profiler evidence needed before attempting one.
 - [DeepSeek V4 Preview Release](../source-notes/deepseek-v4-preview-release.md) establishes official API and open-weight availability for V4 Flash.
