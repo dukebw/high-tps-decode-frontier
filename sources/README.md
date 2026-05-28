@@ -9,6 +9,7 @@ This directory contains immutable source artifacts used by the research wiki.
 - Put GitHub-hosted snapshots under `sources/github/`.
 - Put Hugging Face README snapshots under `sources/huggingface/`.
 - Put PDF snapshots under `sources/pdf/`.
+- Put user-provided social-media captures or transcripts under `sources/social/`.
 - Summarize sources under `wiki/source-notes/` instead of editing raw files.
 - Review sources for obvious public-safety issues before committing them to this public repo.
 
@@ -34,6 +35,7 @@ This directory contains immutable source artifacts used by the research wiki.
 - `huggingface/deepseek-ai-deepseek-v4-flash-readme.md`
 - `huggingface/openai-mrcr-dataset-card.html`
 - `huggingface/longbench-v2-dataset-card.html`
+- `social/x-hi-tysam-coco-thread-screenshot-transcript.md`
 - `pdf/deepseek-v4-model-card-en.pdf`
 - `pdf/deepseek-v4-technical-report.pdf`
 - `pdf/flashattention-1-2205.14135.pdf`

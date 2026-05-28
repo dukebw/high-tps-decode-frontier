@@ -1,5 +1,11 @@
 # Wiki Log
 
+## [2026-05-28] ingest | CoCo augmentation X thread screenshots
+
+- Added a user-provided screenshot transcript of Fern's X thread on Continuous Coding augmentation and the SolidGoldMagikarp stability problem.
+- Added a structured source note connecting the thread to future corrupted-context, rare-token, and cached-prefix robustness probes for agentic serving quality gates.
+- Recorded ingestion limitations: X exposed only the root post through public embed endpoints, so the full-thread artifact is screenshot-derived rather than an authenticated X export.
+
 ## [2026-05-28] ingest | PyTorch TokenSpeed Qwen3.5 agentic workload source
 
 - Imported PyTorch's TokenSpeed Qwen3.5 agentic-workload article as a raw HTML snapshot.

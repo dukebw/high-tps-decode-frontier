@@ -26,6 +26,7 @@ This wiki is organized primarily around research questions, with source notes an
 - [SemiAnalysisAI InferenceX README](source-notes/semianalysisai-inferencex-readme.md)
 - [InferenceMAX: Open Source Inference Benchmarking](source-notes/inferencemax-open-source-inference-benchmarking.md)
 - [PyTorch TokenSpeed Qwen3.5 Agentic Workloads](source-notes/pytorch-tokenspeed-qwen35-agentic-workloads.md)
+- [X: Fern CoCo Augmentation Thread](source-notes/x-hi-tysam-coco-augmentation-thread.md)
 - [Hazy Research: Look Ma, No Bubbles](source-notes/hazyresearch-look-ma-no-bubbles-megakernel.md)
 - [DeepSeek V4 Preview Release](source-notes/deepseek-v4-preview-release.md)
 - [DeepSeek V4 Flash Hugging Face Model Card](source-notes/deepseek-v4-huggingface-model-card.md)
