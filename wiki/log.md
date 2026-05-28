@@ -1,5 +1,13 @@
 # Wiki Log
 
+## [2026-05-28] ingest | Dao-AILab QuACK CuTe kernels
+
+- Imported the `Dao-AILab/quack` README as a GitHub snapshot, pinned to main commit `34cfe42fe994dd961e42bbf179539b16d896aab4` and README blob `764f136b01f16d4ea469ea57db13be7550bc739e` (Apache-2.0).
+- Added a structured source note covering QuACK as a CuTe DSL kernel library on the repo's first-class stack: near-speed-of-light memory-bound kernels (RMSNorm/softmax/cross entropy, 89.7% of peak HBM3 on H100), Blackwell `sm100`/`sm120` GEMM with block-scaled (MX) epilogues, and a full kernel inventory derived from the repo tree (it lists far more than the README advertises).
+- Recorded the key distinctions: QuACK has no attention kernels (complementary to FlashAttention), is a kernel library rather than a serving runtime, and its published speed-of-light numbers are H100, not Blackwell.
+- Updated the Blackwell kernel frontier question with QuACK as first concrete CuTe DSL evidence, a compute-bound vs memory-bound decode-kernel hypothesis, and a Blackwell roofline experiment to define.
+- Scanned the imported README and the linked memory-bound speed-of-light blogpost for obvious private-key, cloud/API-token, and credential-marker patterns before commit; no secrets were found.
+
 ## [2026-05-28] synthesis | Speculative decode robustness map
 
 - Imported primary source snapshots for the vLLM/EAGLE/TorchSpec EAGLE 3.1 blog and the z-lab DFlash README.
