@@ -1,0 +1,736 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!-- Powered by Bear Blog -->
+
+<head>
+  
+  
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5">
+  
+  <title>Epilogue in CuTeDSL H100 kernels | simons blog</title>
+  <link rel="canonical" href="https://veitner.bearblog.dev/epilogue-h100-cutedsl/">
+  
+    
+
+    <meta name="veitner" content="look-for-the-bear-necessities">
+    <meta name="token" content="cebdArfIBUeNxydNPRNA">
+
+    
+<!-- Primary Meta Tags -->
+<meta name="title" content="Epilogue in CuTeDSL H100 kernels">
+<meta name="description" content="Here and below we will run 
+
+bash
+uv run dense_gemm.py                                                   \
+  --mnkl 4096,1024,2048,1 --tileshapemnk 128,2...">
+
+<!-- Open Graph / Facebook -->
+<meta property="og:site_name" content="simons blog">
+<meta property="og:title" content="Epilogue in CuTeDSL H100 kernels">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://veitner.bearblog.dev/epilogue-h100-cutedsl/">
+<meta property="og:description" content="Here and below we will run 
+
+bash
+uv run dense_gemm.py                                                   \
+  --mnkl 4096,1024,2048,1 --tileshapemnk 128,2...">
+<meta property="og:image" content="/static/og-image.png">
+
+
+<!-- Twitter -->
+<meta property="twitter:card" content="summary">
+<meta property="twitter:url" content="https://veitner.bearblog.dev/epilogue-h100-cutedsl/">
+<meta property="twitter:title" content="Epilogue in CuTeDSL H100 kernels">
+<meta property="twitter:description" content="Here and below we will run 
+
+bash
+uv run dense_gemm.py                                                   \
+  --mnkl 4096,1024,2048,1 --tileshapemnk 128,2...">
+<meta property="twitter:image" content="/static/og-image.png">
+
+
+
+<!-- Microdata -->
+<script type="application/ld+json">
+  {
+    "@context": "http://schema.org",
+    "@type": "article",
+    "name": "Epilogue in CuTeDSL H100 kernels",
+    "headline": "Epilogue in CuTeDSL H100 kernels",
+    "url": "https://veitner.bearblog.dev/epilogue-h100-cutedsl/",
+    "description": "Here and below we will run 
+
+bash
+uv run dense_gemm.py                                                   \
+  --mnkl 4096,1024,2048,1 --tileshapemnk 128,2...",
+    "image": "/static/og-image.png"
+  }
+</script>
+    <link rel="alternate" type="application/atom+xml" href="/feed/" title="simons blog">
+    <link rel="alternate" type="application/rss+xml" href="/feed/?type=rss" title="simons blog">
+
+  
+    
+
+    
+    <style>pre { line-height: 125%; }
+td.linenos .normal { color: #666666; background-color: transparent; padding-left: 5px; padding-right: 5px; }
+span.linenos { color: #666666; background-color: transparent; padding-left: 5px; padding-right: 5px; }
+td.linenos .special { color: #000000; background-color: #ffffc0; padding-left: 5px; padding-right: 5px; }
+span.linenos.special { color: #000000; background-color: #ffffc0; padding-left: 5px; padding-right: 5px; }
+.highlight .hll { background-color: #ffffcc }
+.highlight { background: #f0f0f0; }
+.highlight .c { color: #60A0B0; font-style: italic } /* Comment */
+.highlight .err { border: 1px solid #F00 } /* Error */
+.highlight .k { color: #007020; font-weight: bold } /* Keyword */
+.highlight .o { color: #666 } /* Operator */
+.highlight .ch { color: #60A0B0; font-style: italic } /* Comment.Hashbang */
+.highlight .cm { color: #60A0B0; font-style: italic } /* Comment.Multiline */
+.highlight .cp { color: #007020 } /* Comment.Preproc */
+.highlight .cpf { color: #60A0B0; font-style: italic } /* Comment.PreprocFile */
+.highlight .c1 { color: #60A0B0; font-style: italic } /* Comment.Single */
+.highlight .cs { color: #60A0B0; background-color: #FFF0F0 } /* Comment.Special */
+.highlight .gd { color: #A00000 } /* Generic.Deleted */
+.highlight .ge { font-style: italic } /* Generic.Emph */
+.highlight .ges { font-weight: bold; font-style: italic } /* Generic.EmphStrong */
+.highlight .gr { color: #F00 } /* Generic.Error */
+.highlight .gh { color: #000080; font-weight: bold } /* Generic.Heading */
+.highlight .gi { color: #00A000 } /* Generic.Inserted */
+.highlight .go { color: #888 } /* Generic.Output */
+.highlight .gp { color: #C65D09; font-weight: bold } /* Generic.Prompt */
+.highlight .gs { font-weight: bold } /* Generic.Strong */
+.highlight .gu { color: #800080; font-weight: bold } /* Generic.Subheading */
+.highlight .gt { color: #04D } /* Generic.Traceback */
+.highlight .kc { color: #007020; font-weight: bold } /* Keyword.Constant */
+.highlight .kd { color: #007020; font-weight: bold } /* Keyword.Declaration */
+.highlight .kn { color: #007020; font-weight: bold } /* Keyword.Namespace */
+.highlight .kp { color: #007020 } /* Keyword.Pseudo */
+.highlight .kr { color: #007020; font-weight: bold } /* Keyword.Reserved */
+.highlight .kt { color: #902000 } /* Keyword.Type */
+.highlight .m { color: #40A070 } /* Literal.Number */
+.highlight .s { color: #4070A0 } /* Literal.String */
+.highlight .na { color: #4070A0 } /* Name.Attribute */
+.highlight .nb { color: #007020 } /* Name.Builtin */
+.highlight .nc { color: #0E84B5; font-weight: bold } /* Name.Class */
+.highlight .no { color: #60ADD5 } /* Name.Constant */
+.highlight .nd { color: #555; font-weight: bold } /* Name.Decorator */
+.highlight .ni { color: #D55537; font-weight: bold } /* Name.Entity */
+.highlight .ne { color: #007020 } /* Name.Exception */
+.highlight .nf { color: #06287E } /* Name.Function */
+.highlight .nl { color: #002070; font-weight: bold } /* Name.Label */
+.highlight .nn { color: #0E84B5; font-weight: bold } /* Name.Namespace */
+.highlight .nt { color: #062873; font-weight: bold } /* Name.Tag */
+.highlight .nv { color: #BB60D5 } /* Name.Variable */
+.highlight .ow { color: #007020; font-weight: bold } /* Operator.Word */
+.highlight .w { color: #BBB } /* Text.Whitespace */
+.highlight .mb { color: #40A070 } /* Literal.Number.Bin */
+.highlight .mf { color: #40A070 } /* Literal.Number.Float */
+.highlight .mh { color: #40A070 } /* Literal.Number.Hex */
+.highlight .mi { color: #40A070 } /* Literal.Number.Integer */
+.highlight .mo { color: #40A070 } /* Literal.Number.Oct */
+.highlight .sa { color: #4070A0 } /* Literal.String.Affix */
+.highlight .sb { color: #4070A0 } /* Literal.String.Backtick */
+.highlight .sc { color: #4070A0 } /* Literal.String.Char */
+.highlight .dl { color: #4070A0 } /* Literal.String.Delimiter */
+.highlight .sd { color: #4070A0; font-style: italic } /* Literal.String.Doc */
+.highlight .s2 { color: #4070A0 } /* Literal.String.Double */
+.highlight .se { color: #4070A0; font-weight: bold } /* Literal.String.Escape */
+.highlight .sh { color: #4070A0 } /* Literal.String.Heredoc */
+.highlight .si { color: #70A0D0; font-style: italic } /* Literal.String.Interpol */
+.highlight .sx { color: #C65D09 } /* Literal.String.Other */
+.highlight .sr { color: #235388 } /* Literal.String.Regex */
+.highlight .s1 { color: #4070A0 } /* Literal.String.Single */
+.highlight .ss { color: #517918 } /* Literal.String.Symbol */
+.highlight .bp { color: #007020 } /* Name.Builtin.Pseudo */
+.highlight .fm { color: #06287E } /* Name.Function.Magic */
+.highlight .vc { color: #BB60D5 } /* Name.Variable.Class */
+.highlight .vg { color: #BB60D5 } /* Name.Variable.Global */
+.highlight .vi { color: #BB60D5 } /* Name.Variable.Instance */
+.highlight .vm { color: #BB60D5 } /* Name.Variable.Magic */
+.highlight .il { color: #40A070 } /* Literal.Number.Integer.Long */
+</style>
+  
+  
+  
+    
+        <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20100%20100'%3E%3Ctext%20y='.9em'%20font-size='90'%3E🐼%3C/text%3E%3C/svg%3E">
+    
+
+
+
+  <style>
+      
+      
+    
+:root {
+    --width: 720px;
+    --font-main: Verdana, sans-serif;
+    --font-secondary: Verdana, sans-serif;
+    --font-scale: 1em;
+    --background-color: #fff;
+    --heading-color: #222;
+    --text-color: #444;
+    --link-color: #3273dc;
+    --visited-color:  #8b6fcb;
+    --code-background-color: #f2f2f2;
+    --code-color: #222;
+    --blockquote-color: #222;
+}
+
+@media (prefers-color-scheme: dark) {
+    :root {
+        --background-color: #01242e;
+        --heading-color: #eee;
+        --text-color: #ddd;
+        --link-color: #8cc2dd;
+        --visited-color:  #8b6fcb;
+        --code-background-color: #000;
+        --code-color: #ddd;
+        --blockquote-color: #ccc;
+    }
+}
+
+body {
+    font-family: var(--font-secondary);
+    font-size: var(--font-scale);
+    margin: auto;
+    padding: 20px;
+    max-width: var(--width);
+    text-align: left;
+    background-color: var(--background-color);
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    line-height: 1.5;
+    color: var(--text-color);
+}
+
+h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-main);
+    color: var(--heading-color);
+}
+
+a {
+    color: var(--link-color);
+    cursor: pointer;
+    text-decoration: none;
+}
+
+a:hover {
+    text-decoration: underline; 
+}
+
+nav a {
+    margin-right: 8px;
+}
+
+strong, b {
+    color: var(--heading-color);
+}
+
+button {
+    margin: 0;
+    cursor: pointer;
+}
+
+time {
+ 	font-family: monospace;
+  	font-style: normal;
+  	font-size: 15px;
+}
+
+main {
+    line-height: 1.6;
+}
+
+table {
+    width: 100%;
+}
+
+hr {
+    border: 0;
+    border-top: 1px dashed;
+}
+
+img {
+    max-width: 100%;
+}
+
+code {
+    font-family: monospace;
+    padding: 2px;
+    background-color: var(--code-background-color);
+    color: var(--code-color);
+    border-radius: 3px;
+}
+
+blockquote {
+    border-left: 1px solid #999;
+    color: var(--code-color);
+    padding-left: 20px;
+    font-style: italic;
+}
+
+footer {
+    padding: 25px 0;
+    text-align: center;
+}
+
+.title:hover {
+    text-decoration: none;
+}
+
+.title h1 {
+    font-size: 1.5em;
+}
+
+.inline {
+    width: auto !important;
+}
+
+.highlight, .code {
+    padding: 1px 15px;
+    background-color: var(--code-background-color);
+    color: var(--code-color);
+    border-radius: 3px;
+    margin-block-start: 1em;
+    margin-block-end: 1em;
+    overflow-x: auto;
+}
+
+/* blog post list */
+ul.blog-posts {
+    list-style-type: none;
+    padding: unset;
+}
+
+ul.blog-posts li {
+    display: flex;
+}
+
+ul.blog-posts li span {
+    flex: 0 0 130px;
+}
+
+ul.blog-posts li a:visited {
+    color: var(--visited-color);
+}
+    .upvote-button {
+        padding: 0;
+        margin: 0;
+        border: 0;
+        background-color: inherit;
+        color: inherit;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+    .upvote-button.upvoted {
+        color: salmon;
+    }
+    .upvote-count {
+        margin-top: -3px;
+    }
+
+      
+  </style>
+</head>
+
+<body class="post " onload="(function() { document.cookie = `timezone=${Intl.DateTimeFormat().resolvedOptions().timeZone};path=/`; })()">
+  
+  <header>
+    <a class="title" href="/">
+      <h1>
+        simons blog
+      </h1>
+    </a>
+    <nav>
+      <p><a href='/'>Home</a> <a href='/blog/'>Blog</a></p>
+
+    </nav>
+  </header>
+  <main>
+    
+
+    
+
+    
+        <h1>Epilogue in CuTeDSL H100 kernels</h1>
+
+        <p>
+            <i>
+                <time datetime="2025-08-04T17:55Z">
+    04 Aug, 2025
+</time>
+            </i>
+        </p>
+    
+
+    <p>Here and below we will run</p>
+<div class="highlight"><pre><span></span>uv<span class="w"> </span>run<span class="w"> </span>dense_gemm.py<span class="w">                                                   </span><span class="se">\</span>
+<span class="w">  </span>--mnkl<span class="w"> </span><span class="m">4096</span>,1024,2048,1<span class="w"> </span>--tile_shape_mnk<span class="w"> </span><span class="m">128</span>,256,64<span class="w">                  </span><span class="se">\</span>
+<span class="w">  </span>--cluster_shape_mn<span class="w"> </span><span class="m">1</span>,1<span class="w"> </span>--a_dtype<span class="w"> </span>Float16<span class="w"> </span>--b_dtype<span class="w"> </span>Float16<span class="w">           </span><span class="se">\</span>
+<span class="w">  </span>--c_dtype<span class="w"> </span>Float16<span class="w"> </span>--acc_dtype<span class="w"> </span>Float32<span class="w">                                </span><span class="se">\</span>
+<span class="w">  </span>--a_major<span class="w"> </span>k<span class="w"> </span>--b_major<span class="w"> </span>k<span class="w"> </span>--c_major<span class="w"> </span>n
+</pre></div>
+<p>if not mentioned otherwise.</p>
+<p>Before starting to analyse the Epilogue let's take a look at</p>
+<div class="highlight"><pre><span></span><span class="n">tiled_mma</span> <span class="o">=</span> <span class="n">sm90_utils</span><span class="o">.</span><span class="n">make_trivial_tiled_mma</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">a_dtype</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">b_dtype</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">a_layout</span><span class="o">.</span><span class="n">sm90_mma_major_mode</span><span class="p">(),</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">b_layout</span><span class="o">.</span><span class="n">sm90_mma_major_mode</span><span class="p">(),</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">acc_dtype</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">atom_layout_mnk</span><span class="p">,</span>
+            <span class="n">tiler_mn</span><span class="o">=</span><span class="p">(</span><span class="mi">64</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">tile_shape_mnk</span><span class="p">[</span><span class="mi">1</span><span class="p">]),</span>
+        <span class="p">)</span>
+</pre></div>
+<div class="highlight"><pre><span></span><span class="n">Tiled</span> <span class="n">MMA</span>
+  <span class="n">Thr</span> <span class="n">Layout</span> <span class="n">VMNK</span><span class="p">:</span> <span class="p">(</span><span class="mi">128</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">):(</span><span class="mi">1</span><span class="p">,</span><span class="mi">128</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">)</span>
+  <span class="n">Permutation</span> <span class="n">MNK</span><span class="p">:</span> <span class="p">(</span><span class="n">_</span><span class="p">,</span><span class="n">_</span><span class="p">,</span><span class="n">_</span><span class="p">)</span>
+<span class="n">MMA</span> <span class="n">Atom</span>
+  <span class="n">ThrID</span><span class="p">:</span>           <span class="mi">128</span><span class="p">:</span><span class="mi">1</span>
+  <span class="n">Shape</span> <span class="n">MNK</span><span class="p">:</span>       <span class="p">(</span><span class="mi">64</span><span class="p">,</span><span class="mi">256</span><span class="p">,</span><span class="mi">16</span><span class="p">)</span>
+  <span class="n">TV</span> <span class="n">Layout</span> <span class="n">A</span><span class="p">:</span>     <span class="p">(</span><span class="mi">128</span><span class="p">,(</span><span class="mi">64</span><span class="p">,</span><span class="mi">16</span><span class="p">)):(</span><span class="mi">0</span><span class="p">,(</span><span class="mi">1</span><span class="p">,</span><span class="mi">64</span><span class="p">))</span>
+  <span class="n">TV</span> <span class="n">Layout</span> <span class="n">B</span><span class="p">:</span>     <span class="p">(</span><span class="mi">128</span><span class="p">,(</span><span class="mi">256</span><span class="p">,</span><span class="mi">16</span><span class="p">)):(</span><span class="mi">0</span><span class="p">,(</span><span class="mi">1</span><span class="p">,</span><span class="mi">256</span><span class="p">))</span>
+  <span class="n">TV</span> <span class="n">Layout</span> <span class="n">C</span><span class="p">:</span>     <span class="p">((</span><span class="mi">4</span><span class="p">,</span><span class="mi">8</span><span class="p">,</span><span class="mi">4</span><span class="p">),(</span><span class="mi">2</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">32</span><span class="p">)):((</span><span class="mi">128</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">16</span><span class="p">),(</span><span class="mi">64</span><span class="p">,</span><span class="mi">8</span><span class="p">,</span><span class="mi">512</span><span class="p">))</span>
+</pre></div>
+<p>Short reminder of derivation:
+See below picture
+Thread Layout = <code>(4,8,4):(128,1,16)</code>.
+<code>(T0,d0) -&gt; (T1,d0) = 128 steps and 4 in one column</code>, <code>(T0,d0) -&gt; (T4,d0) = 1 step and 8 in one color row</code>, <code>(T0,d0)-&gt;(T32,d0) = 16 steps and 4 colors</code>. This fully describes the Thread layout.</p>
+<p>Value Layout = <code>(2,2,32):(64,8,512)</code>.
+<code>(T0,d0) -&gt; (T0,d1) = 64 steps and 2 in one column</code>, <code>(T0,d0) -&gt; (T0, d2) = 8 steps and 2 in one row</code>. Than we repeat <code>N / 8 = 256 / 8 = 32 times</code> and from <code>(T0,d0) -&gt; (T0, d4) = 64 * 8 = 512 steps</code>.</p>
+<p>See Figure 151 in PTX ISA docs.</p>
+<p>Note that per thread we provide <code>64 * 256 / 128 = 128 = 2 * 2 * 32</code> register values to the <code>wgmma</code> instruction.</p>
+<p>In the mainloop we perform the GEMM per tile and within each tile we split the tile into further subtiles because <code>wgmma</code> instruction has dimension <code>16</code> along <code>K</code> dimension and our tilesize in <code>K</code> dimension is larger than that. We accumulate the result into <code>accumulators</code>.</p>
+<div class="highlight"><pre><span></span><span class="k">for</span> <span class="n">k_tile</span> <span class="ow">in</span> <span class="n">cutlass</span><span class="o">.</span><span class="n">range</span><span class="p">(</span><span class="n">k_pipe_mmas</span><span class="p">,</span> <span class="n">k_tile_cnt</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">unroll</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+	<span class="o">...</span>
+	<span class="k">for</span> <span class="n">k_block_idx</span> <span class="ow">in</span> <span class="n">cutlass</span><span class="o">.</span><span class="n">range</span><span class="p">(</span><span class="n">num_k_blocks</span><span class="p">,</span> <span class="n">unroll_full</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+		<span class="o">...</span>
+		<span class="n">cute</span><span class="o">.</span><span class="n">gemm</span><span class="p">(</span>
+			<span class="n">tiled_mma</span><span class="p">,</span>
+			<span class="n">accumulators</span><span class="p">,</span>
+			<span class="n">tCrA_1phase</span><span class="p">,</span>
+			<span class="n">tCrB_1phase</span><span class="p">,</span>
+			<span class="n">accumulators</span><span class="p">,</span>
+		<span class="p">)</span>
+	<span class="o">...</span>
+</pre></div>
+<p><code>accumulators</code> is a fragment (i.e. lives in <code>RMEM</code>) and initialised as follows:</p>
+<div class="highlight"><pre><span></span><span class="n">thr_mma</span> <span class="o">=</span> <span class="n">tiled_mma</span><span class="o">.</span><span class="n">get_slice</span><span class="p">(</span><span class="n">warp_group_thread_layout</span><span class="p">(</span><span class="n">warp_group_idx</span><span class="p">))</span>
+<span class="n">tCgC</span> <span class="o">=</span> <span class="n">thr_mma</span><span class="o">.</span><span class="n">partition_C</span><span class="p">(</span><span class="n">gC_mnl</span><span class="p">)</span>
+<span class="o">...</span>
+<span class="n">acc_shape</span> <span class="o">=</span> <span class="n">tCgC</span><span class="o">.</span><span class="n">shape</span>
+<span class="n">accumulators</span> <span class="o">=</span> <span class="n">cute</span><span class="o">.</span><span class="n">make_fragment</span><span class="p">(</span><span class="n">acc_shape</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">acc_dtype</span><span class="p">)</span>
+</pre></div>
+<p>it has layout <code>((2,2,32),1,1):((1,2,4),0,0)</code>.  These layout describes a Layout of 128 elements where 32 planes are stacked and each plane has a row major layout. We can think of it as a generalised row major format, i.e. we lay out in row major in 2 dimensions four elements and than continue with the next plane in the same way etc.</p>
+<p>After mainloop finishes, i.e. we are done with the GEMM we need to efficiently write the result to GMEM. In the example at hand that is done via <code>RMEM -&gt; SMEM -&gt; GMEM</code>.</p>
+<p>We now will analyse the epilogue.</p>
+<div class="highlight"><pre><span></span><span class="n">copy_atom_r2s</span> <span class="o">=</span> <span class="n">sm90_utils</span><span class="o">.</span><span class="n">sm90_get_smem_store_op</span><span class="p">(</span>
+	<span class="bp">self</span><span class="o">.</span><span class="n">c_layout</span><span class="p">,</span>
+	<span class="n">elem_ty_d</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">c_dtype</span><span class="p">,</span>
+	<span class="n">elem_ty_acc</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">acc_dtype</span><span class="p">,</span>
+<span class="p">)</span>
+
+<span class="n">copy_atom_C</span> <span class="o">=</span> <span class="n">cute</span><span class="o">.</span><span class="n">make_copy_atom</span><span class="p">(</span>
+	<span class="n">cute</span><span class="o">.</span><span class="n">nvgpu</span><span class="o">.</span><span class="n">warp</span><span class="o">.</span><span class="n">StMatrix8x8x16bOp</span><span class="p">(</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">c_layout</span><span class="o">.</span><span class="n">is_m_major_c</span><span class="p">(),</span>
+		<span class="mi">4</span><span class="p">,</span>
+	<span class="p">),</span>
+	<span class="bp">self</span><span class="o">.</span><span class="n">c_dtype</span><span class="p">,</span>
+<span class="p">)</span>
+</pre></div>
+<p>For <code>c_dtype = Float16</code> <code>copy_atom_r2s</code> will give us</p>
+<div class="highlight"><pre><span></span><span class="n">cute</span><span class="o">.</span><span class="n">make_copy_atom</span><span class="p">(</span>
+	<span class="n">StMatrix8x8x16bOp</span><span class="p">(</span><span class="n">is_m_major</span><span class="p">,</span> <span class="mi">4</span><span class="p">),</span> <span class="n">elem_ty_d</span><span class="p">,</span> <span class="n">loc</span><span class="o">=</span><span class="n">loc</span><span class="p">,</span> <span class="n">ip</span><span class="o">=</span><span class="n">ip</span>
+<span class="p">)</span>
+</pre></div>
+<p>We will use the <code>stmatrix</code> operation. As we can read in the <a href='https://docs.nvidia.com/cuda/parallel-thread-execution/#warp-level-matrix-instructions-stmatrix'>PTX docs</a> it will warp wise <em>collectively store one or more matrices to shared memory.</em> As can be seen in the above code we will store <code>four</code> matrices collectively.</p>
+<p>See Figure 107 from PTX docs for a picture.</p>
+<p>We can furthermore read in the PTX docs that <em>when <code>.num</code> = <code>.x2</code>, the elements of the second matrix are stored from the next source register in each thread as per the layout in above table. Similarly, when <code>.num</code> = <code>.x4</code>, elements of the third and fourth matrices are stored from the subsequent source registers in each thread</em>.</p>
+<p>The two Copy Atoms from above look as follows:</p>
+<div class="highlight"><pre><span></span>Copy Atom
+  ThrID:         32:1
+  TV Layout Src: (32,(2,4)):(2,(1,64))
+  TV Layout Dst: (32,8):(8,1)
+  Value type:    f16
+</pre></div>
+<p>This can be visualised using <a href='https://docs.nvidia.com/cuda/parallel-thread-execution/#warp-level-matrix-instructions-stmatrix'>this script</a>. We see that it is essentially the Layout above transposed and than repeated four times (because we store with <code>.x4</code>).</p>
+<p><img src="https://bear-images.sfo2.cdn.digitaloceanspaces.com/veitner/32-2.webp" alt="Screenshot 2025-08-02 at 17" /></p>
+<p>We'll than create</p>
+<div class="highlight"><pre><span></span><span class="n">tiled_copy_C_Atom</span> <span class="o">=</span> <span class="n">cute</span><span class="o">.</span><span class="n">make_tiled_copy_C_atom</span><span class="p">(</span><span class="n">copy_atom_C</span><span class="p">,</span> <span class="n">tiled_mma</span><span class="p">)</span>
+</pre></div>
+<p>Which will give us <em>the smallest tiled copy that can retile LayoutC_TV for use with pipelined epilogues with subtiled stores</em>.</p>
+<p>And afterwards <em>create a tiled copy out of the copy_atom that matches the Src-Layout of tiled_copy</em>.</p>
+<div class="highlight"><pre><span></span><span class="n">tiled_copy_r2s</span> <span class="o">=</span> <span class="n">cute</span><span class="o">.</span><span class="n">make_tiled_copy_S</span><span class="p">(</span>
+	<span class="n">copy_atom_r2s</span><span class="p">,</span>
+	<span class="n">tiled_copy_C_Atom</span><span class="p">,</span>
+<span class="p">)</span>
+</pre></div>
+<p>We'll slice into it, partition (i.e. compose and slice) and retile:</p>
+<div class="highlight"><pre><span></span><span class="n">thr_copy_r2s</span> <span class="o">=</span> <span class="n">tiled_copy_r2s</span><span class="o">.</span><span class="n">get_slice</span><span class="p">(</span><span class="n">tidx</span><span class="p">)</span>
+<span class="n">tRS_sD</span> <span class="o">=</span> <span class="n">thr_copy_r2s</span><span class="o">.</span><span class="n">partition_D</span><span class="p">(</span><span class="n">sc</span><span class="p">)</span>
+<span class="n">tRS_rAcc</span> <span class="o">=</span> <span class="n">tiled_copy_r2s</span><span class="o">.</span><span class="n">retile</span><span class="p">(</span><span class="n">accumulators</span><span class="p">)</span>
+</pre></div>
+<div class="highlight"><pre><span></span>tRS_sD = (((2,4),1),1,2,(1,4)):(((1,2),0),0,16,(0,4096))
+tRS_rAcc = ((8,16),1,1):((1,8),0,0)
+</pre></div>
+<p>Note that these two obviously have the same size, i.e. <code>2 * 4 * 1 * 1 * 2 * 1 * 4 = 64 = 8 * 16 * 1 * 1</code> because we will copy from <code>tRS_rAcc</code> which lives in <code>RMEM</code> to <code>tRS_sD</code> (which we partitioned with <code>partition_D</code> which stands for D(estination)) which lives in <code>SMEM</code>. Note that the last mode <code>(1,4)</code> corresponds to the stages because we will transfer via <code>TMA</code> from <code>SMEM -&gt; GMEM</code> in a staged fashion.</p>
+<p>We allocate the registers for d. Note we use <code>partition_S</code> for S(ource). We drop the last mode of the shape because it corresponds to the stage.</p>
+<div class="highlight"><pre><span></span><span class="c1"># Allocate D registers.</span>
+<span class="n">rD_shape</span> <span class="o">=</span> <span class="n">cute</span><span class="o">.</span><span class="n">shape</span><span class="p">(</span><span class="n">thr_copy_r2s</span><span class="o">.</span><span class="n">partition_S</span><span class="p">(</span><span class="n">sc</span><span class="p">))</span>
+<span class="n">tRS_rD_layout</span> <span class="o">=</span> <span class="n">cute</span><span class="o">.</span><span class="n">make_layout</span><span class="p">(</span><span class="n">rD_shape</span><span class="p">[:</span><span class="mi">3</span><span class="p">])</span>
+<span class="n">tRS_rD</span> <span class="o">=</span> <span class="n">cute</span><span class="o">.</span><span class="n">make_fragment_like</span><span class="p">(</span><span class="n">tRS_rD_layout</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">acc_dtype</span><span class="p">)</span>
+<span class="n">size_tRS_rD</span> <span class="o">=</span> <span class="n">cute</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="n">tRS_rD</span><span class="p">)</span>
+</pre></div>
+<div class="highlight"><pre><span></span>tRS_rD = (((2,2,2),1),1,2):(((1,2,4),0),0,8)
+</pre></div>
+<p>We can read that the size is <code>2 * 2 * 2 * 1 * 1 * 2 = 16 = 64 / 4</code>.</p>
+<p>This part of code sets up the <code>TMA</code></p>
+<div class="highlight"><pre><span></span><span class="n">sepi_for_tma_partition</span> <span class="o">=</span> <span class="n">cute</span><span class="o">.</span><span class="n">group_modes</span><span class="p">(</span><span class="n">sc</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+<span class="n">tcgc_for_tma_partition</span> <span class="o">=</span> <span class="n">cute</span><span class="o">.</span><span class="n">zipped_divide</span><span class="p">(</span><span class="n">gC_mnl</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">epi_tile</span><span class="p">)</span>
+
+<span class="n">bSG_sD</span><span class="p">,</span> <span class="n">bSG_gD</span> <span class="o">=</span> <span class="n">cute</span><span class="o">.</span><span class="n">nvgpu</span><span class="o">.</span><span class="n">cpasync</span><span class="o">.</span><span class="n">tma_partition</span><span class="p">(</span>
+	<span class="n">tma_atom_c</span><span class="p">,</span>
+	<span class="mi">0</span><span class="p">,</span>
+	<span class="n">cute</span><span class="o">.</span><span class="n">make_layout</span><span class="p">(</span><span class="mi">1</span><span class="p">),</span>
+	<span class="n">sepi_for_tma_partition</span><span class="p">,</span>
+	<span class="n">tcgc_for_tma_partition</span><span class="p">,</span>
+<span class="p">)</span>
+</pre></div>
+<p>Let us now analyse the epilogue loop</p>
+<div class="highlight"><pre><span></span><span class="n">epi_tile_num</span> <span class="o">=</span> <span class="n">cute</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="n">tcgc_for_tma_partition</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+<span class="n">epi_tile_shape</span> <span class="o">=</span> <span class="n">tcgc_for_tma_partition</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+
+<span class="k">for</span> <span class="n">epi_idx</span> <span class="ow">in</span> <span class="n">cutlass</span><span class="o">.</span><span class="n">range</span><span class="p">(</span><span class="n">epi_tile_num</span><span class="p">,</span> <span class="n">unroll</span><span class="o">=</span><span class="n">epi_tile_num</span><span class="p">):</span>
+</pre></div>
+<p>Note that:</p>
+<div class="highlight"><pre><span></span>gC_mnl = (128,256):(1@1,1@0)
+epi_tile = (128,32)
+tcgc_for_tma_partition = ((128,32),(1,8)):((1@1,1@0),(0,32@0))
+</pre></div>
+<p>That is we have <code>gC_mnl</code> with shape <code>(bM, bN)</code> and a given <code>epi_tile</code> with shape <code>(bM', bN')</code>. We than use <code>zipped_divide</code> to get a layout that covers <code>(bM, bN)</code> with the given <code>epi_tile</code> and has shape <code>((bM', bN'), (bM / bM', bN / bN'))</code>.</p>
+<p>Consequently we get the number of tiles we need to cover by taking the size of the second mode.</p>
+<p>We loop over <code>size_tRS_rD</code>. As explained above <code>epi_v</code> indexes into one element of a stage. The stage we are currently in is given by the <code>epi_idx</code>. Note that <code>CuTe</code> algebra makes this complex indexing almost trivial. After having that we store the result (i.e. the accumulators for the current epilogue stage) into <code>tRS_rD_out</code>.</p>
+<div class="highlight"><pre><span></span>	<span class="c1"># Copy from accumulators to D registers</span>
+	<span class="k">for</span> <span class="n">epi_v</span> <span class="ow">in</span> <span class="n">cutlass</span><span class="o">.</span><span class="n">range_constexpr</span><span class="p">(</span><span class="n">size_tRS_rD</span><span class="p">):</span>
+		<span class="n">tRS_rD</span><span class="p">[</span><span class="n">epi_v</span><span class="p">]</span> <span class="o">=</span> <span class="n">tRS_rAcc</span><span class="p">[</span><span class="n">epi_idx</span> <span class="o">*</span> <span class="n">size_tRS_rD</span> <span class="o">+</span> <span class="n">epi_v</span><span class="p">]</span>
+	
+	<span class="c1"># Type conversion</span>
+	<span class="n">tRS_rD_out</span> <span class="o">=</span> <span class="n">cute</span><span class="o">.</span><span class="n">make_fragment_like</span><span class="p">(</span><span class="n">tRS_rD_layout</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">c_dtype</span><span class="p">)</span>
+	<span class="n">acc_vec</span> <span class="o">=</span> <span class="n">tRS_rD</span><span class="o">.</span><span class="n">load</span><span class="p">()</span>
+	<span class="n">tRS_rD_out</span><span class="o">.</span><span class="n">store</span><span class="p">(</span><span class="n">acc_vec</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">c_dtype</span><span class="p">))</span>
+</pre></div>
+<p>We use <code>TMA</code> to copy from <code>RMEM</code> to <code>SMEM</code>:</p>
+<div class="highlight"><pre><span></span>	<span class="c1"># Copy from D registers to shared memory</span>
+	<span class="n">epi_buffer</span> <span class="o">=</span> <span class="n">epi_idx</span> <span class="o">%</span> <span class="n">cute</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="n">tRS_sD</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="p">[</span><span class="mi">3</span><span class="p">])</span>
+	<span class="n">cute</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span>
+		<span class="n">tiled_copy_r2s</span><span class="p">,</span> <span class="n">tRS_rD_out</span><span class="p">,</span> <span class="n">tRS_sD</span><span class="p">[(</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="n">epi_buffer</span><span class="p">)]</span>
+	<span class="p">)</span>
+
+	<span class="n">cute</span><span class="o">.</span><span class="n">arch</span><span class="o">.</span><span class="n">fence_proxy</span><span class="p">(</span>
+		<span class="n">cute</span><span class="o">.</span><span class="n">arch</span><span class="o">.</span><span class="n">ProxyKind</span><span class="o">.</span><span class="n">async_shared</span><span class="p">,</span>
+		<span class="n">space</span><span class="o">=</span><span class="n">cute</span><span class="o">.</span><span class="n">arch</span><span class="o">.</span><span class="n">SharedSpace</span><span class="o">.</span><span class="n">shared_cta</span><span class="p">,</span>
+	<span class="p">)</span>
+	<span class="c1"># barrier for sync</span>
+	<span class="n">cute</span><span class="o">.</span><span class="n">arch</span><span class="o">.</span><span class="n">barrier</span><span class="p">()</span>
+</pre></div>
+<p>After this we copy to <code>GMEM</code></p>
+<div class="highlight"><pre><span></span>	<span class="c1"># Get the global memory coordinate for the current epi tile.</span>
+	<span class="n">epi_tile_layout</span> <span class="o">=</span> <span class="n">cute</span><span class="o">.</span><span class="n">make_layout</span><span class="p">(</span>
+		<span class="n">epi_tile_shape</span><span class="p">,</span> <span class="n">stride</span><span class="o">=</span><span class="p">(</span><span class="n">epi_tile_shape</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="mi">1</span><span class="p">)</span>
+	<span class="p">)</span>
+	<span class="n">gmem_coord</span> <span class="o">=</span> <span class="n">epi_tile_layout</span><span class="o">.</span><span class="n">get_hier_coord</span><span class="p">(</span><span class="n">epi_idx</span><span class="p">)</span>
+	<span class="c1"># Copy from shared memory to global memory</span>
+	<span class="k">if</span> <span class="n">warp_idx</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+		<span class="n">cute</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span>
+			<span class="n">tma_atom_c</span><span class="p">,</span>
+			<span class="n">bSG_sD</span><span class="p">[(</span><span class="kc">None</span><span class="p">,</span> <span class="n">epi_buffer</span><span class="p">)],</span>
+			<span class="n">bSG_gD</span><span class="p">[(</span><span class="kc">None</span><span class="p">,</span> <span class="n">gmem_coord</span><span class="p">)],</span>
+		<span class="p">)</span>
+		<span class="n">cute</span><span class="o">.</span><span class="n">arch</span><span class="o">.</span><span class="n">cp_async_bulk_commit_group</span><span class="p">()</span>
+		<span class="n">cute</span><span class="o">.</span><span class="n">arch</span><span class="o">.</span><span class="n">cp_async_bulk_wait_group</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">epi_stage</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="n">read</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+	<span class="n">cute</span><span class="o">.</span><span class="n">arch</span><span class="o">.</span><span class="n">barrier</span><span class="p">()</span>
+</pre></div>
+<p>Note that <code>cute.arch.cp_async_bulk_wait_group(self.epi_stage - 1, read=True)</code> enables overlap of copy from <code>RMEM -&gt; SMEM</code> and <code>SMEM -&gt; GMEM</code> and we leverage the staged approach for the Epilogue here.</p>
+<h2 id=conclusion>Conclusion</h2><p>I hope this blogpost made Epilogue phase in <code>CuTe</code> kernels more approachable. If you are interested in discussing GPU programming or MLSys in general you can reach out to me via <a href='https://www.linkedin.com/in/simon-veitner-174a681b6/'>Linkedin</a>.</p>
+
+
+    
+
+    
+        
+
+        
+            <form id="upvote-form" action="/upvote/" method="post" style="display: inline">
+    <small>
+        <input hidden name="uid" value="cebdArfIBUeNxydNPRNA" style="display:none">
+        <input hidden name="title" value="Epilogue in CuTeDSL H100 kernels" style="display:none">
+
+        <button
+            class="upvote-button"
+            aria-label="Toast this post"
+            title="Toast this post"
+        >
+            <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" class="css-i6dzq1">
+                <polyline points="17 11 12 6 7 11"></polyline>
+                <polyline points="17 18 12 13 7 18"></polyline>
+            </svg>
+            <small class="upvote-count" aria-hidden="true">&nbsp;</small>
+        </button>
+    </small>        
+</form>
+
+<script>
+    const $upvoteButton = document.querySelector('.upvote-button');
+    const $upvoteCount =  document.querySelector('.upvote-count')
+
+    fetch('/upvote-info/cebdArfIBUeNxydNPRNA/').then(response => response.json()).then(data => {
+        $upvoteCount.innerText = data.upvote_count;
+        if (data.upvoted) {
+            $upvoteButton.disabled = true
+            $upvoteButton.style.color = "salmon"
+            $upvoteButton.ariaLabel = "Toasted"
+            $upvoteButton.title = "Toasted"
+        }
+        $upvoteButton.ariaLabel += ` (${data.upvote_count})`
+    });
+
+    let moved = false;
+    let pageLoaded = Date.now();
+
+    document.addEventListener('touchmove', () => moved = true);
+    document.addEventListener('mousemove', () => moved = true);
+
+    document.querySelector('#upvote-form').addEventListener('submit', (e) => {
+        e.preventDefault();
+
+        if (moved) {
+            document.querySelector('input[name="title"]').value = "";
+        }
+        if (Date.now() - pageLoaded < 2000 || !moved) {
+            return;
+        }
+
+        fetch(e.target.action, {
+            method: 'post',
+            body: new FormData(e.target),
+        });
+        
+        $upvoteButton.disabled = true
+        $upvoteButton.style.color = "salmon"
+        $upvoteButton.ariaLabel = "Toasted"
+        $upvoteButton.title = "Toasted"
+        const newUpvoteCount = `${(parseInt($upvoteCount.innerHTML.split(" ")[0]) + 1)}`
+        $upvoteCount.innerHTML = newUpvoteCount
+        $upvoteButton.ariaLabel += ` (${newUpvoteCount})`
+    });
+</script>
+        
+
+        
+            <script>
+            window.addEventListener("load", () => {
+                if (navigator.webdriver !== true) {
+                    const sendHit = score => {
+                        const params = new URLSearchParams({
+                            blog: "veitner",
+                            token: "cebdArfIBUeNxydNPRNA",
+                            referrer: document.referrer.includes("veitner.bearblog.dev") ? "" : document.referrer,
+                            title: "",
+                            score: score
+                        });
+                        new Image().src = `/hit/?${params.toString()}`;
+                    };
+
+                    document.addEventListener('touchmove', () => sendHit(100), { once: true });
+                    document.addEventListener('mousemove', () => sendHit(100), { once: true });
+                }
+            });
+            </script>
+        
+    
+
+
+  </main>
+  <footer>
+    
+    
+    <span>
+        Powered by <a href="https://bearblog.dev">Bear <span role="img" class="bear" aria-label="ASCII bear logo">ʕ•ᴥ•ʔ</span></a>
+    </span>
+
+  </footer>
+
+  
+  <script>
+        (() => {
+          "use strict";
+          const times = document.querySelectorAll('time');
+          const format_string = "d M, Y" || "d M, Y"
+
+          times.forEach(time => {
+              time.innerText = formatDate(time.dateTime, format_string)
+          });
+
+          function formatDate(dateStr, formatStr) {
+            const date = new Date(dateStr);
+            const day = date.getDate();
+            const month = date.getMonth();
+            const year = date.getFullYear();
+            const weekday = date.getDay();
+            const hours = date.getHours();
+            const minutes = date.getMinutes();
+            const monthsFull = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+            const monthsShort = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+            const daysFull = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+            const daysShort = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+            
+            function getOrdinal(n) {
+                const s = ['th', 'st', 'nd', 'rd'];
+                const v = n % 100;
+                return s[(v - 20) % 10] || s[v] || s[0];
+            }
+            
+            const map = {
+                'd': () => day.toString().padStart(2, '0'),
+                'm': () => (month + 1).toString().padStart(2, '0'),
+                'Y': () => year.toString(),
+                'y': () => year.toString().slice(-2),
+                'F': () => monthsFull[month],
+                'j': () => day.toString(),
+                'D': () => daysShort[weekday],
+                'l': () => daysFull[weekday],
+                'S': () => getOrdinal(day),
+                'M': () => monthsShort[month],
+                'H': () => hours.toString().padStart(2, '0'),
+                'h': () => {
+                    let h = hours % 12;
+                    h = h === 0 ? 12 : h;
+                    return h.toString().padStart(2, '0');
+                },
+                'g': () => {
+                    let h = hours % 12;
+                    return h === 0 ? '12' : h.toString();
+                },
+                'i': () => minutes.toString().padStart(2, '0'),
+                'a': () => hours < 12 ? 'am' : 'pm',
+                'A': () => hours < 12 ? 'AM' : 'PM',
+            };
+            
+            let result = '';
+            for (let char of formatStr) {
+                result += map[char] ? map[char]() : char;
+            }
+            return result;
+        }
+        })();
+    </script>
+    
+</body>
+<!-- ID: veitner -->
+<!-- 🐻 -->
+</html>

@@ -1,0 +1,778 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!-- Powered by Bear Blog -->
+
+<head>
+  
+  
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5">
+  
+  <title>Understanding CuTe Swizzling - The Math Behind 32B, 64B, and 128B Patterns | simons blog</title>
+  <link rel="canonical" href="https://veitner.bearblog.dev/understanding-cute-swizzling-the-math-behind-32b-64b-and-128b-patterns/">
+  
+    
+
+    <meta name="veitner" content="look-for-the-bear-necessities">
+    <meta name="token" content="GkqzCHfjhBbBWDIfGKis">
+
+    
+<!-- Primary Meta Tags -->
+<meta name="title" content="Understanding CuTe Swizzling - The Math Behind 32B, 64B, and 128B Patterns">
+<meta name="description" content="Swizzling is a critical technique used in state-of-the-art GEMM kernels to avoid costly shared memory bank conflicts. For a quick refresher on what shared me...">
+
+<!-- Open Graph / Facebook -->
+<meta property="og:site_name" content="simons blog">
+<meta property="og:title" content="Understanding CuTe Swizzling - The Math Behind 32B, 64B, and 128B Patterns">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://veitner.bearblog.dev/understanding-cute-swizzling-the-math-behind-32b-64b-and-128b-patterns/">
+<meta property="og:description" content="Swizzling is a critical technique used in state-of-the-art GEMM kernels to avoid costly shared memory bank conflicts. For a quick refresher on what shared me...">
+<meta property="og:image" content="/static/og-image.png">
+
+
+<!-- Twitter -->
+<meta property="twitter:card" content="summary">
+<meta property="twitter:url" content="https://veitner.bearblog.dev/understanding-cute-swizzling-the-math-behind-32b-64b-and-128b-patterns/">
+<meta property="twitter:title" content="Understanding CuTe Swizzling - The Math Behind 32B, 64B, and 128B Patterns">
+<meta property="twitter:description" content="Swizzling is a critical technique used in state-of-the-art GEMM kernels to avoid costly shared memory bank conflicts. For a quick refresher on what shared me...">
+<meta property="twitter:image" content="/static/og-image.png">
+
+
+
+<!-- Microdata -->
+<script type="application/ld+json">
+  {
+    "@context": "http://schema.org",
+    "@type": "article",
+    "name": "Understanding CuTe Swizzling - The Math Behind 32B, 64B, and 128B Patterns",
+    "headline": "Understanding CuTe Swizzling - The Math Behind 32B, 64B, and 128B Patterns",
+    "url": "https://veitner.bearblog.dev/understanding-cute-swizzling-the-math-behind-32b-64b-and-128b-patterns/",
+    "description": "Swizzling is a critical technique used in state-of-the-art GEMM kernels to avoid costly shared memory bank conflicts. For a quick refresher on what shared me...",
+    "image": "/static/og-image.png"
+  }
+</script>
+    <link rel="alternate" type="application/atom+xml" href="/feed/" title="simons blog">
+    <link rel="alternate" type="application/rss+xml" href="/feed/?type=rss" title="simons blog">
+
+  
+    
+
+    
+    <style>pre { line-height: 125%; }
+td.linenos .normal { color: #666666; background-color: transparent; padding-left: 5px; padding-right: 5px; }
+span.linenos { color: #666666; background-color: transparent; padding-left: 5px; padding-right: 5px; }
+td.linenos .special { color: #000000; background-color: #ffffc0; padding-left: 5px; padding-right: 5px; }
+span.linenos.special { color: #000000; background-color: #ffffc0; padding-left: 5px; padding-right: 5px; }
+.highlight .hll { background-color: #ffffcc }
+.highlight { background: #f0f0f0; }
+.highlight .c { color: #60A0B0; font-style: italic } /* Comment */
+.highlight .err { border: 1px solid #F00 } /* Error */
+.highlight .k { color: #007020; font-weight: bold } /* Keyword */
+.highlight .o { color: #666 } /* Operator */
+.highlight .ch { color: #60A0B0; font-style: italic } /* Comment.Hashbang */
+.highlight .cm { color: #60A0B0; font-style: italic } /* Comment.Multiline */
+.highlight .cp { color: #007020 } /* Comment.Preproc */
+.highlight .cpf { color: #60A0B0; font-style: italic } /* Comment.PreprocFile */
+.highlight .c1 { color: #60A0B0; font-style: italic } /* Comment.Single */
+.highlight .cs { color: #60A0B0; background-color: #FFF0F0 } /* Comment.Special */
+.highlight .gd { color: #A00000 } /* Generic.Deleted */
+.highlight .ge { font-style: italic } /* Generic.Emph */
+.highlight .ges { font-weight: bold; font-style: italic } /* Generic.EmphStrong */
+.highlight .gr { color: #F00 } /* Generic.Error */
+.highlight .gh { color: #000080; font-weight: bold } /* Generic.Heading */
+.highlight .gi { color: #00A000 } /* Generic.Inserted */
+.highlight .go { color: #888 } /* Generic.Output */
+.highlight .gp { color: #C65D09; font-weight: bold } /* Generic.Prompt */
+.highlight .gs { font-weight: bold } /* Generic.Strong */
+.highlight .gu { color: #800080; font-weight: bold } /* Generic.Subheading */
+.highlight .gt { color: #04D } /* Generic.Traceback */
+.highlight .kc { color: #007020; font-weight: bold } /* Keyword.Constant */
+.highlight .kd { color: #007020; font-weight: bold } /* Keyword.Declaration */
+.highlight .kn { color: #007020; font-weight: bold } /* Keyword.Namespace */
+.highlight .kp { color: #007020 } /* Keyword.Pseudo */
+.highlight .kr { color: #007020; font-weight: bold } /* Keyword.Reserved */
+.highlight .kt { color: #902000 } /* Keyword.Type */
+.highlight .m { color: #40A070 } /* Literal.Number */
+.highlight .s { color: #4070A0 } /* Literal.String */
+.highlight .na { color: #4070A0 } /* Name.Attribute */
+.highlight .nb { color: #007020 } /* Name.Builtin */
+.highlight .nc { color: #0E84B5; font-weight: bold } /* Name.Class */
+.highlight .no { color: #60ADD5 } /* Name.Constant */
+.highlight .nd { color: #555; font-weight: bold } /* Name.Decorator */
+.highlight .ni { color: #D55537; font-weight: bold } /* Name.Entity */
+.highlight .ne { color: #007020 } /* Name.Exception */
+.highlight .nf { color: #06287E } /* Name.Function */
+.highlight .nl { color: #002070; font-weight: bold } /* Name.Label */
+.highlight .nn { color: #0E84B5; font-weight: bold } /* Name.Namespace */
+.highlight .nt { color: #062873; font-weight: bold } /* Name.Tag */
+.highlight .nv { color: #BB60D5 } /* Name.Variable */
+.highlight .ow { color: #007020; font-weight: bold } /* Operator.Word */
+.highlight .w { color: #BBB } /* Text.Whitespace */
+.highlight .mb { color: #40A070 } /* Literal.Number.Bin */
+.highlight .mf { color: #40A070 } /* Literal.Number.Float */
+.highlight .mh { color: #40A070 } /* Literal.Number.Hex */
+.highlight .mi { color: #40A070 } /* Literal.Number.Integer */
+.highlight .mo { color: #40A070 } /* Literal.Number.Oct */
+.highlight .sa { color: #4070A0 } /* Literal.String.Affix */
+.highlight .sb { color: #4070A0 } /* Literal.String.Backtick */
+.highlight .sc { color: #4070A0 } /* Literal.String.Char */
+.highlight .dl { color: #4070A0 } /* Literal.String.Delimiter */
+.highlight .sd { color: #4070A0; font-style: italic } /* Literal.String.Doc */
+.highlight .s2 { color: #4070A0 } /* Literal.String.Double */
+.highlight .se { color: #4070A0; font-weight: bold } /* Literal.String.Escape */
+.highlight .sh { color: #4070A0 } /* Literal.String.Heredoc */
+.highlight .si { color: #70A0D0; font-style: italic } /* Literal.String.Interpol */
+.highlight .sx { color: #C65D09 } /* Literal.String.Other */
+.highlight .sr { color: #235388 } /* Literal.String.Regex */
+.highlight .s1 { color: #4070A0 } /* Literal.String.Single */
+.highlight .ss { color: #517918 } /* Literal.String.Symbol */
+.highlight .bp { color: #007020 } /* Name.Builtin.Pseudo */
+.highlight .fm { color: #06287E } /* Name.Function.Magic */
+.highlight .vc { color: #BB60D5 } /* Name.Variable.Class */
+.highlight .vg { color: #BB60D5 } /* Name.Variable.Global */
+.highlight .vi { color: #BB60D5 } /* Name.Variable.Instance */
+.highlight .vm { color: #BB60D5 } /* Name.Variable.Magic */
+.highlight .il { color: #40A070 } /* Literal.Number.Integer.Long */
+</style>
+  
+  
+  
+    
+        <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20100%20100'%3E%3Ctext%20y='.9em'%20font-size='90'%3E🐼%3C/text%3E%3C/svg%3E">
+    
+
+
+
+  <style>
+      
+      
+    
+:root {
+    --width: 720px;
+    --font-main: Verdana, sans-serif;
+    --font-secondary: Verdana, sans-serif;
+    --font-scale: 1em;
+    --background-color: #fff;
+    --heading-color: #222;
+    --text-color: #444;
+    --link-color: #3273dc;
+    --visited-color:  #8b6fcb;
+    --code-background-color: #f2f2f2;
+    --code-color: #222;
+    --blockquote-color: #222;
+}
+
+@media (prefers-color-scheme: dark) {
+    :root {
+        --background-color: #01242e;
+        --heading-color: #eee;
+        --text-color: #ddd;
+        --link-color: #8cc2dd;
+        --visited-color:  #8b6fcb;
+        --code-background-color: #000;
+        --code-color: #ddd;
+        --blockquote-color: #ccc;
+    }
+}
+
+body {
+    font-family: var(--font-secondary);
+    font-size: var(--font-scale);
+    margin: auto;
+    padding: 20px;
+    max-width: var(--width);
+    text-align: left;
+    background-color: var(--background-color);
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    line-height: 1.5;
+    color: var(--text-color);
+}
+
+h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-main);
+    color: var(--heading-color);
+}
+
+a {
+    color: var(--link-color);
+    cursor: pointer;
+    text-decoration: none;
+}
+
+a:hover {
+    text-decoration: underline; 
+}
+
+nav a {
+    margin-right: 8px;
+}
+
+strong, b {
+    color: var(--heading-color);
+}
+
+button {
+    margin: 0;
+    cursor: pointer;
+}
+
+time {
+ 	font-family: monospace;
+  	font-style: normal;
+  	font-size: 15px;
+}
+
+main {
+    line-height: 1.6;
+}
+
+table {
+    width: 100%;
+}
+
+hr {
+    border: 0;
+    border-top: 1px dashed;
+}
+
+img {
+    max-width: 100%;
+}
+
+code {
+    font-family: monospace;
+    padding: 2px;
+    background-color: var(--code-background-color);
+    color: var(--code-color);
+    border-radius: 3px;
+}
+
+blockquote {
+    border-left: 1px solid #999;
+    color: var(--code-color);
+    padding-left: 20px;
+    font-style: italic;
+}
+
+footer {
+    padding: 25px 0;
+    text-align: center;
+}
+
+.title:hover {
+    text-decoration: none;
+}
+
+.title h1 {
+    font-size: 1.5em;
+}
+
+.inline {
+    width: auto !important;
+}
+
+.highlight, .code {
+    padding: 1px 15px;
+    background-color: var(--code-background-color);
+    color: var(--code-color);
+    border-radius: 3px;
+    margin-block-start: 1em;
+    margin-block-end: 1em;
+    overflow-x: auto;
+}
+
+/* blog post list */
+ul.blog-posts {
+    list-style-type: none;
+    padding: unset;
+}
+
+ul.blog-posts li {
+    display: flex;
+}
+
+ul.blog-posts li span {
+    flex: 0 0 130px;
+}
+
+ul.blog-posts li a:visited {
+    color: var(--visited-color);
+}
+    .upvote-button {
+        padding: 0;
+        margin: 0;
+        border: 0;
+        background-color: inherit;
+        color: inherit;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+    .upvote-button.upvoted {
+        color: salmon;
+    }
+    .upvote-count {
+        margin-top: -3px;
+    }
+
+      
+  </style>
+</head>
+
+<body class="post " onload="(function() { document.cookie = `timezone=${Intl.DateTimeFormat().resolvedOptions().timeZone};path=/`; })()">
+  
+  <header>
+    <a class="title" href="/">
+      <h1>
+        simons blog
+      </h1>
+    </a>
+    <nav>
+      <p><a href='/'>Home</a> <a href='/blog/'>Blog</a></p>
+
+    </nav>
+  </header>
+  <main>
+    
+
+    
+
+    
+        <h1>Understanding CuTe Swizzling - The Math Behind 32B, 64B, and 128B Patterns</h1>
+
+        <p>
+            <i>
+                <time datetime="2025-09-07T17:22Z">
+    07 Sep, 2025
+</time>
+            </i>
+        </p>
+    
+
+    <p>Swizzling is a critical technique used in state-of-the-art GEMM kernels to avoid costly shared memory bank conflicts. For a quick refresher on what shared memory bank conflicts are and why they matter for performance, I recommend <a href='https://feldmann.nyc/blog/smem-microbenchmarks'>this excellent explanation</a>.</p>
+<p>In this post, we'll dive deep into the canonical swizzling patterns: <code>Swizzle&lt;0,4,3&gt;</code>, <code>Swizzle&lt;1,4,3&gt;</code>, <code>Swizzle&lt;2,4,3&gt;</code>, and <code>Swizzle&lt;3,4,3&gt;</code>. Through step-by-step derivations, we'll uncover why these are known as No-Swizzling, 32B-Swizzling, 64B-Swizzling, and 128B-Swizzling respectively.</p>
+<h2 id=swizzle-api-syntax>Swizzle API Syntax</h2><p>To understand the API better we can take a look at <a href='https://github.com/NVIDIA/cutlass/blob/76c96b0be35cb263debe3e3d8418b80911a544ab/include/cute/swizzle.hpp#L4'>swizzle.hpp</a> in <code>CUTLASS</code> repo:</p>
+<div class="highlight"><pre><span></span><span class="c1">// A generic Swizzle functor</span>
+<span class="cm">/* 0bxxxxxxxxxxxxxxxYYYxxxxxxxZZZxxxx</span>
+<span class="cm"> *                               ^--^ MBase is the number of least-sig bits to keep constant</span>
+<span class="cm"> *                  ^-^       ^-^     BBits is the number of bits in the mask</span>
+<span class="cm"> *                    ^---------^     SShift is the distance to shift the YYY mask</span>
+<span class="cm"> *                                       (pos shifts YYY to the right, neg shifts YYY to the left)</span>
+<span class="cm"> *</span>
+<span class="cm"> * e.g. Given</span>
+<span class="cm"> * 0bxxxxxxxxxxxxxxxxYYxxxxxxxxxZZxxx</span>
+<span class="cm"> * the result is</span>
+<span class="cm"> * 0bxxxxxxxxxxxxxxxxYYxxxxxxxxxAAxxx where AA = ZZ xor YY</span>
+<span class="cm"> */</span>
+</pre></div>
+<p>In Code that application of Swizzle to a function looks such:</p>
+<div class="highlight"><pre><span></span><span class="k">template</span><span class="w"> </span><span class="o">&lt;</span><span class="kt">int</span><span class="w"> </span><span class="n">BBits</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">MBase</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">SShift</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">BBits</span><span class="o">&gt;</span>
+<span class="k">struct</span><span class="w"> </span><span class="nc">Swizzle</span>
+<span class="p">{</span>
+<span class="w">  </span><span class="k">static</span><span class="w"> </span><span class="k">constexpr</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">num_bits</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">BBits</span><span class="p">;</span>
+<span class="w">  </span><span class="k">static</span><span class="w"> </span><span class="k">constexpr</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">num_base</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">MBase</span><span class="p">;</span>
+<span class="w">  </span><span class="k">static</span><span class="w"> </span><span class="k">constexpr</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">num_shft</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">SShift</span><span class="p">;</span>
+
+<span class="w">  </span><span class="k">static_assert</span><span class="p">(</span><span class="n">num_base</span><span class="w"> </span><span class="o">&gt;=</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w">             </span><span class="s">&quot;MBase must be positive.&quot;</span><span class="p">);</span>
+<span class="w">  </span><span class="k">static_assert</span><span class="p">(</span><span class="n">num_bits</span><span class="w"> </span><span class="o">&gt;=</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w">             </span><span class="s">&quot;BBits must be positive.&quot;</span><span class="p">);</span>
+<span class="w">  </span><span class="k">static_assert</span><span class="p">(</span><span class="n">abs</span><span class="p">(</span><span class="n">num_shft</span><span class="p">)</span><span class="w"> </span><span class="o">&gt;=</span><span class="w"> </span><span class="n">num_bits</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;abs(SShift) must be more than BBits.&quot;</span><span class="p">);</span>
+
+<span class="w">  </span><span class="c1">// using &#39;int&#39; type here to avoid unintentially casting to unsigned... unsure.</span>
+<span class="w">  </span><span class="k">using</span><span class="w"> </span><span class="n">bit_msk</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">cute</span><span class="o">::</span><span class="n">constant</span><span class="o">&lt;</span><span class="kt">int</span><span class="p">,</span><span class="w"> </span><span class="p">(</span><span class="mi">1</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">num_bits</span><span class="p">)</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="mi">1</span><span class="o">&gt;</span><span class="p">;</span>
+<span class="w">  </span><span class="k">using</span><span class="w"> </span><span class="n">yyy_msk</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">cute</span><span class="o">::</span><span class="n">constant</span><span class="o">&lt;</span><span class="kt">int</span><span class="p">,</span><span class="w"> </span><span class="n">bit_msk</span><span class="p">{}</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="p">(</span><span class="n">num_base</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">max</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="n">num_shft</span><span class="p">))</span><span class="o">&gt;</span><span class="p">;</span>
+<span class="w">  </span><span class="k">using</span><span class="w"> </span><span class="n">zzz_msk</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">cute</span><span class="o">::</span><span class="n">constant</span><span class="o">&lt;</span><span class="kt">int</span><span class="p">,</span><span class="w"> </span><span class="n">bit_msk</span><span class="p">{}</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="p">(</span><span class="n">num_base</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">min</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="n">num_shft</span><span class="p">))</span><span class="o">&gt;</span><span class="p">;</span>
+<span class="w">  </span><span class="k">using</span><span class="w"> </span><span class="n">msk_sft</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">cute</span><span class="o">::</span><span class="n">constant</span><span class="o">&lt;</span><span class="kt">int</span><span class="p">,</span><span class="w"> </span><span class="n">num_shft</span><span class="o">&gt;</span><span class="p">;</span>
+
+<span class="w">  </span><span class="k">static</span><span class="w"> </span><span class="k">constexpr</span><span class="w"> </span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">swizzle_code</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kt">uint32_t</span><span class="p">(</span><span class="n">yyy_msk</span><span class="o">::</span><span class="n">value</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="n">zzz_msk</span><span class="o">::</span><span class="n">value</span><span class="p">);</span>
+
+<span class="w">  </span><span class="k">template</span><span class="w"> </span><span class="o">&lt;</span><span class="k">class</span><span class="w"> </span><span class="nc">Offset</span><span class="o">&gt;</span>
+<span class="w">  </span><span class="n">CUTE_HOST_DEVICE</span><span class="w"> </span><span class="k">constexpr</span><span class="w"> </span><span class="k">static</span>
+<span class="w">  </span><span class="k">auto</span>
+<span class="w">  </span><span class="n">apply</span><span class="p">(</span><span class="n">Offset</span><span class="w"> </span><span class="k">const</span><span class="o">&amp;</span><span class="w"> </span><span class="n">offset</span><span class="p">)</span>
+<span class="w">  </span><span class="p">{</span>
+<span class="w">	    </span><span class="k">return</span><span class="w"> </span><span class="n">offset</span><span class="w"> </span><span class="o">^</span><span class="w"> </span><span class="n">shiftr</span><span class="p">(</span><span class="n">offset</span><span class="w"> </span><span class="o">&amp;</span><span class="w"> </span><span class="n">yyy_msk</span><span class="p">{},</span><span class="w"> </span><span class="n">msk_sft</span><span class="p">{});</span><span class="w">   </span><span class="c1">// ZZZ ^= YYY</span>
+<span class="w">  </span><span class="p">}</span>
+
+<span class="w">  </span><span class="k">template</span><span class="w"> </span><span class="o">&lt;</span><span class="k">class</span><span class="w"> </span><span class="nc">Offset</span><span class="o">&gt;</span>
+<span class="w">  </span><span class="n">CUTE_HOST_DEVICE</span><span class="w"> </span><span class="k">constexpr</span>
+<span class="w">  </span><span class="k">auto</span>
+<span class="w">  </span><span class="k">operator</span><span class="p">()(</span><span class="n">Offset</span><span class="w"> </span><span class="k">const</span><span class="o">&amp;</span><span class="w"> </span><span class="n">offset</span><span class="p">)</span><span class="w"> </span><span class="k">const</span>
+<span class="w">  </span><span class="p">{</span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="n">apply</span><span class="p">(</span><span class="n">offset</span><span class="p">);</span>
+<span class="w">  </span><span class="p">}</span>
+
+<span class="w">  </span><span class="k">template</span><span class="w"> </span><span class="o">&lt;</span><span class="kt">int</span><span class="w"> </span><span class="n">B</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">M</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">S</span><span class="o">&gt;</span>
+<span class="w">  </span><span class="n">CUTE_HOST_DEVICE</span><span class="w"> </span><span class="k">constexpr</span>
+<span class="w">  </span><span class="k">auto</span>
+<span class="w">  </span><span class="k">operator</span><span class="o">==</span><span class="p">(</span><span class="n">Swizzle</span><span class="o">&lt;</span><span class="n">B</span><span class="p">,</span><span class="n">M</span><span class="p">,</span><span class="n">S</span><span class="o">&gt;</span><span class="w"> </span><span class="k">const</span><span class="o">&amp;</span><span class="p">)</span><span class="w"> </span><span class="k">const</span>
+<span class="w">  </span><span class="p">{</span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="n">B</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">BBits</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="n">M</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">MBase</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="n">S</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">SShift</span><span class="p">;</span>
+<span class="w">  </span><span class="p">}</span>
+<span class="p">};</span>
+</pre></div>
+<p>Let's calculate a the canonical Swizzles by hand to understand better:</p>
+<p>Remember:</p>
+<div class="highlight"><pre><span></span><span class="c1">// Swizzle&lt;BBits, MBase, SShift&gt;</span>
+<span class="k">static</span><span class="w"> </span><span class="k">constexpr</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">num_bits</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">BBits</span><span class="p">;</span>
+<span class="k">static</span><span class="w"> </span><span class="k">constexpr</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">num_base</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">MBase</span><span class="p">;</span>
+<span class="k">static</span><span class="w"> </span><span class="k">constexpr</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">num_shft</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">SShift</span><span class="p">;</span>
+<span class="p">...</span>
+<span class="k">using</span><span class="w"> </span><span class="n">bit_msk</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">cute</span><span class="o">::</span><span class="n">constant</span><span class="o">&lt;</span><span class="kt">int</span><span class="p">,</span><span class="w"> </span><span class="p">(</span><span class="mi">1</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">num_bits</span><span class="p">)</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="mi">1</span><span class="o">&gt;</span><span class="p">;</span>
+<span class="k">using</span><span class="w"> </span><span class="n">yyy_msk</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">cute</span><span class="o">::</span><span class="n">constant</span><span class="o">&lt;</span><span class="kt">int</span><span class="p">,</span><span class="w"> </span><span class="n">bit_msk</span><span class="p">{}</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="p">(</span><span class="n">num_base</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">max</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="n">num_shft</span><span class="p">))</span><span class="o">&gt;</span><span class="p">;</span>
+<span class="k">using</span><span class="w"> </span><span class="n">msk_sft</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">cute</span><span class="o">::</span><span class="n">constant</span><span class="o">&lt;</span><span class="kt">int</span><span class="p">,</span><span class="w"> </span><span class="n">num_shft</span><span class="o">&gt;</span><span class="p">;</span>
+</pre></div>
+<h2 id=codeswizzlelt043gtcode><code>Swizzle&lt;0,4,3&gt;</code></h2><div class="highlight"><pre><span></span><span class="n">offset</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mb">0b0000000001111111</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">127</span>
+<span class="c1">// Swizzle&lt;0, 4, 3&gt;</span>
+<span class="o">-&gt;</span><span class="w"> </span><span class="n">num_bits</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span>
+<span class="o">-&gt;</span><span class="w"> </span><span class="n">num_base</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">4</span>
+<span class="o">-&gt;</span><span class="w"> </span><span class="n">num_shft</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">3</span>
+
+<span class="c1">// bit_msk = (1 &lt;&lt; num_bits) - 1</span>
+<span class="n">bit_msk</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="mb">0b0000000000000001</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="mi">1</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mb">0b0000000000000001</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="mb">0b0000000000000001</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mb">0b0000000000000000</span>
+
+<span class="c1">// yyy_msk = bit_msk &lt;&lt; (num_base + max(0,num_shft))</span>
+<span class="n">yyy_msk</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mb">0b0000000000000000</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="p">(</span><span class="mi">4</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">3</span><span class="p">)</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mb">0b0000000000000000</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="mi">7</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mb">0b0000000000000000</span>
+
+<span class="c1">// msk_shift </span>
+<span class="n">msk_shift</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">3</span>
+
+<span class="c1">// offset ^ shiftr(offset &amp; yyy_msk{}, msk_sft{});</span>
+<span class="c1">// offset &amp; yyy_mask</span>
+<span class="mb">0b0000000001111111</span><span class="w"> </span><span class="o">&amp;</span><span class="w"> </span><span class="mb">0b0000000000000000</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mb">0b0000000000000000</span>
+<span class="c1">// (offset &amp; yyy_mask) &gt;&gt; msk_shift</span>
+<span class="mb">0b0000000000000000</span><span class="w"> </span><span class="o">&gt;&gt;</span><span class="w"> </span><span class="mi">3</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mb">0b0000000000000000</span>
+<span class="c1">// offset ^ shiftr(offset &amp; yyy_msk{}, msk_sft{});</span>
+<span class="mb">0b0000000001111111</span><span class="w"> </span><span class="o">^</span><span class="w"> </span><span class="mb">0b0000000000000000</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mb">0b0000000001111111</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">127</span>
+</pre></div>
+<p>We see that <code>Swizzle&lt;0,4,3&gt;</code> will always act as the identity. That is because the <code>bit_msk</code> is always a sequence of <code>0</code> bits. This will always result in a <code>yyy_msk</code> of zero bits which will than be shifted by a factor of <code>3</code> to the right which will result again in a sequence of <code>0</code>s. XOR with a sequence of <code>0</code>s is equal to the identity because <code>XOR(0,0) = 0</code> and <code>XOR(1,0) = 1</code>.</p>
+<h2 id=codeswizzlelt143gtcode><code>Swizzle&lt;1,4,3&gt;</code></h2><div class="highlight"><pre><span></span><span class="n">offset</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mb">0b0000000011111111</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">255</span>
+<span class="c1">// Swizzle&lt;1, 4, 3&gt;</span>
+<span class="o">-&gt;</span><span class="w"> </span><span class="n">num_bits</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">1</span>
+<span class="o">-&gt;</span><span class="w"> </span><span class="n">num_base</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">4</span>
+<span class="o">-&gt;</span><span class="w"> </span><span class="n">num_shft</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">3</span>
+
+<span class="c1">// bit_msk = (1 &lt;&lt; num_bits) - 1</span>
+<span class="n">bit_msk</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="mb">0b0000000000000001</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="mi">1</span><span class="p">)</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="mi">1</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mb">0b0000000000000010</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="mb">0b0000000000000001</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mb">0b0000000000000001</span>
+
+<span class="c1">// yyy_msk = bit_msk &lt;&lt; (num_base + max(0,num_shft))</span>
+<span class="n">yyy_msk</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mb">0b0000000000000001</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="p">(</span><span class="mi">4</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">3</span><span class="p">)</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mb">0b0000000000000001</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="mi">7</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mb">0b0000000010000000</span>
+
+<span class="c1">// msk_shift </span>
+<span class="n">msk_shift</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">3</span>
+
+<span class="c1">// offset ^ shiftr(offset &amp; yyy_msk{}, msk_sft{});</span>
+<span class="c1">// offset &amp; yyy_mask</span>
+<span class="mb">0b0000000011111111</span><span class="w"> </span><span class="o">&amp;</span><span class="w"> </span><span class="mb">0b0000000010000000</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mb">0b0000000010000000</span>
+<span class="c1">// (offset &amp; yyy_mask) &gt;&gt; msk_shift</span>
+<span class="mb">0b0000000010000000</span><span class="w"> </span><span class="o">&gt;&gt;</span><span class="w"> </span><span class="mi">3</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mb">0b0000000000010000</span>
+<span class="c1">// offset ^ shiftr(offset &amp; yyy_msk{}, msk_sft{});</span>
+<span class="mb">0b0000000011111111</span><span class="w"> </span><span class="o">^</span><span class="w"> </span><span class="mb">0b0000000000010000</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mb">0b0000000011101111</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">239</span>
+</pre></div>
+<p>We see that <code>Swizzle&lt;1,4,3&gt;</code> does the following:</p>
+<ul>
+<li>Calculate a <code>1</code> bit mask. Shift that <code>1</code> bit 7 bits to the left. This will result in a mask that has everywhere a <code>0</code> except at the <code>8th</code> least significant bit.  We call this mask <code>yyy_msk</code>.</li>
+<li><code>AND</code> <code>offset</code> with <code>yyy_msk</code>. This will leave us with an expression that is <code>0b00000000X0000000</code> where <code>X={0,1}</code> is the <code>8th</code> least significant bit of the offset.</li>
+<li>We shift that expression by <code>3</code> to the right. Note that this will result in an expression <code>0b00000000000X0000</code>, i.e. everything being equal to <code>0</code> except the <code>8-3=5th</code> least significant bit. And the <code>5th</code> least significant bit has the <code>8th</code> least significant bit of the offset as entry.</li>
+<li>We than <code>XOR</code> this expression with the original offset.
+We can therefore conclude that the  <code>Swizzle&lt;1,4,3&gt;</code> will act on the <code>offset</code> as follows:
+Let the offset be</li>
+</ul>
+<div class="highlight"><pre><span></span>0bxxxxxxxxXxxYxxxx
+</pre></div>
+<p>Let us called call the "flipped offset"</p>
+<div class="highlight"><pre><span></span>0bxxxxxxxxXxxZxxxx
+</pre></div>
+<p>where <code>Z = ~Y</code>.</p>
+<p>We will than have</p>
+<div class="highlight"><pre><span></span>Swizzle&lt;1,4,3&gt;(offset) == offset, if X = 0, Y = 0 or X = 0, Y = 1
+Swizzle&lt;1,4,3&gt;(offset) == flipped_offset, if X = 1, Y = 0 or X = 1, Y = 1
+</pre></div>
+<p>I.e. we flip the <code>5th</code> least significant bit if the <code>8th</code> least significant bit is <code>1</code>.</p>
+<p>Note that this implies that all the numbers of the form</p>
+<div class="highlight"><pre><span></span>0bxxxxxxxx0xxZxxxx
+</pre></div>
+<p>won't get affected at all by the swizzle.</p>
+<h2 id=codeswizzlelt243gtcode><code>Swizzle&lt;2,4,3&gt;</code></h2><div class="highlight"><pre><span></span><span class="n">offset</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mb">0b0000000111111111</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">511</span>
+<span class="c1">// Swizzle&lt;2, 4, 3&gt;</span>
+<span class="o">-&gt;</span><span class="w"> </span><span class="n">num_bits</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">2</span>
+<span class="o">-&gt;</span><span class="w"> </span><span class="n">num_base</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">4</span>
+<span class="o">-&gt;</span><span class="w"> </span><span class="n">num_shft</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">3</span>
+
+<span class="c1">// bit_msk = (1 &lt;&lt; num_bits) - 1</span>
+<span class="n">bit_msk</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="mb">0b0000000000000001</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="mi">2</span><span class="p">)</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="mi">1</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mb">0b0000000000000100</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="mb">0b0000000000000001</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mb">0b0000000000000011</span>
+
+<span class="c1">// yyy_msk = bit_msk &lt;&lt; (num_base + max(0,num_shft))</span>
+<span class="n">yyy_msk</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mb">0b0000000000000011</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="p">(</span><span class="mi">4</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">3</span><span class="p">)</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mb">0b0000000000000011</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="mi">7</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mb">0b0000000110000000</span>
+
+<span class="c1">// msk_shift </span>
+<span class="n">msk_shift</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">3</span>
+
+<span class="c1">// offset ^ shiftr(offset &amp; yyy_msk{}, msk_sft{});</span>
+<span class="c1">// offset &amp; yyy_mask</span>
+<span class="mb">0b0000000011111111</span><span class="w"> </span><span class="o">&amp;</span><span class="w"> </span><span class="mb">0b0000000110000000</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mb">0b0000000110000000</span>
+<span class="c1">// (offset &amp; yyy_mask) &gt;&gt; msk_shift</span>
+<span class="mb">0b0000000110000000</span><span class="w"> </span><span class="o">&gt;&gt;</span><span class="w"> </span><span class="mi">3</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mb">0b0000000000110000</span>
+<span class="c1">// offset ^ shiftr(offset &amp; yyy_msk{}, msk_sft{});</span>
+<span class="mb">0b0000000111111111</span><span class="w"> </span><span class="o">^</span><span class="w"> </span><span class="mb">0b0000000000110000</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mb">0b0000000111001111</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">463</span>
+</pre></div>
+<p>We see that <code>Swizzle&lt;2,4,3&gt;</code> does the following:</p>
+<ul>
+<li>Calculate a <code>2</code> bit mask. Shift that <code>2</code> bits 7 bits to the left. This will result in a mask that has everywhere a <code>0</code> except at the <code>8th</code> least significant bit and the <code>9th</code> least significant bit.  We call this mask <code>yyy_msk</code>.</li>
+<li><code>AND</code> <code>offset</code> with <code>yyy_msk</code>. This will leave us with an expression that is <code>0b0000000UV0000000</code> where <code>U,V={0,1}</code> are the <code>8th/9th</code> least significant bit of the offset.</li>
+<li>We shift that expression by <code>3</code> to the right. Note that this will result in an expression <code>0b0000000000UV0000</code>, i.e. everything being equal to <code>0</code> except the <code>6th/5th</code> least significant bit. And the <code>6th/5th</code> least significant bit has the <code>9th/8th</code> least significant bit of the offset as entry.</li>
+<li>We than <code>XOR</code> this expression with the original offset.
+We can therefore conclude that the  <code>Swizzle&lt;2,4,3&gt;</code> will act on the <code>offset</code> as follows:
+Let the offset be</li>
+</ul>
+<div class="highlight"><pre><span></span>0bxxxxxxxUVxXYxxxx
+</pre></div>
+<p>We will than have a flip in <code>X</code> if <code>U</code> is equal to <code>1</code> and a flip in <code>Y</code> if <code>V</code> is equal to <code>1</code>.
+Note that this implies that numbers of the form:</p>
+<div class="highlight"><pre><span></span>0bxxxxxxx00xXYxxxx
+</pre></div>
+<p>won't get affected by the Swizzle at all.</p>
+<h2 id=codeswizzlelt343gtcode><code>Swizzle&lt;3,4,3&gt;</code></h2><div class="highlight"><pre><span></span><span class="n">offset</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mb">0b0000001111111111</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">1023</span>
+<span class="c1">// Swizzle&lt;3, 4, 3&gt;</span>
+<span class="o">-&gt;</span><span class="w"> </span><span class="n">num_bits</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">3</span>
+<span class="o">-&gt;</span><span class="w"> </span><span class="n">num_base</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">4</span>
+<span class="o">-&gt;</span><span class="w"> </span><span class="n">num_shft</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">3</span>
+
+<span class="c1">// bit_msk = (1 &lt;&lt; num_bits) - 1</span>
+<span class="n">bit_msk</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="mb">0b0000000000000001</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="mi">3</span><span class="p">)</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="mi">1</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mb">0b0000000000001000</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="mb">0b0000000000000001</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mb">0b0000000000000111</span>
+
+<span class="c1">// yyy_msk = bit_msk &lt;&lt; (num_base + max(0,num_shft))</span>
+<span class="n">yyy_msk</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mb">0b0000000000000111</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="p">(</span><span class="mi">4</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">3</span><span class="p">)</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mb">0b0000000000000111</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="mi">7</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mb">0b0000001110000000</span>
+
+<span class="c1">// msk_shift </span>
+<span class="n">msk_shift</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">3</span>
+
+<span class="c1">// offset ^ shiftr(offset &amp; yyy_msk{}, msk_sft{});</span>
+<span class="c1">// offset &amp; yyy_mask</span>
+<span class="mb">0b0000000011111111</span><span class="w"> </span><span class="o">&amp;</span><span class="w"> </span><span class="mb">0b0000001110000000</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mb">0b0000001110000000</span>
+<span class="c1">// (offset &amp; yyy_mask) &gt;&gt; msk_shift</span>
+<span class="mb">0b0000001110000000</span><span class="w"> </span><span class="o">&gt;&gt;</span><span class="w"> </span><span class="mi">3</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mb">0b0000000001110000</span>
+<span class="c1">// offset ^ shiftr(offset &amp; yyy_msk{}, msk_sft{});</span>
+<span class="mb">0b0000000111111111</span><span class="w"> </span><span class="o">^</span><span class="w"> </span><span class="mb">0b0000000001110000</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mb">0b0000000110001111</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">399</span>
+</pre></div>
+<p>We see that <code>Swizzle&lt;3,4,3&gt;</code> does the following:</p>
+<ul>
+<li>Calculate a <code>3</code> bit mask. Shift that <code>3</code> bits 7 bits to the left. This will result in a mask that has everywhere a <code>0</code> except at the <code>8th</code> least significant bit, the <code>9th</code> least significant bit and the <code>10th</code> least significant bit.  We call this mask <code>yyy_msk</code>.</li>
+<li><code>AND</code> <code>offset</code> with <code>yyy_msk</code>. This will leave us with an expression that is <code>0b000000PQR0000000</code> where <code>P,Q,R={0,1}</code> are the <code>8th/9th/10th</code> least significant bit of the offset.</li>
+<li>We shift that expression by <code>3</code> to the right. Note that this will result in an expression <code>0b000000000PQR0000</code>, i.e. everything being equal to <code>0</code> except the <code>7th/6th/5th</code> least significant bit. And the <code>7th/6th/5th</code> least significant bit has the <code>10th/9th/8th</code> least significant bit of the offset as entry.</li>
+<li>We than <code>XOR</code> this expression with the original offset.
+We can therefore conclude that the  <code>Swizzle&lt;3,4,3&gt;</code> will act on the <code>offset</code> as follows:
+Let the offset be</li>
+</ul>
+<div class="highlight"><pre><span></span>0bxxxxxxPQRSTUxxxx
+</pre></div>
+<p>We will than have a flip in <code>U</code> if <code>R</code> is equal to <code>1</code>, a flip in <code>T</code> if <code>Q</code> is equal to <code>1</code> and a flip in <code>S</code> if <code>P</code> is <code>1</code>.
+Note that this implies that numbers of the form:</p>
+<div class="highlight"><pre><span></span>0bxxxxxx000STUxxxx
+</pre></div>
+<p>won't get affected by the Swizzle at all.</p>
+<h2 id=further-analysis>Further analysis</h2><p>Let us recap:</p>
+<ul>
+<li><code>Swizzle&lt;0,4,3&gt;</code> is the identity.</li>
+<li><code>Swizzle&lt;1,4,3&gt;</code> flips the <code>5th</code> LSB of a number if the <code>8th</code> LSB is equal to <code>1</code>.</li>
+<li><code>Swizzle&lt;2,4,3&gt;</code> flips the <code>5th/6th</code> LSB of a number if the <code>8th/9th</code> LSB is equal to <code>1</code>.</li>
+<li><code>Swizzle&lt;3,4,3&gt;</code> flips the <code>5th/6th/7th</code> LSB of a number if the <code>8th/9th/10th</code> LSB is equal to <code>1</code>.</li>
+</ul>
+<p>Note that:</p>
+<ul>
+<li><code>Swizzle&lt;1,4,3&gt;(offset) = Swizzle&lt;0,4,3&gt;(offset)</code> <code>iff</code> the <code>8th</code> LSB is <code>0</code>.</li>
+<li><code>Swizzle&lt;2,4,3&gt;(offset) = Swizzle&lt;1,4,3&gt;(offset)</code> <code>iff</code> the <code>9th</code> LSB is <code>0</code></li>
+<li><code>Swizzle&lt;3,4,3&gt;(offset) = Swizzle&lt;2,4,3&gt;(offset)</code> <code>iff</code> the <code>10th</code> LSB is <code>0</code>.</li>
+</ul>
+<p>Consider <code>Swizzle&lt;1,4,3&gt;</code>:</p>
+<p>Up to <code>0b0000000001111111 = 127</code> <code>Swizzle&lt;1,4,3&gt;</code> will act as the identity. Than from <code>0b0000000010000000 = 128</code> swizzling will take place. That simply means the following:</p>
+<ul>
+<li><code>0b0000000010000000 -&gt; 0b0000000010010000</code></li>
+<li><code>0b0000000010000001 -&gt; 0b0000000010010001</code></li>
+<li>...</li>
+<li><code>0b0000000010011111 -&gt; 0b0000000010001111</code></li>
+</ul>
+<p>That is the the <code>32</code> values ranging from  <code>128</code> to <code>159</code> will get get mapped to their counterparts which have the <code>5th</code> LSB flipped. Than the value <code>0b0000000010010000 -&gt; 0b0000000010000000</code> etc. This is how swizzling avoids bank conflicts.</p>
+<p>Note that the swizzling pattern will repeat after certain number of Bytes.</p>
+<p>For <code>Swizzle&lt;1,4,3&gt;</code> that is after <code>0b0000000011111111</code> i.e. at the 256 bit / 32B repetition will occur.</p>
+<p>For <code>Swizzle&lt;2,4,3&gt;</code> that is after <code>0b0000000111111111</code> i.e. at the 512 bit / 64B repetition will occur.</p>
+<p>For <code>Swizzle&lt;3,4,3&gt;</code> that is after <code>0b0000001111111111</code> i.e. at the 1024 bit / 128B repetition will occur.</p>
+<h2 id=conclusion>Conclusion</h2><p>I hope this blogpost shed some light on the seemingly intimidating Swizzle Notation used in <code>CuTe</code>. As we saw it is actually pretty straightforward to calculate the Swizzles and interpret them by hand. In future I intend to do a post where I connect the above calculations to the <code>CuTeDSL</code>. Please feel free to reach out on <a href='https://www.linkedin.com/in/simon-veitner-174a681b6/'>Linkedin</a> if you want to exchange ideas on GPU programming.</p>
+
+
+    
+
+    
+        
+
+        
+            <form id="upvote-form" action="/upvote/" method="post" style="display: inline">
+    <small>
+        <input hidden name="uid" value="GkqzCHfjhBbBWDIfGKis" style="display:none">
+        <input hidden name="title" value="Understanding CuTe Swizzling - The Math Behind 32B, 64B, and 128B Patterns" style="display:none">
+
+        <button
+            class="upvote-button"
+            aria-label="Toast this post"
+            title="Toast this post"
+        >
+            <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" class="css-i6dzq1">
+                <polyline points="17 11 12 6 7 11"></polyline>
+                <polyline points="17 18 12 13 7 18"></polyline>
+            </svg>
+            <small class="upvote-count" aria-hidden="true">&nbsp;</small>
+        </button>
+    </small>        
+</form>
+
+<script>
+    const $upvoteButton = document.querySelector('.upvote-button');
+    const $upvoteCount =  document.querySelector('.upvote-count')
+
+    fetch('/upvote-info/GkqzCHfjhBbBWDIfGKis/').then(response => response.json()).then(data => {
+        $upvoteCount.innerText = data.upvote_count;
+        if (data.upvoted) {
+            $upvoteButton.disabled = true
+            $upvoteButton.style.color = "salmon"
+            $upvoteButton.ariaLabel = "Toasted"
+            $upvoteButton.title = "Toasted"
+        }
+        $upvoteButton.ariaLabel += ` (${data.upvote_count})`
+    });
+
+    let moved = false;
+    let pageLoaded = Date.now();
+
+    document.addEventListener('touchmove', () => moved = true);
+    document.addEventListener('mousemove', () => moved = true);
+
+    document.querySelector('#upvote-form').addEventListener('submit', (e) => {
+        e.preventDefault();
+
+        if (moved) {
+            document.querySelector('input[name="title"]').value = "";
+        }
+        if (Date.now() - pageLoaded < 2000 || !moved) {
+            return;
+        }
+
+        fetch(e.target.action, {
+            method: 'post',
+            body: new FormData(e.target),
+        });
+        
+        $upvoteButton.disabled = true
+        $upvoteButton.style.color = "salmon"
+        $upvoteButton.ariaLabel = "Toasted"
+        $upvoteButton.title = "Toasted"
+        const newUpvoteCount = `${(parseInt($upvoteCount.innerHTML.split(" ")[0]) + 1)}`
+        $upvoteCount.innerHTML = newUpvoteCount
+        $upvoteButton.ariaLabel += ` (${newUpvoteCount})`
+    });
+</script>
+        
+
+        
+            <script>
+            window.addEventListener("load", () => {
+                if (navigator.webdriver !== true) {
+                    const sendHit = score => {
+                        const params = new URLSearchParams({
+                            blog: "veitner",
+                            token: "GkqzCHfjhBbBWDIfGKis",
+                            referrer: document.referrer.includes("veitner.bearblog.dev") ? "" : document.referrer,
+                            title: "",
+                            score: score
+                        });
+                        new Image().src = `/hit/?${params.toString()}`;
+                    };
+
+                    document.addEventListener('touchmove', () => sendHit(100), { once: true });
+                    document.addEventListener('mousemove', () => sendHit(100), { once: true });
+                }
+            });
+            </script>
+        
+    
+
+
+  </main>
+  <footer>
+    
+    
+    <span>
+        Powered by <a href="https://bearblog.dev">Bear <span role="img" class="bear" aria-label="ASCII bear logo">ʕ•ᴥ•ʔ</span></a>
+    </span>
+
+  </footer>
+
+  
+  <script>
+        (() => {
+          "use strict";
+          const times = document.querySelectorAll('time');
+          const format_string = "d M, Y" || "d M, Y"
+
+          times.forEach(time => {
+              time.innerText = formatDate(time.dateTime, format_string)
+          });
+
+          function formatDate(dateStr, formatStr) {
+            const date = new Date(dateStr);
+            const day = date.getDate();
+            const month = date.getMonth();
+            const year = date.getFullYear();
+            const weekday = date.getDay();
+            const hours = date.getHours();
+            const minutes = date.getMinutes();
+            const monthsFull = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+            const monthsShort = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+            const daysFull = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+            const daysShort = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+            
+            function getOrdinal(n) {
+                const s = ['th', 'st', 'nd', 'rd'];
+                const v = n % 100;
+                return s[(v - 20) % 10] || s[v] || s[0];
+            }
+            
+            const map = {
+                'd': () => day.toString().padStart(2, '0'),
+                'm': () => (month + 1).toString().padStart(2, '0'),
+                'Y': () => year.toString(),
+                'y': () => year.toString().slice(-2),
+                'F': () => monthsFull[month],
+                'j': () => day.toString(),
+                'D': () => daysShort[weekday],
+                'l': () => daysFull[weekday],
+                'S': () => getOrdinal(day),
+                'M': () => monthsShort[month],
+                'H': () => hours.toString().padStart(2, '0'),
+                'h': () => {
+                    let h = hours % 12;
+                    h = h === 0 ? 12 : h;
+                    return h.toString().padStart(2, '0');
+                },
+                'g': () => {
+                    let h = hours % 12;
+                    return h === 0 ? '12' : h.toString();
+                },
+                'i': () => minutes.toString().padStart(2, '0'),
+                'a': () => hours < 12 ? 'am' : 'pm',
+                'A': () => hours < 12 ? 'AM' : 'PM',
+            };
+            
+            let result = '';
+            for (let char of formatStr) {
+                result += map[char] ? map[char]() : char;
+            }
+            return result;
+        }
+        })();
+    </script>
+    
+</body>
+<!-- ID: veitner -->
+<!-- 🐻 -->
+</html>

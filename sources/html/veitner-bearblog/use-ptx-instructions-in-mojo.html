@@ -1,0 +1,857 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!-- Powered by Bear Blog -->
+
+<head>
+  
+  
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5">
+  
+  <title>Use PTX instructions in Mojo | simons blog</title>
+  <link rel="canonical" href="https://veitner.bearblog.dev/use-ptx-instructions-in-mojo/">
+  
+    
+
+    <meta name="veitner" content="look-for-the-bear-necessities">
+    <meta name="token" content="bYcwiZfEephKxXwWjugt">
+
+    
+<!-- Primary Meta Tags -->
+<meta name="title" content="Use PTX instructions in Mojo">
+<meta name="description" content="Custom PTX instructions are a powerful way of leveraging the newest hardware features of NVIDIA GPUs and often needed to archive peak performance in kernels....">
+
+<!-- Open Graph / Facebook -->
+<meta property="og:site_name" content="simons blog">
+<meta property="og:title" content="Use PTX instructions in Mojo">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://veitner.bearblog.dev/use-ptx-instructions-in-mojo/">
+<meta property="og:description" content="Custom PTX instructions are a powerful way of leveraging the newest hardware features of NVIDIA GPUs and often needed to archive peak performance in kernels....">
+<meta property="og:image" content="/static/og-image.png">
+
+
+<!-- Twitter -->
+<meta property="twitter:card" content="summary">
+<meta property="twitter:url" content="https://veitner.bearblog.dev/use-ptx-instructions-in-mojo/">
+<meta property="twitter:title" content="Use PTX instructions in Mojo">
+<meta property="twitter:description" content="Custom PTX instructions are a powerful way of leveraging the newest hardware features of NVIDIA GPUs and often needed to archive peak performance in kernels....">
+<meta property="twitter:image" content="/static/og-image.png">
+
+
+
+<!-- Microdata -->
+<script type="application/ld+json">
+  {
+    "@context": "http://schema.org",
+    "@type": "article",
+    "name": "Use PTX instructions in Mojo",
+    "headline": "Use PTX instructions in Mojo",
+    "url": "https://veitner.bearblog.dev/use-ptx-instructions-in-mojo/",
+    "description": "Custom PTX instructions are a powerful way of leveraging the newest hardware features of NVIDIA GPUs and often needed to archive peak performance in kernels....",
+    "image": "/static/og-image.png"
+  }
+</script>
+    <link rel="alternate" type="application/atom+xml" href="/feed/" title="simons blog">
+    <link rel="alternate" type="application/rss+xml" href="/feed/?type=rss" title="simons blog">
+
+  
+    
+
+    
+    <style>pre { line-height: 125%; }
+td.linenos .normal { color: #666666; background-color: transparent; padding-left: 5px; padding-right: 5px; }
+span.linenos { color: #666666; background-color: transparent; padding-left: 5px; padding-right: 5px; }
+td.linenos .special { color: #000000; background-color: #ffffc0; padding-left: 5px; padding-right: 5px; }
+span.linenos.special { color: #000000; background-color: #ffffc0; padding-left: 5px; padding-right: 5px; }
+.highlight .hll { background-color: #ffffcc }
+.highlight { background: #f0f0f0; }
+.highlight .c { color: #60A0B0; font-style: italic } /* Comment */
+.highlight .err { border: 1px solid #F00 } /* Error */
+.highlight .k { color: #007020; font-weight: bold } /* Keyword */
+.highlight .o { color: #666 } /* Operator */
+.highlight .ch { color: #60A0B0; font-style: italic } /* Comment.Hashbang */
+.highlight .cm { color: #60A0B0; font-style: italic } /* Comment.Multiline */
+.highlight .cp { color: #007020 } /* Comment.Preproc */
+.highlight .cpf { color: #60A0B0; font-style: italic } /* Comment.PreprocFile */
+.highlight .c1 { color: #60A0B0; font-style: italic } /* Comment.Single */
+.highlight .cs { color: #60A0B0; background-color: #FFF0F0 } /* Comment.Special */
+.highlight .gd { color: #A00000 } /* Generic.Deleted */
+.highlight .ge { font-style: italic } /* Generic.Emph */
+.highlight .ges { font-weight: bold; font-style: italic } /* Generic.EmphStrong */
+.highlight .gr { color: #F00 } /* Generic.Error */
+.highlight .gh { color: #000080; font-weight: bold } /* Generic.Heading */
+.highlight .gi { color: #00A000 } /* Generic.Inserted */
+.highlight .go { color: #888 } /* Generic.Output */
+.highlight .gp { color: #C65D09; font-weight: bold } /* Generic.Prompt */
+.highlight .gs { font-weight: bold } /* Generic.Strong */
+.highlight .gu { color: #800080; font-weight: bold } /* Generic.Subheading */
+.highlight .gt { color: #04D } /* Generic.Traceback */
+.highlight .kc { color: #007020; font-weight: bold } /* Keyword.Constant */
+.highlight .kd { color: #007020; font-weight: bold } /* Keyword.Declaration */
+.highlight .kn { color: #007020; font-weight: bold } /* Keyword.Namespace */
+.highlight .kp { color: #007020 } /* Keyword.Pseudo */
+.highlight .kr { color: #007020; font-weight: bold } /* Keyword.Reserved */
+.highlight .kt { color: #902000 } /* Keyword.Type */
+.highlight .m { color: #40A070 } /* Literal.Number */
+.highlight .s { color: #4070A0 } /* Literal.String */
+.highlight .na { color: #4070A0 } /* Name.Attribute */
+.highlight .nb { color: #007020 } /* Name.Builtin */
+.highlight .nc { color: #0E84B5; font-weight: bold } /* Name.Class */
+.highlight .no { color: #60ADD5 } /* Name.Constant */
+.highlight .nd { color: #555; font-weight: bold } /* Name.Decorator */
+.highlight .ni { color: #D55537; font-weight: bold } /* Name.Entity */
+.highlight .ne { color: #007020 } /* Name.Exception */
+.highlight .nf { color: #06287E } /* Name.Function */
+.highlight .nl { color: #002070; font-weight: bold } /* Name.Label */
+.highlight .nn { color: #0E84B5; font-weight: bold } /* Name.Namespace */
+.highlight .nt { color: #062873; font-weight: bold } /* Name.Tag */
+.highlight .nv { color: #BB60D5 } /* Name.Variable */
+.highlight .ow { color: #007020; font-weight: bold } /* Operator.Word */
+.highlight .w { color: #BBB } /* Text.Whitespace */
+.highlight .mb { color: #40A070 } /* Literal.Number.Bin */
+.highlight .mf { color: #40A070 } /* Literal.Number.Float */
+.highlight .mh { color: #40A070 } /* Literal.Number.Hex */
+.highlight .mi { color: #40A070 } /* Literal.Number.Integer */
+.highlight .mo { color: #40A070 } /* Literal.Number.Oct */
+.highlight .sa { color: #4070A0 } /* Literal.String.Affix */
+.highlight .sb { color: #4070A0 } /* Literal.String.Backtick */
+.highlight .sc { color: #4070A0 } /* Literal.String.Char */
+.highlight .dl { color: #4070A0 } /* Literal.String.Delimiter */
+.highlight .sd { color: #4070A0; font-style: italic } /* Literal.String.Doc */
+.highlight .s2 { color: #4070A0 } /* Literal.String.Double */
+.highlight .se { color: #4070A0; font-weight: bold } /* Literal.String.Escape */
+.highlight .sh { color: #4070A0 } /* Literal.String.Heredoc */
+.highlight .si { color: #70A0D0; font-style: italic } /* Literal.String.Interpol */
+.highlight .sx { color: #C65D09 } /* Literal.String.Other */
+.highlight .sr { color: #235388 } /* Literal.String.Regex */
+.highlight .s1 { color: #4070A0 } /* Literal.String.Single */
+.highlight .ss { color: #517918 } /* Literal.String.Symbol */
+.highlight .bp { color: #007020 } /* Name.Builtin.Pseudo */
+.highlight .fm { color: #06287E } /* Name.Function.Magic */
+.highlight .vc { color: #BB60D5 } /* Name.Variable.Class */
+.highlight .vg { color: #BB60D5 } /* Name.Variable.Global */
+.highlight .vi { color: #BB60D5 } /* Name.Variable.Instance */
+.highlight .vm { color: #BB60D5 } /* Name.Variable.Magic */
+.highlight .il { color: #40A070 } /* Literal.Number.Integer.Long */
+</style>
+  
+  
+  
+    
+        <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20100%20100'%3E%3Ctext%20y='.9em'%20font-size='90'%3E🐼%3C/text%3E%3C/svg%3E">
+    
+
+
+
+  <style>
+      
+      
+    
+:root {
+    --width: 720px;
+    --font-main: Verdana, sans-serif;
+    --font-secondary: Verdana, sans-serif;
+    --font-scale: 1em;
+    --background-color: #fff;
+    --heading-color: #222;
+    --text-color: #444;
+    --link-color: #3273dc;
+    --visited-color:  #8b6fcb;
+    --code-background-color: #f2f2f2;
+    --code-color: #222;
+    --blockquote-color: #222;
+}
+
+@media (prefers-color-scheme: dark) {
+    :root {
+        --background-color: #01242e;
+        --heading-color: #eee;
+        --text-color: #ddd;
+        --link-color: #8cc2dd;
+        --visited-color:  #8b6fcb;
+        --code-background-color: #000;
+        --code-color: #ddd;
+        --blockquote-color: #ccc;
+    }
+}
+
+body {
+    font-family: var(--font-secondary);
+    font-size: var(--font-scale);
+    margin: auto;
+    padding: 20px;
+    max-width: var(--width);
+    text-align: left;
+    background-color: var(--background-color);
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    line-height: 1.5;
+    color: var(--text-color);
+}
+
+h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-main);
+    color: var(--heading-color);
+}
+
+a {
+    color: var(--link-color);
+    cursor: pointer;
+    text-decoration: none;
+}
+
+a:hover {
+    text-decoration: underline; 
+}
+
+nav a {
+    margin-right: 8px;
+}
+
+strong, b {
+    color: var(--heading-color);
+}
+
+button {
+    margin: 0;
+    cursor: pointer;
+}
+
+time {
+ 	font-family: monospace;
+  	font-style: normal;
+  	font-size: 15px;
+}
+
+main {
+    line-height: 1.6;
+}
+
+table {
+    width: 100%;
+}
+
+hr {
+    border: 0;
+    border-top: 1px dashed;
+}
+
+img {
+    max-width: 100%;
+}
+
+code {
+    font-family: monospace;
+    padding: 2px;
+    background-color: var(--code-background-color);
+    color: var(--code-color);
+    border-radius: 3px;
+}
+
+blockquote {
+    border-left: 1px solid #999;
+    color: var(--code-color);
+    padding-left: 20px;
+    font-style: italic;
+}
+
+footer {
+    padding: 25px 0;
+    text-align: center;
+}
+
+.title:hover {
+    text-decoration: none;
+}
+
+.title h1 {
+    font-size: 1.5em;
+}
+
+.inline {
+    width: auto !important;
+}
+
+.highlight, .code {
+    padding: 1px 15px;
+    background-color: var(--code-background-color);
+    color: var(--code-color);
+    border-radius: 3px;
+    margin-block-start: 1em;
+    margin-block-end: 1em;
+    overflow-x: auto;
+}
+
+/* blog post list */
+ul.blog-posts {
+    list-style-type: none;
+    padding: unset;
+}
+
+ul.blog-posts li {
+    display: flex;
+}
+
+ul.blog-posts li span {
+    flex: 0 0 130px;
+}
+
+ul.blog-posts li a:visited {
+    color: var(--visited-color);
+}
+    .upvote-button {
+        padding: 0;
+        margin: 0;
+        border: 0;
+        background-color: inherit;
+        color: inherit;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+    .upvote-button.upvoted {
+        color: salmon;
+    }
+    .upvote-count {
+        margin-top: -3px;
+    }
+
+      
+  </style>
+</head>
+
+<body class="post " onload="(function() { document.cookie = `timezone=${Intl.DateTimeFormat().resolvedOptions().timeZone};path=/`; })()">
+  
+  <header>
+    <a class="title" href="/">
+      <h1>
+        simons blog
+      </h1>
+    </a>
+    <nav>
+      <p><a href='/'>Home</a> <a href='/blog/'>Blog</a></p>
+
+    </nav>
+  </header>
+  <main>
+    
+
+    
+
+    
+        <h1>Use PTX instructions in Mojo</h1>
+
+        <p>
+            <i>
+                <time datetime="2025-05-29T17:25Z">
+    29 May, 2025
+</time>
+            </i>
+        </p>
+    
+
+    <p>Custom PTX instructions are a powerful way of leveraging the newest hardware features of NVIDIA GPUs and often needed to archive peak performance in kernels.
+In this blogpost we aim to give a guide on how call custom PTX instruction in Mojo and potentially including them into the Open Source <code>std</code> of Mojo. We do this by concretely analysing the <code>tanh</code> function from the Mojo <code>std</code> library and implementing a missing instruction ourselves.</p>
+<h2 id=introduction>Introduction</h2><p>We start by creating a project which we work in:</p>
+<div class="highlight"><pre><span></span>magic init intro-mojo-ptx --format mojoproject
+</pre></div>
+<p>We will consider the following program:</p>
+<div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">math</span><span class="w"> </span><span class="kn">import</span> <span class="n">ceildiv</span><span class="p">,</span> <span class="n">tanh</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">memory</span><span class="w"> </span><span class="kn">import</span> <span class="n">UnsafePointer</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">gpu</span><span class="w"> </span><span class="kn">import</span> <span class="n">thread_idx</span><span class="p">,</span> <span class="n">block_idx</span><span class="p">,</span> <span class="n">block_dim</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">gpu.host</span><span class="w"> </span><span class="kn">import</span> <span class="n">DeviceContext</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">random</span><span class="w"> </span><span class="kn">import</span> <span class="n">randn</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">testing</span><span class="w"> </span><span class="kn">import</span> <span class="n">assert_almost_equal</span>
+
+<span class="n">alias</span> <span class="n">SIZE</span> <span class="o">=</span> <span class="mi">4096</span>
+<span class="n">alias</span> <span class="n">THREADS_PER_BLOCK</span> <span class="o">=</span> <span class="mi">512</span>
+<span class="n">alias</span> <span class="n">BLOCKS_PER_GRID</span> <span class="o">=</span> <span class="n">ceildiv</span><span class="p">(</span><span class="n">SIZE</span><span class="p">,</span> <span class="n">THREADS_PER_BLOCK</span><span class="p">)</span>
+<span class="n">alias</span> <span class="n">dtype</span> <span class="o">=</span> <span class="n">DType</span><span class="o">.</span><span class="n">bfloat16</span>
+
+
+<span class="n">fn</span> <span class="n">simple_tanh</span><span class="p">(</span>
+    <span class="n">out</span><span class="p">:</span> <span class="n">UnsafePointer</span><span class="p">[</span><span class="n">Scalar</span><span class="p">[</span><span class="n">dtype</span><span class="p">]],</span>
+    <span class="n">a</span><span class="p">:</span> <span class="n">UnsafePointer</span><span class="p">[</span><span class="n">Scalar</span><span class="p">[</span><span class="n">dtype</span><span class="p">]],</span>
+    <span class="n">size</span><span class="p">:</span> <span class="n">Int</span><span class="p">,</span>
+<span class="p">):</span>
+    <span class="n">i</span> <span class="o">=</span> <span class="n">block_dim</span><span class="o">.</span><span class="n">x</span> <span class="o">*</span> <span class="n">block_idx</span><span class="o">.</span><span class="n">x</span> <span class="o">+</span> <span class="n">thread_idx</span><span class="o">.</span><span class="n">x</span>
+    <span class="k">if</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">size</span><span class="p">:</span>
+        <span class="n">out</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">tanh</span><span class="p">(</span><span class="n">a</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">main</span><span class="p">():</span>
+    <span class="k">with</span> <span class="n">DeviceContext</span><span class="p">()</span> <span class="k">as</span> <span class="n">ctx</span><span class="p">:</span>
+        <span class="n">out</span> <span class="o">=</span> <span class="n">ctx</span><span class="o">.</span><span class="n">enqueue_create_buffer</span><span class="p">[</span><span class="n">dtype</span><span class="p">](</span><span class="n">SIZE</span><span class="p">)</span><span class="o">.</span><span class="n">enqueue_fill</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+        <span class="n">a</span> <span class="o">=</span> <span class="n">ctx</span><span class="o">.</span><span class="n">enqueue_create_buffer</span><span class="p">[</span><span class="n">dtype</span><span class="p">](</span><span class="n">SIZE</span><span class="p">)</span><span class="o">.</span><span class="n">enqueue_fill</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+        <span class="k">with</span> <span class="n">a</span><span class="o">.</span><span class="n">map_to_host</span><span class="p">()</span> <span class="k">as</span> <span class="n">a_host</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">SIZE</span><span class="p">):</span>
+                <span class="n">randn</span><span class="p">[</span><span class="n">dtype</span><span class="p">](</span><span class="n">a_host</span><span class="o">.</span><span class="n">unsafe_ptr</span><span class="p">(),</span> <span class="n">SIZE</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+
+        <span class="n">ctx</span><span class="o">.</span><span class="n">enqueue_function</span><span class="p">[</span><span class="n">simple_tanh</span><span class="p">](</span>
+            <span class="n">out</span><span class="o">.</span><span class="n">unsafe_ptr</span><span class="p">(),</span>
+            <span class="n">a</span><span class="o">.</span><span class="n">unsafe_ptr</span><span class="p">(),</span>
+            <span class="n">SIZE</span><span class="p">,</span>
+            <span class="n">grid_dim</span><span class="o">=</span><span class="n">BLOCKS_PER_GRID</span><span class="p">,</span>
+            <span class="n">block_dim</span><span class="o">=</span><span class="n">THREADS_PER_BLOCK</span><span class="p">,</span>
+        <span class="p">)</span>
+
+        <span class="n">expected</span> <span class="o">=</span> <span class="n">ctx</span><span class="o">.</span><span class="n">enqueue_create_host_buffer</span><span class="p">[</span><span class="n">dtype</span><span class="p">](</span><span class="n">SIZE</span><span class="p">)</span><span class="o">.</span><span class="n">enqueue_fill</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+
+        <span class="n">ctx</span><span class="o">.</span><span class="n">synchronize</span><span class="p">()</span>
+
+        <span class="k">with</span> <span class="n">a</span><span class="o">.</span><span class="n">map_to_host</span><span class="p">()</span> <span class="k">as</span> <span class="n">a_host</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">SIZE</span><span class="p">):</span>
+                <span class="n">expected</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">tanh</span><span class="p">(</span><span class="n">a_host</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+
+        <span class="k">with</span> <span class="n">out</span><span class="o">.</span><span class="n">map_to_host</span><span class="p">()</span> <span class="k">as</span> <span class="n">out_host</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;out:&quot;</span><span class="p">,</span> <span class="n">out_host</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;expected:&quot;</span><span class="p">,</span> <span class="n">expected</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">SIZE</span><span class="p">):</span>
+                <span class="n">assert_almost_equal</span><span class="p">(</span>
+                    <span class="n">out_host</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">expected</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">atol</span><span class="o">=</span><span class="mf">1e-2</span><span class="p">,</span> <span class="n">rtol</span><span class="o">=</span><span class="mf">1e-2</span>
+                <span class="p">)</span>
+</pre></div>
+<p>As we can see we simple calculate the elementwise <code>tanh</code> in our kernel.
+After the kernel execution we assert correctness via <code>assert_almost_equal</code>. Not that because we have a lower precision here we choose <code>rtol</code> and <code>atol</code> accordingly. See in the <a href='https://docs.modular.com/mojo/stdlib/testing/testing/assert_almost_equal'>Mojo manual</a> for a definition of the two quantities.</p>
+<h2 id=a-simple-extension-of-the-codestdcode>A simple extension of the <code>std</code></h2><p>We imported <code>tanh</code> from the <code>math</code> library.
+Let's take a look at the <a href='https://github.com/modular/modular/blob/main/mojo/stdlib/stdlib/math/math.mojo#L970C1-L1030C1'>source code</a>:</p>
+<div class="highlight"><pre><span></span><span class="nd">@always_inline</span>
+<span class="n">fn</span> <span class="n">tanh</span><span class="p">[</span>
+    <span class="n">dtype</span><span class="p">:</span> <span class="n">DType</span><span class="p">,</span> <span class="n">width</span><span class="p">:</span> <span class="n">Int</span><span class="p">,</span> <span class="o">//</span>
+<span class="p">](</span><span class="n">x</span><span class="p">:</span> <span class="n">SIMD</span><span class="p">[</span><span class="n">dtype</span><span class="p">,</span> <span class="n">width</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">SIMD</span><span class="p">[</span><span class="n">dtype</span><span class="p">,</span> <span class="n">width</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Performs elementwise evaluation of the tanh function.</span>
+
+<span class="sd">    Parameters:</span>
+<span class="sd">        dtype: The `dtype` of the input and output SIMD vector.</span>
+<span class="sd">        width: The width of the input and output SIMD vector.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        x: The vector to perform the elementwise tanh on.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        The result of the elementwise tanh operation.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">constrained</span><span class="p">[</span>
+        <span class="n">dtype</span><span class="o">.</span><span class="n">is_floating_point</span><span class="p">(),</span> <span class="s2">&quot;the input type must be floating point&quot;</span>
+    <span class="p">]()</span>
+
+    <span class="nd">@parameter</span>
+    <span class="k">if</span> <span class="n">is_nvidia_gpu</span><span class="p">():</span>
+        <span class="n">alias</span> <span class="n">instruction</span> <span class="o">=</span> <span class="s2">&quot;tanh.approx.f32&quot;</span>
+
+        <span class="nd">@parameter</span>
+        <span class="k">if</span> <span class="n">sizeof</span><span class="p">[</span><span class="n">dtype</span><span class="p">]()</span> <span class="o">&lt;</span> <span class="n">sizeof</span><span class="p">[</span><span class="n">DType</span><span class="o">.</span><span class="n">float32</span><span class="p">]():</span>
+            <span class="k">return</span> <span class="n">_call_ptx_intrinsic</span><span class="p">[</span>
+                <span class="n">instruction</span><span class="o">=</span><span class="n">instruction</span><span class="p">,</span> <span class="n">constraints</span><span class="o">=</span><span class="s2">&quot;=f,f&quot;</span>
+            <span class="p">](</span><span class="n">x</span><span class="o">.</span><span class="n">cast</span><span class="p">[</span><span class="n">DType</span><span class="o">.</span><span class="n">float32</span><span class="p">]())</span><span class="o">.</span><span class="n">cast</span><span class="p">[</span><span class="n">dtype</span><span class="p">]()</span>
+        <span class="k">elif</span> <span class="n">dtype</span> <span class="ow">is</span> <span class="n">DType</span><span class="o">.</span><span class="n">float32</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">_call_ptx_intrinsic</span><span class="p">[</span>
+                <span class="n">instruction</span><span class="o">=</span><span class="n">instruction</span><span class="p">,</span> <span class="n">constraints</span><span class="o">=</span><span class="s2">&quot;=f,f&quot;</span>
+            <span class="p">](</span><span class="n">x</span><span class="p">)</span>
+
+    <span class="n">var</span> <span class="n">xc</span> <span class="o">=</span> <span class="n">x</span><span class="o">.</span><span class="n">clamp</span><span class="p">(</span><span class="o">-</span><span class="mi">9</span><span class="p">,</span> <span class="mi">9</span><span class="p">)</span>
+    <span class="n">var</span> <span class="n">x_squared</span> <span class="o">=</span> <span class="n">xc</span> <span class="o">*</span> <span class="n">xc</span>
+
+    <span class="n">var</span> <span class="n">numerator</span> <span class="o">=</span> <span class="n">xc</span> <span class="o">*</span> <span class="n">polynomial_evaluate</span><span class="p">[</span>
+        <span class="n">List</span><span class="p">[</span><span class="n">SIMD</span><span class="p">[</span><span class="n">dtype</span><span class="p">,</span> <span class="n">width</span><span class="p">]](</span>
+            <span class="mf">4.89352455891786e-03</span><span class="p">,</span>
+            <span class="mf">6.37261928875436e-04</span><span class="p">,</span>
+            <span class="mf">1.48572235717979e-05</span><span class="p">,</span>
+            <span class="mf">5.12229709037114e-08</span><span class="p">,</span>
+            <span class="o">-</span><span class="mf">8.60467152213735e-11</span><span class="p">,</span>
+            <span class="mf">2.00018790482477e-13</span><span class="p">,</span>
+            <span class="o">-</span><span class="mf">2.76076847742355e-16</span><span class="p">,</span>
+        <span class="p">),</span>
+    <span class="p">](</span><span class="n">x_squared</span><span class="p">)</span>
+
+    <span class="n">var</span> <span class="n">denominator</span> <span class="o">=</span> <span class="n">polynomial_evaluate</span><span class="p">[</span>
+        <span class="n">List</span><span class="p">[</span><span class="n">SIMD</span><span class="p">[</span><span class="n">dtype</span><span class="p">,</span> <span class="n">width</span><span class="p">]](</span>
+            <span class="mf">4.89352518554385e-03</span><span class="p">,</span>
+            <span class="mf">2.26843463243900e-03</span><span class="p">,</span>
+            <span class="mf">1.18534705686654e-04</span><span class="p">,</span>
+            <span class="mf">1.19825839466702e-06</span><span class="p">,</span>
+        <span class="p">),</span>
+    <span class="p">](</span><span class="n">x_squared</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">numerator</span> <span class="o">/</span> <span class="n">denominator</span>
+</pre></div>
+<p>The relevant part for our kernel is here if we are on <code>NVIDIA</code> GPU:</p>
+<div class="highlight"><pre><span></span>    <span class="nd">@parameter</span>
+    <span class="k">if</span> <span class="n">is_nvidia_gpu</span><span class="p">():</span>
+        <span class="n">alias</span> <span class="n">instruction</span> <span class="o">=</span> <span class="s2">&quot;tanh.approx.f32&quot;</span>
+
+        <span class="nd">@parameter</span>
+        <span class="k">if</span> <span class="n">sizeof</span><span class="p">[</span><span class="n">dtype</span><span class="p">]()</span> <span class="o">&lt;</span> <span class="n">sizeof</span><span class="p">[</span><span class="n">DType</span><span class="o">.</span><span class="n">float32</span><span class="p">]():</span>
+            <span class="k">return</span> <span class="n">_call_ptx_intrinsic</span><span class="p">[</span>
+                <span class="n">instruction</span><span class="o">=</span><span class="n">instruction</span><span class="p">,</span> <span class="n">constraints</span><span class="o">=</span><span class="s2">&quot;=f,f&quot;</span>
+            <span class="p">](</span><span class="n">x</span><span class="o">.</span><span class="n">cast</span><span class="p">[</span><span class="n">DType</span><span class="o">.</span><span class="n">float32</span><span class="p">]())</span><span class="o">.</span><span class="n">cast</span><span class="p">[</span><span class="n">dtype</span><span class="p">]()</span>
+        <span class="k">elif</span> <span class="n">dtype</span> <span class="ow">is</span> <span class="n">DType</span><span class="o">.</span><span class="n">float32</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">_call_ptx_intrinsic</span><span class="p">[</span>
+                <span class="n">instruction</span><span class="o">=</span><span class="n">instruction</span><span class="p">,</span> <span class="n">constraints</span><span class="o">=</span><span class="s2">&quot;=f,f&quot;</span>
+            <span class="p">](</span><span class="n">x</span><span class="p">)</span>
+</pre></div>
+<p>We can see that currently the approach taken in the Mojo <code>std</code> is for <code>bfloat16</code> to cast the input to <code>float32</code> and than use the PTX instruction with reference <a href='https://docs.nvidia.com/cuda/parallel-thread-execution/#floating-point-instructions-tanh'>9.7.3.22.</a> in the PTX doc.
+We might want to prefer to use PTX instruction with reference <a href='https://docs.nvidia.com/cuda/parallel-thread-execution/#half-precision-floating-point-instructions-tanh'>9.7.4.9.</a> which offers a dedicated instruction for <code>half precision floating point values</code>.</p>
+<p>The instruction signature reads as follows:</p>
+<div class="highlight"><pre><span></span>tanh.approx.type d, a;
+
+.type = {.f16, .f16x2, .bf16, .bf16x2}
+</pre></div>
+<p>We can simply write a wrapper around this instruction as follows:</p>
+<div class="highlight"><pre><span></span><span class="nd">@always_inline</span>
+<span class="n">fn</span> <span class="n">tanh_bfloat16</span><span class="p">[</span>
+    <span class="n">dtype</span><span class="p">:</span> <span class="n">DType</span><span class="p">,</span> <span class="n">width</span><span class="p">:</span> <span class="n">Int</span><span class="p">,</span> <span class="o">//</span>
+<span class="p">](</span><span class="n">x</span><span class="p">:</span> <span class="n">SIMD</span><span class="p">[</span><span class="n">dtype</span><span class="p">,</span> <span class="n">width</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">SIMD</span><span class="p">[</span><span class="n">dtype</span><span class="p">,</span> <span class="n">width</span><span class="p">]:</span>
+    <span class="n">constrained</span><span class="p">[</span>
+        <span class="n">dtype</span><span class="o">.</span><span class="n">is_floating_point</span><span class="p">(),</span> <span class="s2">&quot;the input type must be floating point&quot;</span>
+    <span class="p">]()</span>
+
+    <span class="n">alias</span> <span class="n">instruction</span> <span class="o">=</span> <span class="s2">&quot;tanh.approx.bf16&quot;</span>
+
+    <span class="k">return</span> <span class="n">_call_ptx_intrinsic</span><span class="p">[</span><span class="n">instruction</span><span class="o">=</span><span class="n">instruction</span><span class="p">,</span> <span class="n">constraints</span><span class="o">=</span><span class="s2">&quot;=h,h&quot;</span><span class="p">](</span><span class="n">x</span><span class="p">)</span>
+</pre></div>
+<p>Note that this is stripped down version and a real implementation should make proper error checks like seen in the above example from <code>std</code>. Note we use <code>constraints=&quot;=h,h&quot;</code> for <code>u16</code> register.</p>
+<p>We can than simply adjust our kernel as follows:</p>
+<div class="highlight"><pre><span></span><span class="n">fn</span> <span class="n">simple_tanh</span><span class="p">(</span>
+    <span class="n">out</span><span class="p">:</span> <span class="n">UnsafePointer</span><span class="p">[</span><span class="n">Scalar</span><span class="p">[</span><span class="n">dtype</span><span class="p">]],</span>
+    <span class="n">a</span><span class="p">:</span> <span class="n">UnsafePointer</span><span class="p">[</span><span class="n">Scalar</span><span class="p">[</span><span class="n">dtype</span><span class="p">]],</span>
+    <span class="n">size</span><span class="p">:</span> <span class="n">Int</span><span class="p">,</span>
+<span class="p">):</span>
+    <span class="n">i</span> <span class="o">=</span> <span class="n">block_dim</span><span class="o">.</span><span class="n">x</span> <span class="o">*</span> <span class="n">block_idx</span><span class="o">.</span><span class="n">x</span> <span class="o">+</span> <span class="n">thread_idx</span><span class="o">.</span><span class="n">x</span>
+    <span class="k">if</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">size</span><span class="p">:</span>
+        <span class="n">out</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">tanh_bfloat16</span><span class="p">(</span><span class="n">a</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+</pre></div>
+<p>And will see that we still obtain the correct result, this time leveraging the dedicated <code>tanh.approx.bf16</code> <code>PTX</code> instruction.</p>
+<h2 id=look-at-compiled-code>Look at compiled code</h2><p>Mojo offers compilation to <code>LLVM IR</code> and <code>asm</code> code via the <code>--emit</code> flag in the compiler as i described in a <a href='https://veitner.bearblog.dev/short-introduction-to-the-mojo-programming-language/'>previous blogpost</a>.
+There are more options to look at compiled versions of our code, many of them can be found in <a href='http://github.com/modular/modular/tree/main/max/kernels/test/gpu/compile'>max/kernels/test/gpu/compile</a> part of the <code>modular</code> repo. I recommend to check these tests out as they offer many hands on examples how to use mojo.
+We can use the following code to see how our kernel gets compiled to:</p>
+<div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">print_compiled_simple_tanh</span><span class="p">():</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;== simple_tanh_compiled&quot;</span><span class="p">)</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="n">_compile_code_asm</span><span class="p">[</span><span class="n">simple_tanh</span><span class="p">,</span> <span class="n">emission_kind</span><span class="o">=</span><span class="s2">&quot;llvm&quot;</span><span class="p">]())</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">main</span><span class="p">():</span>
+    <span class="n">print_compiled_simple_tanh</span><span class="p">()</span>
+</pre></div>
+<p>This uses the following <a href='https://github.com/modular/modular/blob/20c10f57142982333810e56cbe38adfc12ca09ad/mojo/stdlib/stdlib/gpu/host/_compile.mojo#L51C1-L69C1'>function</a></p>
+<div class="highlight"><pre><span></span><span class="nd">@always_inline</span>
+<span class="n">fn</span> <span class="n">_compile_code_asm</span><span class="p">[</span>
+    <span class="n">func_type</span><span class="p">:</span> <span class="n">AnyTrivialRegType</span><span class="p">,</span> <span class="o">//</span><span class="p">,</span>
+    <span class="n">func</span><span class="p">:</span> <span class="n">func_type</span><span class="p">,</span>
+    <span class="o">/</span><span class="p">,</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">emission_kind</span><span class="p">:</span> <span class="n">StaticString</span> <span class="o">=</span> <span class="s2">&quot;asm&quot;</span><span class="p">,</span>
+    <span class="n">target</span><span class="p">:</span> <span class="n">__mlir_type</span><span class="o">.</span><span class="err">`!</span><span class="n">kgen</span><span class="o">.</span><span class="n">target</span><span class="err">`</span> <span class="o">=</span> <span class="n">_get_gpu_target</span><span class="p">(),</span>
+    <span class="n">compile_options</span><span class="p">:</span> <span class="n">StaticString</span> <span class="o">=</span> <span class="n">HardwareInfo</span><span class="o">.</span><span class="n">from_target</span><span class="p">[</span>
+        <span class="n">target</span>
+    <span class="p">]()</span><span class="o">.</span><span class="n">compile_options</span><span class="p">,</span>
+<span class="p">]()</span> <span class="o">-&gt;</span> <span class="n">StaticString</span><span class="p">:</span>
+    <span class="n">var</span> <span class="n">asm</span> <span class="o">=</span> <span class="n">compile_info</span><span class="p">[</span>
+        <span class="n">func</span><span class="p">,</span>
+        <span class="n">emission_kind</span><span class="o">=</span><span class="n">emission_kind</span><span class="p">,</span>
+        <span class="n">compile_options</span><span class="o">=</span><span class="n">compile_options</span><span class="p">,</span>
+        <span class="n">target</span><span class="o">=</span><span class="n">target</span><span class="p">,</span>
+    <span class="p">]()</span><span class="o">.</span><span class="n">asm</span>
+    <span class="k">return</span> <span class="n">asm</span>
+</pre></div>
+<p>to obtain the <code>llvm</code> compile info.</p>
+<p>Which will print out a file like below</p>
+<div class="highlight"><pre><span></span>== simple_tanh_compiled
+; ModuleID = &#39;compile_simple_tanh.mojo&#39;
+source_filename = &quot;compile_simple_tanh.mojo&quot;
+target datalayout = &quot;e-p3:32:32-p4:32:32-p5:32:32-p6:32:32-p7:32:32-i64:64-i128:128-v16:16-v32:32-n16:32:64&quot;
+target triple = &quot;nvptx64-nvidia-cuda&quot;
+
+; Function Attrs: norecurse
+define dso_local ptx_kernel void @compile_simple_tanh_simple_tanh6A6A_01673aab7e47065213f32fd5c44dfa83(ptr noundef %0, ptr noundef %1, i64 noundef %2) #0 {
+  %4 = call i32 @llvm.nvvm.read.ptx.sreg.ntid.x()
+  %5 = sext i32 %4 to i64
+  %6 = call i32 @llvm.nvvm.read.ptx.sreg.ctaid.x()
+  %7 = sext i32 %6 to i64
+  %8 = mul i64 %5, %7
+  %9 = call i32 @llvm.nvvm.read.ptx.sreg.tid.x()
+  %10 = sext i32 %9 to i64
+  %11 = add i64 %8, %10
+  %12 = getelementptr inbounds bfloat, ptr %0, i64 %11
+  %13 = getelementptr inbounds bfloat, ptr %1, i64 %11
+  %14 = icmp ult i64 %11, %2
+  br i1 %14, label %15, label %20
+
+15:                                               ; preds = %3
+  %16 = load bfloat, ptr %13, align 2
+  %17 = fpext bfloat %16 to float
+  %18 = call float asm &quot;tanh.approx.f32 $0, $1;&quot;, &quot;=f,f&quot;(float %17)
+  %19 = fptrunc float %18 to bfloat
+  store bfloat %19, ptr %12, align 2
+  br label %21
+
+20:                                               ; preds = %3
+  br label %21
+
+21:                                               ; preds = %20, %15
+  ret void
+}
+
+; Function Attrs: nocallback nofree nosync nounwind speculatable willreturn memory(none)
+declare noundef range(i32 1, 1025) i32 @llvm.nvvm.read.ptx.sreg.ntid.x() #1
+
+; Function Attrs: nocallback nofree nosync nounwind speculatable willreturn memory(none)
+declare noundef range(i32 0, 2147483647) i32 @llvm.nvvm.read.ptx.sreg.ctaid.x() #1
+
+; Function Attrs: nocallback nofree nosync nounwind speculatable willreturn memory(none)
+declare noundef range(i32 0, 1024) i32 @llvm.nvvm.read.ptx.sreg.tid.x() #1
+
+attributes #0 = { norecurse &quot;target-cpu&quot;=&quot;sm_90a&quot; &quot;target-features&quot;=&quot;+ptx85,+sm_90a&quot; &quot;tune-cpu&quot;=&quot;sm_90a&quot; }
+attributes #1 = { nocallback nofree nosync nounwind speculatable willreturn memory(none) }
+
+!llvm.module.flags = !{!0}
+
+!0 = !{i32 2, !&quot;Debug Info Version&quot;, i32 3}
+</pre></div>
+<p>What we want to focus on is here:</p>
+<div class="highlight"><pre><span></span>%16 = load bfloat, ptr %13, align 2
+%17 = fpext bfloat %16 to float
+%18 = call float asm &quot;tanh.approx.f32 $0, $1;&quot;, &quot;=f,f&quot;(float %17)
+%19 = fptrunc float %18 to bfloat
+</pre></div>
+<p>This shows that we read the <code>bfloat16</code> value, cast it to an ordinary <code>float</code> and than carry out the <code>tanh.approx.f32</code> instruction. We'll than cast back to <code>bfloat16</code>.</p>
+<p>Let's compare that with the output we get when we compile the custom kernel we wrote before.</p>
+<div class="highlight"><pre><span></span>== simple_tanh_compiled
+; ModuleID = &#39;compile_ptx_tanh.mojo&#39;
+source_filename = &quot;compile_ptx_tanh.mojo&quot;
+target datalayout = &quot;e-p3:32:32-p4:32:32-p5:32:32-p6:32:32-p7:32:32-i64:64-i128:128-v16:16-v32:32-n16:32:64&quot;
+target triple = &quot;nvptx64-nvidia-cuda&quot;
+
+; Function Attrs: norecurse
+define dso_local ptx_kernel void @compile_ptx_tanh_simple_tanh6A6AoA6A6A_47582dcf3af05b6ac1bf59dcd20a45f8(ptr noundef %0, ptr noundef %1, i64 noundef %2) #0 {
+  %4 = call i32 @llvm.nvvm.read.ptx.sreg.ntid.x()
+  %5 = sext i32 %4 to i64
+  %6 = call i32 @llvm.nvvm.read.ptx.sreg.ctaid.x()
+  %7 = sext i32 %6 to i64
+  %8 = mul i64 %5, %7
+  %9 = call i32 @llvm.nvvm.read.ptx.sreg.tid.x()
+  %10 = sext i32 %9 to i64
+  %11 = add i64 %8, %10
+  %12 = getelementptr inbounds bfloat, ptr %0, i64 %11
+  %13 = getelementptr inbounds bfloat, ptr %1, i64 %11
+  %14 = icmp ult i64 %11, %2
+  br i1 %14, label %15, label %18
+
+15:                                               ; preds = %3
+  %16 = load bfloat, ptr %13, align 2
+  %17 = call bfloat asm &quot;tanh.approx.bf16 $0, $1;&quot;, &quot;=h,h&quot;(bfloat %16)
+  store bfloat %17, ptr %12, align 2
+  br label %19
+
+18:                                               ; preds = %3
+  br label %19
+
+19:                                               ; preds = %15, %18
+  ret void
+}
+
+; Function Attrs: nocallback nofree nosync nounwind speculatable willreturn memory(none)
+declare noundef range(i32 1, 1025) i32 @llvm.nvvm.read.ptx.sreg.ntid.x() #1
+
+; Function Attrs: nocallback nofree nosync nounwind speculatable willreturn memory(none)
+declare noundef range(i32 0, 2147483647) i32 @llvm.nvvm.read.ptx.sreg.ctaid.x() #1
+
+; Function Attrs: nocallback nofree nosync nounwind speculatable willreturn memory(none)
+declare noundef range(i32 0, 1024) i32 @llvm.nvvm.read.ptx.sreg.tid.x() #1
+
+attributes #0 = { norecurse &quot;target-cpu&quot;=&quot;sm_90a&quot; &quot;target-features&quot;=&quot;+ptx85,+sm_90a&quot; &quot;tune-cpu&quot;=&quot;sm_90a&quot; }
+attributes #1 = { nocallback nofree nosync nounwind speculatable willreturn memory(none) }
+
+!llvm.module.flags = !{!0}
+
+!0 = !{i32 2, !&quot;Debug Info Version&quot;, i32 3}
+</pre></div>
+<p>We get confirmation of what we already expected:</p>
+<div class="highlight"><pre><span></span>%16 = load bfloat, ptr %13, align 2
+%17 = call bfloat asm &quot;tanh.approx.bf16 $0, $1;&quot;, &quot;=h,h&quot;(bfloat %16)
+store bfloat %17, ptr %12, align 2
+</pre></div>
+<p>In our new version we don't need any casting instructions and immediately input the <code>bfloat16</code> into <code>tanh.approx.bf16</code>.</p>
+<h2 id=conclusion>Conclusion</h2><p>I hope this blogpost was helpful into the process of including simple <code>PTX</code> instructions into Mojo.
+The approach taken here can be used to extend the Mojo <code>std</code> such that we include dedicated instructions for half precision floating point values.
+The code can be found in my <a href='https://github.com/simveit/intro-mojo-ptx'>repo</a>.</p>
+
+
+    
+
+    
+        
+
+        
+            <form id="upvote-form" action="/upvote/" method="post" style="display: inline">
+    <small>
+        <input hidden name="uid" value="bYcwiZfEephKxXwWjugt" style="display:none">
+        <input hidden name="title" value="Use PTX instructions in Mojo" style="display:none">
+
+        <button
+            class="upvote-button"
+            aria-label="Toast this post"
+            title="Toast this post"
+        >
+            <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" class="css-i6dzq1">
+                <polyline points="17 11 12 6 7 11"></polyline>
+                <polyline points="17 18 12 13 7 18"></polyline>
+            </svg>
+            <small class="upvote-count" aria-hidden="true">&nbsp;</small>
+        </button>
+    </small>        
+</form>
+
+<script>
+    const $upvoteButton = document.querySelector('.upvote-button');
+    const $upvoteCount =  document.querySelector('.upvote-count')
+
+    fetch('/upvote-info/bYcwiZfEephKxXwWjugt/').then(response => response.json()).then(data => {
+        $upvoteCount.innerText = data.upvote_count;
+        if (data.upvoted) {
+            $upvoteButton.disabled = true
+            $upvoteButton.style.color = "salmon"
+            $upvoteButton.ariaLabel = "Toasted"
+            $upvoteButton.title = "Toasted"
+        }
+        $upvoteButton.ariaLabel += ` (${data.upvote_count})`
+    });
+
+    let moved = false;
+    let pageLoaded = Date.now();
+
+    document.addEventListener('touchmove', () => moved = true);
+    document.addEventListener('mousemove', () => moved = true);
+
+    document.querySelector('#upvote-form').addEventListener('submit', (e) => {
+        e.preventDefault();
+
+        if (moved) {
+            document.querySelector('input[name="title"]').value = "";
+        }
+        if (Date.now() - pageLoaded < 2000 || !moved) {
+            return;
+        }
+
+        fetch(e.target.action, {
+            method: 'post',
+            body: new FormData(e.target),
+        });
+        
+        $upvoteButton.disabled = true
+        $upvoteButton.style.color = "salmon"
+        $upvoteButton.ariaLabel = "Toasted"
+        $upvoteButton.title = "Toasted"
+        const newUpvoteCount = `${(parseInt($upvoteCount.innerHTML.split(" ")[0]) + 1)}`
+        $upvoteCount.innerHTML = newUpvoteCount
+        $upvoteButton.ariaLabel += ` (${newUpvoteCount})`
+    });
+</script>
+        
+
+        
+            <script>
+            window.addEventListener("load", () => {
+                if (navigator.webdriver !== true) {
+                    const sendHit = score => {
+                        const params = new URLSearchParams({
+                            blog: "veitner",
+                            token: "bYcwiZfEephKxXwWjugt",
+                            referrer: document.referrer.includes("veitner.bearblog.dev") ? "" : document.referrer,
+                            title: "",
+                            score: score
+                        });
+                        new Image().src = `/hit/?${params.toString()}`;
+                    };
+
+                    document.addEventListener('touchmove', () => sendHit(100), { once: true });
+                    document.addEventListener('mousemove', () => sendHit(100), { once: true });
+                }
+            });
+            </script>
+        
+    
+
+
+  </main>
+  <footer>
+    
+    
+    <span>
+        Powered by <a href="https://bearblog.dev">Bear <span role="img" class="bear" aria-label="ASCII bear logo">ʕ•ᴥ•ʔ</span></a>
+    </span>
+
+  </footer>
+
+  
+  <script>
+        (() => {
+          "use strict";
+          const times = document.querySelectorAll('time');
+          const format_string = "d M, Y" || "d M, Y"
+
+          times.forEach(time => {
+              time.innerText = formatDate(time.dateTime, format_string)
+          });
+
+          function formatDate(dateStr, formatStr) {
+            const date = new Date(dateStr);
+            const day = date.getDate();
+            const month = date.getMonth();
+            const year = date.getFullYear();
+            const weekday = date.getDay();
+            const hours = date.getHours();
+            const minutes = date.getMinutes();
+            const monthsFull = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+            const monthsShort = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+            const daysFull = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+            const daysShort = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+            
+            function getOrdinal(n) {
+                const s = ['th', 'st', 'nd', 'rd'];
+                const v = n % 100;
+                return s[(v - 20) % 10] || s[v] || s[0];
+            }
+            
+            const map = {
+                'd': () => day.toString().padStart(2, '0'),
+                'm': () => (month + 1).toString().padStart(2, '0'),
+                'Y': () => year.toString(),
+                'y': () => year.toString().slice(-2),
+                'F': () => monthsFull[month],
+                'j': () => day.toString(),
+                'D': () => daysShort[weekday],
+                'l': () => daysFull[weekday],
+                'S': () => getOrdinal(day),
+                'M': () => monthsShort[month],
+                'H': () => hours.toString().padStart(2, '0'),
+                'h': () => {
+                    let h = hours % 12;
+                    h = h === 0 ? 12 : h;
+                    return h.toString().padStart(2, '0');
+                },
+                'g': () => {
+                    let h = hours % 12;
+                    return h === 0 ? '12' : h.toString();
+                },
+                'i': () => minutes.toString().padStart(2, '0'),
+                'a': () => hours < 12 ? 'am' : 'pm',
+                'A': () => hours < 12 ? 'AM' : 'PM',
+            };
+            
+            let result = '';
+            for (let char of formatStr) {
+                result += map[char] ? map[char]() : char;
+            }
+            return result;
+        }
+        })();
+    </script>
+    
+</body>
+<!-- ID: veitner -->
+<!-- 🐻 -->
+</html>

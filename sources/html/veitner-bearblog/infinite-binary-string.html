@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!-- Powered by Bear Blog -->
+
+<head>
+  
+  
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5">
+  
+  <title>Infinite binary strings | simons blog</title>
+  <link rel="canonical" href="https://veitner.bearblog.dev/infinite-binary-string/">
+  
+    
+
+    <meta name="veitner" content="look-for-the-bear-necessities">
+    <meta name="token" content="WVATdntZBEdtmCfLGtZK">
+
+    
+<!-- Primary Meta Tags -->
+<meta name="title" content="Infinite binary strings">
+<meta name="description" content="We call $\textbf{B}=\{\textit{0},\textit{1}\}$ the binary alphabet.
+$\textbf{B}^{\infty}$ is the set of infinite binary strings $\omega = \omega{1:\infty}=\...">
+
+<!-- Open Graph / Facebook -->
+<meta property="og:site_name" content="simons blog">
+<meta property="og:title" content="Infinite binary strings">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://veitner.bearblog.dev/infinite-binary-string/">
+<meta property="og:description" content="We call $\textbf{B}=\{\textit{0},\textit{1}\}$ the binary alphabet.
+$\textbf{B}^{\infty}$ is the set of infinite binary strings $\omega = \omega{1:\infty}=\...">
+<meta property="og:image" content="/static/og-image.png">
+
+
+<!-- Twitter -->
+<meta property="twitter:card" content="summary">
+<meta property="twitter:url" content="https://veitner.bearblog.dev/infinite-binary-string/">
+<meta property="twitter:title" content="Infinite binary strings">
+<meta property="twitter:description" content="We call $\textbf{B}=\{\textit{0},\textit{1}\}$ the binary alphabet.
+$\textbf{B}^{\infty}$ is the set of infinite binary strings $\omega = \omega{1:\infty}=\...">
+<meta property="twitter:image" content="/static/og-image.png">
+
+
+
+<!-- Microdata -->
+<script type="application/ld+json">
+  {
+    "@context": "http://schema.org",
+    "@type": "article",
+    "name": "Infinite binary strings",
+    "headline": "Infinite binary strings",
+    "url": "https://veitner.bearblog.dev/infinite-binary-string/",
+    "description": "We call $\textbf{B}=\{\textit{0},\textit{1}\}$ the binary alphabet.
+$\textbf{B}^{\infty}$ is the set of infinite binary strings $\omega = \omega{1:\infty}=\...",
+    "image": "/static/og-image.png"
+  }
+</script>
+    <link rel="alternate" type="application/atom+xml" href="/feed/" title="simons blog">
+    <link rel="alternate" type="application/rss+xml" href="/feed/?type=rss" title="simons blog">
+
+  
+    
+
+    
+    
+  
+  
+  
+    
+        <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20100%20100'%3E%3Ctext%20y='.9em'%20font-size='90'%3E🐼%3C/text%3E%3C/svg%3E">
+    
+
+
+
+  <style>
+      
+      
+    
+:root {
+    --width: 720px;
+    --font-main: Verdana, sans-serif;
+    --font-secondary: Verdana, sans-serif;
+    --font-scale: 1em;
+    --background-color: #fff;
+    --heading-color: #222;
+    --text-color: #444;
+    --link-color: #3273dc;
+    --visited-color:  #8b6fcb;
+    --code-background-color: #f2f2f2;
+    --code-color: #222;
+    --blockquote-color: #222;
+}
+
+@media (prefers-color-scheme: dark) {
+    :root {
+        --background-color: #01242e;
+        --heading-color: #eee;
+        --text-color: #ddd;
+        --link-color: #8cc2dd;
+        --visited-color:  #8b6fcb;
+        --code-background-color: #000;
+        --code-color: #ddd;
+        --blockquote-color: #ccc;
+    }
+}
+
+body {
+    font-family: var(--font-secondary);
+    font-size: var(--font-scale);
+    margin: auto;
+    padding: 20px;
+    max-width: var(--width);
+    text-align: left;
+    background-color: var(--background-color);
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    line-height: 1.5;
+    color: var(--text-color);
+}
+
+h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-main);
+    color: var(--heading-color);
+}
+
+a {
+    color: var(--link-color);
+    cursor: pointer;
+    text-decoration: none;
+}
+
+a:hover {
+    text-decoration: underline; 
+}
+
+nav a {
+    margin-right: 8px;
+}
+
+strong, b {
+    color: var(--heading-color);
+}
+
+button {
+    margin: 0;
+    cursor: pointer;
+}
+
+time {
+ 	font-family: monospace;
+  	font-style: normal;
+  	font-size: 15px;
+}
+
+main {
+    line-height: 1.6;
+}
+
+table {
+    width: 100%;
+}
+
+hr {
+    border: 0;
+    border-top: 1px dashed;
+}
+
+img {
+    max-width: 100%;
+}
+
+code {
+    font-family: monospace;
+    padding: 2px;
+    background-color: var(--code-background-color);
+    color: var(--code-color);
+    border-radius: 3px;
+}
+
+blockquote {
+    border-left: 1px solid #999;
+    color: var(--code-color);
+    padding-left: 20px;
+    font-style: italic;
+}
+
+footer {
+    padding: 25px 0;
+    text-align: center;
+}
+
+.title:hover {
+    text-decoration: none;
+}
+
+.title h1 {
+    font-size: 1.5em;
+}
+
+.inline {
+    width: auto !important;
+}
+
+.highlight, .code {
+    padding: 1px 15px;
+    background-color: var(--code-background-color);
+    color: var(--code-color);
+    border-radius: 3px;
+    margin-block-start: 1em;
+    margin-block-end: 1em;
+    overflow-x: auto;
+}
+
+/* blog post list */
+ul.blog-posts {
+    list-style-type: none;
+    padding: unset;
+}
+
+ul.blog-posts li {
+    display: flex;
+}
+
+ul.blog-posts li span {
+    flex: 0 0 130px;
+}
+
+ul.blog-posts li a:visited {
+    color: var(--visited-color);
+}
+    .upvote-button {
+        padding: 0;
+        margin: 0;
+        border: 0;
+        background-color: inherit;
+        color: inherit;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+    .upvote-button.upvoted {
+        color: salmon;
+    }
+    .upvote-count {
+        margin-top: -3px;
+    }
+
+      
+  </style>
+</head>
+
+<body class="post " onload="(function() { document.cookie = `timezone=${Intl.DateTimeFormat().resolvedOptions().timeZone};path=/`; })()">
+  
+  <header>
+    <a class="title" href="/">
+      <h1>
+        simons blog
+      </h1>
+    </a>
+    <nav>
+      <p><a href='/'>Home</a> <a href='/blog/'>Blog</a></p>
+
+    </nav>
+  </header>
+  <main>
+    
+
+    
+
+    
+        <h1>Infinite binary strings</h1>
+
+        <p>
+            <i>
+                <time datetime="2025-06-09T08:23Z">
+    09 Jun, 2025
+</time>
+            </i>
+        </p>
+    
+
+    <p>We call <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mtext mathvariant="bold">B</mtext><mo>&#x0003D;</mo><mo stretchy="false">&#x0007B;</mo><mtext mathvariant="italic">0</mtext><mo>&#x0002C;</mo><mtext mathvariant="italic">1</mtext><mo stretchy="false">&#x0007D;</mo></mrow></math> the binary alphabet.
+<math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msup><mtext mathvariant="bold">B</mtext><mrow><mo>&#x0221E;</mo></mrow></msup></mrow></math> is the set of infinite binary strings <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>&#x003C9;</mi><mo>&#x0003D;</mo><msub><mi>&#x003C9;</mi><mrow><mn>1</mn><mi>:</mi><mo>&#x0221E;</mo></mrow></msub><mo>&#x0003D;</mo><msub><mi>&#x003C9;</mi><mn>1</mn></msub><msub><mi>&#x003C9;</mi><mn>2</mn></msub><msub><mi>&#x003C9;</mi><mn>3</mn></msub><mo>&#x0002E;</mo><mo>&#x0002E;</mo><mo>&#x0002E;</mo></mrow></math> with <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msub><mi>&#x003C9;</mi><mi>i</mi></msub><mo>&#x02208;</mo><mtext mathvariant="bold">B</mtext></mrow></math>.</p>
+<p>We can identify each of these strings with a number in the unit interval <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mo stretchy="false">[</mo><mn>0</mn><mo>&#x0002C;</mo><mn>1</mn><mo stretchy="false">]</mo></mrow></math> in the following way:</p>
+<math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><mrow><mi>f</mi><mo stretchy="false">&#x00028;</mo><msub><mi>&#x003C9;</mi><mrow><mn>1</mn><mi>:</mi><mo>&#x0221E;</mo></mrow></msub><mo stretchy="false">&#x00029;</mo><mo>&#x0003D;</mo><msubsup><mo>&#x02211;</mo><mrow><mi>k</mi><mo>&#x0003D;</mo><mn>1</mn></mrow><mo>&#x0221E;</mo></msubsup><mfrac><mrow><msub><mi>&#x003C9;</mi><mi>k</mi></msub></mrow><mrow><msup><mn>2</mn><mi>k</mi></msup></mrow></mfrac></mrow></math><p>This maps each infinite binary string to the real number with binary expansion <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mn>0</mn><mo>&#x0002E;</mo><msub><mi>&#x003C9;</mi><mn>1</mn></msub><msub><mi>&#x003C9;</mi><mn>2</mn></msub><msub><mi>&#x003C9;</mi><mn>3</mn></msub><mo>&#x0002E;</mo><mo>&#x0002E;</mo><mo>&#x0002E;</mo></mrow></math> .</p>
+<p>We can draw a similarity between infinite binary trees and the task of finding the binary expansion of a number:</p>
+<p>The tree corresponding to finding one of the binary expansions of <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mfrac><mrow><mn>1</mn></mrow><mrow><mn>4</mn></mrow></mfrac></mrow></math> would look as follows:</p>
+<p><img src="https://bear-images.sfo2.cdn.digitaloceanspaces.com/veitner/36-1.webp" alt="Screenshot 2025-06-09 at 09" /></p>
+<p><code>...</code> at the end means that we infinitely expand the tree further down.</p>
+<p>In the picture we just show one possible path to obtain <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mfrac><mrow><mn>1</mn></mrow><mrow><mn>4</mn></mrow></mfrac><mo>&#x0003D;</mo><mn>0.01000</mn><mo>&#x0002E;</mo><mo>&#x0002E;</mo><mo>&#x0002E;</mo></mrow></math></p>
+<p>Note that this picture already hints at the fact that the binary expansion is not injective.
+We can read off two possible binary expansions of <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mfrac><mrow><mn>1</mn></mrow><mrow><mn>4</mn></mrow></mfrac></mrow></math>:</p>
+<math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><mrow><mfrac><mrow><mn>1</mn></mrow><mrow><mn>4</mn></mrow></mfrac><mo>&#x0003D;</mo><mn>0.01000</mn><mo>&#x0002E;</mo><mo>&#x0002E;</mo><mo>&#x0002E;</mo><mo>&#x0002E;</mo><mo>&#x0003D;</mo><mi>f</mi><mo stretchy="false">&#x00028;</mo><msup><mn>010</mn><mo>&#x0221E;</mo></msup><mo stretchy="false">&#x00029;</mo></mrow></math><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><mrow><mfrac><mrow><mn>1</mn></mrow><mrow><mn>4</mn></mrow></mfrac><mo>&#x0003D;</mo><mn>0.00111</mn><mo>&#x0002E;</mo><mo>&#x0002E;</mo><mo>&#x0002E;</mo><mo>&#x0003D;</mo><mi>f</mi><mo stretchy="false">&#x00028;</mo><msup><mn>0.001</mn><mo>&#x0221E;</mo></msup><mo stretchy="false">&#x00029;</mo></mrow></math><p>The function is <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>f</mi></mrow></math> is surjective because for every number in the interval <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mo stretchy="false">[</mo><mn>0</mn><mo>&#x0002C;</mo><mn>1</mn><mo stretchy="false">]</mo></mrow></math> we can apply the above algorithm to find an infinite binary expansion that will match it.</p>
+<p>The real numbers <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mtext mathvariant="bold">R</mtext></mrow></math> have geometrical representation of a straight line.</p>
+<p>We can similarly visualise <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msup><mtext mathvariant="bold">B</mtext><mo>&#x0002A;</mo></msup></mrow></math> using the <em>cylinder sets</em>.</p>
+<math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><mrow><msub><mi>&#x00393;</mi><mi>x</mi></msub><mo>&#x0003D;</mo><mo stretchy="false">&#x0007B;</mo><mi>x</mi><mi>&#x003C9;</mi><mo stretchy="false">&#x0007C;</mo><mi>&#x003C9;</mi><mo>&#x02208;</mo><msup><mtext mathvariant="bold">B</mtext><mo>&#x0221E;</mo></msup><mo stretchy="false">&#x0007D;</mo></mrow></math><p>Here <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>x</mi><mo>&#x02208;</mo><msup><mtext mathvariant="bold">B</mtext><mo>&#x0002A;</mo></msup></mrow></math>, i.e. a finite binary string.</p>
+<p>We can than visualise <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msub><mi>&#x00393;</mi><mi>x</mi></msub></mrow></math> as the interval <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>f</mi><mo stretchy="false">&#x00028;</mo><msub><mi>&#x00393;</mi><mi>x</mi></msub><mo stretchy="false">&#x00029;</mo></mrow></math>, for example <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msub><mi>&#x00393;</mi><mi>&#x003F5;</mi></msub></mrow></math> will correspond to the whole unit interval, <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msub><mi>&#x00393;</mi><mtext mathvariant="italic">1</mtext></msub></mrow></math> to the interval <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mo stretchy="false">[</mo><mfrac><mrow><mn>1</mn></mrow><mrow><mn>2</mn></mrow></mfrac><mo>&#x0002C;</mo><mn>1</mn><mo stretchy="false">]</mo></mrow></math>, <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msub><mi>&#x00393;</mi><mtext mathvariant="italic">11</mtext></msub></mrow></math> to the interval <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mo stretchy="false">[</mo><mfrac><mrow><mn>3</mn></mrow><mrow><mn>4</mn></mrow></mfrac><mo>&#x0002C;</mo><mn>1</mn><mo stretchy="false">]</mo></mrow></math>, <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msub><mi>&#x00393;</mi><mtext mathvariant="italic">000</mtext></msub></mrow></math> to the interval <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mo stretchy="false">[</mo><mn>0</mn><mo>&#x0002C;</mo><mfrac><mrow><mn>1</mn></mrow><mrow><mn>8</mn></mrow></mfrac><mo stretchy="false">]</mo></mrow></math> etc.</p>
+<p>We call <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>x</mi><mo>&#x02208;</mo><msup><mtext mathvariant="bold">B</mtext><mo>&#x0002A;</mo></msup></mrow></math> a prefix of <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>y</mi><mo>&#x02208;</mo><msup><mtext mathvariant="bold">B</mtext><mo>&#x0002A;</mo></msup></mrow></math> if we have <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>x</mi><mi>z</mi><mo>&#x0003D;</mo><mi>y</mi></mrow></math> for <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>z</mi><mo>&#x02208;</mo><msup><mtext mathvariant="bold">B</mtext><mo>&#x0002A;</mo></msup></mrow></math>.</p>
+<p>Let's prove that <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msub><mi>&#x00393;</mi><mi>y</mi></msub><mo>&#x02282;</mo><msub><mi>&#x00393;</mi><mi>x</mi></msub></mrow></math>  iff <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>x</mi></mrow></math> is a prefix of <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>y</mi></mrow></math>.</p>
+<p><math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mo>&#x02192;</mo></mrow></math>: We have for arbitrary <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>&#x003B1;</mi><mo>&#x02208;</mo><msub><mi>&#x00393;</mi><mi>y</mi></msub></mrow></math> that <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>&#x003B1;</mi><mo>&#x02208;</mo><msub><mi>&#x00393;</mi><mi>x</mi></msub></mrow></math>. That implies that for each <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>y</mi><mi>&#x003C9;</mi></mrow></math> we can find <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>x</mi><msup><mi>&#x003C9;</mi><mi>&#x02032;</mi></msup></mrow></math> such that <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>y</mi><mi>&#x003C9;</mi><mo>&#x0003D;</mo><mi>x</mi><msup><mi>&#x003C9;</mi><mi>&#x02032;</mi></msup></mrow></math>. We have <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>l</mi><mo stretchy="false">&#x00028;</mo><mi>x</mi><mo stretchy="false">&#x00029;</mo><mo>&#x02264;</mo><mi>l</mi><mo stretchy="false">&#x00028;</mo><mi>y</mi><mo stretchy="false">&#x00029;</mo></mrow></math> because if <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>l</mi><mo stretchy="false">&#x00028;</mo><mi>x</mi><mo stretchy="false">&#x00029;</mo><mo>&#x0003E;</mo><mi>l</mi><mo stretchy="false">&#x00028;</mo><mi>y</mi><mo stretchy="false">&#x00029;</mo></mrow></math> we would have elements in <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msub><mi>&#x00393;</mi><mi>y</mi></msub></mrow></math> that are not in <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msub><mi>&#x00393;</mi><mi>x</mi></msub></mrow></math>. We can than compare the substrings <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mo stretchy="false">&#x00028;</mo><mi>y</mi><mi>&#x003C9;</mi><msub><mo stretchy="false">&#x00029;</mo><mrow><mn>1</mn><mi>:</mi><mi>l</mi><mo stretchy="false">&#x00028;</mo><mi>x</mi><mo stretchy="false">&#x00029;</mo></mrow></msub><mo>&#x0003D;</mo><msub><mi>y</mi><mrow><mn>1</mn><mi>:</mi><mi>l</mi><mo stretchy="false">&#x00028;</mo><mi>x</mi><mo stretchy="false">&#x00029;</mo></mrow></msub></mrow></math> and <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mo stretchy="false">&#x00028;</mo><mi>x</mi><msup><mi>&#x003C9;</mi><mi>&#x02032;</mi></msup><msub><mo stretchy="false">&#x00029;</mo><mrow><mn>1</mn><mi>:</mi><mi>l</mi><mo stretchy="false">&#x00028;</mo><mi>x</mi><mo stretchy="false">&#x00029;</mo></mrow></msub><mo>&#x0003D;</mo><mi>x</mi></mrow></math>. They need to be equal and from here it follows that <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>x</mi></mrow></math> is a prefix of y.</p>
+<p><math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mo>&#x02190;</mo></mrow></math>: We have that <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>x</mi><mi>z</mi><mo>&#x0003D;</mo><mi>y</mi></mrow></math> but than we can write <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>y</mi><mi>&#x003C9;</mi><mo>&#x0003D;</mo><mi>x</mi><mi>z</mi><mi>&#x003C9;</mi></mrow></math> and hence every element of <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msub><mi>&#x00393;</mi><mi>y</mi></msub></mrow></math> is in <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msub><mi>&#x00393;</mi><mi>x</mi></msub></mrow></math>.</p>
+<p>This concludes the proof and can be geometrically interpreted as the fact that iff <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>x</mi></mrow></math> is a prefix of <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>y</mi></mrow></math> than <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>f</mi><mo stretchy="false">&#x00028;</mo><msub><mi>&#x00393;</mi><mi>y</mi></msub><mo stretchy="false">&#x00029;</mo></mrow></math> is a subinterval of <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>f</mi><mo stretchy="false">&#x00028;</mo><msub><mi>&#x00393;</mi><mi>x</mi></msub><mo stretchy="false">&#x00029;</mo></mrow></math>.</p>
+
+
+    
+
+    
+        
+
+        
+            <form id="upvote-form" action="/upvote/" method="post" style="display: inline">
+    <small>
+        <input hidden name="uid" value="WVATdntZBEdtmCfLGtZK" style="display:none">
+        <input hidden name="title" value="Infinite binary strings" style="display:none">
+
+        <button
+            class="upvote-button"
+            aria-label="Toast this post"
+            title="Toast this post"
+        >
+            <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" class="css-i6dzq1">
+                <polyline points="17 11 12 6 7 11"></polyline>
+                <polyline points="17 18 12 13 7 18"></polyline>
+            </svg>
+            <small class="upvote-count" aria-hidden="true">&nbsp;</small>
+        </button>
+    </small>        
+</form>
+
+<script>
+    const $upvoteButton = document.querySelector('.upvote-button');
+    const $upvoteCount =  document.querySelector('.upvote-count')
+
+    fetch('/upvote-info/WVATdntZBEdtmCfLGtZK/').then(response => response.json()).then(data => {
+        $upvoteCount.innerText = data.upvote_count;
+        if (data.upvoted) {
+            $upvoteButton.disabled = true
+            $upvoteButton.style.color = "salmon"
+            $upvoteButton.ariaLabel = "Toasted"
+            $upvoteButton.title = "Toasted"
+        }
+        $upvoteButton.ariaLabel += ` (${data.upvote_count})`
+    });
+
+    let moved = false;
+    let pageLoaded = Date.now();
+
+    document.addEventListener('touchmove', () => moved = true);
+    document.addEventListener('mousemove', () => moved = true);
+
+    document.querySelector('#upvote-form').addEventListener('submit', (e) => {
+        e.preventDefault();
+
+        if (moved) {
+            document.querySelector('input[name="title"]').value = "";
+        }
+        if (Date.now() - pageLoaded < 2000 || !moved) {
+            return;
+        }
+
+        fetch(e.target.action, {
+            method: 'post',
+            body: new FormData(e.target),
+        });
+        
+        $upvoteButton.disabled = true
+        $upvoteButton.style.color = "salmon"
+        $upvoteButton.ariaLabel = "Toasted"
+        $upvoteButton.title = "Toasted"
+        const newUpvoteCount = `${(parseInt($upvoteCount.innerHTML.split(" ")[0]) + 1)}`
+        $upvoteCount.innerHTML = newUpvoteCount
+        $upvoteButton.ariaLabel += ` (${newUpvoteCount})`
+    });
+</script>
+        
+
+        
+            <script>
+            window.addEventListener("load", () => {
+                if (navigator.webdriver !== true) {
+                    const sendHit = score => {
+                        const params = new URLSearchParams({
+                            blog: "veitner",
+                            token: "WVATdntZBEdtmCfLGtZK",
+                            referrer: document.referrer.includes("veitner.bearblog.dev") ? "" : document.referrer,
+                            title: "",
+                            score: score
+                        });
+                        new Image().src = `/hit/?${params.toString()}`;
+                    };
+
+                    document.addEventListener('touchmove', () => sendHit(100), { once: true });
+                    document.addEventListener('mousemove', () => sendHit(100), { once: true });
+                }
+            });
+            </script>
+        
+    
+
+
+  </main>
+  <footer>
+    
+    
+    <span>
+        Powered by <a href="https://bearblog.dev">Bear <span role="img" class="bear" aria-label="ASCII bear logo">ʕ•ᴥ•ʔ</span></a>
+    </span>
+
+  </footer>
+
+  
+  <script>
+        (() => {
+          "use strict";
+          const times = document.querySelectorAll('time');
+          const format_string = "d M, Y" || "d M, Y"
+
+          times.forEach(time => {
+              time.innerText = formatDate(time.dateTime, format_string)
+          });
+
+          function formatDate(dateStr, formatStr) {
+            const date = new Date(dateStr);
+            const day = date.getDate();
+            const month = date.getMonth();
+            const year = date.getFullYear();
+            const weekday = date.getDay();
+            const hours = date.getHours();
+            const minutes = date.getMinutes();
+            const monthsFull = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+            const monthsShort = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+            const daysFull = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+            const daysShort = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+            
+            function getOrdinal(n) {
+                const s = ['th', 'st', 'nd', 'rd'];
+                const v = n % 100;
+                return s[(v - 20) % 10] || s[v] || s[0];
+            }
+            
+            const map = {
+                'd': () => day.toString().padStart(2, '0'),
+                'm': () => (month + 1).toString().padStart(2, '0'),
+                'Y': () => year.toString(),
+                'y': () => year.toString().slice(-2),
+                'F': () => monthsFull[month],
+                'j': () => day.toString(),
+                'D': () => daysShort[weekday],
+                'l': () => daysFull[weekday],
+                'S': () => getOrdinal(day),
+                'M': () => monthsShort[month],
+                'H': () => hours.toString().padStart(2, '0'),
+                'h': () => {
+                    let h = hours % 12;
+                    h = h === 0 ? 12 : h;
+                    return h.toString().padStart(2, '0');
+                },
+                'g': () => {
+                    let h = hours % 12;
+                    return h === 0 ? '12' : h.toString();
+                },
+                'i': () => minutes.toString().padStart(2, '0'),
+                'a': () => hours < 12 ? 'am' : 'pm',
+                'A': () => hours < 12 ? 'AM' : 'PM',
+            };
+            
+            let result = '';
+            for (let char of formatStr) {
+                result += map[char] ? map[char]() : char;
+            }
+            return result;
+        }
+        })();
+    </script>
+    
+</body>
+<!-- ID: veitner -->
+<!-- 🐻 -->
+</html>

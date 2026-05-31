@@ -1,0 +1,632 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!-- Powered by Bear Blog -->
+
+<head>
+  
+  
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5">
+  
+  <title>Thread Value Layouts in CuTe | simons blog</title>
+  <link rel="canonical" href="https://veitner.bearblog.dev/thread-value-layouts-in-cute/">
+  
+    
+
+    <meta name="veitner" content="look-for-the-bear-necessities">
+    <meta name="token" content="qXZycWYzmhyKMPoKiLhg">
+
+    
+<!-- Primary Meta Tags -->
+<meta name="title" content="Thread Value Layouts in CuTe">
+<meta name="description" content="Thread Value Layout is a concept commonly used in CuTeDSL kernels. 
+In this blogpost we aim to give a brief intuitive understanding of the concepts.
+We wil...">
+
+<!-- Open Graph / Facebook -->
+<meta property="og:site_name" content="simons blog">
+<meta property="og:title" content="Thread Value Layouts in CuTe">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://veitner.bearblog.dev/thread-value-layouts-in-cute/">
+<meta property="og:description" content="Thread Value Layout is a concept commonly used in CuTeDSL kernels. 
+In this blogpost we aim to give a brief intuitive understanding of the concepts.
+We wil...">
+<meta property="og:image" content="/static/og-image.png">
+
+
+<!-- Twitter -->
+<meta property="twitter:card" content="summary">
+<meta property="twitter:url" content="https://veitner.bearblog.dev/thread-value-layouts-in-cute/">
+<meta property="twitter:title" content="Thread Value Layouts in CuTe">
+<meta property="twitter:description" content="Thread Value Layout is a concept commonly used in CuTeDSL kernels. 
+In this blogpost we aim to give a brief intuitive understanding of the concepts.
+We wil...">
+<meta property="twitter:image" content="/static/og-image.png">
+
+
+
+<!-- Microdata -->
+<script type="application/ld+json">
+  {
+    "@context": "http://schema.org",
+    "@type": "article",
+    "name": "Thread Value Layouts in CuTe",
+    "headline": "Thread Value Layouts in CuTe",
+    "url": "https://veitner.bearblog.dev/thread-value-layouts-in-cute/",
+    "description": "Thread Value Layout is a concept commonly used in CuTeDSL kernels. 
+In this blogpost we aim to give a brief intuitive understanding of the concepts.
+We wil...",
+    "image": "/static/og-image.png"
+  }
+</script>
+    <link rel="alternate" type="application/atom+xml" href="/feed/" title="simons blog">
+    <link rel="alternate" type="application/rss+xml" href="/feed/?type=rss" title="simons blog">
+
+  
+    
+
+    
+    <style>pre { line-height: 125%; }
+td.linenos .normal { color: #666666; background-color: transparent; padding-left: 5px; padding-right: 5px; }
+span.linenos { color: #666666; background-color: transparent; padding-left: 5px; padding-right: 5px; }
+td.linenos .special { color: #000000; background-color: #ffffc0; padding-left: 5px; padding-right: 5px; }
+span.linenos.special { color: #000000; background-color: #ffffc0; padding-left: 5px; padding-right: 5px; }
+.highlight .hll { background-color: #ffffcc }
+.highlight { background: #f0f0f0; }
+.highlight .c { color: #60A0B0; font-style: italic } /* Comment */
+.highlight .err { border: 1px solid #F00 } /* Error */
+.highlight .k { color: #007020; font-weight: bold } /* Keyword */
+.highlight .o { color: #666 } /* Operator */
+.highlight .ch { color: #60A0B0; font-style: italic } /* Comment.Hashbang */
+.highlight .cm { color: #60A0B0; font-style: italic } /* Comment.Multiline */
+.highlight .cp { color: #007020 } /* Comment.Preproc */
+.highlight .cpf { color: #60A0B0; font-style: italic } /* Comment.PreprocFile */
+.highlight .c1 { color: #60A0B0; font-style: italic } /* Comment.Single */
+.highlight .cs { color: #60A0B0; background-color: #FFF0F0 } /* Comment.Special */
+.highlight .gd { color: #A00000 } /* Generic.Deleted */
+.highlight .ge { font-style: italic } /* Generic.Emph */
+.highlight .ges { font-weight: bold; font-style: italic } /* Generic.EmphStrong */
+.highlight .gr { color: #F00 } /* Generic.Error */
+.highlight .gh { color: #000080; font-weight: bold } /* Generic.Heading */
+.highlight .gi { color: #00A000 } /* Generic.Inserted */
+.highlight .go { color: #888 } /* Generic.Output */
+.highlight .gp { color: #C65D09; font-weight: bold } /* Generic.Prompt */
+.highlight .gs { font-weight: bold } /* Generic.Strong */
+.highlight .gu { color: #800080; font-weight: bold } /* Generic.Subheading */
+.highlight .gt { color: #04D } /* Generic.Traceback */
+.highlight .kc { color: #007020; font-weight: bold } /* Keyword.Constant */
+.highlight .kd { color: #007020; font-weight: bold } /* Keyword.Declaration */
+.highlight .kn { color: #007020; font-weight: bold } /* Keyword.Namespace */
+.highlight .kp { color: #007020 } /* Keyword.Pseudo */
+.highlight .kr { color: #007020; font-weight: bold } /* Keyword.Reserved */
+.highlight .kt { color: #902000 } /* Keyword.Type */
+.highlight .m { color: #40A070 } /* Literal.Number */
+.highlight .s { color: #4070A0 } /* Literal.String */
+.highlight .na { color: #4070A0 } /* Name.Attribute */
+.highlight .nb { color: #007020 } /* Name.Builtin */
+.highlight .nc { color: #0E84B5; font-weight: bold } /* Name.Class */
+.highlight .no { color: #60ADD5 } /* Name.Constant */
+.highlight .nd { color: #555; font-weight: bold } /* Name.Decorator */
+.highlight .ni { color: #D55537; font-weight: bold } /* Name.Entity */
+.highlight .ne { color: #007020 } /* Name.Exception */
+.highlight .nf { color: #06287E } /* Name.Function */
+.highlight .nl { color: #002070; font-weight: bold } /* Name.Label */
+.highlight .nn { color: #0E84B5; font-weight: bold } /* Name.Namespace */
+.highlight .nt { color: #062873; font-weight: bold } /* Name.Tag */
+.highlight .nv { color: #BB60D5 } /* Name.Variable */
+.highlight .ow { color: #007020; font-weight: bold } /* Operator.Word */
+.highlight .w { color: #BBB } /* Text.Whitespace */
+.highlight .mb { color: #40A070 } /* Literal.Number.Bin */
+.highlight .mf { color: #40A070 } /* Literal.Number.Float */
+.highlight .mh { color: #40A070 } /* Literal.Number.Hex */
+.highlight .mi { color: #40A070 } /* Literal.Number.Integer */
+.highlight .mo { color: #40A070 } /* Literal.Number.Oct */
+.highlight .sa { color: #4070A0 } /* Literal.String.Affix */
+.highlight .sb { color: #4070A0 } /* Literal.String.Backtick */
+.highlight .sc { color: #4070A0 } /* Literal.String.Char */
+.highlight .dl { color: #4070A0 } /* Literal.String.Delimiter */
+.highlight .sd { color: #4070A0; font-style: italic } /* Literal.String.Doc */
+.highlight .s2 { color: #4070A0 } /* Literal.String.Double */
+.highlight .se { color: #4070A0; font-weight: bold } /* Literal.String.Escape */
+.highlight .sh { color: #4070A0 } /* Literal.String.Heredoc */
+.highlight .si { color: #70A0D0; font-style: italic } /* Literal.String.Interpol */
+.highlight .sx { color: #C65D09 } /* Literal.String.Other */
+.highlight .sr { color: #235388 } /* Literal.String.Regex */
+.highlight .s1 { color: #4070A0 } /* Literal.String.Single */
+.highlight .ss { color: #517918 } /* Literal.String.Symbol */
+.highlight .bp { color: #007020 } /* Name.Builtin.Pseudo */
+.highlight .fm { color: #06287E } /* Name.Function.Magic */
+.highlight .vc { color: #BB60D5 } /* Name.Variable.Class */
+.highlight .vg { color: #BB60D5 } /* Name.Variable.Global */
+.highlight .vi { color: #BB60D5 } /* Name.Variable.Instance */
+.highlight .vm { color: #BB60D5 } /* Name.Variable.Magic */
+.highlight .il { color: #40A070 } /* Literal.Number.Integer.Long */
+</style>
+  
+  
+  
+    
+        <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20100%20100'%3E%3Ctext%20y='.9em'%20font-size='90'%3E🐼%3C/text%3E%3C/svg%3E">
+    
+
+
+
+  <style>
+      
+      
+    
+:root {
+    --width: 720px;
+    --font-main: Verdana, sans-serif;
+    --font-secondary: Verdana, sans-serif;
+    --font-scale: 1em;
+    --background-color: #fff;
+    --heading-color: #222;
+    --text-color: #444;
+    --link-color: #3273dc;
+    --visited-color:  #8b6fcb;
+    --code-background-color: #f2f2f2;
+    --code-color: #222;
+    --blockquote-color: #222;
+}
+
+@media (prefers-color-scheme: dark) {
+    :root {
+        --background-color: #01242e;
+        --heading-color: #eee;
+        --text-color: #ddd;
+        --link-color: #8cc2dd;
+        --visited-color:  #8b6fcb;
+        --code-background-color: #000;
+        --code-color: #ddd;
+        --blockquote-color: #ccc;
+    }
+}
+
+body {
+    font-family: var(--font-secondary);
+    font-size: var(--font-scale);
+    margin: auto;
+    padding: 20px;
+    max-width: var(--width);
+    text-align: left;
+    background-color: var(--background-color);
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    line-height: 1.5;
+    color: var(--text-color);
+}
+
+h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-main);
+    color: var(--heading-color);
+}
+
+a {
+    color: var(--link-color);
+    cursor: pointer;
+    text-decoration: none;
+}
+
+a:hover {
+    text-decoration: underline; 
+}
+
+nav a {
+    margin-right: 8px;
+}
+
+strong, b {
+    color: var(--heading-color);
+}
+
+button {
+    margin: 0;
+    cursor: pointer;
+}
+
+time {
+ 	font-family: monospace;
+  	font-style: normal;
+  	font-size: 15px;
+}
+
+main {
+    line-height: 1.6;
+}
+
+table {
+    width: 100%;
+}
+
+hr {
+    border: 0;
+    border-top: 1px dashed;
+}
+
+img {
+    max-width: 100%;
+}
+
+code {
+    font-family: monospace;
+    padding: 2px;
+    background-color: var(--code-background-color);
+    color: var(--code-color);
+    border-radius: 3px;
+}
+
+blockquote {
+    border-left: 1px solid #999;
+    color: var(--code-color);
+    padding-left: 20px;
+    font-style: italic;
+}
+
+footer {
+    padding: 25px 0;
+    text-align: center;
+}
+
+.title:hover {
+    text-decoration: none;
+}
+
+.title h1 {
+    font-size: 1.5em;
+}
+
+.inline {
+    width: auto !important;
+}
+
+.highlight, .code {
+    padding: 1px 15px;
+    background-color: var(--code-background-color);
+    color: var(--code-color);
+    border-radius: 3px;
+    margin-block-start: 1em;
+    margin-block-end: 1em;
+    overflow-x: auto;
+}
+
+/* blog post list */
+ul.blog-posts {
+    list-style-type: none;
+    padding: unset;
+}
+
+ul.blog-posts li {
+    display: flex;
+}
+
+ul.blog-posts li span {
+    flex: 0 0 130px;
+}
+
+ul.blog-posts li a:visited {
+    color: var(--visited-color);
+}
+    .upvote-button {
+        padding: 0;
+        margin: 0;
+        border: 0;
+        background-color: inherit;
+        color: inherit;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+    .upvote-button.upvoted {
+        color: salmon;
+    }
+    .upvote-count {
+        margin-top: -3px;
+    }
+
+      
+  </style>
+</head>
+
+<body class="post " onload="(function() { document.cookie = `timezone=${Intl.DateTimeFormat().resolvedOptions().timeZone};path=/`; })()">
+  
+  <header>
+    <a class="title" href="/">
+      <h1>
+        simons blog
+      </h1>
+    </a>
+    <nav>
+      <p><a href='/'>Home</a> <a href='/blog/'>Blog</a></p>
+
+    </nav>
+  </header>
+  <main>
+    
+
+    
+
+    
+        <h1>Thread Value Layouts in CuTe</h1>
+
+        <p>
+            <i>
+                <time datetime="2025-06-28T17:56Z">
+    28 Jun, 2025
+</time>
+            </i>
+        </p>
+    
+
+    <p>Thread Value Layout is a concept commonly used in <code>CuTeDSL</code> kernels.
+In this blogpost we aim to give a brief intuitive understanding of the concepts.
+We will provide visuals as this deepens understanding of the underlying concept and provides intuitive way to understand it.</p>
+<h2 id=problem-description>Problem description</h2><p>Following situation:</p>
+<p>We have an array layed out in memory. Layout in memory is linear and we assume that each element is next to the preceding and proceeding element. We want to perform the following task: Assign <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>N</mi></mrow></math> values in memory to <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msub><mi>N</mi><mrow><mi>t</mi><mi>h</mi><mi>r</mi><mi>e</mi><mi>a</mi><mi>d</mi><mi>s</mi></mrow></msub></mrow></math> threads in a way that we can draw.</p>
+<p>Let's consider the following example:</p>
+<p><img src="https://bear-images.sfo2.cdn.digitaloceanspaces.com/veitner/28-1.webp" alt="Screenshot 2025-06-28 at 16" /></p>
+<p>It is not immediately obvious how we would could come up with the appropriate indexing that archives this assignment. Fortunately <code>CuTe</code> layouts provide a convenient way to make such an assignment.</p>
+<h2 id=value-layout>Value Layout</h2><p>We start with the value layout for one Thread. Let's consider the blue elements above. We could arrange them as follows in a matrix:</p>
+<p><img src="https://bear-images.sfo2.cdn.digitaloceanspaces.com/veitner/16-1.webp" alt="Screenshot 2025-06-28 at 16" /></p>
+<p>Let us think how we could obtain such an arangment using <code>CuTe</code> Layouts:</p>
+<ul>
+<li>We have 2 <code>rows</code> and 3 <code>columns</code></li>
+<li>When we go down in mode <code>0</code>, i.e. the <code>row</code>, the value increases by <code>1</code></li>
+<li>When we go to the right in mode <code>1</code>, i.e. the <code>column</code>, the value increases by <code>4</code></li>
+</ul>
+<p>Thus the layout can be written down as <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mo stretchy="false">&#x00028;</mo><mn>2</mn><mo>&#x0002C;</mo><mn>3</mn><mo stretchy="false">&#x00029;</mo><mi>:</mi><mo stretchy="false">&#x00028;</mo><mn>1</mn><mo>&#x0002C;</mo><mn>4</mn><mo stretchy="false">&#x00029;</mo></mrow></math>.</p>
+<p>You can verify yourself this is indeed the "rule" we may use to obtain the value layout for all 4 threads.</p>
+<h2 id=thread-layout>Thread layout</h2><p>We have <code>4</code> threads to assign. So the thread layout should have a size of <code>4</code>.</p>
+<p>Above we have already fully described the values assigned to each thread. So we may drop everything but the first index of each thread to describe the threads. All the other values can be obtained from the value layout.</p>
+<p>Here is a picture to help understanding:</p>
+<p><img src="https://bear-images.sfo2.cdn.digitaloceanspaces.com/veitner/30.webp" alt="Screenshot 2025-06-28 at 16" /></p>
+<p>To obtain the corresponding layout lets rearrange that into a matrix:</p>
+<p><img src="https://bear-images.sfo2.cdn.digitaloceanspaces.com/veitner/01.webp" alt="Screenshot 2025-06-28 at 16" /></p>
+<ul>
+<li>We see that the matrix has shape 2 by 2</li>
+<li>We see that to go down we need to increase by 2</li>
+<li>We see that to go right we need to increase by 12</li>
+</ul>
+<p>That gives us the thread layout <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mo stretchy="false">&#x00028;</mo><mn>2</mn><mo>&#x0002C;</mo><mn>2</mn><mo stretchy="false">&#x00029;</mo><mi>:</mi><mo stretchy="false">&#x00028;</mo><mn>2</mn><mo>&#x0002C;</mo><mn>12</mn><mo stretchy="false">&#x00029;</mo></mrow></math>.</p>
+<h2 id=thread-value-layout>Thread Value Layout</h2><p>The full Thread Value Layout looks as follows:</p>
+<p><img src="https://bear-images.sfo2.cdn.digitaloceanspaces.com/veitner/47.webp" alt="Screenshot 2025-06-28 at 16" /></p>
+<p>As derived above we can obtain each Thread by the <em>Thread Layout</em> and than the corresponding values can be obtained with the <em>Value Layout</em>.</p>
+<p>The full layout can be written as <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mo stretchy="false">&#x00028;</mo><mo stretchy="false">&#x00028;</mo><mn>2</mn><mo>&#x0002C;</mo><mn>2</mn><mo stretchy="false">&#x00029;</mo><mo>&#x0002C;</mo><mo stretchy="false">&#x00028;</mo><mn>2</mn><mo>&#x0002C;</mo><mn>3</mn><mo stretchy="false">&#x00029;</mo><mo stretchy="false">&#x00029;</mo><mi>:</mi><mo stretchy="false">&#x00028;</mo><mo stretchy="false">&#x00028;</mo><mn>2</mn><mo>&#x0002C;</mo><mn>12</mn><mo stretchy="false">&#x00029;</mo><mo>&#x0002C;</mo><mo stretchy="false">&#x00028;</mo><mn>1</mn><mo>&#x0002C;</mo><mn>4</mn><mo stretchy="false">&#x00029;</mo><mo stretchy="false">&#x00029;</mo></mrow></math>. It is nice to see that this seemingly complex expression has actually pretty simple meaning. The associated layout function will map <code>(thread_index, value_index) -&gt; 1D coordinate of array</code>.</p>
+<h2 id=codecutedslcode-implementation><code>CuTeDSL</code> implementation</h2><p>We can verify our ideas above as follows in <code>CuTeDSL</code></p>
+<div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">cutlass.cute</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">cute</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">cutlass.cute.runtime</span><span class="w"> </span><span class="kn">import</span> <span class="n">from_dlpack</span>
+
+
+<span class="nd">@cute</span><span class="o">.</span><span class="n">kernel</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">visualize_tv_layout_kernel</span><span class="p">(</span><span class="n">mA</span><span class="p">:</span> <span class="n">cute</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">tv_layout</span><span class="p">:</span> <span class="n">cute</span><span class="o">.</span><span class="n">Layout</span><span class="p">):</span>
+    <span class="n">tidx</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">cute</span><span class="o">.</span><span class="n">arch</span><span class="o">.</span><span class="n">thread_idx</span><span class="p">()</span>
+    <span class="c1"># Compose mA with TV Layout</span>
+    <span class="n">composed</span> <span class="o">=</span> <span class="n">cute</span><span class="o">.</span><span class="n">composition</span><span class="p">(</span><span class="n">mA</span><span class="p">,</span> <span class="n">tv_layout</span><span class="p">)</span>
+    <span class="n">cute</span><span class="o">.</span><span class="n">printf</span><span class="p">(</span><span class="s2">&quot;TIDX: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">tidx</span><span class="p">)</span>
+    <span class="n">cute</span><span class="o">.</span><span class="n">printf</span><span class="p">(</span><span class="s2">&quot;DATA: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">composed</span><span class="p">[(</span><span class="n">tidx</span><span class="p">,</span> <span class="kc">None</span><span class="p">)])</span>
+
+
+<span class="nd">@cute</span><span class="o">.</span><span class="n">jit</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">visualize_tv_layout</span><span class="p">(</span>
+    <span class="n">mA</span><span class="p">:</span> <span class="n">cute</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span>
+<span class="p">):</span>
+    <span class="c1"># mA Layout: (24, 1) : (1, 0)</span>
+    <span class="n">tv_layout</span> <span class="o">=</span> <span class="n">cute</span><span class="o">.</span><span class="n">make_layout</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="p">((</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">),</span> <span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">)),</span> <span class="n">stride</span><span class="o">=</span><span class="p">((</span><span class="mi">2</span><span class="p">,</span> <span class="mi">12</span><span class="p">),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">4</span><span class="p">)))</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;TV Layout: </span><span class="si">{</span><span class="n">tv_layout</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Launch the kernel asynchronously</span>
+    <span class="c1"># Async token(s) can also be specified as dependencies</span>
+    <span class="n">visualize_tv_layout_kernel</span><span class="p">(</span><span class="n">mA</span><span class="p">,</span> <span class="n">tv_layout</span><span class="p">)</span><span class="o">.</span><span class="n">launch</span><span class="p">(</span>
+        <span class="n">grid</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span>
+        <span class="n">block</span><span class="o">=</span><span class="p">[</span><span class="n">cute</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="n">tv_layout</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span>
+    <span class="p">)</span>
+
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+    <span class="n">M</span><span class="p">,</span> <span class="n">N</span> <span class="o">=</span> <span class="mi">24</span><span class="p">,</span> <span class="mi">1</span>
+    <span class="n">a</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">M</span> <span class="o">*</span> <span class="n">N</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="s2">&quot;cuda&quot;</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">int32</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">M</span><span class="p">,</span> <span class="n">N</span><span class="p">)</span>
+    <span class="n">a_</span> <span class="o">=</span> <span class="n">from_dlpack</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">assumed_align</span><span class="o">=</span><span class="mi">16</span><span class="p">)</span>
+
+    <span class="n">visualize_tv_layout</span><span class="p">(</span><span class="n">a_</span><span class="p">)</span>
+</pre></div>
+<p>This will print out</p>
+<div class="highlight"><pre><span></span>TV Layout: ((2,2),(2,3)):((2,12),(1,4))
+TIDX: 0
+DATA: raw_ptr(0x00007fc4f5e00000: i32, gmem, align&lt;8&gt;) o ((2,3)):((1,4)) = 
+  ( 0, 1, 4, 5, 8, 9 )
+TIDX: 1
+DATA: raw_ptr(0x00007fc4f5e00008: i32, gmem, align&lt;8&gt;) o ((2,3)):((1,4)) = 
+  ( 2, 3, 6, 7, 10, 11 )
+TIDX: 2
+DATA: raw_ptr(0x00007fc4f5e00030: i32, gmem, align&lt;8&gt;) o ((2,3)):((1,4)) = 
+  ( 12, 13, 16, 17, 20, 21 )
+TIDX: 3
+DATA: raw_ptr(0x00007fc4f5e00038: i32, gmem, align&lt;8&gt;) o ((2,3)):((1,4)) = 
+  ( 14, 15, 18, 19, 22, 23 )
+</pre></div>
+<p>Which confirms our thought process above.</p>
+<p>Our tensor is equipped with a Layout of <code>(24, 1) : (1, 1)</code>. Note that in principle we could also use a different layout. By composing it with the <code>TV Layout</code> we obtain a map from <code>(thread_idx, value_idx) -&gt; coordinate to index into data -&gt; underlying data</code>.</p>
+<p><img src="https://bear-images.sfo2.cdn.digitaloceanspaces.com/veitner/32-1.webp" alt="Screenshot 2025-06-28 at 18" /></p>
+<p>Inside the kernel we first <code>compose</code> and than <code>slice</code> (into the corresponding thread index via <code>(tidx, None)</code> where <code>None</code> is similar to <code>:</code> in numpy). This is called <code>partioning</code>.</p>
+<h2 id=conclusion>Conclusion</h2><p>I hope this blogpost made the concept of Thread Value Layout which seems hard to understand at first easy accessible. I think to understand <code>CuTeDSL</code> deeper it is necessary to understand the fundamentals used often deeply.</p>
+<p>If you want to discuss <code>CuTe</code> or other <code>GPU</code> related topic you may contact me via <a href='https://www.linkedin.com/in/simon-veitner-174a681b6/'>Linkedin</a>.</p>
+
+
+    
+
+    
+        
+
+        
+            <form id="upvote-form" action="/upvote/" method="post" style="display: inline">
+    <small>
+        <input hidden name="uid" value="qXZycWYzmhyKMPoKiLhg" style="display:none">
+        <input hidden name="title" value="Thread Value Layouts in CuTe" style="display:none">
+
+        <button
+            class="upvote-button"
+            aria-label="Toast this post"
+            title="Toast this post"
+        >
+            <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" class="css-i6dzq1">
+                <polyline points="17 11 12 6 7 11"></polyline>
+                <polyline points="17 18 12 13 7 18"></polyline>
+            </svg>
+            <small class="upvote-count" aria-hidden="true">&nbsp;</small>
+        </button>
+    </small>        
+</form>
+
+<script>
+    const $upvoteButton = document.querySelector('.upvote-button');
+    const $upvoteCount =  document.querySelector('.upvote-count')
+
+    fetch('/upvote-info/qXZycWYzmhyKMPoKiLhg/').then(response => response.json()).then(data => {
+        $upvoteCount.innerText = data.upvote_count;
+        if (data.upvoted) {
+            $upvoteButton.disabled = true
+            $upvoteButton.style.color = "salmon"
+            $upvoteButton.ariaLabel = "Toasted"
+            $upvoteButton.title = "Toasted"
+        }
+        $upvoteButton.ariaLabel += ` (${data.upvote_count})`
+    });
+
+    let moved = false;
+    let pageLoaded = Date.now();
+
+    document.addEventListener('touchmove', () => moved = true);
+    document.addEventListener('mousemove', () => moved = true);
+
+    document.querySelector('#upvote-form').addEventListener('submit', (e) => {
+        e.preventDefault();
+
+        if (moved) {
+            document.querySelector('input[name="title"]').value = "";
+        }
+        if (Date.now() - pageLoaded < 2000 || !moved) {
+            return;
+        }
+
+        fetch(e.target.action, {
+            method: 'post',
+            body: new FormData(e.target),
+        });
+        
+        $upvoteButton.disabled = true
+        $upvoteButton.style.color = "salmon"
+        $upvoteButton.ariaLabel = "Toasted"
+        $upvoteButton.title = "Toasted"
+        const newUpvoteCount = `${(parseInt($upvoteCount.innerHTML.split(" ")[0]) + 1)}`
+        $upvoteCount.innerHTML = newUpvoteCount
+        $upvoteButton.ariaLabel += ` (${newUpvoteCount})`
+    });
+</script>
+        
+
+        
+            <script>
+            window.addEventListener("load", () => {
+                if (navigator.webdriver !== true) {
+                    const sendHit = score => {
+                        const params = new URLSearchParams({
+                            blog: "veitner",
+                            token: "qXZycWYzmhyKMPoKiLhg",
+                            referrer: document.referrer.includes("veitner.bearblog.dev") ? "" : document.referrer,
+                            title: "",
+                            score: score
+                        });
+                        new Image().src = `/hit/?${params.toString()}`;
+                    };
+
+                    document.addEventListener('touchmove', () => sendHit(100), { once: true });
+                    document.addEventListener('mousemove', () => sendHit(100), { once: true });
+                }
+            });
+            </script>
+        
+    
+
+
+  </main>
+  <footer>
+    
+    
+    <span>
+        Powered by <a href="https://bearblog.dev">Bear <span role="img" class="bear" aria-label="ASCII bear logo">ʕ•ᴥ•ʔ</span></a>
+    </span>
+
+  </footer>
+
+  
+  <script>
+        (() => {
+          "use strict";
+          const times = document.querySelectorAll('time');
+          const format_string = "d M, Y" || "d M, Y"
+
+          times.forEach(time => {
+              time.innerText = formatDate(time.dateTime, format_string)
+          });
+
+          function formatDate(dateStr, formatStr) {
+            const date = new Date(dateStr);
+            const day = date.getDate();
+            const month = date.getMonth();
+            const year = date.getFullYear();
+            const weekday = date.getDay();
+            const hours = date.getHours();
+            const minutes = date.getMinutes();
+            const monthsFull = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+            const monthsShort = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+            const daysFull = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+            const daysShort = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+            
+            function getOrdinal(n) {
+                const s = ['th', 'st', 'nd', 'rd'];
+                const v = n % 100;
+                return s[(v - 20) % 10] || s[v] || s[0];
+            }
+            
+            const map = {
+                'd': () => day.toString().padStart(2, '0'),
+                'm': () => (month + 1).toString().padStart(2, '0'),
+                'Y': () => year.toString(),
+                'y': () => year.toString().slice(-2),
+                'F': () => monthsFull[month],
+                'j': () => day.toString(),
+                'D': () => daysShort[weekday],
+                'l': () => daysFull[weekday],
+                'S': () => getOrdinal(day),
+                'M': () => monthsShort[month],
+                'H': () => hours.toString().padStart(2, '0'),
+                'h': () => {
+                    let h = hours % 12;
+                    h = h === 0 ? 12 : h;
+                    return h.toString().padStart(2, '0');
+                },
+                'g': () => {
+                    let h = hours % 12;
+                    return h === 0 ? '12' : h.toString();
+                },
+                'i': () => minutes.toString().padStart(2, '0'),
+                'a': () => hours < 12 ? 'am' : 'pm',
+                'A': () => hours < 12 ? 'AM' : 'PM',
+            };
+            
+            let result = '';
+            for (let char of formatStr) {
+                result += map[char] ? map[char]() : char;
+            }
+            return result;
+        }
+        })();
+    </script>
+    
+</body>
+<!-- ID: veitner -->
+<!-- 🐻 -->
+</html>

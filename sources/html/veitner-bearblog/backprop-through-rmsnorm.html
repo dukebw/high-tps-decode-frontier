@@ -1,0 +1,573 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!-- Powered by Bear Blog -->
+
+<head>
+  
+  
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5">
+  
+  <title>Backprop through RMSNorm | simons blog</title>
+  <link rel="canonical" href="https://veitner.bearblog.dev/backprop-through-rmsnorm/">
+  
+    
+
+    <meta name="veitner" content="look-for-the-bear-necessities">
+    <meta name="token" content="zKKWtUuDSHUSwwNzInGP">
+
+    
+<!-- Primary Meta Tags -->
+<meta name="title" content="Backprop through RMSNorm">
+<meta name="description" content="$yi=RMSNorm(xi) = \frac{1}{\sqrt{\sum{i=1}^N xi^2 + \epsilon}}xi wi$  
+
+Backprob
+
+$a = \frac{1}{N}\sum{i=1}^N xi^2$, $xi&#x27;= \frac{1}{\sqrt{a+\epsilon}}xi$...">
+
+<!-- Open Graph / Facebook -->
+<meta property="og:site_name" content="simons blog">
+<meta property="og:title" content="Backprop through RMSNorm">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://veitner.bearblog.dev/backprop-through-rmsnorm/">
+<meta property="og:description" content="$yi=RMSNorm(xi) = \frac{1}{\sqrt{\sum{i=1}^N xi^2 + \epsilon}}xi wi$  
+
+Backprob
+
+$a = \frac{1}{N}\sum{i=1}^N xi^2$, $xi&#x27;= \frac{1}{\sqrt{a+\epsilon}}xi$...">
+<meta property="og:image" content="/static/og-image.png">
+
+
+<!-- Twitter -->
+<meta property="twitter:card" content="summary">
+<meta property="twitter:url" content="https://veitner.bearblog.dev/backprop-through-rmsnorm/">
+<meta property="twitter:title" content="Backprop through RMSNorm">
+<meta property="twitter:description" content="$yi=RMSNorm(xi) = \frac{1}{\sqrt{\sum{i=1}^N xi^2 + \epsilon}}xi wi$  
+
+Backprob
+
+$a = \frac{1}{N}\sum{i=1}^N xi^2$, $xi&#x27;= \frac{1}{\sqrt{a+\epsilon}}xi$...">
+<meta property="twitter:image" content="/static/og-image.png">
+
+
+
+<!-- Microdata -->
+<script type="application/ld+json">
+  {
+    "@context": "http://schema.org",
+    "@type": "article",
+    "name": "Backprop through RMSNorm",
+    "headline": "Backprop through RMSNorm",
+    "url": "https://veitner.bearblog.dev/backprop-through-rmsnorm/",
+    "description": "$yi=RMSNorm(xi) = \frac{1}{\sqrt{\sum{i=1}^N xi^2 + \epsilon}}xi wi$  
+
+Backprob
+
+$a = \frac{1}{N}\sum{i=1}^N xi^2$, $xi&#x27;= \frac{1}{\sqrt{a+\epsilon}}xi$...",
+    "image": "/static/og-image.png"
+  }
+</script>
+    <link rel="alternate" type="application/atom+xml" href="/feed/" title="simons blog">
+    <link rel="alternate" type="application/rss+xml" href="/feed/?type=rss" title="simons blog">
+
+  
+    
+
+    
+    <style>pre { line-height: 125%; }
+td.linenos .normal { color: #666666; background-color: transparent; padding-left: 5px; padding-right: 5px; }
+span.linenos { color: #666666; background-color: transparent; padding-left: 5px; padding-right: 5px; }
+td.linenos .special { color: #000000; background-color: #ffffc0; padding-left: 5px; padding-right: 5px; }
+span.linenos.special { color: #000000; background-color: #ffffc0; padding-left: 5px; padding-right: 5px; }
+.highlight .hll { background-color: #ffffcc }
+.highlight { background: #f0f0f0; }
+.highlight .c { color: #60A0B0; font-style: italic } /* Comment */
+.highlight .err { border: 1px solid #F00 } /* Error */
+.highlight .k { color: #007020; font-weight: bold } /* Keyword */
+.highlight .o { color: #666 } /* Operator */
+.highlight .ch { color: #60A0B0; font-style: italic } /* Comment.Hashbang */
+.highlight .cm { color: #60A0B0; font-style: italic } /* Comment.Multiline */
+.highlight .cp { color: #007020 } /* Comment.Preproc */
+.highlight .cpf { color: #60A0B0; font-style: italic } /* Comment.PreprocFile */
+.highlight .c1 { color: #60A0B0; font-style: italic } /* Comment.Single */
+.highlight .cs { color: #60A0B0; background-color: #FFF0F0 } /* Comment.Special */
+.highlight .gd { color: #A00000 } /* Generic.Deleted */
+.highlight .ge { font-style: italic } /* Generic.Emph */
+.highlight .ges { font-weight: bold; font-style: italic } /* Generic.EmphStrong */
+.highlight .gr { color: #F00 } /* Generic.Error */
+.highlight .gh { color: #000080; font-weight: bold } /* Generic.Heading */
+.highlight .gi { color: #00A000 } /* Generic.Inserted */
+.highlight .go { color: #888 } /* Generic.Output */
+.highlight .gp { color: #C65D09; font-weight: bold } /* Generic.Prompt */
+.highlight .gs { font-weight: bold } /* Generic.Strong */
+.highlight .gu { color: #800080; font-weight: bold } /* Generic.Subheading */
+.highlight .gt { color: #04D } /* Generic.Traceback */
+.highlight .kc { color: #007020; font-weight: bold } /* Keyword.Constant */
+.highlight .kd { color: #007020; font-weight: bold } /* Keyword.Declaration */
+.highlight .kn { color: #007020; font-weight: bold } /* Keyword.Namespace */
+.highlight .kp { color: #007020 } /* Keyword.Pseudo */
+.highlight .kr { color: #007020; font-weight: bold } /* Keyword.Reserved */
+.highlight .kt { color: #902000 } /* Keyword.Type */
+.highlight .m { color: #40A070 } /* Literal.Number */
+.highlight .s { color: #4070A0 } /* Literal.String */
+.highlight .na { color: #4070A0 } /* Name.Attribute */
+.highlight .nb { color: #007020 } /* Name.Builtin */
+.highlight .nc { color: #0E84B5; font-weight: bold } /* Name.Class */
+.highlight .no { color: #60ADD5 } /* Name.Constant */
+.highlight .nd { color: #555; font-weight: bold } /* Name.Decorator */
+.highlight .ni { color: #D55537; font-weight: bold } /* Name.Entity */
+.highlight .ne { color: #007020 } /* Name.Exception */
+.highlight .nf { color: #06287E } /* Name.Function */
+.highlight .nl { color: #002070; font-weight: bold } /* Name.Label */
+.highlight .nn { color: #0E84B5; font-weight: bold } /* Name.Namespace */
+.highlight .nt { color: #062873; font-weight: bold } /* Name.Tag */
+.highlight .nv { color: #BB60D5 } /* Name.Variable */
+.highlight .ow { color: #007020; font-weight: bold } /* Operator.Word */
+.highlight .w { color: #BBB } /* Text.Whitespace */
+.highlight .mb { color: #40A070 } /* Literal.Number.Bin */
+.highlight .mf { color: #40A070 } /* Literal.Number.Float */
+.highlight .mh { color: #40A070 } /* Literal.Number.Hex */
+.highlight .mi { color: #40A070 } /* Literal.Number.Integer */
+.highlight .mo { color: #40A070 } /* Literal.Number.Oct */
+.highlight .sa { color: #4070A0 } /* Literal.String.Affix */
+.highlight .sb { color: #4070A0 } /* Literal.String.Backtick */
+.highlight .sc { color: #4070A0 } /* Literal.String.Char */
+.highlight .dl { color: #4070A0 } /* Literal.String.Delimiter */
+.highlight .sd { color: #4070A0; font-style: italic } /* Literal.String.Doc */
+.highlight .s2 { color: #4070A0 } /* Literal.String.Double */
+.highlight .se { color: #4070A0; font-weight: bold } /* Literal.String.Escape */
+.highlight .sh { color: #4070A0 } /* Literal.String.Heredoc */
+.highlight .si { color: #70A0D0; font-style: italic } /* Literal.String.Interpol */
+.highlight .sx { color: #C65D09 } /* Literal.String.Other */
+.highlight .sr { color: #235388 } /* Literal.String.Regex */
+.highlight .s1 { color: #4070A0 } /* Literal.String.Single */
+.highlight .ss { color: #517918 } /* Literal.String.Symbol */
+.highlight .bp { color: #007020 } /* Name.Builtin.Pseudo */
+.highlight .fm { color: #06287E } /* Name.Function.Magic */
+.highlight .vc { color: #BB60D5 } /* Name.Variable.Class */
+.highlight .vg { color: #BB60D5 } /* Name.Variable.Global */
+.highlight .vi { color: #BB60D5 } /* Name.Variable.Instance */
+.highlight .vm { color: #BB60D5 } /* Name.Variable.Magic */
+.highlight .il { color: #40A070 } /* Literal.Number.Integer.Long */
+</style>
+  
+  
+  
+    
+        <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20100%20100'%3E%3Ctext%20y='.9em'%20font-size='90'%3E🐼%3C/text%3E%3C/svg%3E">
+    
+
+
+
+  <style>
+      
+      
+    
+:root {
+    --width: 720px;
+    --font-main: Verdana, sans-serif;
+    --font-secondary: Verdana, sans-serif;
+    --font-scale: 1em;
+    --background-color: #fff;
+    --heading-color: #222;
+    --text-color: #444;
+    --link-color: #3273dc;
+    --visited-color:  #8b6fcb;
+    --code-background-color: #f2f2f2;
+    --code-color: #222;
+    --blockquote-color: #222;
+}
+
+@media (prefers-color-scheme: dark) {
+    :root {
+        --background-color: #01242e;
+        --heading-color: #eee;
+        --text-color: #ddd;
+        --link-color: #8cc2dd;
+        --visited-color:  #8b6fcb;
+        --code-background-color: #000;
+        --code-color: #ddd;
+        --blockquote-color: #ccc;
+    }
+}
+
+body {
+    font-family: var(--font-secondary);
+    font-size: var(--font-scale);
+    margin: auto;
+    padding: 20px;
+    max-width: var(--width);
+    text-align: left;
+    background-color: var(--background-color);
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    line-height: 1.5;
+    color: var(--text-color);
+}
+
+h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-main);
+    color: var(--heading-color);
+}
+
+a {
+    color: var(--link-color);
+    cursor: pointer;
+    text-decoration: none;
+}
+
+a:hover {
+    text-decoration: underline; 
+}
+
+nav a {
+    margin-right: 8px;
+}
+
+strong, b {
+    color: var(--heading-color);
+}
+
+button {
+    margin: 0;
+    cursor: pointer;
+}
+
+time {
+ 	font-family: monospace;
+  	font-style: normal;
+  	font-size: 15px;
+}
+
+main {
+    line-height: 1.6;
+}
+
+table {
+    width: 100%;
+}
+
+hr {
+    border: 0;
+    border-top: 1px dashed;
+}
+
+img {
+    max-width: 100%;
+}
+
+code {
+    font-family: monospace;
+    padding: 2px;
+    background-color: var(--code-background-color);
+    color: var(--code-color);
+    border-radius: 3px;
+}
+
+blockquote {
+    border-left: 1px solid #999;
+    color: var(--code-color);
+    padding-left: 20px;
+    font-style: italic;
+}
+
+footer {
+    padding: 25px 0;
+    text-align: center;
+}
+
+.title:hover {
+    text-decoration: none;
+}
+
+.title h1 {
+    font-size: 1.5em;
+}
+
+.inline {
+    width: auto !important;
+}
+
+.highlight, .code {
+    padding: 1px 15px;
+    background-color: var(--code-background-color);
+    color: var(--code-color);
+    border-radius: 3px;
+    margin-block-start: 1em;
+    margin-block-end: 1em;
+    overflow-x: auto;
+}
+
+/* blog post list */
+ul.blog-posts {
+    list-style-type: none;
+    padding: unset;
+}
+
+ul.blog-posts li {
+    display: flex;
+}
+
+ul.blog-posts li span {
+    flex: 0 0 130px;
+}
+
+ul.blog-posts li a:visited {
+    color: var(--visited-color);
+}
+    .upvote-button {
+        padding: 0;
+        margin: 0;
+        border: 0;
+        background-color: inherit;
+        color: inherit;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+    .upvote-button.upvoted {
+        color: salmon;
+    }
+    .upvote-count {
+        margin-top: -3px;
+    }
+
+      
+  </style>
+</head>
+
+<body class="post " onload="(function() { document.cookie = `timezone=${Intl.DateTimeFormat().resolvedOptions().timeZone};path=/`; })()">
+  
+  <header>
+    <a class="title" href="/">
+      <h1>
+        simons blog
+      </h1>
+    </a>
+    <nav>
+      <p><a href='/'>Home</a> <a href='/blog/'>Blog</a></p>
+
+    </nav>
+  </header>
+  <main>
+    
+
+    
+
+    
+        <h1>Backprop through RMSNorm</h1>
+
+        <p>
+            <i>
+                <time datetime="2025-07-13T12:08Z">
+    13 Jul, 2025
+</time>
+            </i>
+        </p>
+    
+
+    <p><math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msub><mi>y</mi><mi>i</mi></msub><mo>&#x0003D;</mo><mi>R</mi><mi>M</mi><mi>S</mi><mi>N</mi><mi>o</mi><mi>r</mi><mi>m</mi><mo stretchy="false">&#x00028;</mo><msub><mi>x</mi><mi>i</mi></msub><mo stretchy="false">&#x00029;</mo><mo>&#x0003D;</mo><mfrac><mrow><mn>1</mn></mrow><mrow><msqrt><mrow><msubsup><mo>&#x02211;</mo><mrow><mi>i</mi><mo>&#x0003D;</mo><mn>1</mn></mrow><mi>N</mi></msubsup><msubsup><mi>x</mi><mi>i</mi><mn>2</mn></msubsup><mo>&#x0002B;</mo><mi>&#x003F5;</mi></mrow></msqrt></mrow></mfrac><msub><mi>x</mi><mi>i</mi></msub><msub><mi>w</mi><mi>i</mi></msub></mrow></math></p>
+<p><img src="https://bear-images.sfo2.cdn.digitaloceanspaces.com/veitner/backprob.webp" alt="Backprob" /></p>
+<p><math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>a</mi><mo>&#x0003D;</mo><mfrac><mrow><mn>1</mn></mrow><mrow><mi>N</mi></mrow></mfrac><msubsup><mo>&#x02211;</mo><mrow><mi>i</mi><mo>&#x0003D;</mo><mn>1</mn></mrow><mi>N</mi></msubsup><msubsup><mi>x</mi><mi>i</mi><mn>2</mn></msubsup></mrow></math>, <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msubsup><mi>x</mi><mi>i</mi><mi>&#x02032;</mi></msubsup><mo>&#x0003D;</mo><mfrac><mrow><mn>1</mn></mrow><mrow><msqrt><mrow><mi>a</mi><mo>&#x0002B;</mo><mi>&#x003F5;</mi></mrow></msqrt></mrow></mfrac><msub><mi>x</mi><mi>i</mi></msub></mrow></math>, <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msub><mi>y</mi><mi>i</mi></msub><mo>&#x0003D;</mo><msubsup><mi>x</mi><mi>i</mi><mi>&#x02032;</mi></msubsup><mi>&#x000B7;</mi><msub><mi>w</mi><mi>i</mi></msub></mrow></math>, <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msub><mo>&#x02202;</mo><mrow><msub><mi>y</mi><mi>i</mi></msub></mrow></msub><mi>L</mi></mrow></math> given.</p>
+<p>First back propagation:</p>
+<math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><mrow><msub><mo>&#x02202;</mo><mrow><msubsup><mi>x</mi><mi>i</mi><mi>&#x02032;</mi></msubsup></mrow></msub><mi>L</mi><mo>&#x0003D;</mo><msub><mo>&#x02202;</mo><mrow><msub><mi>y</mi><mi>i</mi></msub></mrow></msub><mi>L</mi><mi>&#x000B7;</mi><msub><mo>&#x02202;</mo><mrow><msubsup><mi>x</mi><mi>i</mi><mi>&#x02032;</mi></msubsup></mrow></msub><msub><mi>y</mi><mi>i</mi></msub><mo>&#x0003D;</mo><msub><mo>&#x02202;</mo><mrow><msub><mi>y</mi><mi>i</mi></msub></mrow></msub><mi>L</mi><mi>&#x000B7;</mi><msub><mi>w</mi><mi>i</mi></msub></mrow></math><p>Second back propagation:
+Need to sum over all possible paths from <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msup><mi>x</mi><mi>&#x02032;</mi></msup></mrow></math> to <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>a</mi></mrow></math>.</p>
+<math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><mrow><msub><mo>&#x02202;</mo><mi>a</mi></msub><mi>L</mi><mo>&#x0003D;</mo><msub><mo>&#x02211;</mo><mi>j</mi></msub><msub><mo>&#x02202;</mo><mrow><msubsup><mi>x</mi><mi>j</mi><mi>&#x02032;</mi></msubsup></mrow></msub><mi>L</mi><mi>&#x000B7;</mi><msub><mo>&#x02202;</mo><mi>a</mi></msub><msubsup><mi>x</mi><mi>j</mi><mi>&#x02032;</mi></msubsup></mrow></math><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><mrow><msub><mo>&#x02202;</mo><mi>a</mi></msub><msubsup><mi>x</mi><mi>j</mi><mi>&#x02032;</mi></msubsup><mo>&#x0003D;</mo><msub><mi>x</mi><mi>j</mi></msub><msub><mo>&#x02202;</mo><mi>a</mi></msub><mo stretchy="false">&#x00028;</mo><mi>a</mi><mo>&#x0002B;</mo><mi>&#x003F5;</mi><msup><mo stretchy="false">&#x00029;</mo><mrow><mo>&#x02212;</mo><mn>1</mn><mo>&#x0002F;</mo><mn>2</mn></mrow></msup><mo>&#x0003D;</mo><mo>&#x02212;</mo><mfrac><mrow><mn>1</mn></mrow><mrow><mn>2</mn></mrow></mfrac><msub><mi>x</mi><mi>j</mi></msub><mo stretchy="false">&#x00028;</mo><mi>a</mi><mo>&#x0002B;</mo><mi>&#x003F5;</mi><msup><mo stretchy="false">&#x00029;</mo><mrow><mo>&#x02212;</mo><mn>3</mn><mo>&#x0002F;</mo><mn>2</mn></mrow></msup></mrow></math><p>Combine the two expressions gives</p>
+<math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><mrow><msub><mo>&#x02202;</mo><mi>a</mi></msub><mi>L</mi><mo>&#x0003D;</mo><mo>&#x02212;</mo><mfrac><mrow><mn>1</mn></mrow><mrow><mn>2</mn><mo stretchy="false">&#x00028;</mo><mi>a</mi><mo>&#x0002B;</mo><mi>&#x003F5;</mi><msup><mo stretchy="false">&#x00029;</mo><mrow><mn>3</mn><mo>&#x0002F;</mo><mn>2</mn></mrow></msup></mrow></mfrac><msub><mo>&#x02211;</mo><mi>j</mi></msub><msub><mo>&#x02202;</mo><mrow><msub><mi>y</mi><mi>j</mi></msub></mrow></msub><mi>L</mi><mi>&#x000B7;</mi><msub><mi>w</mi><mi>j</mi></msub><mi>&#x000B7;</mi><msub><mi>x</mi><mi>j</mi></msub></mrow></math><p>Third backpropagation:
+Incoming from two nodes, sum over these:</p>
+<math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><mrow><msub><mo>&#x02202;</mo><mrow><msub><mi>x</mi><mi>i</mi></msub></mrow></msub><mi>L</mi><mo>&#x0003D;</mo><msub><mo>&#x02202;</mo><mi>a</mi></msub><mi>L</mi><mi>&#x000B7;</mi><msub><mo>&#x02202;</mo><mrow><msub><mi>x</mi><mi>i</mi></msub></mrow></msub><mi>a</mi><mo>&#x0002B;</mo><msub><mo>&#x02202;</mo><mrow><msubsup><mi>x</mi><mi>i</mi><mi>&#x02032;</mi></msubsup></mrow></msub><mi>L</mi><mi>&#x000B7;</mi><msub><mo>&#x02202;</mo><mrow><msub><mi>x</mi><mi>i</mi></msub></mrow></msub><msubsup><mi>x</mi><mi>i</mi><mi>&#x02032;</mi></msubsup></mrow></math><p>First term</p>
+<math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><mrow><msub><mo>&#x02202;</mo><mrow><msub><mi>x</mi><mi>i</mi></msub></mrow></msub><mi>a</mi><mo>&#x0003D;</mo><mfrac><mrow><mn>2</mn></mrow><mrow><mi>N</mi></mrow></mfrac><mi>&#x000B7;</mi><msub><mi>x</mi><mi>i</mi></msub></mrow></math><p>Second term</p>
+<math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><mrow><msub><mo>&#x02202;</mo><mrow><msub><mi>x</mi><mi>i</mi></msub></mrow></msub><msubsup><mi>x</mi><mi>i</mi><mi>&#x02032;</mi></msubsup><mo>&#x0003D;</mo><mfrac><mrow><mn>1</mn></mrow><mrow><mo stretchy="false">&#x00028;</mo><mi>a</mi><mo>&#x0002B;</mo><mi>&#x003F5;</mi><msup><mo stretchy="false">&#x00029;</mo><mrow><mn>1</mn><mo>&#x0002F;</mo><mn>2</mn></mrow></msup></mrow></mfrac></mrow></math><p>From here it follows</p>
+<math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><mrow><msub><mo>&#x02202;</mo><mrow><msub><mi>x</mi><mi>i</mi></msub></mrow></msub><mi>L</mi><mo>&#x0003D;</mo><mo>&#x02212;</mo><mfrac><mrow><msub><mi>x</mi><mi>i</mi></msub></mrow><mrow><mo stretchy="false">&#x00028;</mo><mi>a</mi><mo>&#x0002B;</mo><mi>&#x003F5;</mi><msup><mo stretchy="false">&#x00029;</mo><mrow><mn>3</mn><mo>&#x0002F;</mo><mn>2</mn></mrow></msup></mrow></mfrac><mi>&#x000B7;</mi><mfrac><mrow><mn>1</mn></mrow><mrow><mi>N</mi></mrow></mfrac><msub><mo>&#x02211;</mo><mi>j</mi></msub><msub><mo>&#x02202;</mo><mrow><msub><mi>y</mi><mi>j</mi></msub></mrow></msub><mi>L</mi><mi>&#x000B7;</mi><msub><mi>w</mi><mi>j</mi></msub><mi>&#x000B7;</mi><msub><mi>x</mi><mi>j</mi></msub><mo>&#x0002B;</mo><mfrac><mrow><mn>1</mn></mrow><mrow><mo stretchy="false">&#x00028;</mo><mi>a</mi><mo>&#x0002B;</mo><mi>&#x003F5;</mi><msup><mo stretchy="false">&#x00029;</mo><mrow><mn>1</mn><mo>&#x0002F;</mo><mn>2</mn></mrow></msup></mrow></mfrac><msub><mo>&#x02202;</mo><mrow><msub><mi>y</mi><mi>i</mi></msub></mrow></msub><mi>L</mi><mi>&#x000B7;</mi><msub><mi>w</mi><mi>i</mi></msub><mo>&#x0002E;</mo></mrow></math><p>Factoring out common terms gives:</p>
+<math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><mrow><mfrac><mrow><mn>1</mn></mrow><mrow><mo stretchy="false">&#x00028;</mo><mi>a</mi><mo>&#x0002B;</mo><mi>&#x003F5;</mi><msup><mo stretchy="false">&#x00029;</mo><mrow><mn>1</mn><mo>&#x0002F;</mo><mn>2</mn></mrow></msup></mrow></mfrac><mo stretchy="false">&#x00028;</mo><msub><mo>&#x02202;</mo><mrow><msub><mi>y</mi><mi>i</mi></msub></mrow></msub><mi>L</mi><mi>&#x000B7;</mi><msub><mi>w</mi><mi>i</mi></msub><mo>&#x02212;</mo><mfrac><mrow><msub><mi>x</mi><mi>i</mi></msub></mrow><mrow><mo stretchy="false">&#x00028;</mo><mi>a</mi><mo>&#x0002B;</mo><mi>&#x003F5;</mi><msup><mo stretchy="false">&#x00029;</mo><mrow><mn>1</mn><mo>&#x0002F;</mo><mn>2</mn></mrow></msup></mrow></mfrac><mi>&#x000B7;</mi><mfrac><mrow><mn>1</mn></mrow><mrow><mi>N</mi></mrow></mfrac><msub><mo>&#x02211;</mo><mi>j</mi></msub><msub><mo>&#x02202;</mo><mrow><msub><mi>y</mi><mi>j</mi></msub></mrow></msub><mi>L</mi><mi>&#x000B7;</mi><msub><mi>w</mi><mi>j</mi></msub><mi>&#x000B7;</mi><mfrac><mrow><msub><mi>x</mi><mi>j</mi></msub></mrow><mrow><mo stretchy="false">&#x00028;</mo><mi>a</mi><mo>&#x0002B;</mo><mi>&#x003F5;</mi><msup><mo stretchy="false">&#x00029;</mo><mrow><mn>1</mn><mo>&#x0002F;</mo><mn>2</mn></mrow></msup></mrow></mfrac><mo stretchy="false">&#x00029;</mo><mo>&#x0002E;</mo></mrow></math><p>We can simplify further by using definition of <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msubsup><mi>x</mi><mi>i</mi><mi>&#x02032;</mi></msubsup></mrow></math>:</p>
+<math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><mrow><mfrac><mrow><mn>1</mn></mrow><mrow><mo stretchy="false">&#x00028;</mo><mi>a</mi><mo>&#x0002B;</mo><mi>&#x003F5;</mi><msup><mo stretchy="false">&#x00029;</mo><mrow><mn>1</mn><mo>&#x0002F;</mo><mn>2</mn></mrow></msup></mrow></mfrac><mo stretchy="false">&#x00028;</mo><msub><mo>&#x02202;</mo><mrow><msub><mi>y</mi><mi>i</mi></msub></mrow></msub><mi>L</mi><mi>&#x000B7;</mi><msub><mi>w</mi><mi>i</mi></msub><mo>&#x02212;</mo><msubsup><mi>x</mi><mi>i</mi><mi>&#x02032;</mi></msubsup><mi>&#x000B7;</mi><mfrac><mrow><mn>1</mn></mrow><mrow><mi>N</mi></mrow></mfrac><msub><mo>&#x02211;</mo><mi>j</mi></msub><msub><mo>&#x02202;</mo><mrow><msub><mi>y</mi><mi>j</mi></msub></mrow></msub><mi>L</mi><mi>&#x000B7;</mi><msub><mi>w</mi><mi>j</mi></msub><mi>&#x000B7;</mi><msubsup><mi>x</mi><mi>j</mi><mi>&#x02032;</mi></msubsup><mo stretchy="false">&#x00029;</mo><mo>&#x0002E;</mo></mrow></math><p>This agrees with reference <a href='https://github.com/Dao-AILab/quack/blob/main/quack/rmsnorm.py#L276'>here</a></p>
+<div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">rmsnorm_bwd_ref</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">w</span><span class="p">,</span> <span class="n">dout</span><span class="p">,</span> <span class="n">rstd</span><span class="p">,</span> <span class="n">eps</span><span class="o">=</span><span class="mf">1e-6</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Reference implementation for RMSNorm backward pass.&quot;&quot;&quot;</span>
+    <span class="n">x_f32</span> <span class="o">=</span> <span class="n">x</span><span class="o">.</span><span class="n">float</span><span class="p">()</span>
+    <span class="n">x_hat</span> <span class="o">=</span> <span class="n">x_f32</span> <span class="o">*</span> <span class="n">rstd</span><span class="o">.</span><span class="n">unsqueeze</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">wdy</span> <span class="o">=</span> <span class="n">dout</span> <span class="o">*</span> <span class="n">w</span>
+    <span class="n">c1</span> <span class="o">=</span> <span class="p">(</span><span class="n">x_hat</span> <span class="o">*</span> <span class="n">wdy</span><span class="p">)</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">dim</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span> <span class="n">keepdim</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">dx</span> <span class="o">=</span> <span class="p">(</span><span class="n">wdy</span> <span class="o">-</span> <span class="n">x_hat</span> <span class="o">*</span> <span class="n">c1</span><span class="p">)</span> <span class="o">*</span> <span class="n">rstd</span><span class="o">.</span><span class="n">unsqueeze</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+
+    <span class="c1"># dL/dW</span>
+    <span class="n">dw</span> <span class="o">=</span> <span class="p">(</span><span class="n">dout</span> <span class="o">*</span> <span class="n">x_hat</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">dim</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">dx</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">dtype</span><span class="p">),</span> <span class="n">dw</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">w</span><span class="o">.</span><span class="n">dtype</span><span class="p">)</span>
+</pre></div>
+
+
+    
+
+    
+        
+
+        
+            <form id="upvote-form" action="/upvote/" method="post" style="display: inline">
+    <small>
+        <input hidden name="uid" value="zKKWtUuDSHUSwwNzInGP" style="display:none">
+        <input hidden name="title" value="Backprop through RMSNorm" style="display:none">
+
+        <button
+            class="upvote-button"
+            aria-label="Toast this post"
+            title="Toast this post"
+        >
+            <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" class="css-i6dzq1">
+                <polyline points="17 11 12 6 7 11"></polyline>
+                <polyline points="17 18 12 13 7 18"></polyline>
+            </svg>
+            <small class="upvote-count" aria-hidden="true">&nbsp;</small>
+        </button>
+    </small>        
+</form>
+
+<script>
+    const $upvoteButton = document.querySelector('.upvote-button');
+    const $upvoteCount =  document.querySelector('.upvote-count')
+
+    fetch('/upvote-info/zKKWtUuDSHUSwwNzInGP/').then(response => response.json()).then(data => {
+        $upvoteCount.innerText = data.upvote_count;
+        if (data.upvoted) {
+            $upvoteButton.disabled = true
+            $upvoteButton.style.color = "salmon"
+            $upvoteButton.ariaLabel = "Toasted"
+            $upvoteButton.title = "Toasted"
+        }
+        $upvoteButton.ariaLabel += ` (${data.upvote_count})`
+    });
+
+    let moved = false;
+    let pageLoaded = Date.now();
+
+    document.addEventListener('touchmove', () => moved = true);
+    document.addEventListener('mousemove', () => moved = true);
+
+    document.querySelector('#upvote-form').addEventListener('submit', (e) => {
+        e.preventDefault();
+
+        if (moved) {
+            document.querySelector('input[name="title"]').value = "";
+        }
+        if (Date.now() - pageLoaded < 2000 || !moved) {
+            return;
+        }
+
+        fetch(e.target.action, {
+            method: 'post',
+            body: new FormData(e.target),
+        });
+        
+        $upvoteButton.disabled = true
+        $upvoteButton.style.color = "salmon"
+        $upvoteButton.ariaLabel = "Toasted"
+        $upvoteButton.title = "Toasted"
+        const newUpvoteCount = `${(parseInt($upvoteCount.innerHTML.split(" ")[0]) + 1)}`
+        $upvoteCount.innerHTML = newUpvoteCount
+        $upvoteButton.ariaLabel += ` (${newUpvoteCount})`
+    });
+</script>
+        
+
+        
+            <script>
+            window.addEventListener("load", () => {
+                if (navigator.webdriver !== true) {
+                    const sendHit = score => {
+                        const params = new URLSearchParams({
+                            blog: "veitner",
+                            token: "zKKWtUuDSHUSwwNzInGP",
+                            referrer: document.referrer.includes("veitner.bearblog.dev") ? "" : document.referrer,
+                            title: "",
+                            score: score
+                        });
+                        new Image().src = `/hit/?${params.toString()}`;
+                    };
+
+                    document.addEventListener('touchmove', () => sendHit(100), { once: true });
+                    document.addEventListener('mousemove', () => sendHit(100), { once: true });
+                }
+            });
+            </script>
+        
+    
+
+
+  </main>
+  <footer>
+    
+    
+    <span>
+        Powered by <a href="https://bearblog.dev">Bear <span role="img" class="bear" aria-label="ASCII bear logo">ʕ•ᴥ•ʔ</span></a>
+    </span>
+
+  </footer>
+
+  
+  <script>
+        (() => {
+          "use strict";
+          const times = document.querySelectorAll('time');
+          const format_string = "d M, Y" || "d M, Y"
+
+          times.forEach(time => {
+              time.innerText = formatDate(time.dateTime, format_string)
+          });
+
+          function formatDate(dateStr, formatStr) {
+            const date = new Date(dateStr);
+            const day = date.getDate();
+            const month = date.getMonth();
+            const year = date.getFullYear();
+            const weekday = date.getDay();
+            const hours = date.getHours();
+            const minutes = date.getMinutes();
+            const monthsFull = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+            const monthsShort = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+            const daysFull = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+            const daysShort = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+            
+            function getOrdinal(n) {
+                const s = ['th', 'st', 'nd', 'rd'];
+                const v = n % 100;
+                return s[(v - 20) % 10] || s[v] || s[0];
+            }
+            
+            const map = {
+                'd': () => day.toString().padStart(2, '0'),
+                'm': () => (month + 1).toString().padStart(2, '0'),
+                'Y': () => year.toString(),
+                'y': () => year.toString().slice(-2),
+                'F': () => monthsFull[month],
+                'j': () => day.toString(),
+                'D': () => daysShort[weekday],
+                'l': () => daysFull[weekday],
+                'S': () => getOrdinal(day),
+                'M': () => monthsShort[month],
+                'H': () => hours.toString().padStart(2, '0'),
+                'h': () => {
+                    let h = hours % 12;
+                    h = h === 0 ? 12 : h;
+                    return h.toString().padStart(2, '0');
+                },
+                'g': () => {
+                    let h = hours % 12;
+                    return h === 0 ? '12' : h.toString();
+                },
+                'i': () => minutes.toString().padStart(2, '0'),
+                'a': () => hours < 12 ? 'am' : 'pm',
+                'A': () => hours < 12 ? 'AM' : 'PM',
+            };
+            
+            let result = '';
+            for (let char of formatStr) {
+                result += map[char] ? map[char]() : char;
+            }
+            return result;
+        }
+        })();
+    </script>
+    
+</body>
+<!-- ID: veitner -->
+<!-- 🐻 -->
+</html>

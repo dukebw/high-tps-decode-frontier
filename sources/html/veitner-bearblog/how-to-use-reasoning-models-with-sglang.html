@@ -1,0 +1,763 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!-- Powered by Bear Blog -->
+
+<head>
+  
+  
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5">
+  
+  <title>How to use reasoning models with SGLang | simons blog</title>
+  <link rel="canonical" href="https://veitner.bearblog.dev/how-to-use-reasoning-models-with-sglang/">
+  
+    
+
+    <meta name="veitner" content="look-for-the-bear-necessities">
+    <meta name="token" content="LfBmFIscGYYWpzFIstEK">
+
+    
+<!-- Primary Meta Tags -->
+<meta name="title" content="How to use reasoning models with SGLang">
+<meta name="description" content="In this document we will provide a hands-on resource for people who quickly want to onboard to SGLang.
+SGLang is a highly performant inference engine for LL...">
+
+<!-- Open Graph / Facebook -->
+<meta property="og:site_name" content="simons blog">
+<meta property="og:title" content="How to use reasoning models with SGLang">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://veitner.bearblog.dev/how-to-use-reasoning-models-with-sglang/">
+<meta property="og:description" content="In this document we will provide a hands-on resource for people who quickly want to onboard to SGLang.
+SGLang is a highly performant inference engine for LL...">
+<meta property="og:image" content="/static/og-image.png">
+
+
+<!-- Twitter -->
+<meta property="twitter:card" content="summary">
+<meta property="twitter:url" content="https://veitner.bearblog.dev/how-to-use-reasoning-models-with-sglang/">
+<meta property="twitter:title" content="How to use reasoning models with SGLang">
+<meta property="twitter:description" content="In this document we will provide a hands-on resource for people who quickly want to onboard to SGLang.
+SGLang is a highly performant inference engine for LL...">
+<meta property="twitter:image" content="/static/og-image.png">
+
+
+
+<!-- Microdata -->
+<script type="application/ld+json">
+  {
+    "@context": "http://schema.org",
+    "@type": "article",
+    "name": "How to use reasoning models with SGLang",
+    "headline": "How to use reasoning models with SGLang",
+    "url": "https://veitner.bearblog.dev/how-to-use-reasoning-models-with-sglang/",
+    "description": "In this document we will provide a hands-on resource for people who quickly want to onboard to SGLang.
+SGLang is a highly performant inference engine for LL...",
+    "image": "/static/og-image.png"
+  }
+</script>
+    <link rel="alternate" type="application/atom+xml" href="/feed/" title="simons blog">
+    <link rel="alternate" type="application/rss+xml" href="/feed/?type=rss" title="simons blog">
+
+  
+    
+
+    
+    <style>pre { line-height: 125%; }
+td.linenos .normal { color: #666666; background-color: transparent; padding-left: 5px; padding-right: 5px; }
+span.linenos { color: #666666; background-color: transparent; padding-left: 5px; padding-right: 5px; }
+td.linenos .special { color: #000000; background-color: #ffffc0; padding-left: 5px; padding-right: 5px; }
+span.linenos.special { color: #000000; background-color: #ffffc0; padding-left: 5px; padding-right: 5px; }
+.highlight .hll { background-color: #ffffcc }
+.highlight { background: #f0f0f0; }
+.highlight .c { color: #60A0B0; font-style: italic } /* Comment */
+.highlight .err { border: 1px solid #F00 } /* Error */
+.highlight .k { color: #007020; font-weight: bold } /* Keyword */
+.highlight .o { color: #666 } /* Operator */
+.highlight .ch { color: #60A0B0; font-style: italic } /* Comment.Hashbang */
+.highlight .cm { color: #60A0B0; font-style: italic } /* Comment.Multiline */
+.highlight .cp { color: #007020 } /* Comment.Preproc */
+.highlight .cpf { color: #60A0B0; font-style: italic } /* Comment.PreprocFile */
+.highlight .c1 { color: #60A0B0; font-style: italic } /* Comment.Single */
+.highlight .cs { color: #60A0B0; background-color: #FFF0F0 } /* Comment.Special */
+.highlight .gd { color: #A00000 } /* Generic.Deleted */
+.highlight .ge { font-style: italic } /* Generic.Emph */
+.highlight .ges { font-weight: bold; font-style: italic } /* Generic.EmphStrong */
+.highlight .gr { color: #F00 } /* Generic.Error */
+.highlight .gh { color: #000080; font-weight: bold } /* Generic.Heading */
+.highlight .gi { color: #00A000 } /* Generic.Inserted */
+.highlight .go { color: #888 } /* Generic.Output */
+.highlight .gp { color: #C65D09; font-weight: bold } /* Generic.Prompt */
+.highlight .gs { font-weight: bold } /* Generic.Strong */
+.highlight .gu { color: #800080; font-weight: bold } /* Generic.Subheading */
+.highlight .gt { color: #04D } /* Generic.Traceback */
+.highlight .kc { color: #007020; font-weight: bold } /* Keyword.Constant */
+.highlight .kd { color: #007020; font-weight: bold } /* Keyword.Declaration */
+.highlight .kn { color: #007020; font-weight: bold } /* Keyword.Namespace */
+.highlight .kp { color: #007020 } /* Keyword.Pseudo */
+.highlight .kr { color: #007020; font-weight: bold } /* Keyword.Reserved */
+.highlight .kt { color: #902000 } /* Keyword.Type */
+.highlight .m { color: #40A070 } /* Literal.Number */
+.highlight .s { color: #4070A0 } /* Literal.String */
+.highlight .na { color: #4070A0 } /* Name.Attribute */
+.highlight .nb { color: #007020 } /* Name.Builtin */
+.highlight .nc { color: #0E84B5; font-weight: bold } /* Name.Class */
+.highlight .no { color: #60ADD5 } /* Name.Constant */
+.highlight .nd { color: #555; font-weight: bold } /* Name.Decorator */
+.highlight .ni { color: #D55537; font-weight: bold } /* Name.Entity */
+.highlight .ne { color: #007020 } /* Name.Exception */
+.highlight .nf { color: #06287E } /* Name.Function */
+.highlight .nl { color: #002070; font-weight: bold } /* Name.Label */
+.highlight .nn { color: #0E84B5; font-weight: bold } /* Name.Namespace */
+.highlight .nt { color: #062873; font-weight: bold } /* Name.Tag */
+.highlight .nv { color: #BB60D5 } /* Name.Variable */
+.highlight .ow { color: #007020; font-weight: bold } /* Operator.Word */
+.highlight .w { color: #BBB } /* Text.Whitespace */
+.highlight .mb { color: #40A070 } /* Literal.Number.Bin */
+.highlight .mf { color: #40A070 } /* Literal.Number.Float */
+.highlight .mh { color: #40A070 } /* Literal.Number.Hex */
+.highlight .mi { color: #40A070 } /* Literal.Number.Integer */
+.highlight .mo { color: #40A070 } /* Literal.Number.Oct */
+.highlight .sa { color: #4070A0 } /* Literal.String.Affix */
+.highlight .sb { color: #4070A0 } /* Literal.String.Backtick */
+.highlight .sc { color: #4070A0 } /* Literal.String.Char */
+.highlight .dl { color: #4070A0 } /* Literal.String.Delimiter */
+.highlight .sd { color: #4070A0; font-style: italic } /* Literal.String.Doc */
+.highlight .s2 { color: #4070A0 } /* Literal.String.Double */
+.highlight .se { color: #4070A0; font-weight: bold } /* Literal.String.Escape */
+.highlight .sh { color: #4070A0 } /* Literal.String.Heredoc */
+.highlight .si { color: #70A0D0; font-style: italic } /* Literal.String.Interpol */
+.highlight .sx { color: #C65D09 } /* Literal.String.Other */
+.highlight .sr { color: #235388 } /* Literal.String.Regex */
+.highlight .s1 { color: #4070A0 } /* Literal.String.Single */
+.highlight .ss { color: #517918 } /* Literal.String.Symbol */
+.highlight .bp { color: #007020 } /* Name.Builtin.Pseudo */
+.highlight .fm { color: #06287E } /* Name.Function.Magic */
+.highlight .vc { color: #BB60D5 } /* Name.Variable.Class */
+.highlight .vg { color: #BB60D5 } /* Name.Variable.Global */
+.highlight .vi { color: #BB60D5 } /* Name.Variable.Instance */
+.highlight .vm { color: #BB60D5 } /* Name.Variable.Magic */
+.highlight .il { color: #40A070 } /* Literal.Number.Integer.Long */
+</style>
+  
+  
+  
+    
+        <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20100%20100'%3E%3Ctext%20y='.9em'%20font-size='90'%3E🐼%3C/text%3E%3C/svg%3E">
+    
+
+
+
+  <style>
+      
+      
+    
+:root {
+    --width: 720px;
+    --font-main: Verdana, sans-serif;
+    --font-secondary: Verdana, sans-serif;
+    --font-scale: 1em;
+    --background-color: #fff;
+    --heading-color: #222;
+    --text-color: #444;
+    --link-color: #3273dc;
+    --visited-color:  #8b6fcb;
+    --code-background-color: #f2f2f2;
+    --code-color: #222;
+    --blockquote-color: #222;
+}
+
+@media (prefers-color-scheme: dark) {
+    :root {
+        --background-color: #01242e;
+        --heading-color: #eee;
+        --text-color: #ddd;
+        --link-color: #8cc2dd;
+        --visited-color:  #8b6fcb;
+        --code-background-color: #000;
+        --code-color: #ddd;
+        --blockquote-color: #ccc;
+    }
+}
+
+body {
+    font-family: var(--font-secondary);
+    font-size: var(--font-scale);
+    margin: auto;
+    padding: 20px;
+    max-width: var(--width);
+    text-align: left;
+    background-color: var(--background-color);
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    line-height: 1.5;
+    color: var(--text-color);
+}
+
+h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-main);
+    color: var(--heading-color);
+}
+
+a {
+    color: var(--link-color);
+    cursor: pointer;
+    text-decoration: none;
+}
+
+a:hover {
+    text-decoration: underline; 
+}
+
+nav a {
+    margin-right: 8px;
+}
+
+strong, b {
+    color: var(--heading-color);
+}
+
+button {
+    margin: 0;
+    cursor: pointer;
+}
+
+time {
+ 	font-family: monospace;
+  	font-style: normal;
+  	font-size: 15px;
+}
+
+main {
+    line-height: 1.6;
+}
+
+table {
+    width: 100%;
+}
+
+hr {
+    border: 0;
+    border-top: 1px dashed;
+}
+
+img {
+    max-width: 100%;
+}
+
+code {
+    font-family: monospace;
+    padding: 2px;
+    background-color: var(--code-background-color);
+    color: var(--code-color);
+    border-radius: 3px;
+}
+
+blockquote {
+    border-left: 1px solid #999;
+    color: var(--code-color);
+    padding-left: 20px;
+    font-style: italic;
+}
+
+footer {
+    padding: 25px 0;
+    text-align: center;
+}
+
+.title:hover {
+    text-decoration: none;
+}
+
+.title h1 {
+    font-size: 1.5em;
+}
+
+.inline {
+    width: auto !important;
+}
+
+.highlight, .code {
+    padding: 1px 15px;
+    background-color: var(--code-background-color);
+    color: var(--code-color);
+    border-radius: 3px;
+    margin-block-start: 1em;
+    margin-block-end: 1em;
+    overflow-x: auto;
+}
+
+/* blog post list */
+ul.blog-posts {
+    list-style-type: none;
+    padding: unset;
+}
+
+ul.blog-posts li {
+    display: flex;
+}
+
+ul.blog-posts li span {
+    flex: 0 0 130px;
+}
+
+ul.blog-posts li a:visited {
+    color: var(--visited-color);
+}
+    .upvote-button {
+        padding: 0;
+        margin: 0;
+        border: 0;
+        background-color: inherit;
+        color: inherit;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+    .upvote-button.upvoted {
+        color: salmon;
+    }
+    .upvote-count {
+        margin-top: -3px;
+    }
+
+      
+  </style>
+</head>
+
+<body class="post " onload="(function() { document.cookie = `timezone=${Intl.DateTimeFormat().resolvedOptions().timeZone};path=/`; })()">
+  
+  <header>
+    <a class="title" href="/">
+      <h1>
+        simons blog
+      </h1>
+    </a>
+    <nav>
+      <p><a href='/'>Home</a> <a href='/blog/'>Blog</a></p>
+
+    </nav>
+  </header>
+  <main>
+    
+
+    
+
+    
+        <h1>How to use reasoning models with SGLang</h1>
+
+        <p>
+            <i>
+                <time datetime="2025-05-11T15:00Z">
+    11 May, 2025
+</time>
+            </i>
+        </p>
+    
+
+    <p>In this document we will provide a hands-on resource for people who quickly want to onboard to SGLang.
+SGLang is a highly performant inference engine for LLMs and scales well up to <a href='https://lmsys.org/blog/2025-05-05-large-scale-ep/'>large number of GPUs</a>.
+We will use the new <a href='https://github.com/QwenLM/Qwen3'>Qwen3</a> model series which enjoyed first day support on SGLang.
+In this blogpost we will use the <code>8B</code> model. If you are on a smaller GPU please check out one of the smaller <code>Qwen</code> models, they are equally great.</p>
+<h2 id=setup-develop-environment>Setup develop environment</h2><p>Use the following command to run a docker container which SGLang setup and ready to use</p>
+<div class="highlight"><pre><span></span>docker<span class="w"> </span>run<span class="w"> </span>-it<span class="w"> </span>--name<span class="w"> </span>h100_simon<span class="w"> </span>--gpus<span class="w"> </span><span class="nv">device</span><span class="o">=</span><span class="m">7</span><span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--shm-size<span class="w"> </span>32g<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>-v<span class="w"> </span>/.cache:/root/.cache<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--ipc<span class="o">=</span>host<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>lmsysorg/sglang:dev<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>/bin/zsh
+</pre></div>
+<p>From now on we will work inside this docker container.
+Note: I choose above <code>device = 7</code>, you may of course choose any device or <code>all</code> to use all available GPUs.</p>
+<h2 id=basic-inference>Basic inference</h2><p>Use</p>
+<div class="highlight"><pre><span></span>python3<span class="w"> </span>-m<span class="w"> </span>sglang.launch_server<span class="w"> </span>--model-path<span class="w"> </span>Qwen/Qwen3-8B
+</pre></div>
+<p>to spin up a server.
+Initially that will take some time because the model weights will be downloaded, afterwards the server start will be much quicker.
+For additional server arguments please refer to the corresponding <a href='https://docs.sglang.ai/backend/server_arguments.html'>doc</a>.</p>
+<p>After the server is up you will see in terminal:</p>
+<div class="highlight"><pre><span></span>The<span class="w"> </span>server<span class="w"> </span>is<span class="w"> </span>fired<span class="w"> </span>up<span class="w"> </span>and<span class="w"> </span>ready<span class="w"> </span>to<span class="w"> </span>roll!
+</pre></div>
+<p>We are now set to perform inference.</p>
+<p>To use <code>Qwen3</code> please execute the following program:</p>
+<div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">openai</span><span class="w"> </span><span class="kn">import</span> <span class="n">OpenAI</span>
+<span class="c1"># Set OpenAI&#39;s API key and API base to use SGLang&#39;s API server.</span>
+<span class="n">openai_api_key</span> <span class="o">=</span> <span class="s2">&quot;EMPTY&quot;</span>
+<span class="n">openai_api_base</span> <span class="o">=</span> <span class="s2">&quot;http://localhost:30000/v1&quot;</span>
+
+<span class="n">client</span> <span class="o">=</span> <span class="n">OpenAI</span><span class="p">(</span>
+    <span class="n">api_key</span><span class="o">=</span><span class="n">openai_api_key</span><span class="p">,</span>
+    <span class="n">base_url</span><span class="o">=</span><span class="n">openai_api_base</span><span class="p">,</span>
+<span class="p">)</span>
+
+<span class="n">chat_response</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">chat</span><span class="o">.</span><span class="n">completions</span><span class="o">.</span><span class="n">create</span><span class="p">(</span>
+    <span class="n">model</span><span class="o">=</span><span class="s2">&quot;Qwen/Qwen3-8B&quot;</span><span class="p">,</span>
+    <span class="n">messages</span><span class="o">=</span><span class="p">[</span>
+        <span class="p">{</span><span class="s2">&quot;role&quot;</span><span class="p">:</span> <span class="s2">&quot;user&quot;</span><span class="p">,</span> <span class="s2">&quot;content&quot;</span><span class="p">:</span> <span class="s2">&quot;Give me a short introduction to large language models.&quot;</span><span class="p">},</span>
+    <span class="p">],</span>
+    <span class="n">max_tokens</span><span class="o">=</span><span class="mi">32768</span><span class="p">,</span>
+    <span class="n">temperature</span><span class="o">=</span><span class="mf">0.6</span><span class="p">,</span>
+    <span class="n">top_p</span><span class="o">=</span><span class="mf">0.95</span><span class="p">,</span>
+    <span class="n">extra_body</span><span class="o">=</span><span class="p">{</span>
+        <span class="s2">&quot;top_k&quot;</span><span class="p">:</span> <span class="mi">20</span><span class="p">,</span>
+    <span class="p">},</span> 
+<span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Chat response:&quot;</span><span class="p">,</span> <span class="n">chat_response</span><span class="p">)</span>
+</pre></div>
+<p>You will recieve the response</p>
+<div class="highlight"><pre><span></span>Chat response: ChatCompletion(id=&#39;f5f49f3ca0034271b847d960df16563e&#39;, choices=[Choice(finish_reason=&#39;stop&#39;, index=0, logprobs=None, message=ChatCompletionMessage(content=&quot;&lt;think&gt;\nOkay, the user wants a short introduction to large language models. Let me start by defining what they are. They&#39;re AI systems trained on massive amounts of text data. I should mention their ability to understand and generate human-like text. Maybe include some examples like GPT or BERT. Also, highlight their applications in tasks like answering questions, writing, coding, and more. Keep it concise but cover the key points. Avoid technical jargon so it&#39;s accessible. Make sure to note that they&#39;re part of the broader field of NLP. Check if there&#39;s anything else important, like their training process or significance. Alright, that should cover it.\n&lt;/think&gt;\n\nLarge language models (LLMs) are advanced artificial intelligence systems trained on vast amounts of text data to understand and generate human-like language. They can perform tasks such as answering questions, writing stories, coding, and translating languages by recognizing patterns in text. These models, like GPT or BERT, leverage deep learning to process and produce coherent responses, making them powerful tools in natural language processing (NLP) and a cornerstone of modern AI applications.&quot;, refusal=None, role=&#39;assistant&#39;, annotations=None, audio=None, function_call=None, tool_calls=None, reasoning_content=None), matched_stop=151645)], created=1746716570, model=&#39;Qwen/Qwen3-8B&#39;, object=&#39;chat.completion&#39;, service_tier=None, system_fingerprint=None, usage=CompletionUsage(completion_tokens=227, prompt_tokens=18, total_tokens=245, completion_tokens_details=None, prompt_tokens_details=None))
+</pre></div>
+<p>An equivalent way of getting the response would be to use <code>curl</code></p>
+<div class="highlight"><pre><span></span>curl http://localhost:30000/v1/chat/completions -H &quot;Content-Type: application/json&quot; -d &#39;{
+  &quot;model&quot;: &quot;Qwen/Qwen3-8B&quot;,
+  &quot;messages&quot;: [
+    {&quot;role&quot;: &quot;user&quot;, &quot;content&quot;: &quot;Give me a short introduction to large language models.&quot;}
+  ],
+  &quot;temperature&quot;: 0.6,
+  &quot;top_p&quot;: 0.95,
+  &quot;top_k&quot;: 20,
+  &quot;max_tokens&quot;: 32768
+}&#39;
+</pre></div>
+<p>You will than recieve the response in the following format:</p>
+<div class="highlight"><pre><span></span><span class="o">{</span><span class="s2">&quot;id&quot;</span>:<span class="s2">&quot;25f606ceada843eb8d980114b0475d87&quot;</span>,<span class="s2">&quot;object&quot;</span>:<span class="s2">&quot;chat.completion&quot;</span>,<span class="s2">&quot;created&quot;</span>:1746716675,<span class="s2">&quot;model&quot;</span>:<span class="s2">&quot;Qwen/Qwen3-8B&quot;</span>,<span class="s2">&quot;choices&quot;</span>:<span class="o">[{</span><span class="s2">&quot;index&quot;</span>:0,<span class="s2">&quot;message&quot;</span>:<span class="o">{</span><span class="s2">&quot;role&quot;</span>:<span class="s2">&quot;assistant&quot;</span>,<span class="s2">&quot;content&quot;</span>:<span class="s2">&quot;&lt;think&gt;\nOkay, the user wants a short introduction to large language models. Let me start by defining what they are. I should mention that they are AI systems trained on vast amounts of text data. Then, maybe explain how they work, like using deep learning and neural networks. It&#39;s important to highlight their ability to understand and generate human-like text. I should also touch on their applications, such as answering questions, creating content, coding, etc. Oh, and maybe mention some examples like GPT or BERT. Wait, the user might not know specific models, so I should keep it general. Also, I need to keep it concise since they asked for a short intro. Let me make sure not to get too technical. Maybe include something about their scale, like the number of parameters. But don&#39;t go into too much detail. Alright, let me put that together in a clear, straightforward way.\n&lt;/think&gt;\n\nLarge language models (LLMs) are advanced AI systems trained on vast amounts of text data to understand and generate human-like language. They use deep learning techniques, such as transformer architectures, to process and analyze patterns in text, enabling tasks like answering questions, creating content, coding, and even reasoning. These models, often with billions of parameters, excel at tasks requiring contextual understanding and can adapt to diverse applications, from customer service to research. Notable examples include models like GPT, BERT, and others developed by companies like OpenAI and Google. Their ability to mimic human language makes them powerful tools for automation, creativity, and problem-solving.&quot;</span>,<span class="s2">&quot;reasoning_content&quot;</span>:null,<span class="s2">&quot;tool_calls&quot;</span>:null<span class="o">}</span>,<span class="s2">&quot;logprobs&quot;</span>:null,<span class="s2">&quot;finish_reason&quot;</span>:<span class="s2">&quot;stop&quot;</span>,<span class="s2">&quot;matched_stop&quot;</span>:151645<span class="o">}]</span>,<span class="s2">&quot;usage&quot;</span>:<span class="o">{</span><span class="s2">&quot;prompt_tokens&quot;</span>:18,<span class="s2">&quot;total_tokens&quot;</span>:335,<span class="s2">&quot;completion_tokens&quot;</span>:317,<span class="s2">&quot;prompt_tokens_details&quot;</span>:null<span class="o">}}</span>
+</pre></div>
+<h2 id=parsing-reasoning-content>Parsing reasoning content</h2><p>We may want to separate reasoning content from the rest of the response.
+SGLang offers the capability to do so by providing the additional server argument <code>--reasoning-parser</code>.</p>
+<p>To start the model with reasoning parser please execute:</p>
+<div class="highlight"><pre><span></span><span class="n">python3</span> <span class="o">-</span><span class="n">m</span> <span class="n">sglang</span><span class="o">.</span><span class="n">launch_server</span> <span class="o">--</span><span class="n">model</span><span class="o">-</span><span class="n">path</span> <span class="n">Qwen</span><span class="o">/</span><span class="n">Qwen3</span><span class="o">-</span><span class="mi">8</span><span class="n">B</span> <span class="o">--</span><span class="n">reasoning</span><span class="o">-</span><span class="n">parser</span> <span class="n">qwen3</span>
+</pre></div>
+<p>We can than separate reasoning from the rest of the content as follows:</p>
+<div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">openai</span><span class="w"> </span><span class="kn">import</span> <span class="n">OpenAI</span>
+<span class="c1"># Set OpenAI&#39;s API key and API base to use SGLang&#39;s API server.</span>
+<span class="n">openai_api_key</span> <span class="o">=</span> <span class="s2">&quot;EMPTY&quot;</span>
+<span class="n">openai_api_base</span> <span class="o">=</span> <span class="s2">&quot;http://localhost:30000/v1&quot;</span>
+
+<span class="n">client</span> <span class="o">=</span> <span class="n">OpenAI</span><span class="p">(</span>
+    <span class="n">api_key</span><span class="o">=</span><span class="n">openai_api_key</span><span class="p">,</span>
+    <span class="n">base_url</span><span class="o">=</span><span class="n">openai_api_base</span><span class="p">,</span>
+<span class="p">)</span>
+
+<span class="n">chat_response</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">chat</span><span class="o">.</span><span class="n">completions</span><span class="o">.</span><span class="n">create</span><span class="p">(</span>
+    <span class="n">model</span><span class="o">=</span><span class="s2">&quot;Qwen/Qwen3-8B&quot;</span><span class="p">,</span>
+    <span class="n">messages</span><span class="o">=</span><span class="p">[</span>
+        <span class="p">{</span><span class="s2">&quot;role&quot;</span><span class="p">:</span> <span class="s2">&quot;user&quot;</span><span class="p">,</span> <span class="s2">&quot;content&quot;</span><span class="p">:</span> <span class="s2">&quot;Give me a short introduction to large language models.&quot;</span><span class="p">},</span>
+    <span class="p">],</span>
+    <span class="n">max_tokens</span><span class="o">=</span><span class="mi">32768</span><span class="p">,</span>
+    <span class="n">temperature</span><span class="o">=</span><span class="mf">0.6</span><span class="p">,</span>
+    <span class="n">top_p</span><span class="o">=</span><span class="mf">0.95</span><span class="p">,</span>
+    <span class="n">extra_body</span><span class="o">=</span><span class="p">{</span>
+        <span class="s2">&quot;top_k&quot;</span><span class="p">:</span> <span class="mi">20</span><span class="p">,</span>
+        <span class="s2">&quot;separate_reasoning&quot;</span><span class="p">:</span> <span class="kc">True</span>
+    <span class="p">},</span> 
+<span class="p">)</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;==== Reasoning ====&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">chat_response</span><span class="o">.</span><span class="n">choices</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">message</span><span class="o">.</span><span class="n">reasoning_content</span><span class="p">)</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;==== Text ====&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">chat_response</span><span class="o">.</span><span class="n">choices</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">message</span><span class="o">.</span><span class="n">content</span><span class="p">)</span>
+</pre></div>
+<p>This will give use</p>
+<div class="highlight"><pre><span></span>==== Reasoning ====
+Okay, the user wants a short introduction to large language models. Let me start by defining what they are. They are AI systems trained on massive amounts of text data. I should mention their ability to understand and generate human-like text. Maybe include examples like GPT or BERT. Also, highlight their applications in various fields. Need to keep it concise but informative. Let me check if I&#39;m missing any key points. Oh, maybe mention the training process and the scale of data. Avoid technical jargon to keep it accessible. Alright, that should cover the basics without being too lengthy.
+
+==== Text ====
+Large language models (LLMs) are advanced artificial intelligence systems trained on vast amounts of text data to understand and generate human-like language. These models, such as GPT or BERT, use deep learning techniques to recognize patterns, answer questions, and create coherent text across diverse topics. Their ability to process and generate natural language makes them valuable for tasks like translation, summarization, chatbots, and content creation. LLMs continue to evolve, driving innovations in fields like education, healthcare, and customer service.
+</pre></div>
+<p>For more details please see the documentation of the <a href='https://docs.sglang.ai/backend/separate_reasoning.html'>Reasoning parser</a>.</p>
+<h2 id=structured-output>Structured output</h2><p>Structured output is an interesting application of LLMs.
+We can use them to structure previously unstructured data and bring it into a format that can further be processed.</p>
+<p>The following script can generate structured output, after a server is started with <code>reasoning-parser</code>.</p>
+<div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">openai</span><span class="w"> </span><span class="kn">import</span> <span class="n">OpenAI</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pydantic</span><span class="w"> </span><span class="kn">import</span> <span class="n">BaseModel</span><span class="p">,</span> <span class="n">Field</span>
+
+<span class="c1"># Set OpenAI&#39;s API key and API base to use SGLang&#39;s API server.</span>
+<span class="n">openai_api_key</span> <span class="o">=</span> <span class="s2">&quot;EMPTY&quot;</span>
+<span class="n">openai_api_base</span> <span class="o">=</span> <span class="s2">&quot;http://localhost:30000/v1&quot;</span>
+
+<span class="n">client</span> <span class="o">=</span> <span class="n">OpenAI</span><span class="p">(</span>
+    <span class="n">api_key</span><span class="o">=</span><span class="n">openai_api_key</span><span class="p">,</span>
+    <span class="n">base_url</span><span class="o">=</span><span class="n">openai_api_base</span><span class="p">,</span>
+<span class="p">)</span>
+
+<span class="c1"># Define the schema using Pydantic</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">CapitalInfo</span><span class="p">(</span><span class="n">BaseModel</span><span class="p">):</span>
+    <span class="n">name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="o">...</span><span class="p">,</span> <span class="n">pattern</span><span class="o">=</span><span class="sa">r</span><span class="s2">&quot;^\w+$&quot;</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Name of the capital city&quot;</span><span class="p">)</span>
+    <span class="n">population</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="o">...</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Population of the capital city&quot;</span><span class="p">)</span>
+
+
+<span class="n">response</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">chat</span><span class="o">.</span><span class="n">completions</span><span class="o">.</span><span class="n">create</span><span class="p">(</span>
+    <span class="n">model</span><span class="o">=</span><span class="s2">&quot;Qwen/Qwen3-8B&quot;</span><span class="p">,</span>
+    <span class="n">messages</span><span class="o">=</span><span class="p">[</span>
+        <span class="p">{</span>
+            <span class="s2">&quot;role&quot;</span><span class="p">:</span> <span class="s2">&quot;system&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;content&quot;</span><span class="p">:</span> <span class="s2">&quot;Please extract the name and population of the given country as JSON schema.&quot;</span>
+        <span class="p">},</span>
+        <span class="p">{</span>
+            <span class="s2">&quot;role&quot;</span><span class="p">:</span> <span class="s2">&quot;user&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;content&quot;</span><span class="p">:</span> <span class="s2">&quot;Please extract name and population of the Capital of France.&quot;</span><span class="p">,</span>
+        <span class="p">},</span>
+    <span class="p">],</span>
+    <span class="n">temperature</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+    <span class="n">max_tokens</span><span class="o">=</span><span class="mi">2048</span><span class="p">,</span>
+    <span class="n">response_format</span><span class="o">=</span><span class="p">{</span>
+        <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;json_schema&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;json_schema&quot;</span><span class="p">:</span> <span class="p">{</span>
+            <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;foo&quot;</span><span class="p">,</span>
+            <span class="c1"># convert the pydantic model to json schema</span>
+            <span class="s2">&quot;schema&quot;</span><span class="p">:</span> <span class="n">CapitalInfo</span><span class="o">.</span><span class="n">model_json_schema</span><span class="p">(),</span>
+        <span class="p">},</span>
+    <span class="p">},</span>
+<span class="p">)</span>
+
+<span class="nb">print</span><span class="p">(</span>
+    <span class="sa">f</span><span class="s2">&quot;reasoning content: </span><span class="si">{</span><span class="n">response</span><span class="o">.</span><span class="n">choices</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">message</span><span class="o">.</span><span class="n">reasoning_content</span><span class="si">}</span><span class="se">\n\n</span><span class="s2">content: </span><span class="si">{</span><span class="n">response</span><span class="o">.</span><span class="n">choices</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">message</span><span class="o">.</span><span class="n">content</span><span class="si">}</span><span class="s2">&quot;</span>
+<span class="p">)</span>
+</pre></div>
+<p>Here we use <a href='https://docs.pydantic.dev/latest/'>Pydantic</a> to formulate our structure in a convenient way.</p>
+<div class="highlight"><pre><span></span>reasoning content: Okay, the user is asking for the name and population of the capital of France. Let me break this down.
+
+First, I need to confirm which city is the capital of France. I know that France&#39;s capital is Paris. So the name part is straightforward.
+
+Next, the population. I remember that Paris has a population of around 2.1 million people. But wait, I should check if that&#39;s the latest data. The most recent estimates might be a bit higher or lower. Let me think—maybe the 2023 estimate is about 2.16 million? Or is it 2.1 million? I think the commonly cited figure is approximately 2.1 million, but I should be precise. 
+
+Wait, the user might be expecting the exact number. Let me recall. The population of Paris is often cited as around 2.1 million, but the exact figure can vary. For example, the 2022 estimate was about 2.16 million. However, sometimes sources round it to 2.1 million for simplicity. 
+
+I need to make sure I&#39;m not giving outdated information. If I can&#39;t recall the exact number, it&#39;s better to state the approximate figure. Also, the user might not need the most precise number, just a reasonable estimate. 
+
+So, putting it all together, the capital of France is Paris, and its population is approximately 2.1 million. I should present this as a JSON object with &quot;name&quot; and &quot;population&quot; keys. Let me double-check the structure to ensure it&#39;s correct. The JSON should have the name as a string and population as a number. 
+
+Wait, the user said &quot;population of the Capital of France,&quot; so the capital is Paris, and the population is that of Paris. I need to make sure there&#39;s no confusion with the population of France as a country versus the capital city. The question specifically asks for the capital&#39;s population, so Paris is correct. 
+
+Alright, I think that&#39;s all. The JSON should be accurate and clear.
+
+
+content: {
+
+  &quot;name&quot;: &quot;Paris&quot;,
+  &quot;population&quot;: 2100000
+}
+</pre></div>
+<p>For more see the corresponding <a href='https://docs.sglang.ai/backend/structured_outputs_for_reasoning_models.html'>SGLang doc</a>.</p>
+<h2 id=multi-gpu-usage>Multi GPU usage</h2><p>There are multiple reasons why we would like to use more than one GPU.</p>
+<ul>
+<li>The model doesn't fit onto one GPU.</li>
+<li>We want to leverage multiple GPUs to process inputs in parallel.</li>
+</ul>
+<p>The first problem can be solved by <code>tensor parellelism</code>, i.e. we distribute the model weight in a sharded fashion onto multiple GPUs. Notice that this technique is mainly employed for memory constraints, not to get higher throughput.
+The second problem can be solved by <code>data parallelism</code>, i.e. we replicate the model along multiple GPUs and send requests in parallel to one of them.</p>
+<p>SGLangs <a href='https://docs.sglang.ai/router/router.html'>router</a> can be used to leverage multiple GPUs in a convenient way.</p>
+<p>It can be installed via <code>pip install sglang-router</code>.</p>
+<p>Let us modify the above docker start script to use multiple GPUs, i.e.</p>
+<div class="highlight"><pre><span></span>docker run -it --name h100_simon --gpus &#39;&quot;device=6,7&quot;&#39; \
+    --shm-size 32g \
+    -v /.cache:/root/.cache \
+    --ipc=host \
+    lmsysorg/sglang:dev \
+    /bin/zsh
+</pre></div>
+<p>Tensor parallel and data parallel size can be controlled via <code>dp-size</code> and <code>tp-size</code> server arguments.
+Using the router starting in data parallel mode is as simple as</p>
+<div class="highlight"><pre><span></span>python3<span class="w"> </span>-m<span class="w"> </span>sglang_router.launch_server<span class="w"> </span>--model-path<span class="w"> </span>Qwen/Qwen3-8B<span class="w"> </span>--dp-size<span class="w"> </span><span class="m">2</span>
+</pre></div>
+<p>We will get notices that the process is finished successfully by a message like this:</p>
+<div class="highlight"><pre><span></span><span class="err">✅</span> <span class="n">Serving</span> <span class="n">workers</span> <span class="n">on</span> <span class="p">[</span><span class="s2">&quot;http://127.0.0.1:31000&quot;</span><span class="p">,</span> <span class="s2">&quot;http://127.0.0.1:31186&quot;</span><span class="p">]</span>
+</pre></div>
+<p>Please note that you will need to fulfil <code>dp_size * tp_size = #GPUs</code>.</p>
+<p>Let's simulate a heavy workload.
+Note that we don't tune for highest performance here. This is just to show that the router works as expected and processes the requests on both GPUs. Please observe the terminal where you started the router to understand better.
+To understand command line arguments please refer to <a href='https://github.com/sgl-project/sglang/blob/main/python/sglang/bench_serving.py'>bench_serving.py</a>.</p>
+<div class="highlight"><pre><span></span>python3 -m sglang.bench_serving --backend sglang --dataset-name random --num-prompts 1000 --random-input 4096 --random-output 4096 --random-range-ratio 0.5
+</pre></div>
+<p>You may execute</p>
+<div class="highlight"><pre><span></span>watch nvidia-smi
+</pre></div>
+<p>and see both GPUs being heavily utilised:
+<img src="https://bear-images.sfo2.cdn.digitaloceanspaces.com/veitner/48.webp" alt="Screenshot 2025-05-08 at 22" /></p>
+<h2 id=conclusion>Conclusion</h2><p>I hope this blogpost made SGLang and reasoning models in SGLang better understandable. If you have further questions please let me know. You can contact me via <a href='https://www.linkedin.com/in/simon-veitner-174a681b6/'>Linkedin</a>.</p>
+<p>There is multiple valuable resources on SGLang</p>
+<ul>
+<li>SGLang is OpenSource and naturally the <a href='https://github.com/sgl-project/sglang'>codebase</a> is a highly valuable resource.</li>
+<li>The <a href='https://docs.sglang.ai/index.html'>documentation</a> contains lots of examples. As well as the <a href='https://github.com/sgl-project/sglang/tree/main/examples'>examples</a> folder.</li>
+<li>The <a href='https://github.com/sgl-project/sglang/tree/main/benchmark'>benchmark</a> folder of the SGLang repo contains more involved examples.</li>
+<li>A technical deep dive is given in <a href='https://github.com/zhaochenyang20/Awesome-ML-SYS-Tutorial/tree/main/sglang/code-walk-through'>Code walkthrough</a> of the <a href='https://github.com/zhaochenyang20/Awesome-ML-SYS-Tutorial/tree/main/sglang'>Awesome-ML-Sys</a> Tutorial repo.</li>
+<li>The SGLang Slack Channel is a very helpful community.</li>
+</ul>
+
+
+    
+
+    
+        
+
+        
+            <form id="upvote-form" action="/upvote/" method="post" style="display: inline">
+    <small>
+        <input hidden name="uid" value="LfBmFIscGYYWpzFIstEK" style="display:none">
+        <input hidden name="title" value="How to use reasoning models with SGLang" style="display:none">
+
+        <button
+            class="upvote-button"
+            aria-label="Toast this post"
+            title="Toast this post"
+        >
+            <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" class="css-i6dzq1">
+                <polyline points="17 11 12 6 7 11"></polyline>
+                <polyline points="17 18 12 13 7 18"></polyline>
+            </svg>
+            <small class="upvote-count" aria-hidden="true">&nbsp;</small>
+        </button>
+    </small>        
+</form>
+
+<script>
+    const $upvoteButton = document.querySelector('.upvote-button');
+    const $upvoteCount =  document.querySelector('.upvote-count')
+
+    fetch('/upvote-info/LfBmFIscGYYWpzFIstEK/').then(response => response.json()).then(data => {
+        $upvoteCount.innerText = data.upvote_count;
+        if (data.upvoted) {
+            $upvoteButton.disabled = true
+            $upvoteButton.style.color = "salmon"
+            $upvoteButton.ariaLabel = "Toasted"
+            $upvoteButton.title = "Toasted"
+        }
+        $upvoteButton.ariaLabel += ` (${data.upvote_count})`
+    });
+
+    let moved = false;
+    let pageLoaded = Date.now();
+
+    document.addEventListener('touchmove', () => moved = true);
+    document.addEventListener('mousemove', () => moved = true);
+
+    document.querySelector('#upvote-form').addEventListener('submit', (e) => {
+        e.preventDefault();
+
+        if (moved) {
+            document.querySelector('input[name="title"]').value = "";
+        }
+        if (Date.now() - pageLoaded < 2000 || !moved) {
+            return;
+        }
+
+        fetch(e.target.action, {
+            method: 'post',
+            body: new FormData(e.target),
+        });
+        
+        $upvoteButton.disabled = true
+        $upvoteButton.style.color = "salmon"
+        $upvoteButton.ariaLabel = "Toasted"
+        $upvoteButton.title = "Toasted"
+        const newUpvoteCount = `${(parseInt($upvoteCount.innerHTML.split(" ")[0]) + 1)}`
+        $upvoteCount.innerHTML = newUpvoteCount
+        $upvoteButton.ariaLabel += ` (${newUpvoteCount})`
+    });
+</script>
+        
+
+        
+            <script>
+            window.addEventListener("load", () => {
+                if (navigator.webdriver !== true) {
+                    const sendHit = score => {
+                        const params = new URLSearchParams({
+                            blog: "veitner",
+                            token: "LfBmFIscGYYWpzFIstEK",
+                            referrer: document.referrer.includes("veitner.bearblog.dev") ? "" : document.referrer,
+                            title: "",
+                            score: score
+                        });
+                        new Image().src = `/hit/?${params.toString()}`;
+                    };
+
+                    document.addEventListener('touchmove', () => sendHit(100), { once: true });
+                    document.addEventListener('mousemove', () => sendHit(100), { once: true });
+                }
+            });
+            </script>
+        
+    
+
+
+  </main>
+  <footer>
+    
+    
+    <span>
+        Powered by <a href="https://bearblog.dev">Bear <span role="img" class="bear" aria-label="ASCII bear logo">ʕ•ᴥ•ʔ</span></a>
+    </span>
+
+  </footer>
+
+  
+  <script>
+        (() => {
+          "use strict";
+          const times = document.querySelectorAll('time');
+          const format_string = "d M, Y" || "d M, Y"
+
+          times.forEach(time => {
+              time.innerText = formatDate(time.dateTime, format_string)
+          });
+
+          function formatDate(dateStr, formatStr) {
+            const date = new Date(dateStr);
+            const day = date.getDate();
+            const month = date.getMonth();
+            const year = date.getFullYear();
+            const weekday = date.getDay();
+            const hours = date.getHours();
+            const minutes = date.getMinutes();
+            const monthsFull = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+            const monthsShort = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+            const daysFull = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+            const daysShort = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+            
+            function getOrdinal(n) {
+                const s = ['th', 'st', 'nd', 'rd'];
+                const v = n % 100;
+                return s[(v - 20) % 10] || s[v] || s[0];
+            }
+            
+            const map = {
+                'd': () => day.toString().padStart(2, '0'),
+                'm': () => (month + 1).toString().padStart(2, '0'),
+                'Y': () => year.toString(),
+                'y': () => year.toString().slice(-2),
+                'F': () => monthsFull[month],
+                'j': () => day.toString(),
+                'D': () => daysShort[weekday],
+                'l': () => daysFull[weekday],
+                'S': () => getOrdinal(day),
+                'M': () => monthsShort[month],
+                'H': () => hours.toString().padStart(2, '0'),
+                'h': () => {
+                    let h = hours % 12;
+                    h = h === 0 ? 12 : h;
+                    return h.toString().padStart(2, '0');
+                },
+                'g': () => {
+                    let h = hours % 12;
+                    return h === 0 ? '12' : h.toString();
+                },
+                'i': () => minutes.toString().padStart(2, '0'),
+                'a': () => hours < 12 ? 'am' : 'pm',
+                'A': () => hours < 12 ? 'AM' : 'PM',
+            };
+            
+            let result = '';
+            for (let char of formatStr) {
+                result += map[char] ? map[char]() : char;
+            }
+            return result;
+        }
+        })();
+    </script>
+    
+</body>
+<!-- ID: veitner -->
+<!-- 🐻 -->
+</html>

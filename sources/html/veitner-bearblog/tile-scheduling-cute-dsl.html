@@ -1,0 +1,591 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!-- Powered by Bear Blog -->
+
+<head>
+  
+  
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5">
+  
+  <title>Tile Scheduling in CuTeDSL | simons blog</title>
+  <link rel="canonical" href="https://veitner.bearblog.dev/tile-scheduling-cute-dsl/">
+  
+    
+
+    <meta name="veitner" content="look-for-the-bear-necessities">
+    <meta name="token" content="rjMnaKUcKfjBQhriYEAV">
+
+    
+<!-- Primary Meta Tags -->
+<meta name="title" content="Tile Scheduling in CuTeDSL">
+<meta name="description" content="In CuTeDSL, it is often convenient to use StaticPersistentTileScheduler when writing persistent kernels. In this blogpost I give a brief intro to how it work...">
+
+<!-- Open Graph / Facebook -->
+<meta property="og:site_name" content="simons blog">
+<meta property="og:title" content="Tile Scheduling in CuTeDSL">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://veitner.bearblog.dev/tile-scheduling-cute-dsl/">
+<meta property="og:description" content="In CuTeDSL, it is often convenient to use StaticPersistentTileScheduler when writing persistent kernels. In this blogpost I give a brief intro to how it work...">
+<meta property="og:image" content="/static/og-image.png">
+
+
+<!-- Twitter -->
+<meta property="twitter:card" content="summary">
+<meta property="twitter:url" content="https://veitner.bearblog.dev/tile-scheduling-cute-dsl/">
+<meta property="twitter:title" content="Tile Scheduling in CuTeDSL">
+<meta property="twitter:description" content="In CuTeDSL, it is often convenient to use StaticPersistentTileScheduler when writing persistent kernels. In this blogpost I give a brief intro to how it work...">
+<meta property="twitter:image" content="/static/og-image.png">
+
+
+
+<!-- Microdata -->
+<script type="application/ld+json">
+  {
+    "@context": "http://schema.org",
+    "@type": "article",
+    "name": "Tile Scheduling in CuTeDSL",
+    "headline": "Tile Scheduling in CuTeDSL",
+    "url": "https://veitner.bearblog.dev/tile-scheduling-cute-dsl/",
+    "description": "In CuTeDSL, it is often convenient to use StaticPersistentTileScheduler when writing persistent kernels. In this blogpost I give a brief intro to how it work...",
+    "image": "/static/og-image.png"
+  }
+</script>
+    <link rel="alternate" type="application/atom+xml" href="/feed/" title="simons blog">
+    <link rel="alternate" type="application/rss+xml" href="/feed/?type=rss" title="simons blog">
+
+  
+    
+
+    
+    <style>pre { line-height: 125%; }
+td.linenos .normal { color: #666666; background-color: transparent; padding-left: 5px; padding-right: 5px; }
+span.linenos { color: #666666; background-color: transparent; padding-left: 5px; padding-right: 5px; }
+td.linenos .special { color: #000000; background-color: #ffffc0; padding-left: 5px; padding-right: 5px; }
+span.linenos.special { color: #000000; background-color: #ffffc0; padding-left: 5px; padding-right: 5px; }
+.highlight .hll { background-color: #ffffcc }
+.highlight { background: #f0f0f0; }
+.highlight .c { color: #60A0B0; font-style: italic } /* Comment */
+.highlight .err { border: 1px solid #F00 } /* Error */
+.highlight .k { color: #007020; font-weight: bold } /* Keyword */
+.highlight .o { color: #666 } /* Operator */
+.highlight .ch { color: #60A0B0; font-style: italic } /* Comment.Hashbang */
+.highlight .cm { color: #60A0B0; font-style: italic } /* Comment.Multiline */
+.highlight .cp { color: #007020 } /* Comment.Preproc */
+.highlight .cpf { color: #60A0B0; font-style: italic } /* Comment.PreprocFile */
+.highlight .c1 { color: #60A0B0; font-style: italic } /* Comment.Single */
+.highlight .cs { color: #60A0B0; background-color: #FFF0F0 } /* Comment.Special */
+.highlight .gd { color: #A00000 } /* Generic.Deleted */
+.highlight .ge { font-style: italic } /* Generic.Emph */
+.highlight .ges { font-weight: bold; font-style: italic } /* Generic.EmphStrong */
+.highlight .gr { color: #F00 } /* Generic.Error */
+.highlight .gh { color: #000080; font-weight: bold } /* Generic.Heading */
+.highlight .gi { color: #00A000 } /* Generic.Inserted */
+.highlight .go { color: #888 } /* Generic.Output */
+.highlight .gp { color: #C65D09; font-weight: bold } /* Generic.Prompt */
+.highlight .gs { font-weight: bold } /* Generic.Strong */
+.highlight .gu { color: #800080; font-weight: bold } /* Generic.Subheading */
+.highlight .gt { color: #04D } /* Generic.Traceback */
+.highlight .kc { color: #007020; font-weight: bold } /* Keyword.Constant */
+.highlight .kd { color: #007020; font-weight: bold } /* Keyword.Declaration */
+.highlight .kn { color: #007020; font-weight: bold } /* Keyword.Namespace */
+.highlight .kp { color: #007020 } /* Keyword.Pseudo */
+.highlight .kr { color: #007020; font-weight: bold } /* Keyword.Reserved */
+.highlight .kt { color: #902000 } /* Keyword.Type */
+.highlight .m { color: #40A070 } /* Literal.Number */
+.highlight .s { color: #4070A0 } /* Literal.String */
+.highlight .na { color: #4070A0 } /* Name.Attribute */
+.highlight .nb { color: #007020 } /* Name.Builtin */
+.highlight .nc { color: #0E84B5; font-weight: bold } /* Name.Class */
+.highlight .no { color: #60ADD5 } /* Name.Constant */
+.highlight .nd { color: #555; font-weight: bold } /* Name.Decorator */
+.highlight .ni { color: #D55537; font-weight: bold } /* Name.Entity */
+.highlight .ne { color: #007020 } /* Name.Exception */
+.highlight .nf { color: #06287E } /* Name.Function */
+.highlight .nl { color: #002070; font-weight: bold } /* Name.Label */
+.highlight .nn { color: #0E84B5; font-weight: bold } /* Name.Namespace */
+.highlight .nt { color: #062873; font-weight: bold } /* Name.Tag */
+.highlight .nv { color: #BB60D5 } /* Name.Variable */
+.highlight .ow { color: #007020; font-weight: bold } /* Operator.Word */
+.highlight .w { color: #BBB } /* Text.Whitespace */
+.highlight .mb { color: #40A070 } /* Literal.Number.Bin */
+.highlight .mf { color: #40A070 } /* Literal.Number.Float */
+.highlight .mh { color: #40A070 } /* Literal.Number.Hex */
+.highlight .mi { color: #40A070 } /* Literal.Number.Integer */
+.highlight .mo { color: #40A070 } /* Literal.Number.Oct */
+.highlight .sa { color: #4070A0 } /* Literal.String.Affix */
+.highlight .sb { color: #4070A0 } /* Literal.String.Backtick */
+.highlight .sc { color: #4070A0 } /* Literal.String.Char */
+.highlight .dl { color: #4070A0 } /* Literal.String.Delimiter */
+.highlight .sd { color: #4070A0; font-style: italic } /* Literal.String.Doc */
+.highlight .s2 { color: #4070A0 } /* Literal.String.Double */
+.highlight .se { color: #4070A0; font-weight: bold } /* Literal.String.Escape */
+.highlight .sh { color: #4070A0 } /* Literal.String.Heredoc */
+.highlight .si { color: #70A0D0; font-style: italic } /* Literal.String.Interpol */
+.highlight .sx { color: #C65D09 } /* Literal.String.Other */
+.highlight .sr { color: #235388 } /* Literal.String.Regex */
+.highlight .s1 { color: #4070A0 } /* Literal.String.Single */
+.highlight .ss { color: #517918 } /* Literal.String.Symbol */
+.highlight .bp { color: #007020 } /* Name.Builtin.Pseudo */
+.highlight .fm { color: #06287E } /* Name.Function.Magic */
+.highlight .vc { color: #BB60D5 } /* Name.Variable.Class */
+.highlight .vg { color: #BB60D5 } /* Name.Variable.Global */
+.highlight .vi { color: #BB60D5 } /* Name.Variable.Instance */
+.highlight .vm { color: #BB60D5 } /* Name.Variable.Magic */
+.highlight .il { color: #40A070 } /* Literal.Number.Integer.Long */
+</style>
+  
+  
+  
+    
+        <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20100%20100'%3E%3Ctext%20y='.9em'%20font-size='90'%3E🐼%3C/text%3E%3C/svg%3E">
+    
+
+
+
+  <style>
+      
+      
+    
+:root {
+    --width: 720px;
+    --font-main: Verdana, sans-serif;
+    --font-secondary: Verdana, sans-serif;
+    --font-scale: 1em;
+    --background-color: #fff;
+    --heading-color: #222;
+    --text-color: #444;
+    --link-color: #3273dc;
+    --visited-color:  #8b6fcb;
+    --code-background-color: #f2f2f2;
+    --code-color: #222;
+    --blockquote-color: #222;
+}
+
+@media (prefers-color-scheme: dark) {
+    :root {
+        --background-color: #01242e;
+        --heading-color: #eee;
+        --text-color: #ddd;
+        --link-color: #8cc2dd;
+        --visited-color:  #8b6fcb;
+        --code-background-color: #000;
+        --code-color: #ddd;
+        --blockquote-color: #ccc;
+    }
+}
+
+body {
+    font-family: var(--font-secondary);
+    font-size: var(--font-scale);
+    margin: auto;
+    padding: 20px;
+    max-width: var(--width);
+    text-align: left;
+    background-color: var(--background-color);
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    line-height: 1.5;
+    color: var(--text-color);
+}
+
+h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-main);
+    color: var(--heading-color);
+}
+
+a {
+    color: var(--link-color);
+    cursor: pointer;
+    text-decoration: none;
+}
+
+a:hover {
+    text-decoration: underline; 
+}
+
+nav a {
+    margin-right: 8px;
+}
+
+strong, b {
+    color: var(--heading-color);
+}
+
+button {
+    margin: 0;
+    cursor: pointer;
+}
+
+time {
+ 	font-family: monospace;
+  	font-style: normal;
+  	font-size: 15px;
+}
+
+main {
+    line-height: 1.6;
+}
+
+table {
+    width: 100%;
+}
+
+hr {
+    border: 0;
+    border-top: 1px dashed;
+}
+
+img {
+    max-width: 100%;
+}
+
+code {
+    font-family: monospace;
+    padding: 2px;
+    background-color: var(--code-background-color);
+    color: var(--code-color);
+    border-radius: 3px;
+}
+
+blockquote {
+    border-left: 1px solid #999;
+    color: var(--code-color);
+    padding-left: 20px;
+    font-style: italic;
+}
+
+footer {
+    padding: 25px 0;
+    text-align: center;
+}
+
+.title:hover {
+    text-decoration: none;
+}
+
+.title h1 {
+    font-size: 1.5em;
+}
+
+.inline {
+    width: auto !important;
+}
+
+.highlight, .code {
+    padding: 1px 15px;
+    background-color: var(--code-background-color);
+    color: var(--code-color);
+    border-radius: 3px;
+    margin-block-start: 1em;
+    margin-block-end: 1em;
+    overflow-x: auto;
+}
+
+/* blog post list */
+ul.blog-posts {
+    list-style-type: none;
+    padding: unset;
+}
+
+ul.blog-posts li {
+    display: flex;
+}
+
+ul.blog-posts li span {
+    flex: 0 0 130px;
+}
+
+ul.blog-posts li a:visited {
+    color: var(--visited-color);
+}
+    .upvote-button {
+        padding: 0;
+        margin: 0;
+        border: 0;
+        background-color: inherit;
+        color: inherit;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+    .upvote-button.upvoted {
+        color: salmon;
+    }
+    .upvote-count {
+        margin-top: -3px;
+    }
+
+      
+  </style>
+</head>
+
+<body class="post " onload="(function() { document.cookie = `timezone=${Intl.DateTimeFormat().resolvedOptions().timeZone};path=/`; })()">
+  
+  <header>
+    <a class="title" href="/">
+      <h1>
+        simons blog
+      </h1>
+    </a>
+    <nav>
+      <p><a href='/'>Home</a> <a href='/blog/'>Blog</a></p>
+
+    </nav>
+  </header>
+  <main>
+    
+
+    
+
+    
+        <h1>Tile Scheduling in CuTeDSL</h1>
+
+        <p>
+            <i>
+                <time datetime="2026-05-15T20:20Z">
+    15 May, 2026
+</time>
+            </i>
+        </p>
+    
+
+    <p>In CuTeDSL, it is often convenient to use <code>StaticPersistentTileScheduler</code> when writing persistent kernels. In this blogpost I give a brief intro to how it works.</p>
+<h2 id=usage-in-kernel>Usage in Kernel</h2><p>Typical usage within a CuTeDSL program is that we first set up the grid and the scheduler params in a dedicated function:</p>
+<div class="highlight"><pre><span></span><span class="n">tile_sched_params</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">PersistentTileSchedulerParams</span><span class="p">(</span>
+    <span class="n">problem_shape_ntile_mnl</span><span class="p">,</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">cluster_shape_mnk</span><span class="p">,</span>
+    <span class="n">swizzle_size</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">swizzle_size</span><span class="p">,</span>
+    <span class="n">raster_along_m</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">raster_along_m</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">grid</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">StaticPersistentTileScheduler</span><span class="o">.</span><span class="n">get_grid_shape</span><span class="p">(</span>
+    <span class="n">tile_sched_params</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_active_clusters</span>
+<span class="p">)</span>
+</pre></div>
+<p>Within the kernel we then create the scheduler and use it as an iterator over work tiles:</p>
+<div class="highlight"><pre><span></span><span class="n">tile_sched</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">StaticPersistentTileScheduler</span><span class="o">.</span><span class="n">create</span><span class="p">(</span>
+    <span class="n">tile_sched_params</span><span class="p">,</span> <span class="n">cute</span><span class="o">.</span><span class="n">arch</span><span class="o">.</span><span class="n">block_idx</span><span class="p">(),</span> <span class="n">cute</span><span class="o">.</span><span class="n">arch</span><span class="o">.</span><span class="n">grid_dim</span><span class="p">()</span>
+<span class="p">)</span>
+<span class="n">work_tile</span> <span class="o">=</span> <span class="n">tile_sched</span><span class="o">.</span><span class="n">initial_work_tile_info</span><span class="p">()</span>
+
+<span class="k">while</span> <span class="n">work_tile</span><span class="o">.</span><span class="n">is_valid_tile</span><span class="p">:</span>
+    <span class="c1"># Get coordinate for current tile</span>
+    <span class="n">cur_tile_coord</span> <span class="o">=</span> <span class="n">work_tile</span><span class="o">.</span><span class="n">tile_idx</span>
+    <span class="n">mma_tile_coord_mnl</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">cur_tile_coord</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">//</span> <span class="n">cute</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="n">cta_layout_vmnk</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span>
+        <span class="n">cur_tile_coord</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span>
+        <span class="n">cur_tile_coord</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span>
+    <span class="p">)</span>
+
+    <span class="c1"># DO STUFF</span>
+
+    <span class="c1"># Get next tile</span>
+    <span class="n">tile_sched</span><span class="o">.</span><span class="n">advance_to_next_work</span><span class="p">()</span>
+    <span class="n">work_tile</span> <span class="o">=</span> <span class="n">tile_sched</span><span class="o">.</span><span class="n">get_current_work</span><span class="p">()</span>
+</pre></div>
+<p>The main advantage of the <code>StaticPersistentTileScheduler</code> is that it will:</p>
+<ul>
+<li>Give us a fixed, well-structured schedule of tiles that cover the whole output.</li>
+<li>Avoid launching one CTA per output tile. Instead, a resident CTA or CTA cluster starts from its persistent work index and advances through the tile schedule inside the same kernel.</li>
+</ul>
+<h2 id=linear-work-index>Linear Work Index</h2><p>Internally, the scheduler starts each persistent CTA or CTA cluster from a flat <code>linear_work_idx</code> and maps this index to a tile coordinate in <code>(M, N, L)</code>. After finishing a tile, the CTA or cluster advances by the number of persistent clusters, so different CTAs walk through disjoint parts of the same global tile schedule.</p>
+<h2 id=visual-understanding>Visual Understanding</h2><p>For the sake of visualisation, we will first assume that we have <code>8</code> active persistent CTAs. In reality this number is of course larger. For example, on a <code>B200</code>, the non-clustered examples in this tutorial use <code>max_active_clusters=148</code>.</p>
+<p>Let's assume we have <code>4</code> tiles in <code>M</code> direction, <code>4</code> tiles in <code>N</code> direction, and <code>1</code> tile in the batch dimension.</p>
+<p>We'll now look at some pictures to understand better how <code>StaticPersistentTileScheduler</code> schedules the work based on the given parameters.</p>
+<p>If we don't provide any arguments except the problem shape, cluster shape, and the maximum active clusters, we'll obtain something like:</p>
+<p><img src="https://bear-images.sfo2.cdn.digitaloceanspaces.com/veitner/raster_m.webp" alt="raster_m" /></p>
+<p>Here we assume <code>A</code> is <code>(M, K):(K, 1)</code> and <code>B</code> is <code>(N, K):(K, 1)</code>, i.e. we use the <code>M</code> tiles to get a slice of <code>A</code> and the <code>N</code> tiles to get a slice of <code>B</code>.</p>
+<p>In the above picture, the scheduler issues tiles along the <code>M</code> mode and then continues with the next <code>N</code> tile. A wave is one round of all available persistent CTAs. Here the first wave consists of work indices <code>0, 1, 2, 3, 4, 5, 6, 7</code>, and the second wave consists of <code>8, 9, 10, 11, 12, 13, 14, 15</code>.</p>
+<p>For this <code>4 x 4</code> example with <code>8</code> active CTAs, the first wave covers <code>B0</code> and <code>B1</code> across all <code>A</code> tiles, while the second wave covers <code>B2</code> and <code>B3</code>. This creates reuse opportunities for the corresponding <code>B</code> tiles within a wave.</p>
+<p>We could equally well set <code>raster_along_m</code> equal to <code>False</code>.</p>
+<p><img src="https://bear-images.sfo2.cdn.digitaloceanspaces.com/veitner/raster_n.webp" alt="raster_n" /></p>
+<p>Here we schedule along the <code>N</code> mode. In this case, the first wave covers <code>A0</code> and <code>A1</code> across all <code>B</code> tiles, while the second wave covers <code>A2</code> and <code>A3</code>. This creates reuse opportunities for the corresponding <code>A</code> tiles within a wave.</p>
+<p>Let us now consider a case where we want to perform threadblock swizzling. We will use <code>swizzle_size=2</code>.</p>
+<p><img src="https://bear-images.sfo2.cdn.digitaloceanspaces.com/veitner/swizzle-1.webp" alt="swizzle" /></p>
+<p>The schedule is now different. With <code>raster_along_m=True</code> and <code>swizzle_size=2</code>, the scheduler first lays out <code>2</code> tiles along the <code>N</code> mode and then repeats this pattern until it covers the whole <code>M</code> mode. After that it moves to the next group of <code>N</code> tiles.</p>
+<p>In this example, the first wave covers <code>B0</code> and <code>B1</code> across <code>A0, A1, A2, A3</code>, and the second wave covers <code>B2</code> and <code>B3</code> across <code>A0, A1, A2, A3</code>.</p>
+<p>If we want to perform <code>2 CTA</code> MMA we launch with <code>cluster_shape=(2, 1, 1)</code>.</p>
+<p><img src="https://bear-images.sfo2.cdn.digitaloceanspaces.com/veitner/cluster.webp" alt="cluster" /></p>
+<p>Here two CTAs in the same cluster share the same work linear index. The scheduler then adds the CTA's <code>cta_id_in_cluster</code> to produce the physical CTA tile coordinate. The correct offset within the MMA tile is handled by the partitioning code, which uses the CTA's rank within the cluster.</p>
+<p>One important detail is that <code>max_active_clusters</code> counts active clusters, not individual CTAs. For <code>cluster_shape=(2, 1, 1)</code>, each persistent cluster contains two CTAs in the <code>M</code> direction.</p>
+<p>Swizzle works similarly as in the non-cluster case:</p>
+<p><img src="https://bear-images.sfo2.cdn.digitaloceanspaces.com/veitner/cluster_swizzle.webp" alt="cluster_swizzle" /></p>
+<h2 id=conclusion>Conclusion</h2><p>I hope this blogpost can serve as a good visual explanation of <code>StaticPersistentTileScheduler</code>. Please see the following blog by <a href='https://research.colfax-intl.com/cutlass-tutorial-persistent-kernels-and-stream-k/'>Colfax</a> for a more detailed explanation from a different angle. Please check out <a href='https://verda.com/'>Verda</a> if you want to learn more about GPU programming. They provided me with compute for this blogpost.</p>
+
+
+    
+
+    
+        
+
+        
+            <form id="upvote-form" action="/upvote/" method="post" style="display: inline">
+    <small>
+        <input hidden name="uid" value="rjMnaKUcKfjBQhriYEAV" style="display:none">
+        <input hidden name="title" value="Tile Scheduling in CuTeDSL" style="display:none">
+
+        <button
+            class="upvote-button"
+            aria-label="Toast this post"
+            title="Toast this post"
+        >
+            <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" class="css-i6dzq1">
+                <polyline points="17 11 12 6 7 11"></polyline>
+                <polyline points="17 18 12 13 7 18"></polyline>
+            </svg>
+            <small class="upvote-count" aria-hidden="true">&nbsp;</small>
+        </button>
+    </small>        
+</form>
+
+<script>
+    const $upvoteButton = document.querySelector('.upvote-button');
+    const $upvoteCount =  document.querySelector('.upvote-count')
+
+    fetch('/upvote-info/rjMnaKUcKfjBQhriYEAV/').then(response => response.json()).then(data => {
+        $upvoteCount.innerText = data.upvote_count;
+        if (data.upvoted) {
+            $upvoteButton.disabled = true
+            $upvoteButton.style.color = "salmon"
+            $upvoteButton.ariaLabel = "Toasted"
+            $upvoteButton.title = "Toasted"
+        }
+        $upvoteButton.ariaLabel += ` (${data.upvote_count})`
+    });
+
+    let moved = false;
+    let pageLoaded = Date.now();
+
+    document.addEventListener('touchmove', () => moved = true);
+    document.addEventListener('mousemove', () => moved = true);
+
+    document.querySelector('#upvote-form').addEventListener('submit', (e) => {
+        e.preventDefault();
+
+        if (moved) {
+            document.querySelector('input[name="title"]').value = "";
+        }
+        if (Date.now() - pageLoaded < 2000 || !moved) {
+            return;
+        }
+
+        fetch(e.target.action, {
+            method: 'post',
+            body: new FormData(e.target),
+        });
+        
+        $upvoteButton.disabled = true
+        $upvoteButton.style.color = "salmon"
+        $upvoteButton.ariaLabel = "Toasted"
+        $upvoteButton.title = "Toasted"
+        const newUpvoteCount = `${(parseInt($upvoteCount.innerHTML.split(" ")[0]) + 1)}`
+        $upvoteCount.innerHTML = newUpvoteCount
+        $upvoteButton.ariaLabel += ` (${newUpvoteCount})`
+    });
+</script>
+        
+
+        
+            <script>
+            window.addEventListener("load", () => {
+                if (navigator.webdriver !== true) {
+                    const sendHit = score => {
+                        const params = new URLSearchParams({
+                            blog: "veitner",
+                            token: "rjMnaKUcKfjBQhriYEAV",
+                            referrer: document.referrer.includes("veitner.bearblog.dev") ? "" : document.referrer,
+                            title: "",
+                            score: score
+                        });
+                        new Image().src = `/hit/?${params.toString()}`;
+                    };
+
+                    document.addEventListener('touchmove', () => sendHit(100), { once: true });
+                    document.addEventListener('mousemove', () => sendHit(100), { once: true });
+                }
+            });
+            </script>
+        
+    
+
+
+  </main>
+  <footer>
+    
+    
+    <span>
+        Powered by <a href="https://bearblog.dev">Bear <span role="img" class="bear" aria-label="ASCII bear logo">ʕ•ᴥ•ʔ</span></a>
+    </span>
+
+  </footer>
+
+  
+  <script>
+        (() => {
+          "use strict";
+          const times = document.querySelectorAll('time');
+          const format_string = "d M, Y" || "d M, Y"
+
+          times.forEach(time => {
+              time.innerText = formatDate(time.dateTime, format_string)
+          });
+
+          function formatDate(dateStr, formatStr) {
+            const date = new Date(dateStr);
+            const day = date.getDate();
+            const month = date.getMonth();
+            const year = date.getFullYear();
+            const weekday = date.getDay();
+            const hours = date.getHours();
+            const minutes = date.getMinutes();
+            const monthsFull = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+            const monthsShort = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+            const daysFull = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+            const daysShort = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+            
+            function getOrdinal(n) {
+                const s = ['th', 'st', 'nd', 'rd'];
+                const v = n % 100;
+                return s[(v - 20) % 10] || s[v] || s[0];
+            }
+            
+            const map = {
+                'd': () => day.toString().padStart(2, '0'),
+                'm': () => (month + 1).toString().padStart(2, '0'),
+                'Y': () => year.toString(),
+                'y': () => year.toString().slice(-2),
+                'F': () => monthsFull[month],
+                'j': () => day.toString(),
+                'D': () => daysShort[weekday],
+                'l': () => daysFull[weekday],
+                'S': () => getOrdinal(day),
+                'M': () => monthsShort[month],
+                'H': () => hours.toString().padStart(2, '0'),
+                'h': () => {
+                    let h = hours % 12;
+                    h = h === 0 ? 12 : h;
+                    return h.toString().padStart(2, '0');
+                },
+                'g': () => {
+                    let h = hours % 12;
+                    return h === 0 ? '12' : h.toString();
+                },
+                'i': () => minutes.toString().padStart(2, '0'),
+                'a': () => hours < 12 ? 'am' : 'pm',
+                'A': () => hours < 12 ? 'AM' : 'PM',
+            };
+            
+            let result = '';
+            for (let char of formatStr) {
+                result += map[char] ? map[char]() : char;
+            }
+            return result;
+        }
+        })();
+    </script>
+    
+</body>
+<!-- ID: veitner -->
+<!-- 🐻 -->
+</html>

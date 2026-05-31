@@ -1,0 +1,1381 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!-- Powered by Bear Blog -->
+
+<head>
+  
+  
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5">
+  
+  <title>Blog | simons blog</title>
+  <link rel="canonical" href="https://veitner.bearblog.dev/blog/">
+  
+
+
+<meta name="veitner" content="look-for-the-bear-necessities">
+
+
+<!-- Primary Meta Tags -->
+<meta name="title" content="Blog">
+<meta name="description" content="">
+
+<!-- Open Graph / Facebook -->
+<meta property="og:site_name" content="simons blog">
+<meta property="og:title" content="Blog">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://veitner.bearblog.dev">
+<meta property="og:description" content="">
+<meta property="og:image" content="/static/og-image.png">
+
+
+<!-- Twitter -->
+<meta property="twitter:card" content="summary">
+<meta property="twitter:url" content="https://veitner.bearblog.dev">
+<meta property="twitter:title" content="Blog">
+<meta property="twitter:description" content="">
+<meta property="twitter:image" content="/static/og-image.png">
+
+
+
+<!-- Microdata -->
+<script type="application/ld+json">
+  {
+    "@context": "http://schema.org",
+    "@type": "website",
+    "name": "Blog",
+    "headline": "Blog",
+    "url": "https://veitner.bearblog.dev",
+    "description": "",
+    "image": "/static/og-image.png"
+  }
+</script>
+<link rel="alternate" type="application/atom+xml" href="/feed/" title="simons blog">
+<link rel="alternate" type="application/rss+xml" href="/feed/?type=rss" title="simons blog">
+
+  
+
+
+
+
+  
+  
+  
+    
+        <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20100%20100'%3E%3Ctext%20y='.9em'%20font-size='90'%3E🐼%3C/text%3E%3C/svg%3E">
+    
+
+
+
+  <style>
+      
+      
+:root {
+    --width: 720px;
+    --font-main: Verdana, sans-serif;
+    --font-secondary: Verdana, sans-serif;
+    --font-scale: 1em;
+    --background-color: #fff;
+    --heading-color: #222;
+    --text-color: #444;
+    --link-color: #3273dc;
+    --visited-color:  #8b6fcb;
+    --code-background-color: #f2f2f2;
+    --code-color: #222;
+    --blockquote-color: #222;
+}
+
+@media (prefers-color-scheme: dark) {
+    :root {
+        --background-color: #01242e;
+        --heading-color: #eee;
+        --text-color: #ddd;
+        --link-color: #8cc2dd;
+        --visited-color:  #8b6fcb;
+        --code-background-color: #000;
+        --code-color: #ddd;
+        --blockquote-color: #ccc;
+    }
+}
+
+body {
+    font-family: var(--font-secondary);
+    font-size: var(--font-scale);
+    margin: auto;
+    padding: 20px;
+    max-width: var(--width);
+    text-align: left;
+    background-color: var(--background-color);
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    line-height: 1.5;
+    color: var(--text-color);
+}
+
+h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-main);
+    color: var(--heading-color);
+}
+
+a {
+    color: var(--link-color);
+    cursor: pointer;
+    text-decoration: none;
+}
+
+a:hover {
+    text-decoration: underline; 
+}
+
+nav a {
+    margin-right: 8px;
+}
+
+strong, b {
+    color: var(--heading-color);
+}
+
+button {
+    margin: 0;
+    cursor: pointer;
+}
+
+time {
+ 	font-family: monospace;
+  	font-style: normal;
+  	font-size: 15px;
+}
+
+main {
+    line-height: 1.6;
+}
+
+table {
+    width: 100%;
+}
+
+hr {
+    border: 0;
+    border-top: 1px dashed;
+}
+
+img {
+    max-width: 100%;
+}
+
+code {
+    font-family: monospace;
+    padding: 2px;
+    background-color: var(--code-background-color);
+    color: var(--code-color);
+    border-radius: 3px;
+}
+
+blockquote {
+    border-left: 1px solid #999;
+    color: var(--code-color);
+    padding-left: 20px;
+    font-style: italic;
+}
+
+footer {
+    padding: 25px 0;
+    text-align: center;
+}
+
+.title:hover {
+    text-decoration: none;
+}
+
+.title h1 {
+    font-size: 1.5em;
+}
+
+.inline {
+    width: auto !important;
+}
+
+.highlight, .code {
+    padding: 1px 15px;
+    background-color: var(--code-background-color);
+    color: var(--code-color);
+    border-radius: 3px;
+    margin-block-start: 1em;
+    margin-block-end: 1em;
+    overflow-x: auto;
+}
+
+/* blog post list */
+ul.blog-posts {
+    list-style-type: none;
+    padding: unset;
+}
+
+ul.blog-posts li {
+    display: flex;
+}
+
+ul.blog-posts li span {
+    flex: 0 0 130px;
+}
+
+ul.blog-posts li a:visited {
+    color: var(--visited-color);
+}
+      
+  </style>
+</head>
+
+<body class="blog" onload="(function() { document.cookie = `timezone=${Intl.DateTimeFormat().resolvedOptions().timeZone};path=/`; })()">
+  
+  <header>
+    <a class="title" href="/">
+      <h1>
+        simons blog
+      </h1>
+    </a>
+    <nav>
+      <p><a href='/'>Home</a> <a href='/blog/'>Blog</a></p>
+
+    </nav>
+  </header>
+  <main>
+    
+
+
+
+
+
+<ul class="blog-posts">
+    
+    <li data-tags="">
+        <span>
+            <i>
+                <time datetime="2026-05-15T20:20Z">
+    15 May, 2026
+</time>
+            </i>
+        </span>
+        <a href="/tile-scheduling-cute-dsl/">Tile Scheduling in CuTeDSL</a>
+        
+
+        
+
+        
+    </li>
+    
+    <li data-tags="">
+        <span>
+            <i>
+                <time datetime="2026-04-18T17:30Z">
+    18 Apr, 2026
+</time>
+            </i>
+        </span>
+        <a href="/sbo-and-lbo-explained-visually/">SBO and LBO explained visually</a>
+        
+
+        
+
+        
+    </li>
+    
+    <li data-tags="">
+        <span>
+            <i>
+                <time datetime="2026-03-14T16:55Z">
+    14 Mar, 2026
+</time>
+            </i>
+        </span>
+        <a href="/simple-math-to-speed-up-gdn-prefill/">Simple math to speed up GDN prefill</a>
+        
+
+        
+
+        
+    </li>
+    
+    <li data-tags="">
+        <span>
+            <i>
+                <time datetime="2026-03-10T17:59Z">
+    10 Mar, 2026
+</time>
+            </i>
+        </span>
+        <a href="/chunkwise-gated-delta-rule/">Chunkwise Gated Delta Rule</a>
+        
+
+        
+
+        
+    </li>
+    
+    <li data-tags="">
+        <span>
+            <i>
+                <time datetime="2026-02-15T18:30Z">
+    15 Feb, 2026
+</time>
+            </i>
+        </span>
+        <a href="/gated-delta-net-decoding/">Gated Delta Net Decoding</a>
+        
+
+        
+
+        
+    </li>
+    
+    <li data-tags="">
+        <span>
+            <i>
+                <time datetime="2026-02-07T18:58Z">
+    07 Feb, 2026
+</time>
+            </i>
+        </span>
+        <a href="/grouped-blockscaled-gemm-kernel/">Grouped Blockscaled Gemm - Kernel</a>
+        
+
+        
+
+        
+    </li>
+    
+    <li data-tags="">
+        <span>
+            <i>
+                <time datetime="2026-01-24T16:58Z">
+    24 Jan, 2026
+</time>
+            </i>
+        </span>
+        <a href="/grouped-blockscaled-gemm-host-code/">Grouped Blockscaled Gemm - Host code</a>
+        
+
+        
+
+        
+    </li>
+    
+    <li data-tags="">
+        <span>
+            <i>
+                <time datetime="2026-01-22T19:13Z">
+    22 Jan, 2026
+</time>
+            </i>
+        </span>
+        <a href="/grouped-block-scaled-gemm-intro/">Grouped Block scaled Gemm - Intro</a>
+        
+
+        
+
+        
+    </li>
+    
+    <li data-tags="">
+        <span>
+            <i>
+                <time datetime="2026-01-07T19:30Z">
+    07 Jan, 2026
+</time>
+            </i>
+        </span>
+        <a href="/warp-specialisation-in-cutedsl/">Warp Specialisation in CuTeDSL</a>
+        
+
+        
+
+        
+    </li>
+    
+    <li data-tags="">
+        <span>
+            <i>
+                <time datetime="2026-01-04T18:00Z">
+    04 Jan, 2026
+</time>
+            </i>
+        </span>
+        <a href="/2-cta-gemm-on-b200/">2 CTA GEMM on B200</a>
+        
+
+        
+
+        
+    </li>
+    
+    <li data-tags="">
+        <span>
+            <i>
+                <time datetime="2025-12-23T18:36Z">
+    23 Dec, 2025
+</time>
+            </i>
+        </span>
+        <a href="/blackwell-pipelining-with-cutedsl/">Blackwell Pipelining with CuTeDSL</a>
+        
+
+        
+
+        
+    </li>
+    
+    <li data-tags="">
+        <span>
+            <i>
+                <time datetime="2025-12-06T18:58Z">
+    06 Dec, 2025
+</time>
+            </i>
+        </span>
+        <a href="/b200-blockscaled-gemm-the-setup/">B200 Blockscaled GEMM - The setup</a>
+        
+
+        
+
+        
+    </li>
+    
+    <li data-tags="">
+        <span>
+            <i>
+                <time datetime="2025-12-03T18:00Z">
+    03 Dec, 2025
+</time>
+            </i>
+        </span>
+        <a href="/scale-tensor-construction-in-cutedsl/">Scale Tensor construction in CuTeDSL</a>
+        
+
+        
+
+        
+    </li>
+    
+    <li data-tags="">
+        <span>
+            <i>
+                <time datetime="2025-11-23T18:10Z">
+    23 Nov, 2025
+</time>
+            </i>
+        </span>
+        <a href="/demystifying-numeric-conversions-in-cutedsl/">Demystifying numeric conversions in CuTeDSL</a>
+        
+
+        
+
+        
+    </li>
+    
+    <li data-tags="">
+        <span>
+            <i>
+                <time datetime="2025-11-16T18:55Z">
+    16 Nov, 2025
+</time>
+            </i>
+        </span>
+        <a href="/nvfp4-gemv-improved/">NVFP4 GEMV improved</a>
+        
+
+        
+
+        
+    </li>
+    
+    <li data-tags="">
+        <span>
+            <i>
+                <time datetime="2025-11-13T18:06Z">
+    13 Nov, 2025
+</time>
+            </i>
+        </span>
+        <a href="/nvfp4-gemv/">NVFP4 GEMV</a>
+        
+
+        
+
+        
+    </li>
+    
+    <li data-tags="">
+        <span>
+            <i>
+                <time datetime="2025-11-06T19:03Z">
+    06 Nov, 2025
+</time>
+            </i>
+        </span>
+        <a href="/bit-counting-and-geometric-series/">Bit counting and geometric series</a>
+        
+
+        
+
+        
+    </li>
+    
+    <li data-tags="">
+        <span>
+            <i>
+                <time datetime="2025-10-27T19:01Z">
+    27 Oct, 2025
+</time>
+            </i>
+        </span>
+        <a href="/simple-reduction-in-cutedsl/">Simple reduction in CuTeDSL</a>
+        
+
+        
+
+        
+    </li>
+    
+    <li data-tags="">
+        <span>
+            <i>
+                <time datetime="2025-10-20T17:53Z">
+    20 Oct, 2025
+</time>
+            </i>
+        </span>
+        <a href="/mma-atoms-in-cute/">MMA Atoms in CuTe</a>
+        
+
+        
+
+        
+    </li>
+    
+    <li data-tags="">
+        <span>
+            <i>
+                <time datetime="2025-10-11T17:01Z">
+    11 Oct, 2025
+</time>
+            </i>
+        </span>
+        <a href="/lru-and-lfu-in-c/">LRU and LFU in C++</a>
+        
+
+        
+
+        
+    </li>
+    
+    <li data-tags="">
+        <span>
+            <i>
+                <time datetime="2025-10-03T17:00Z">
+    03 Oct, 2025
+</time>
+            </i>
+        </span>
+        <a href="/mutual-refinement-and-composition/">Mutual Refinement and Composition</a>
+        
+
+        
+
+        
+    </li>
+    
+    <li data-tags="">
+        <span>
+            <i>
+                <time datetime="2025-09-27T17:50Z">
+    27 Sep, 2025
+</time>
+            </i>
+        </span>
+        <a href="/applied-introduction-to-categorical-treatment-of-cute/">Applied introduction to Categorical treatment of CuTe</a>
+        
+
+        
+
+        
+    </li>
+    
+    <li data-tags="">
+        <span>
+            <i>
+                <time datetime="2025-09-23T17:40Z">
+    23 Sep, 2025
+</time>
+            </i>
+        </span>
+        <a href="/layout-gymnastics/">Layout Gymnastics</a>
+        
+
+        
+
+        
+    </li>
+    
+    <li data-tags="">
+        <span>
+            <i>
+                <time datetime="2025-09-20T17:40Z">
+    20 Sep, 2025
+</time>
+            </i>
+        </span>
+        <a href="/swizzles-and-their-usage-in-cutedsl-kernels/">Swizzles and their usage in CuTeDSL Kernels</a>
+        
+
+        
+
+        
+    </li>
+    
+    <li data-tags="">
+        <span>
+            <i>
+                <time datetime="2025-09-14T18:00Z">
+    14 Sep, 2025
+</time>
+            </i>
+        </span>
+        <a href="/cute-partitions/">CuTe partitions</a>
+        
+
+        
+
+        
+    </li>
+    
+    <li data-tags="">
+        <span>
+            <i>
+                <time datetime="2025-09-09T17:56Z">
+    09 Sep, 2025
+</time>
+            </i>
+        </span>
+        <a href="/tensors-slicing-in-cute/">Tensors Slicing in CuTe</a>
+        
+
+        
+
+        
+    </li>
+    
+    <li data-tags="">
+        <span>
+            <i>
+                <time datetime="2025-09-07T17:22Z">
+    07 Sep, 2025
+</time>
+            </i>
+        </span>
+        <a href="/understanding-cute-swizzling-the-math-behind-32b-64b-and-128b-patterns/">Understanding CuTe Swizzling - The Math Behind 32B, 64B, and 128B Patterns</a>
+        
+
+        
+
+        
+    </li>
+    
+    <li data-tags="">
+        <span>
+            <i>
+                <time datetime="2025-09-05T17:25Z">
+    05 Sep, 2025
+</time>
+            </i>
+        </span>
+        <a href="/gpu-l2-cache-persistence/">GPU L2 Cache Persistence</a>
+        
+
+        
+
+        
+    </li>
+    
+    <li data-tags="">
+        <span>
+            <i>
+                <time datetime="2025-08-29T18:31Z">
+    29 Aug, 2025
+</time>
+            </i>
+        </span>
+        <a href="/cuda-streams/">Cuda streams</a>
+        
+
+        
+
+        
+    </li>
+    
+    <li data-tags="">
+        <span>
+            <i>
+                <time datetime="2025-08-23T17:39Z">
+    23 Aug, 2025
+</time>
+            </i>
+        </span>
+        <a href="/pingpong-in-the-cutedsl-with-quack/">PingPong 🏓 in the CuTeDSL with QuACK 🦆</a>
+        
+
+        
+
+        
+    </li>
+    
+    <li data-tags="">
+        <span>
+            <i>
+                <time datetime="2025-08-17T17:50Z">
+    17 Aug, 2025
+</time>
+            </i>
+        </span>
+        <a href="/bit-hacking-in-c/">Bit Hacking in C</a>
+        
+
+        
+
+        
+    </li>
+    
+    <li data-tags="">
+        <span>
+            <i>
+                <time datetime="2025-08-13T18:10Z">
+    13 Aug, 2025
+</time>
+            </i>
+        </span>
+        <a href="/intuition-behind-hierarchical-layouts/">Intuition behind Hierarchical Layouts</a>
+        
+
+        
+
+        
+    </li>
+    
+    <li data-tags="">
+        <span>
+            <i>
+                <time datetime="2025-08-09T16:33Z">
+    09 Aug, 2025
+</time>
+            </i>
+        </span>
+        <a href="/persistent-float8-dense-gemm-on-hopper/">Persistent Float8 Dense Gemm on Hopper</a>
+        
+
+        
+
+        
+    </li>
+    
+    <li data-tags="">
+        <span>
+            <i>
+                <time datetime="2025-08-04T17:55Z">
+    04 Aug, 2025
+</time>
+            </i>
+        </span>
+        <a href="/epilogue-h100-cutedsl/">Epilogue in CuTeDSL H100 kernels</a>
+        
+
+        
+
+        
+    </li>
+    
+    <li data-tags="">
+        <span>
+            <i>
+                <time datetime="2025-07-30T17:45Z">
+    30 Jul, 2025
+</time>
+            </i>
+        </span>
+        <a href="/let-the-compiler-do-the-work-in-cutedsl/">Let the compiler do the work in CuTeDSL</a>
+        
+
+        
+
+        
+    </li>
+    
+    <li data-tags="">
+        <span>
+            <i>
+                <time datetime="2025-07-25T17:19Z">
+    25 Jul, 2025
+</time>
+            </i>
+        </span>
+        <a href="/persistent-gemm-in-cutedsl-on-hopper/">Persistent GEMM in CuTeDSL on Hopper</a>
+        
+
+        
+
+        
+    </li>
+    
+    <li data-tags="">
+        <span>
+            <i>
+                <time datetime="2025-07-20T16:22Z">
+    20 Jul, 2025
+</time>
+            </i>
+        </span>
+        <a href="/consumer-producer-pattern-on-h100-in-cutedsl/">Consumer-Producer pattern on H100 in CuTeDSL</a>
+        
+
+        
+
+        
+    </li>
+    
+    <li data-tags="">
+        <span>
+            <i>
+                <time datetime="2025-07-13T13:15Z">
+    13 Jul, 2025
+</time>
+            </i>
+        </span>
+        <a href="/backprob-through-layernorm/">Backprob through Layernorm</a>
+        
+
+        
+
+        
+    </li>
+    
+    <li data-tags="">
+        <span>
+            <i>
+                <time datetime="2025-07-13T12:08Z">
+    13 Jul, 2025
+</time>
+            </i>
+        </span>
+        <a href="/backprop-through-rmsnorm/">Backprop through RMSNorm</a>
+        
+
+        
+
+        
+    </li>
+    
+    <li data-tags="">
+        <span>
+            <i>
+                <time datetime="2025-07-12T17:55Z">
+    12 Jul, 2025
+</time>
+            </i>
+        </span>
+        <a href="/outperform-compiled-pytorch-code-using-quack/">Outperform compiled PyTorch code using QuACK 🦆</a>
+        
+
+        
+
+        
+    </li>
+    
+    <li data-tags="">
+        <span>
+            <i>
+                <time datetime="2025-07-05T18:00Z">
+    05 Jul, 2025
+</time>
+            </i>
+        </span>
+        <a href="/cutedsl-on-hopper-pipelining/">CuTeDSL on Hopper - Pipelining</a>
+        
+
+        
+
+        
+    </li>
+    
+    <li data-tags="">
+        <span>
+            <i>
+                <time datetime="2025-07-03T17:00Z">
+    03 Jul, 2025
+</time>
+            </i>
+        </span>
+        <a href="/cutedsl-on-hopper-wgmma-and-tma-intro/">CuTeDSL on Hopper - WGMMA and TMA intro</a>
+        
+
+        
+
+        
+    </li>
+    
+    <li data-tags="">
+        <span>
+            <i>
+                <time datetime="2025-06-28T17:56Z">
+    28 Jun, 2025
+</time>
+            </i>
+        </span>
+        <a href="/thread-value-layouts-in-cute/">Thread Value Layouts in CuTe</a>
+        
+
+        
+
+        
+    </li>
+    
+    <li data-tags="">
+        <span>
+            <i>
+                <time datetime="2025-06-26T17:52Z">
+    26 Jun, 2025
+</time>
+            </i>
+        </span>
+        <a href="/sgemm-in-cutedsl/">SGEMM in CuTeDSL</a>
+        
+
+        
+
+        
+    </li>
+    
+    <li data-tags="">
+        <span>
+            <i>
+                <time datetime="2025-06-23T17:43Z">
+    23 Jun, 2025
+</time>
+            </i>
+        </span>
+        <a href="/an-applied-introduction-to-cutedsl/">An applied introduction to CuTeDSL</a>
+        
+
+        
+
+        
+    </li>
+    
+    <li data-tags="">
+        <span>
+            <i>
+                <time datetime="2025-06-21T17:34Z">
+    21 Jun, 2025
+</time>
+            </i>
+        </span>
+        <a href="/calculating-the-fibonacci-numbers-on-gpu/">Calculating the fibonacci numbers on GPU</a>
+        
+
+        
+
+        
+    </li>
+    
+    <li data-tags="">
+        <span>
+            <i>
+                <time datetime="2025-06-16T17:37Z">
+    16 Jun, 2025
+</time>
+            </i>
+        </span>
+        <a href="/an-introduction-to-thrust/">An introduction to Thrust</a>
+        
+
+        
+
+        
+    </li>
+    
+    <li data-tags="">
+        <span>
+            <i>
+                <time datetime="2025-06-09T08:23Z">
+    09 Jun, 2025
+</time>
+            </i>
+        </span>
+        <a href="/infinite-binary-string/">Infinite binary strings</a>
+        
+
+        
+
+        
+    </li>
+    
+    <li data-tags="">
+        <span>
+            <i>
+                <time datetime="2025-06-06T17:46Z">
+    06 Jun, 2025
+</time>
+            </i>
+        </span>
+        <a href="/highly-efficient-matrix-transpose-in-mojo/">Highly efficient matrix transpose in Mojo 🔥</a>
+        
+
+        
+
+        
+    </li>
+    
+    <li data-tags="">
+        <span>
+            <i>
+                <time datetime="2025-06-05T16:00Z">
+    05 Jun, 2025
+</time>
+            </i>
+        </span>
+        <a href="/the-bijection-between-natural-numbers-and-binary-strings/">The Bijection Between Natural Numbers and Binary Strings</a>
+        
+
+        
+
+        
+    </li>
+    
+    <li data-tags="">
+        <span>
+            <i>
+                <time datetime="2025-06-04T18:15Z">
+    04 Jun, 2025
+</time>
+            </i>
+        </span>
+        <a href="/use-tma-without-cuda/">Use TMA without CUDA</a>
+        
+
+        
+
+        
+    </li>
+    
+    <li data-tags="">
+        <span>
+            <i>
+                <time datetime="2025-05-29T17:25Z">
+    29 May, 2025
+</time>
+            </i>
+        </span>
+        <a href="/use-ptx-instructions-in-mojo/">Use PTX instructions in Mojo</a>
+        
+
+        
+
+        
+    </li>
+    
+    <li data-tags="">
+        <span>
+            <i>
+                <time datetime="2025-05-25T17:25Z">
+    25 May, 2025
+</time>
+            </i>
+        </span>
+        <a href="/very-fast-vector-sum-without-cuda/">Very fast vector sum without CUDA.</a>
+        
+
+        
+
+        
+    </li>
+    
+    <li data-tags="">
+        <span>
+            <i>
+                <time datetime="2025-05-22T17:26Z">
+    22 May, 2025
+</time>
+            </i>
+        </span>
+        <a href="/short-introduction-to-the-mojo-programming-language/">Short introduction to the Mojo programming language</a>
+        
+
+        
+
+        
+    </li>
+    
+    <li data-tags="">
+        <span>
+            <i>
+                <time datetime="2025-05-18T19:13Z">
+    18 May, 2025
+</time>
+            </i>
+        </span>
+        <a href="/bridging-math-and-code-cute-layout-algebra-in-cutedsl/">Bridging Math and Code: CuTe Layout Algebra in CuTeDSL</a>
+        
+
+        
+
+        
+    </li>
+    
+    <li data-tags="">
+        <span>
+            <i>
+                <time datetime="2025-05-14T14:10Z">
+    14 May, 2025
+</time>
+            </i>
+        </span>
+        <a href="/load-and-store-matrices-efficently-with-ptx-instructions/">Load and store matrices efficently with PTX instructions</a>
+        
+
+        
+
+        
+    </li>
+    
+    <li data-tags="">
+        <span>
+            <i>
+                <time datetime="2025-05-11T15:00Z">
+    11 May, 2025
+</time>
+            </i>
+        </span>
+        <a href="/how-to-use-reasoning-models-with-sglang/">How to use reasoning models with SGLang</a>
+        
+
+        
+
+        
+    </li>
+    
+    <li data-tags="">
+        <span>
+            <i>
+                <time datetime="2025-05-02T12:30Z">
+    02 May, 2025
+</time>
+            </i>
+        </span>
+        <a href="/making-matrix-transpose-really-fast-on-hopper-gpus/">Making matrix transpose really fast on Hopper GPUs</a>
+        
+
+        
+
+        
+    </li>
+    
+    <li data-tags="">
+        <span>
+            <i>
+                <time datetime="2025-04-27T14:31Z">
+    27 Apr, 2025
+</time>
+            </i>
+        </span>
+        <a href="/tma-introduction/">TMA introduction</a>
+        
+
+        
+
+        
+    </li>
+    
+    <li data-tags="">
+        <span>
+            <i>
+                <time datetime="2025-04-21T13:21Z">
+    21 Apr, 2025
+</time>
+            </i>
+        </span>
+        <a href="/analyze-cuda-programs-by-looking-at-gpu-assembly/">Analyze CUDA programs by looking at GPU assembly.</a>
+        
+
+        
+
+        
+    </li>
+    
+    <li data-tags="">
+        <span>
+            <i>
+                <time datetime="2025-04-18T11:15Z">
+    18 Apr, 2025
+</time>
+            </i>
+        </span>
+        <a href="/making-rmsnorm-really-fast/">Making RMSNorm really fast</a>
+        
+
+        
+
+        
+    </li>
+    
+    <li data-tags="">
+        <span>
+            <i>
+                <time datetime="2025-04-13T14:04Z">
+    13 Apr, 2025
+</time>
+            </i>
+        </span>
+        <a href="/making-prefix-sum-really-fast/">Making prefix sum really fast</a>
+        
+
+        
+
+        
+    </li>
+    
+    <li data-tags="">
+        <span>
+            <i>
+                <time datetime="2025-04-06T13:16Z">
+    06 Apr, 2025
+</time>
+            </i>
+        </span>
+        <a href="/making-vector-sum-really-fast/">Making vector sum really fast</a>
+        
+
+        
+
+        
+    </li>
+    
+    <li data-tags="">
+        <span>
+            <i>
+                <time datetime="2025-03-31T16:02Z">
+    31 Mar, 2025
+</time>
+            </i>
+        </span>
+        <a href="/predication-in-cutlass/">Predication in Cutlass</a>
+        
+
+        
+
+        
+    </li>
+    
+    <li data-tags="">
+        <span>
+            <i>
+                <time datetime="2025-03-23T15:25Z">
+    23 Mar, 2025
+</time>
+            </i>
+        </span>
+        <a href="/indexing-in-cuda/">Indexing in CUDA</a>
+        
+
+        
+
+        
+    </li>
+    
+</ul>
+
+
+<small>
+    <div class="tags">
+        <a rel="nofollow" href="/blog/?q=pot-of-honey" style="display:none;">#potofhoney</a>
+        
+    </div>
+</small>
+
+
+  </main>
+  <footer>
+    
+
+<span>
+    Powered by <a href="https://bearblog.dev">Bear <span role="img" class="bear" aria-label="ASCII bear logo">ʕ•ᴥ•ʔ</span></a>
+</span>
+
+  </footer>
+
+  
+  <script>
+        (() => {
+          "use strict";
+          const times = document.querySelectorAll('time');
+          const format_string = "d M, Y" || "d M, Y"
+
+          times.forEach(time => {
+              time.innerText = formatDate(time.dateTime, format_string)
+          });
+
+          function formatDate(dateStr, formatStr) {
+            const date = new Date(dateStr);
+            const day = date.getDate();
+            const month = date.getMonth();
+            const year = date.getFullYear();
+            const weekday = date.getDay();
+            const hours = date.getHours();
+            const minutes = date.getMinutes();
+            const monthsFull = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+            const monthsShort = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+            const daysFull = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+            const daysShort = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+            
+            function getOrdinal(n) {
+                const s = ['th', 'st', 'nd', 'rd'];
+                const v = n % 100;
+                return s[(v - 20) % 10] || s[v] || s[0];
+            }
+            
+            const map = {
+                'd': () => day.toString().padStart(2, '0'),
+                'm': () => (month + 1).toString().padStart(2, '0'),
+                'Y': () => year.toString(),
+                'y': () => year.toString().slice(-2),
+                'F': () => monthsFull[month],
+                'j': () => day.toString(),
+                'D': () => daysShort[weekday],
+                'l': () => daysFull[weekday],
+                'S': () => getOrdinal(day),
+                'M': () => monthsShort[month],
+                'H': () => hours.toString().padStart(2, '0'),
+                'h': () => {
+                    let h = hours % 12;
+                    h = h === 0 ? 12 : h;
+                    return h.toString().padStart(2, '0');
+                },
+                'g': () => {
+                    let h = hours % 12;
+                    return h === 0 ? '12' : h.toString();
+                },
+                'i': () => minutes.toString().padStart(2, '0'),
+                'a': () => hours < 12 ? 'am' : 'pm',
+                'A': () => hours < 12 ? 'AM' : 'PM',
+            };
+            
+            let result = '';
+            for (let char of formatStr) {
+                result += map[char] ? map[char]() : char;
+            }
+            return result;
+        }
+        })();
+    </script>
+    
+</body>
+<!-- ID: veitner -->
+<!-- 🐻 -->
+</html>

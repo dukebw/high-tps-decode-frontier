@@ -1,0 +1,795 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!-- Powered by Bear Blog -->
+
+<head>
+  
+  
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5">
+  
+  <title>Swizzles and their usage in CuTeDSL Kernels | simons blog</title>
+  <link rel="canonical" href="https://veitner.bearblog.dev/swizzles-and-their-usage-in-cutedsl-kernels/">
+  
+    
+
+    <meta name="veitner" content="look-for-the-bear-necessities">
+    <meta name="token" content="TkqBPpxtkSPqTsqRNGgN">
+
+    
+<!-- Primary Meta Tags -->
+<meta name="title" content="Swizzles and their usage in CuTeDSL Kernels">
+<meta name="description" content="Introduction
+
+Swizzling is used in performant GEMM kernels to design the layout of shared memory and therefore highly important. Essentially swizzling deal...">
+
+<!-- Open Graph / Facebook -->
+<meta property="og:site_name" content="simons blog">
+<meta property="og:title" content="Swizzles and their usage in CuTeDSL Kernels">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://veitner.bearblog.dev/swizzles-and-their-usage-in-cutedsl-kernels/">
+<meta property="og:description" content="Introduction
+
+Swizzling is used in performant GEMM kernels to design the layout of shared memory and therefore highly important. Essentially swizzling deal...">
+<meta property="og:image" content="/static/og-image.png">
+
+
+<!-- Twitter -->
+<meta property="twitter:card" content="summary">
+<meta property="twitter:url" content="https://veitner.bearblog.dev/swizzles-and-their-usage-in-cutedsl-kernels/">
+<meta property="twitter:title" content="Swizzles and their usage in CuTeDSL Kernels">
+<meta property="twitter:description" content="Introduction
+
+Swizzling is used in performant GEMM kernels to design the layout of shared memory and therefore highly important. Essentially swizzling deal...">
+<meta property="twitter:image" content="/static/og-image.png">
+
+
+
+<!-- Microdata -->
+<script type="application/ld+json">
+  {
+    "@context": "http://schema.org",
+    "@type": "article",
+    "name": "Swizzles and their usage in CuTeDSL Kernels",
+    "headline": "Swizzles and their usage in CuTeDSL Kernels",
+    "url": "https://veitner.bearblog.dev/swizzles-and-their-usage-in-cutedsl-kernels/",
+    "description": "Introduction
+
+Swizzling is used in performant GEMM kernels to design the layout of shared memory and therefore highly important. Essentially swizzling deal...",
+    "image": "/static/og-image.png"
+  }
+</script>
+    <link rel="alternate" type="application/atom+xml" href="/feed/" title="simons blog">
+    <link rel="alternate" type="application/rss+xml" href="/feed/?type=rss" title="simons blog">
+
+  
+    
+
+    
+    <style>pre { line-height: 125%; }
+td.linenos .normal { color: #666666; background-color: transparent; padding-left: 5px; padding-right: 5px; }
+span.linenos { color: #666666; background-color: transparent; padding-left: 5px; padding-right: 5px; }
+td.linenos .special { color: #000000; background-color: #ffffc0; padding-left: 5px; padding-right: 5px; }
+span.linenos.special { color: #000000; background-color: #ffffc0; padding-left: 5px; padding-right: 5px; }
+.highlight .hll { background-color: #ffffcc }
+.highlight { background: #f0f0f0; }
+.highlight .c { color: #60A0B0; font-style: italic } /* Comment */
+.highlight .err { border: 1px solid #F00 } /* Error */
+.highlight .k { color: #007020; font-weight: bold } /* Keyword */
+.highlight .o { color: #666 } /* Operator */
+.highlight .ch { color: #60A0B0; font-style: italic } /* Comment.Hashbang */
+.highlight .cm { color: #60A0B0; font-style: italic } /* Comment.Multiline */
+.highlight .cp { color: #007020 } /* Comment.Preproc */
+.highlight .cpf { color: #60A0B0; font-style: italic } /* Comment.PreprocFile */
+.highlight .c1 { color: #60A0B0; font-style: italic } /* Comment.Single */
+.highlight .cs { color: #60A0B0; background-color: #FFF0F0 } /* Comment.Special */
+.highlight .gd { color: #A00000 } /* Generic.Deleted */
+.highlight .ge { font-style: italic } /* Generic.Emph */
+.highlight .ges { font-weight: bold; font-style: italic } /* Generic.EmphStrong */
+.highlight .gr { color: #F00 } /* Generic.Error */
+.highlight .gh { color: #000080; font-weight: bold } /* Generic.Heading */
+.highlight .gi { color: #00A000 } /* Generic.Inserted */
+.highlight .go { color: #888 } /* Generic.Output */
+.highlight .gp { color: #C65D09; font-weight: bold } /* Generic.Prompt */
+.highlight .gs { font-weight: bold } /* Generic.Strong */
+.highlight .gu { color: #800080; font-weight: bold } /* Generic.Subheading */
+.highlight .gt { color: #04D } /* Generic.Traceback */
+.highlight .kc { color: #007020; font-weight: bold } /* Keyword.Constant */
+.highlight .kd { color: #007020; font-weight: bold } /* Keyword.Declaration */
+.highlight .kn { color: #007020; font-weight: bold } /* Keyword.Namespace */
+.highlight .kp { color: #007020 } /* Keyword.Pseudo */
+.highlight .kr { color: #007020; font-weight: bold } /* Keyword.Reserved */
+.highlight .kt { color: #902000 } /* Keyword.Type */
+.highlight .m { color: #40A070 } /* Literal.Number */
+.highlight .s { color: #4070A0 } /* Literal.String */
+.highlight .na { color: #4070A0 } /* Name.Attribute */
+.highlight .nb { color: #007020 } /* Name.Builtin */
+.highlight .nc { color: #0E84B5; font-weight: bold } /* Name.Class */
+.highlight .no { color: #60ADD5 } /* Name.Constant */
+.highlight .nd { color: #555; font-weight: bold } /* Name.Decorator */
+.highlight .ni { color: #D55537; font-weight: bold } /* Name.Entity */
+.highlight .ne { color: #007020 } /* Name.Exception */
+.highlight .nf { color: #06287E } /* Name.Function */
+.highlight .nl { color: #002070; font-weight: bold } /* Name.Label */
+.highlight .nn { color: #0E84B5; font-weight: bold } /* Name.Namespace */
+.highlight .nt { color: #062873; font-weight: bold } /* Name.Tag */
+.highlight .nv { color: #BB60D5 } /* Name.Variable */
+.highlight .ow { color: #007020; font-weight: bold } /* Operator.Word */
+.highlight .w { color: #BBB } /* Text.Whitespace */
+.highlight .mb { color: #40A070 } /* Literal.Number.Bin */
+.highlight .mf { color: #40A070 } /* Literal.Number.Float */
+.highlight .mh { color: #40A070 } /* Literal.Number.Hex */
+.highlight .mi { color: #40A070 } /* Literal.Number.Integer */
+.highlight .mo { color: #40A070 } /* Literal.Number.Oct */
+.highlight .sa { color: #4070A0 } /* Literal.String.Affix */
+.highlight .sb { color: #4070A0 } /* Literal.String.Backtick */
+.highlight .sc { color: #4070A0 } /* Literal.String.Char */
+.highlight .dl { color: #4070A0 } /* Literal.String.Delimiter */
+.highlight .sd { color: #4070A0; font-style: italic } /* Literal.String.Doc */
+.highlight .s2 { color: #4070A0 } /* Literal.String.Double */
+.highlight .se { color: #4070A0; font-weight: bold } /* Literal.String.Escape */
+.highlight .sh { color: #4070A0 } /* Literal.String.Heredoc */
+.highlight .si { color: #70A0D0; font-style: italic } /* Literal.String.Interpol */
+.highlight .sx { color: #C65D09 } /* Literal.String.Other */
+.highlight .sr { color: #235388 } /* Literal.String.Regex */
+.highlight .s1 { color: #4070A0 } /* Literal.String.Single */
+.highlight .ss { color: #517918 } /* Literal.String.Symbol */
+.highlight .bp { color: #007020 } /* Name.Builtin.Pseudo */
+.highlight .fm { color: #06287E } /* Name.Function.Magic */
+.highlight .vc { color: #BB60D5 } /* Name.Variable.Class */
+.highlight .vg { color: #BB60D5 } /* Name.Variable.Global */
+.highlight .vi { color: #BB60D5 } /* Name.Variable.Instance */
+.highlight .vm { color: #BB60D5 } /* Name.Variable.Magic */
+.highlight .il { color: #40A070 } /* Literal.Number.Integer.Long */
+</style>
+  
+  
+  
+    
+        <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20100%20100'%3E%3Ctext%20y='.9em'%20font-size='90'%3E🐼%3C/text%3E%3C/svg%3E">
+    
+
+
+
+  <style>
+      
+      
+    
+:root {
+    --width: 720px;
+    --font-main: Verdana, sans-serif;
+    --font-secondary: Verdana, sans-serif;
+    --font-scale: 1em;
+    --background-color: #fff;
+    --heading-color: #222;
+    --text-color: #444;
+    --link-color: #3273dc;
+    --visited-color:  #8b6fcb;
+    --code-background-color: #f2f2f2;
+    --code-color: #222;
+    --blockquote-color: #222;
+}
+
+@media (prefers-color-scheme: dark) {
+    :root {
+        --background-color: #01242e;
+        --heading-color: #eee;
+        --text-color: #ddd;
+        --link-color: #8cc2dd;
+        --visited-color:  #8b6fcb;
+        --code-background-color: #000;
+        --code-color: #ddd;
+        --blockquote-color: #ccc;
+    }
+}
+
+body {
+    font-family: var(--font-secondary);
+    font-size: var(--font-scale);
+    margin: auto;
+    padding: 20px;
+    max-width: var(--width);
+    text-align: left;
+    background-color: var(--background-color);
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    line-height: 1.5;
+    color: var(--text-color);
+}
+
+h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-main);
+    color: var(--heading-color);
+}
+
+a {
+    color: var(--link-color);
+    cursor: pointer;
+    text-decoration: none;
+}
+
+a:hover {
+    text-decoration: underline; 
+}
+
+nav a {
+    margin-right: 8px;
+}
+
+strong, b {
+    color: var(--heading-color);
+}
+
+button {
+    margin: 0;
+    cursor: pointer;
+}
+
+time {
+ 	font-family: monospace;
+  	font-style: normal;
+  	font-size: 15px;
+}
+
+main {
+    line-height: 1.6;
+}
+
+table {
+    width: 100%;
+}
+
+hr {
+    border: 0;
+    border-top: 1px dashed;
+}
+
+img {
+    max-width: 100%;
+}
+
+code {
+    font-family: monospace;
+    padding: 2px;
+    background-color: var(--code-background-color);
+    color: var(--code-color);
+    border-radius: 3px;
+}
+
+blockquote {
+    border-left: 1px solid #999;
+    color: var(--code-color);
+    padding-left: 20px;
+    font-style: italic;
+}
+
+footer {
+    padding: 25px 0;
+    text-align: center;
+}
+
+.title:hover {
+    text-decoration: none;
+}
+
+.title h1 {
+    font-size: 1.5em;
+}
+
+.inline {
+    width: auto !important;
+}
+
+.highlight, .code {
+    padding: 1px 15px;
+    background-color: var(--code-background-color);
+    color: var(--code-color);
+    border-radius: 3px;
+    margin-block-start: 1em;
+    margin-block-end: 1em;
+    overflow-x: auto;
+}
+
+/* blog post list */
+ul.blog-posts {
+    list-style-type: none;
+    padding: unset;
+}
+
+ul.blog-posts li {
+    display: flex;
+}
+
+ul.blog-posts li span {
+    flex: 0 0 130px;
+}
+
+ul.blog-posts li a:visited {
+    color: var(--visited-color);
+}
+    .upvote-button {
+        padding: 0;
+        margin: 0;
+        border: 0;
+        background-color: inherit;
+        color: inherit;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+    .upvote-button.upvoted {
+        color: salmon;
+    }
+    .upvote-count {
+        margin-top: -3px;
+    }
+
+      
+  </style>
+</head>
+
+<body class="post " onload="(function() { document.cookie = `timezone=${Intl.DateTimeFormat().resolvedOptions().timeZone};path=/`; })()">
+  
+  <header>
+    <a class="title" href="/">
+      <h1>
+        simons blog
+      </h1>
+    </a>
+    <nav>
+      <p><a href='/'>Home</a> <a href='/blog/'>Blog</a></p>
+
+    </nav>
+  </header>
+  <main>
+    
+
+    
+
+    
+        <h1>Swizzles and their usage in CuTeDSL Kernels</h1>
+
+        <p>
+            <i>
+                <time datetime="2025-09-20T17:40Z">
+    20 Sep, 2025
+</time>
+            </i>
+        </p>
+    
+
+    <h2 id=introduction>Introduction</h2><p>Swizzling is used in performant GEMM kernels to design the layout of shared memory and therefore highly important. Essentially swizzling deals with the problem of shared memory bank conflicts we would face when dealing with ordinary, unswizzled Layouts. However it can be hard to understand in the beginning. In this blogpost I aim to give a brief overview of how swizzling is used and implemented in the <code>CuTeDSL</code>.</p>
+<h2 id=composed-layout>Composed Layout</h2><p>Swizzles can be applied via so called <code>ComposedLayout</code> in <code>CuTeDSL</code>.</p>
+<p>The composed Layout is defined via the following formula:</p>
+<div class="highlight"><pre><span></span>R(c) = (inner o offset o outer)(c) = inner(offset + outer(c))
+</pre></div>
+<p>A typical example to create a swizzled Layout would be</p>
+<div class="highlight"><pre><span></span><span class="n">sw</span> <span class="o">=</span> <span class="n">cute</span><span class="o">.</span><span class="n">make_swizzle</span><span class="p">(</span><span class="n">b</span><span class="p">,</span> <span class="n">m</span><span class="p">,</span> <span class="n">s</span><span class="p">)</span> <span class="c1"># BBits, MBase, SShift</span>
+<span class="n">L_swizzled</span> <span class="o">=</span> <span class="n">cute</span><span class="o">.</span><span class="n">make_composed_layout</span><span class="p">(</span><span class="n">sw</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">L</span><span class="p">)</span> <span class="c1"># (sw o 0 o L)</span>
+</pre></div>
+<p>here the composed Layout is than given by <code>R(c) = sw(L(c))</code>.</p>
+<p>Let us consider the following concrete example:</p>
+<div class="highlight"><pre><span></span><span class="nd">@cute</span><span class="o">.</span><span class="n">jit</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">simple_swizzle</span><span class="p">(</span>
+    <span class="n">S</span><span class="p">:</span> <span class="n">cute</span><span class="o">.</span><span class="n">Shape</span><span class="p">,</span> <span class="n">D</span><span class="p">:</span> <span class="n">cute</span><span class="o">.</span><span class="n">Stride</span><span class="p">,</span> <span class="n">bms</span><span class="p">:</span> <span class="n">cute</span><span class="o">.</span><span class="n">IntTuple</span><span class="p">,</span> <span class="n">coord</span><span class="p">:</span> <span class="n">cute</span><span class="o">.</span><span class="n">IntTuple</span>
+<span class="p">):</span>
+    <span class="n">L</span> <span class="o">=</span> <span class="n">cute</span><span class="o">.</span><span class="n">make_layout</span><span class="p">(</span><span class="n">S</span><span class="p">,</span> <span class="n">stride</span><span class="o">=</span><span class="n">D</span><span class="p">)</span>
+    <span class="n">b</span><span class="p">,</span> <span class="n">m</span><span class="p">,</span> <span class="n">s</span> <span class="o">=</span> <span class="n">bms</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">bms</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">bms</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+    <span class="n">sw</span> <span class="o">=</span> <span class="n">cute</span><span class="o">.</span><span class="n">make_swizzle</span><span class="p">(</span><span class="n">b</span><span class="p">,</span> <span class="n">m</span><span class="p">,</span> <span class="n">s</span><span class="p">)</span>
+    <span class="n">L_swizzled</span> <span class="o">=</span> <span class="n">cute</span><span class="o">.</span><span class="n">make_composed_layout</span><span class="p">(</span><span class="n">sw</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">L</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">coord</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">cute</span><span class="o">.</span><span class="n">crd2idx</span><span class="p">(</span><span class="n">coord</span><span class="p">,</span> <span class="n">L</span><span class="p">))</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">cute</span><span class="o">.</span><span class="n">crd2idx</span><span class="p">(</span><span class="n">coord</span><span class="p">,</span> <span class="n">L_swizzled</span><span class="p">))</span>
+
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+    <span class="n">S</span> <span class="o">=</span> <span class="p">(</span><span class="mi">8</span><span class="p">,</span> <span class="mi">32</span><span class="p">)</span>
+    <span class="n">D</span> <span class="o">=</span> <span class="p">(</span><span class="mi">32</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="n">bms</span> <span class="o">=</span> <span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
+    <span class="n">coord</span> <span class="o">=</span> <span class="p">(</span><span class="mi">7</span><span class="p">,</span> <span class="mi">25</span><span class="p">)</span>
+    <span class="n">simple_swizzle</span><span class="p">(</span><span class="n">S</span><span class="p">,</span> <span class="n">D</span><span class="p">,</span> <span class="n">bms</span><span class="p">,</span> <span class="n">coord</span><span class="p">)</span>
+</pre></div>
+<p>For <code>c = (7, 25)</code> the ordinary Layout will map as follows:</p>
+<div class="highlight"><pre><span></span>L((7, 25)) = 7 * 32 + 1 * 25 = 249
+</pre></div>
+<p>We can write in binary: <code>249 = 0b0000000011111001</code>. In a <a href='https://veitner.bearblog.dev/understanding-cute-swizzling-the-math-behind-32b-64b-and-128b-patterns/'>previous blogpost</a> I have shown that <code>Swizzle&lt;2,4,3&gt;</code> will act on a number of the form <code>0bxxxxxxxUVxXYxxxx</code> such that <code>X</code> will get flipped if <code>U=1</code> and <code>Y</code> will get flipped if <code>V=1</code>.
+Compare these two forms:</p>
+<div class="highlight"><pre><span></span>0b0000000011111001
+0bxxxxxxxUVxXYxxxx
+</pre></div>
+<p>We see that <code>U = 0, V = 1</code>, so we will flip <code>Y</code>, which means</p>
+<div class="highlight"><pre><span></span>R(c) = sw(L(c)) = sw(0b0000000011111001) = 0b0000000011101001 = 233
+</pre></div>
+<p>You can run the above code to verify for yourself that this is exactly what we get.</p>
+<h2 id=swizzling-in-cute-kernels>Swizzling in CuTe Kernels</h2><p>In <code>CuTeDSL</code> the <code>Swizzle</code> is used to construct the Shared Memory Layouts, which are than used to construct the TMA atoms.</p>
+<p>In the Hopper example the Shared Memory Layouts are constructed within <code>_make_smem_layouts</code>. Here we use the following logic to obtain them:</p>
+<div class="highlight"><pre><span></span><span class="n">a_major_mode_size</span> <span class="o">=</span> <span class="n">tile_shape_mnk</span><span class="p">[</span><span class="mi">2</span> <span class="k">if</span> <span class="n">a_is_k_major</span> <span class="k">else</span> <span class="mi">0</span><span class="p">]</span>
+<span class="n">a_smem_layout_atom</span> <span class="o">=</span> <span class="n">cute</span><span class="o">.</span><span class="n">nvgpu</span><span class="o">.</span><span class="n">warpgroup</span><span class="o">.</span><span class="n">make_smem_layout_atom</span><span class="p">(</span>
+	<span class="n">sm90_utils</span><span class="o">.</span><span class="n">get_smem_layout_atom</span><span class="p">(</span>
+		<span class="n">a_layout</span><span class="p">,</span>
+		<span class="n">a_dtype</span><span class="p">,</span>
+		<span class="n">a_major_mode_size</span><span class="p">,</span>
+	<span class="p">),</span>
+	<span class="n">a_dtype</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">a_smem_layout_staged</span> <span class="o">=</span> <span class="n">cute</span><span class="o">.</span><span class="n">tile_to_shape</span><span class="p">(</span>
+	<span class="n">a_smem_layout_atom</span><span class="p">,</span>
+	<span class="n">cute</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">a_smem_shape</span><span class="p">,</span> <span class="n">ab_stage</span><span class="p">),</span>
+	<span class="n">order</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span> <span class="k">if</span> <span class="n">a_is_k_major</span> <span class="k">else</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">),</span>
+<span class="p">)</span>
+</pre></div>
+<p>This tells us the two stage approach that is used to build them:</p>
+<ol>
+<li>We construct a <code>smem_layout_atom</code>.</li>
+<li>We use <code>tile_to_shape</code> to cover the whole <code>smem_shape</code> concatenated with the number of stages.</li>
+</ol>
+<p>I will now analyse each of these stages and assume for simplicity that <code>stage = 1</code>. This is not important for the understanding the process because it trivially extends from two to three dimensions.</p>
+<h2 id=swizzle-atom>Swizzle Atom</h2><p>First we get the appropriate swizzling mode. The swizzling mode will be determined by the number of bits of elements in the <code>Tensor</code> we want to create the Shared Memory Layout for and the <code>Major Mode Size</code>.</p>
+<div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">get_smem_layout_atom</span><span class="p">(</span>
+    <span class="n">layout</span><span class="p">:</span> <span class="n">LayoutEnum</span><span class="p">,</span>
+    <span class="n">element_type</span><span class="p">:</span> <span class="n">Type</span><span class="p">[</span><span class="n">Numeric</span><span class="p">],</span>
+    <span class="n">major_mode_size</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">loc</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">ip</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+<span class="p">):</span>
+	<span class="k">assert</span> <span class="n">major_mode_size</span> <span class="o">%</span> <span class="mi">8</span> <span class="o">==</span> <span class="mi">0</span>
+	<span class="n">sw128_num_contiguous_bits</span> <span class="o">=</span> <span class="mi">1024</span>
+	<span class="n">sw64_num_contiguous_bits</span> <span class="o">=</span> <span class="mi">512</span>
+	<span class="n">sw32_num_contiguous_bits</span> <span class="o">=</span> <span class="mi">256</span>
+	<span class="n">major_mode_size_bits</span> <span class="o">=</span> <span class="n">major_mode_size</span> <span class="o">*</span> <span class="n">element_type</span><span class="o">.</span><span class="n">width</span>
+	<span class="k">if</span> <span class="n">layout</span><span class="o">.</span><span class="n">sm90_mma_major_mode</span><span class="p">()</span> <span class="o">==</span> <span class="n">OperandMajorMode</span><span class="o">.</span><span class="n">MN</span><span class="p">:</span>
+		<span class="k">if</span> <span class="n">major_mode_size_bits</span> <span class="o">%</span> <span class="n">sw128_num_contiguous_bits</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+			<span class="k">return</span> <span class="n">cute</span><span class="o">.</span><span class="n">nvgpu</span><span class="o">.</span><span class="n">warpgroup</span><span class="o">.</span><span class="n">SmemLayoutAtomKind</span><span class="o">.</span><span class="n">MN_SW128</span>
+		<span class="k">if</span> <span class="n">major_mode_size_bits</span> <span class="o">%</span> <span class="n">sw64_num_contiguous_bits</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+			<span class="k">return</span> <span class="n">cute</span><span class="o">.</span><span class="n">nvgpu</span><span class="o">.</span><span class="n">warpgroup</span><span class="o">.</span><span class="n">SmemLayoutAtomKind</span><span class="o">.</span><span class="n">MN_SW64</span>
+		<span class="k">if</span> <span class="n">major_mode_size_bits</span> <span class="o">%</span> <span class="n">sw32_num_contiguous_bits</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+			<span class="k">return</span> <span class="n">cute</span><span class="o">.</span><span class="n">nvgpu</span><span class="o">.</span><span class="n">warpgroup</span><span class="o">.</span><span class="n">SmemLayoutAtomKind</span><span class="o">.</span><span class="n">MN_SW32</span>
+		<span class="k">return</span> <span class="n">cute</span><span class="o">.</span><span class="n">nvgpu</span><span class="o">.</span><span class="n">warpgroup</span><span class="o">.</span><span class="n">SmemLayoutAtomKind</span><span class="o">.</span><span class="n">MN_INTER</span>
+	<span class="k">if</span> <span class="n">major_mode_size_bits</span> <span class="o">%</span> <span class="n">sw128_num_contiguous_bits</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+		<span class="k">return</span> <span class="n">cute</span><span class="o">.</span><span class="n">nvgpu</span><span class="o">.</span><span class="n">warpgroup</span><span class="o">.</span><span class="n">SmemLayoutAtomKind</span><span class="o">.</span><span class="n">K_SW128</span>
+	<span class="k">if</span> <span class="n">major_mode_size_bits</span> <span class="o">%</span> <span class="n">sw64_num_contiguous_bits</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+		<span class="k">return</span> <span class="n">cute</span><span class="o">.</span><span class="n">nvgpu</span><span class="o">.</span><span class="n">warpgroup</span><span class="o">.</span><span class="n">SmemLayoutAtomKind</span><span class="o">.</span><span class="n">K_SW64</span>
+	<span class="k">if</span> <span class="n">major_mode_size_bits</span> <span class="o">%</span> <span class="n">sw32_num_contiguous_bits</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+		<span class="k">return</span> <span class="n">cute</span><span class="o">.</span><span class="n">nvgpu</span><span class="o">.</span><span class="n">warpgroup</span><span class="o">.</span><span class="n">SmemLayoutAtomKind</span><span class="o">.</span><span class="n">K_SW32</span>
+	<span class="k">return</span> <span class="n">cute</span><span class="o">.</span><span class="n">nvgpu</span><span class="o">.</span><span class="n">warpgroup</span><span class="o">.</span><span class="n">SmemLayoutAtomKind</span><span class="o">.</span><span class="n">K_INTER</span>
+</pre></div>
+<p>We see that we calculate the number of bits along the <code>Major Mode</code>.</p>
+<p>For example take <code>BFloat16</code> as datatype. Than the number of bits in one element will be obviously <code>16</code>. If we than have that the Layout is <code>(8, 32):(32, 1)</code> we have that this is <code>K-Major</code>, and the <code>major_mode_size = 32</code> accordingly. This will than give us <code>major_mode_size_bits = 32 * 16 = 512</code>. Accordingly we choose <code>cute.nvgpu.warpgroup.SmemLayoutAtomKind.K_SW64</code> as the <code>SmemLayoutAtomKind</code>.</p>
+<p>This is than passed to <code>make_smem_layout_atom</code> which looks as follows:</p>
+<div class="highlight"><pre><span></span><span class="nd">@dsl_user_op</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">make_smem_layout_atom</span><span class="p">(</span>
+    <span class="n">kind</span><span class="p">:</span> <span class="n">SmemLayoutAtomKind</span><span class="p">,</span> <span class="n">element_type</span><span class="p">:</span> <span class="n">Type</span><span class="p">[</span><span class="n">Numeric</span><span class="p">],</span> <span class="o">*</span><span class="p">,</span> <span class="n">loc</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ip</span><span class="o">=</span><span class="kc">None</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">core</span><span class="o">.</span><span class="n">ComposedLayout</span><span class="p">:</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">element_type</span><span class="p">,</span> <span class="n">NumericMeta</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;element_type must be a Numeric, but got </span><span class="si">{</span><span class="n">element_type</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">kind</span> <span class="ow">in</span> <span class="p">(</span><span class="n">SmemLayoutAtomKind</span><span class="o">.</span><span class="n">MN_INTER</span><span class="p">,</span> <span class="n">SmemLayoutAtomKind</span><span class="o">.</span><span class="n">K_INTER</span><span class="p">):</span>
+        <span class="n">num_contiguous_bits</span> <span class="o">=</span> <span class="mi">128</span>
+        <span class="n">sw</span> <span class="o">=</span> <span class="n">core</span><span class="o">.</span><span class="n">make_swizzle</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">kind</span> <span class="ow">in</span> <span class="p">(</span><span class="n">SmemLayoutAtomKind</span><span class="o">.</span><span class="n">MN_SW32</span><span class="p">,</span> <span class="n">SmemLayoutAtomKind</span><span class="o">.</span><span class="n">K_SW32</span><span class="p">):</span>
+        <span class="n">num_contiguous_bits</span> <span class="o">=</span> <span class="mi">256</span>
+        <span class="n">sw</span> <span class="o">=</span> <span class="n">core</span><span class="o">.</span><span class="n">make_swizzle</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">kind</span> <span class="ow">in</span> <span class="p">(</span><span class="n">SmemLayoutAtomKind</span><span class="o">.</span><span class="n">MN_SW64</span><span class="p">,</span> <span class="n">SmemLayoutAtomKind</span><span class="o">.</span><span class="n">K_SW64</span><span class="p">):</span>
+        <span class="n">num_contiguous_bits</span> <span class="o">=</span> <span class="mi">512</span>
+        <span class="n">sw</span> <span class="o">=</span> <span class="n">core</span><span class="o">.</span><span class="n">make_swizzle</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">kind</span> <span class="ow">in</span> <span class="p">(</span><span class="n">SmemLayoutAtomKind</span><span class="o">.</span><span class="n">MN_SW128</span><span class="p">,</span> <span class="n">SmemLayoutAtomKind</span><span class="o">.</span><span class="n">K_SW128</span><span class="p">):</span>
+        <span class="n">num_contiguous_bits</span> <span class="o">=</span> <span class="mi">1024</span>
+        <span class="n">sw</span> <span class="o">=</span> <span class="n">core</span><span class="o">.</span><span class="n">make_swizzle</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;unrecognized SMEM layout atom kind&quot;</span><span class="p">)</span>
+    <span class="n">num_contiguous_elems</span> <span class="o">=</span> <span class="n">num_contiguous_bits</span> <span class="o">//</span> <span class="n">element_type</span><span class="o">.</span><span class="n">width</span>
+
+    <span class="k">if</span> <span class="n">kind</span> <span class="ow">in</span> <span class="p">(</span>
+        <span class="n">SmemLayoutAtomKind</span><span class="o">.</span><span class="n">MN_INTER</span><span class="p">,</span>
+        <span class="n">SmemLayoutAtomKind</span><span class="o">.</span><span class="n">MN_SW32</span><span class="p">,</span>
+        <span class="n">SmemLayoutAtomKind</span><span class="o">.</span><span class="n">MN_SW64</span><span class="p">,</span>
+        <span class="n">SmemLayoutAtomKind</span><span class="o">.</span><span class="n">MN_SW128</span><span class="p">,</span>
+    <span class="p">):</span>
+        <span class="c1"># M/N-major layout</span>
+        <span class="k">return</span> <span class="n">core</span><span class="o">.</span><span class="n">make_composed_layout</span><span class="p">(</span>
+            <span class="n">sw</span><span class="p">,</span>
+            <span class="mi">0</span><span class="p">,</span>
+            <span class="n">core</span><span class="o">.</span><span class="n">make_layout</span><span class="p">(</span>
+                <span class="p">(</span><span class="n">num_contiguous_elems</span><span class="p">,</span> <span class="mi">8</span><span class="p">),</span> <span class="n">stride</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">num_contiguous_elems</span><span class="p">)</span>
+            <span class="p">),</span>
+            <span class="n">loc</span><span class="o">=</span><span class="n">loc</span><span class="p">,</span>
+            <span class="n">ip</span><span class="o">=</span><span class="n">ip</span><span class="p">,</span>
+        <span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="c1"># K-major layout</span>
+        <span class="k">return</span> <span class="n">core</span><span class="o">.</span><span class="n">make_composed_layout</span><span class="p">(</span>
+            <span class="n">sw</span><span class="p">,</span>
+            <span class="mi">0</span><span class="p">,</span>
+            <span class="n">core</span><span class="o">.</span><span class="n">make_layout</span><span class="p">(</span>
+                <span class="p">(</span><span class="mi">8</span><span class="p">,</span> <span class="n">num_contiguous_elems</span><span class="p">),</span> <span class="n">stride</span><span class="o">=</span><span class="p">(</span><span class="n">num_contiguous_elems</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+            <span class="p">),</span>
+            <span class="n">loc</span><span class="o">=</span><span class="n">loc</span><span class="p">,</span>
+            <span class="n">ip</span><span class="o">=</span><span class="n">ip</span><span class="p">,</span>
+        <span class="p">)</span>
+</pre></div>
+<p>This will simply create a <code>ComposedLayout</code> which will behave like the one we have seen above.</p>
+<p>Let us analyse in more detail, how the Layout is created. From the <code>SmemLayoutAtomKind</code> we know how many bits are in one slice of the major mode. We choose the according Swizzle Pattern.</p>
+<p>As we have learned in past the Swizzle Patterns above have interesting structure and hierarchy:</p>
+<ul>
+<li><code>Swizzle&lt;0,4,3&gt;</code> is the identity. It won't affect the Layout it acts on in <code>ComposedLayout</code> at all.</li>
+<li><code>Swizzle&lt;1,4,3&gt;</code> will act on numbers of the form <code>0bxxxxxxxxXxxZxxxx</code> (where we assume <code>16bit</code> numbers here, it will work the same way for <code>32bit</code> numbers) that <code>Z</code> gets flipped when <code>X = 1</code>. This pattern will obviously repeat after we reach <code>0b0000000100000000 = 256bit = (256/8)B = 32B</code> because only the 8 rightmost bits determine the swizzling pattern and the other bits effectively just add their part to the swizzled first <code>8 bit</code>.</li>
+<li><code>Swizzle&lt;2,4,3&gt;</code> will act on numbers of the form <code>0bxxxxxxxUVxYZxxxx</code>  such that <code>Y</code> will flip iff <code>U = 1</code> and <code>Z</code> will flip iff <code>V = 1</code>. This pattern will repeat after <code>0b0000001000000000 = 512bit = (512/8)B = 64B</code> with similar reasoning as above.</li>
+<li><code>Swizzle&lt;3,4,3&gt;</code> will act on numbers of the form <code>0bxxxxxxPQRSTUxxxx</code>  such that <code>S</code> will flip iff <code>P = 1</code>, <code>T</code> will flip iff <code>Q = 1</code>  and <code>U</code> will flip iff <code>R = 1</code>. This pattern will repeat after <code>0b0000010000000000 = 1024bit = (1024/8)B = 128B</code> with similar reasoning as above.</li>
+</ul>
+<p>Note that in the code above we adjust</p>
+<div class="highlight"><pre><span></span><span class="n">num_contiguous_elems</span> <span class="o">=</span> <span class="n">num_contiguous_bits</span> <span class="o">//</span> <span class="n">element_type</span><span class="o">.</span><span class="n">width</span>
+</pre></div>
+<p>that is because the Layout will be attached to a <code>Tensor</code>.</p>
+<p>As we have learned above a <code>Tensor</code> in <code>CuTeDSL</code> is composed of an <code>Engine</code> and a <code>Layout</code>. Indexing (or slicing) into a tensor works than such:</p>
+<div class="highlight"><pre><span></span>T(c) = (E o L)(c) = *(E + L(c))
+</pre></div>
+<p>which in words describes the operation: If we pass a coordinate to a Tensor the pointer <code>E</code> will be offset by <code>L(c)</code>. The result of this operation will than be dereferenced.</p>
+<p>The <code>SwizzleAtom</code> will therefore not contain the information about the <code>datatype</code> because this information is contained in the engine <code>E</code>. That is why we divide this information out and only care about the number of contiguous elements, not bits.</p>
+<p>We should furthermore note that the Swizzle Atoms follow the mode of the Layout we want to create our Shared Memory Layout for. I.e. a <code>K-Major</code> Layout will get a <code>Swizzled K-Major Shared Memory Layout</code> and similar for <code>M-Major</code>.</p>
+<p>Let us look at the Swizzling Atoms if the datatype is <code>BFloat16</code>:</p>
+<h4 id=k-major-codebfloat16code-atoms>K-Major <code>BFloat16</code> atoms</h4><p><code>Swizzle&lt;0,4,3&gt; o 0 o (8,8):(8,1)</code></p>
+<p><img src="https://bear-images.sfo2.cdn.digitaloceanspaces.com/veitner/0_4_3_k_major-1.svg" alt="0_4_3_K_major" /></p>
+<p><code>Swizzle&lt;1,4,3&gt; o 0 o (8, 16):(16,1)</code></p>
+<p><img src="https://bear-images.sfo2.cdn.digitaloceanspaces.com/veitner/1_4_3_k_major-2.svg" alt="1_4_3_K_major" /></p>
+<p><code>Swizzle&lt;2,4,3&gt; o 0 o (8, 32):(32,1)</code></p>
+<p><img src="https://bear-images.sfo2.cdn.digitaloceanspaces.com/veitner/2_4_3_k_major-1.svg" alt="2_4_3_K_major" /></p>
+<p><code>Swizzle&lt;3,4,3&gt; o 0 o (8, 64):(64,1)</code></p>
+<p><img src="https://bear-images.sfo2.cdn.digitaloceanspaces.com/veitner/3_4_3_k_major-1.svg" alt="3_4_3_K_major" /></p>
+<h3 id=m-major-codebfloat16code-atoms>M-Major <code>BFloat16</code> atoms</h3><p><code>Swizzle&lt;0,4,3&gt; o 0 o (8,8):(8,1)</code></p>
+<p><img src="https://bear-images.sfo2.cdn.digitaloceanspaces.com/veitner/0_4_3_m_major-1.svg" alt="0_4_3_M_major" /></p>
+<p><code>Swizzle&lt;1,4,3&gt; o 0 o (16,8):(1,16)</code></p>
+<p><img src="https://bear-images.sfo2.cdn.digitaloceanspaces.com/veitner/1_4_3_m_major-2.svg" alt="1_4_3_M_major" /></p>
+<p><code>Swizzle&lt;2,4,3&gt; o 0 o (32,8):(1,32)</code></p>
+<p><img src="https://bear-images.sfo2.cdn.digitaloceanspaces.com/veitner/2_4_3_m_major-1.svg" alt="2_4_3_M_major" /></p>
+<p><code>Swizzle&lt;3,4,3&gt; o 0 o (64,8):(1,64)</code></p>
+<p><img src="https://bear-images.sfo2.cdn.digitaloceanspaces.com/veitner/3_4_3_m_major-1.svg" alt="3_4_3_M_major" /></p>
+<h2 id=covering-a-tile-with-an-atom>Covering a Tile with an Atom</h2><p>So far we have covered the creation of <code>Swizzle Atoms</code>. However our tiling on a block level is oftentimes larger than the dimensions of the Swizzle atoms. This is where <code>CuTe</code>'s <code>tile_to_shape</code> function comes in handy.</p>
+<p>Looking again at the code</p>
+<div class="highlight"><pre><span></span><span class="n">a_smem_layout_staged</span> <span class="o">=</span> <span class="n">cute</span><span class="o">.</span><span class="n">tile_to_shape</span><span class="p">(</span>
+	<span class="n">a_smem_layout_atom</span><span class="p">,</span>
+	<span class="n">cute</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">a_smem_shape</span><span class="p">,</span> <span class="n">ab_stage</span><span class="p">),</span>
+	<span class="n">order</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span> <span class="k">if</span> <span class="n">a_is_k_major</span> <span class="k">else</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">),</span>
+<span class="p">)</span>
+</pre></div>
+<p>We see that <code>tile_to_shape</code> takes an atom, a shape and an order parameter.</p>
+<ul>
+<li>The atom is the Swizzle Atom</li>
+<li>The shape is the shape for the <code>SMEM</code> concatenated with the number of stages</li>
+<li>The order parameter will be explained visually below.</li>
+</ul>
+<p>Let us consider the atoms corresponding to <code>Swizzle&lt;1,4,3&gt;</code>. Once in <code>K-Major</code> and once in <code>M-Major</code>. For visualisation it is easier to consider the case where we only tile the <code>SMEM</code> shape with our atom.</p>
+<h3 id=k-major>K-Major</h3><p>For K-Major our atom is <code>Swizzle&lt;1,4,3&gt; o 0 o (8, 16):(16,1)</code>.
+Let us assume we want to tile a matrix of shape <code>(32,32)</code> with that atom. The order will be <code>(0,1)</code> because we are in <code>K-Major</code>.</p>
+<p>We will now display once more the atom and than below it the matrix tiled with this atom.</p>
+<p><img src="https://bear-images.sfo2.cdn.digitaloceanspaces.com/veitner/1_4_3_k_major-3.svg" alt="1_4_3_K_major" /></p>
+<p><img src="https://bear-images.sfo2.cdn.digitaloceanspaces.com/veitner/1_4_3_k_major_32_32-1.svg" alt="1_4_3_K_major_32_32" /></p>
+<p>We see that this Layout was obtained by first replicating the Layout along the first mode and than along the second mode. This meaning of the order parameter can also be found in the corresponding <code>C++</code> implementation in <a href='https://github.com/NVIDIA/cutlass/blob/74825181f2fb5f2c6d9b7a735ca514dd6b6986a0/include/cute/layout.hpp#L1778'>layout.hpp</a></p>
+<div class="highlight"><pre><span></span><span class="c1">// tile_to_shape -- Perform a product of a layout so that the result matches a target shape.</span>
+<span class="c1">// This is similar to blocked_product, but specifies the result shape instead of the</span>
+<span class="c1">//   product shape, which is more convenient in certain circumstances.</span>
+<span class="c1">// @param block The layout to repeat</span>
+<span class="c1">// @param trg_shape The target shape of the result</span>
+<span class="c1">// @param ord_shape The order of the modes of @a trg_shape to tile @a layout with.</span>
+<span class="c1">//                  Defaults to GenColMajor, so @a layout will repeat</span>
+<span class="c1">//                    across the first mode first, the second mode second, etc</span>
+<span class="c1">//                  E.g. Step&lt;_2,_1,_3&gt; will cause @a layout to repeat</span>
+<span class="c1">//                    across the second mode first, the first mode second, and the third mode last.</span>
+<span class="c1">// @pre rank(@a block) &lt;= rank(@a trg_shape)</span>
+<span class="c1">// @post compatible(@a trg_shape, shape(@a result))</span>
+<span class="k">template</span><span class="w"> </span><span class="o">&lt;</span><span class="k">class</span><span class="w"> </span><span class="nc">Shape</span><span class="p">,</span><span class="w"> </span><span class="k">class</span><span class="w"> </span><span class="nc">Stride</span><span class="p">,</span>
+<span class="w">          </span><span class="k">class</span><span class="w"> </span><span class="nc">TrgShape</span><span class="p">,</span><span class="w"> </span><span class="k">class</span><span class="w"> </span><span class="nc">ModeOrder</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">LayoutLeft</span><span class="o">&gt;</span>
+<span class="n">CUTE_HOST_DEVICE</span><span class="w"> </span><span class="k">constexpr</span>
+<span class="k">auto</span>
+<span class="n">tile_to_shape</span><span class="p">(</span><span class="n">Layout</span><span class="o">&lt;</span><span class="n">Shape</span><span class="p">,</span><span class="n">Stride</span><span class="o">&gt;</span><span class="w"> </span><span class="k">const</span><span class="o">&amp;</span><span class="w"> </span><span class="n">block</span><span class="p">,</span>
+<span class="w">              </span><span class="n">TrgShape</span><span class="w">             </span><span class="k">const</span><span class="o">&amp;</span><span class="w"> </span><span class="n">trg_shape</span><span class="p">,</span>
+<span class="w">              </span><span class="n">ModeOrder</span><span class="w">            </span><span class="k">const</span><span class="o">&amp;</span><span class="w"> </span><span class="n">ord_shape</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{})</span>
+</pre></div>
+<p>Note that this pattern will be repeated <code>32/8 = 4</code> times in the down direction and than this pattern will be repeated <code>32/16 = 2</code> times in the right direction.</p>
+<p>As explained above this pattern will repeat after the index <code>256</code>, i.e. after we replicated it <code>256 / (8 * 16) = 2</code> times to the downwards direction.</p>
+<p>We can also print out this Layout: <code>S&lt;1,4,3&gt; o 0 o ((8,4),(16,2)):((16,128),(1,512))</code>. This makes sense because our original atom was of shape <code>(8,16)</code> and we needed <code>4</code> tiles to cover the first mode and <code>2</code> tiles to cover the second mode.
+Let us derive visually the strides for the first mode <code>(8,4):(d1,d2)</code>. <code>d1</code> corresponds to the stride within two unswizzled columns in an atom and thats just <code>16</code>. <code>d2</code> is the stride between two unswizzled elements in one column and adjacent atoms. It can be directly read off as <code>128-0</code>.
+Let us derive visually the strides for the second mode <code>(16,2):(d1,d2)</code>. <code>d1</code> is obviously <code>1</code> because the stride between two unswizzled adjacent elements within one row and atom is <code>1</code>. Similar <code>d2</code> is the number of steps we need to go from the first element in one atom to first element in the adjacent atom on the right, i.e. <code>512-0 = 512</code>.</p>
+<p>Note that we could also derive them without visuals by hand:</p>
+<ul>
+<li>Our atom Layout is <code>(8,16):(16,1)</code>.</li>
+<li>We first fill along the first mode. We will have four atoms (because <code>32/8 = 4</code>) to cover that mode. The stride between each of these atoms along the first mode is <code>8 * 16 = 128</code> for the unswizzled version. Thus we have a Layout along that mode of <code>(8,4):(16,128)</code></li>
+<li>We than fill the second mode with these atoms. We have two atoms (because <code>32/16 = 2</code>) and the stride between them will be <code>8 * 16 * 4 = 512</code> because we layed out <code>4</code> atoms before we lay out the first one in the directon of the second mode. Thus we have a Layout of <code>(16,2):(1, 16)</code> into this direction.</li>
+<li>We'll apply swizzle to the whole Layout we just obtained: Thus <code>Swizzle&lt;1,4,3&gt; o 0 o ((8,16),(16,2)):((16,128),(1,512))</code>.</li>
+</ul>
+<h3 id=m-major>M-Major</h3><p>For K-Major our atom is <code>Swizzle&lt;1,4,3&gt; o 0 o (16, 1):(1,16)</code>.
+Let us assume we want to tile a matrix of shape <code>(32,32)</code> with that atom. The order will be <code>(1,0)</code> because we are in <code>M-Major</code>.</p>
+<p><img src="https://bear-images.sfo2.cdn.digitaloceanspaces.com/veitner/1_4_3_m_major-3.svg" alt="1_4_3_M_major" /></p>
+<p><img src="https://bear-images.sfo2.cdn.digitaloceanspaces.com/veitner/1_4_3_m_major_32_32-1.svg" alt="1_4_3_M_major_32_32" /></p>
+<p>We see that here we first take the atom and tile it to the right. We than tile this to the down. Similar rule in repetitively as above applies.</p>
+<p>We can also print out this Layout: <code>S&lt;1,4,3&gt; o 0 o ((16,2),(8,4)):((1,512),(16,128))</code>. This makes sense because our original atom was of shape <code>(16,8)</code> and we needed <code>2</code> tiles to cover the first mode and <code>4</code> tiles to cover the second mode.
+We can derive the strides in a similar manner as above. Of course here we can also derive just by hand calculation as above (do this as an exercise if you are unsure).</p>
+<h3 id=extension-to-3-dimensions>Extension to 3 dimensions</h3><p>If we use the stage as an additional part of the shape the tile to shape functionality will work exactly the same. Only after covering the plane with the Atom we will extend this into the third dimension (i.e. have a bunch of planes all with similar pattern).</p>
+<h2 id=bank-conflicts>Bank Conflicts</h2><p>In this last section we will analyse bank conflicts.
+Let's look at the tile <code>(64,64)</code> covered with K-Major <code>BFloat16</code> Atoms and plot the distribution onto the banks.</p>
+<p>Note that for <code>BFloat16</code> two elements will be in one bank because a bank consists of a <code>32</code> bit word.</p>
+<p>Note that our swizzle atom has Layout <code>Swizzle&lt;3,4,3&gt; o 0 o (8,64):(64,1)</code> so we will only extend into the first mode (<code>8 times</code>).</p>
+<p><img src="https://bear-images.sfo2.cdn.digitaloceanspaces.com/veitner/3_4_3_k_major_64_64_bank_conflict-1.svg" alt="3_4_3_K_major_64_64_Bank_Conflict" /></p>
+<p>We see that in the <code>K-Mode</code> we don't have any bank conflicts (note that two consecutive elements with the same number belong to one bank here because we deal with <code>BFloat16</code>). In the <code>M-Mode</code> we have some bank conflicts but not as severe as in the unswizzled Layout. For the unswizzled Layout we would have the following situation:</p>
+<p><img src="https://bear-images.sfo2.cdn.digitaloceanspaces.com/veitner/unswizzled_64_64_k_major_bank_conflict-1.svg" alt="Unswizzled_64_64_K_major_Bank_Conflict" /></p>
+<p>Here we have severe bank conflicts. Essentially any slice operation on a specific column (i.e. sth like <code>A[None, 0]</code>) will result in as many bank conflicts as possible, and will lead the GPU to serialize these memory accesses and less performance.</p>
+<h2 id=conclusion>Conclusion</h2><p>I hope this served as a good introduction into Swizzling in general with a focus on how it is used in performant <code>CuTeDSL</code> kernels to construct the <code>SMEM Layout</code>. Please contact me on <a href='https://www.linkedin.com/in/simon-veitner-174a681b6/'>Linkedin</a> if you are interested into exchange of ideas. The code to reproduce the figures shown in this blog is available in <a href='https://github.com/simveit/swizzle_cute_dsl'>my Github repo</a>.</p>
+<p>Shared Memory Bank Conflict is explained in good way <a href='https://leimao.github.io/blog/CUDA-Shared-Memory-Bank/'>by Lei Mao</a> and <a href='https://feldmann.nyc/blog/smem-microbenchmarks'>Axel Feldmann</a>.  <a href='https://leimao.github.io/blog/CuTe-Swizzle/'>Lei Mao</a> gives also an introduction to <code>CuTe Swizzle</code> with a more rigorous flavour than this blog. The visualisations in this blog are adapted from code that <a href='https://github.com/NVIDIA/cutlass/issues/2453#issuecomment-3133409976'>Cris Cecka</a> provided in a <code>CUTLASS</code> issue on Github.</p>
+
+
+    
+
+    
+        
+
+        
+            <form id="upvote-form" action="/upvote/" method="post" style="display: inline">
+    <small>
+        <input hidden name="uid" value="TkqBPpxtkSPqTsqRNGgN" style="display:none">
+        <input hidden name="title" value="Swizzles and their usage in CuTeDSL Kernels" style="display:none">
+
+        <button
+            class="upvote-button"
+            aria-label="Toast this post"
+            title="Toast this post"
+        >
+            <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" class="css-i6dzq1">
+                <polyline points="17 11 12 6 7 11"></polyline>
+                <polyline points="17 18 12 13 7 18"></polyline>
+            </svg>
+            <small class="upvote-count" aria-hidden="true">&nbsp;</small>
+        </button>
+    </small>        
+</form>
+
+<script>
+    const $upvoteButton = document.querySelector('.upvote-button');
+    const $upvoteCount =  document.querySelector('.upvote-count')
+
+    fetch('/upvote-info/TkqBPpxtkSPqTsqRNGgN/').then(response => response.json()).then(data => {
+        $upvoteCount.innerText = data.upvote_count;
+        if (data.upvoted) {
+            $upvoteButton.disabled = true
+            $upvoteButton.style.color = "salmon"
+            $upvoteButton.ariaLabel = "Toasted"
+            $upvoteButton.title = "Toasted"
+        }
+        $upvoteButton.ariaLabel += ` (${data.upvote_count})`
+    });
+
+    let moved = false;
+    let pageLoaded = Date.now();
+
+    document.addEventListener('touchmove', () => moved = true);
+    document.addEventListener('mousemove', () => moved = true);
+
+    document.querySelector('#upvote-form').addEventListener('submit', (e) => {
+        e.preventDefault();
+
+        if (moved) {
+            document.querySelector('input[name="title"]').value = "";
+        }
+        if (Date.now() - pageLoaded < 2000 || !moved) {
+            return;
+        }
+
+        fetch(e.target.action, {
+            method: 'post',
+            body: new FormData(e.target),
+        });
+        
+        $upvoteButton.disabled = true
+        $upvoteButton.style.color = "salmon"
+        $upvoteButton.ariaLabel = "Toasted"
+        $upvoteButton.title = "Toasted"
+        const newUpvoteCount = `${(parseInt($upvoteCount.innerHTML.split(" ")[0]) + 1)}`
+        $upvoteCount.innerHTML = newUpvoteCount
+        $upvoteButton.ariaLabel += ` (${newUpvoteCount})`
+    });
+</script>
+        
+
+        
+            <script>
+            window.addEventListener("load", () => {
+                if (navigator.webdriver !== true) {
+                    const sendHit = score => {
+                        const params = new URLSearchParams({
+                            blog: "veitner",
+                            token: "TkqBPpxtkSPqTsqRNGgN",
+                            referrer: document.referrer.includes("veitner.bearblog.dev") ? "" : document.referrer,
+                            title: "",
+                            score: score
+                        });
+                        new Image().src = `/hit/?${params.toString()}`;
+                    };
+
+                    document.addEventListener('touchmove', () => sendHit(100), { once: true });
+                    document.addEventListener('mousemove', () => sendHit(100), { once: true });
+                }
+            });
+            </script>
+        
+    
+
+
+  </main>
+  <footer>
+    
+    
+    <span>
+        Powered by <a href="https://bearblog.dev">Bear <span role="img" class="bear" aria-label="ASCII bear logo">ʕ•ᴥ•ʔ</span></a>
+    </span>
+
+  </footer>
+
+  
+  <script>
+        (() => {
+          "use strict";
+          const times = document.querySelectorAll('time');
+          const format_string = "d M, Y" || "d M, Y"
+
+          times.forEach(time => {
+              time.innerText = formatDate(time.dateTime, format_string)
+          });
+
+          function formatDate(dateStr, formatStr) {
+            const date = new Date(dateStr);
+            const day = date.getDate();
+            const month = date.getMonth();
+            const year = date.getFullYear();
+            const weekday = date.getDay();
+            const hours = date.getHours();
+            const minutes = date.getMinutes();
+            const monthsFull = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+            const monthsShort = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+            const daysFull = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+            const daysShort = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+            
+            function getOrdinal(n) {
+                const s = ['th', 'st', 'nd', 'rd'];
+                const v = n % 100;
+                return s[(v - 20) % 10] || s[v] || s[0];
+            }
+            
+            const map = {
+                'd': () => day.toString().padStart(2, '0'),
+                'm': () => (month + 1).toString().padStart(2, '0'),
+                'Y': () => year.toString(),
+                'y': () => year.toString().slice(-2),
+                'F': () => monthsFull[month],
+                'j': () => day.toString(),
+                'D': () => daysShort[weekday],
+                'l': () => daysFull[weekday],
+                'S': () => getOrdinal(day),
+                'M': () => monthsShort[month],
+                'H': () => hours.toString().padStart(2, '0'),
+                'h': () => {
+                    let h = hours % 12;
+                    h = h === 0 ? 12 : h;
+                    return h.toString().padStart(2, '0');
+                },
+                'g': () => {
+                    let h = hours % 12;
+                    return h === 0 ? '12' : h.toString();
+                },
+                'i': () => minutes.toString().padStart(2, '0'),
+                'a': () => hours < 12 ? 'am' : 'pm',
+                'A': () => hours < 12 ? 'AM' : 'PM',
+            };
+            
+            let result = '';
+            for (let char of formatStr) {
+                result += map[char] ? map[char]() : char;
+            }
+            return result;
+        }
+        })();
+    </script>
+    
+</body>
+<!-- ID: veitner -->
+<!-- 🐻 -->
+</html>

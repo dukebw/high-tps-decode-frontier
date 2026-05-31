@@ -1,0 +1,881 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!-- Powered by Bear Blog -->
+
+<head>
+  
+  
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5">
+  
+  <title>CuTe partitions | simons blog</title>
+  <link rel="canonical" href="https://veitner.bearblog.dev/cute-partitions/">
+  
+    
+
+    <meta name="veitner" content="look-for-the-bear-necessities">
+    <meta name="token" content="sIuavcXFqLXFbcXGgESZ">
+
+    
+<!-- Primary Meta Tags -->
+<meta name="title" content="CuTe partitions">
+<meta name="description" content="In CuTe we have multiple ways to tile our tensors, i.e. to divide the work onto the threads on our GPU.
+
+The CuTe docs describe three modes of tiling
+ Inn...">
+
+<!-- Open Graph / Facebook -->
+<meta property="og:site_name" content="simons blog">
+<meta property="og:title" content="CuTe partitions">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://veitner.bearblog.dev/cute-partitions/">
+<meta property="og:description" content="In CuTe we have multiple ways to tile our tensors, i.e. to divide the work onto the threads on our GPU.
+
+The CuTe docs describe three modes of tiling
+ Inn...">
+<meta property="og:image" content="/static/og-image.png">
+
+
+<!-- Twitter -->
+<meta property="twitter:card" content="summary">
+<meta property="twitter:url" content="https://veitner.bearblog.dev/cute-partitions/">
+<meta property="twitter:title" content="CuTe partitions">
+<meta property="twitter:description" content="In CuTe we have multiple ways to tile our tensors, i.e. to divide the work onto the threads on our GPU.
+
+The CuTe docs describe three modes of tiling
+ Inn...">
+<meta property="twitter:image" content="/static/og-image.png">
+
+
+
+<!-- Microdata -->
+<script type="application/ld+json">
+  {
+    "@context": "http://schema.org",
+    "@type": "article",
+    "name": "CuTe partitions",
+    "headline": "CuTe partitions",
+    "url": "https://veitner.bearblog.dev/cute-partitions/",
+    "description": "In CuTe we have multiple ways to tile our tensors, i.e. to divide the work onto the threads on our GPU.
+
+The CuTe docs describe three modes of tiling
+ Inn...",
+    "image": "/static/og-image.png"
+  }
+</script>
+    <link rel="alternate" type="application/atom+xml" href="/feed/" title="simons blog">
+    <link rel="alternate" type="application/rss+xml" href="/feed/?type=rss" title="simons blog">
+
+  
+    
+
+    
+    <style>pre { line-height: 125%; }
+td.linenos .normal { color: #666666; background-color: transparent; padding-left: 5px; padding-right: 5px; }
+span.linenos { color: #666666; background-color: transparent; padding-left: 5px; padding-right: 5px; }
+td.linenos .special { color: #000000; background-color: #ffffc0; padding-left: 5px; padding-right: 5px; }
+span.linenos.special { color: #000000; background-color: #ffffc0; padding-left: 5px; padding-right: 5px; }
+.highlight .hll { background-color: #ffffcc }
+.highlight { background: #f0f0f0; }
+.highlight .c { color: #60A0B0; font-style: italic } /* Comment */
+.highlight .err { border: 1px solid #F00 } /* Error */
+.highlight .k { color: #007020; font-weight: bold } /* Keyword */
+.highlight .o { color: #666 } /* Operator */
+.highlight .ch { color: #60A0B0; font-style: italic } /* Comment.Hashbang */
+.highlight .cm { color: #60A0B0; font-style: italic } /* Comment.Multiline */
+.highlight .cp { color: #007020 } /* Comment.Preproc */
+.highlight .cpf { color: #60A0B0; font-style: italic } /* Comment.PreprocFile */
+.highlight .c1 { color: #60A0B0; font-style: italic } /* Comment.Single */
+.highlight .cs { color: #60A0B0; background-color: #FFF0F0 } /* Comment.Special */
+.highlight .gd { color: #A00000 } /* Generic.Deleted */
+.highlight .ge { font-style: italic } /* Generic.Emph */
+.highlight .ges { font-weight: bold; font-style: italic } /* Generic.EmphStrong */
+.highlight .gr { color: #F00 } /* Generic.Error */
+.highlight .gh { color: #000080; font-weight: bold } /* Generic.Heading */
+.highlight .gi { color: #00A000 } /* Generic.Inserted */
+.highlight .go { color: #888 } /* Generic.Output */
+.highlight .gp { color: #C65D09; font-weight: bold } /* Generic.Prompt */
+.highlight .gs { font-weight: bold } /* Generic.Strong */
+.highlight .gu { color: #800080; font-weight: bold } /* Generic.Subheading */
+.highlight .gt { color: #04D } /* Generic.Traceback */
+.highlight .kc { color: #007020; font-weight: bold } /* Keyword.Constant */
+.highlight .kd { color: #007020; font-weight: bold } /* Keyword.Declaration */
+.highlight .kn { color: #007020; font-weight: bold } /* Keyword.Namespace */
+.highlight .kp { color: #007020 } /* Keyword.Pseudo */
+.highlight .kr { color: #007020; font-weight: bold } /* Keyword.Reserved */
+.highlight .kt { color: #902000 } /* Keyword.Type */
+.highlight .m { color: #40A070 } /* Literal.Number */
+.highlight .s { color: #4070A0 } /* Literal.String */
+.highlight .na { color: #4070A0 } /* Name.Attribute */
+.highlight .nb { color: #007020 } /* Name.Builtin */
+.highlight .nc { color: #0E84B5; font-weight: bold } /* Name.Class */
+.highlight .no { color: #60ADD5 } /* Name.Constant */
+.highlight .nd { color: #555; font-weight: bold } /* Name.Decorator */
+.highlight .ni { color: #D55537; font-weight: bold } /* Name.Entity */
+.highlight .ne { color: #007020 } /* Name.Exception */
+.highlight .nf { color: #06287E } /* Name.Function */
+.highlight .nl { color: #002070; font-weight: bold } /* Name.Label */
+.highlight .nn { color: #0E84B5; font-weight: bold } /* Name.Namespace */
+.highlight .nt { color: #062873; font-weight: bold } /* Name.Tag */
+.highlight .nv { color: #BB60D5 } /* Name.Variable */
+.highlight .ow { color: #007020; font-weight: bold } /* Operator.Word */
+.highlight .w { color: #BBB } /* Text.Whitespace */
+.highlight .mb { color: #40A070 } /* Literal.Number.Bin */
+.highlight .mf { color: #40A070 } /* Literal.Number.Float */
+.highlight .mh { color: #40A070 } /* Literal.Number.Hex */
+.highlight .mi { color: #40A070 } /* Literal.Number.Integer */
+.highlight .mo { color: #40A070 } /* Literal.Number.Oct */
+.highlight .sa { color: #4070A0 } /* Literal.String.Affix */
+.highlight .sb { color: #4070A0 } /* Literal.String.Backtick */
+.highlight .sc { color: #4070A0 } /* Literal.String.Char */
+.highlight .dl { color: #4070A0 } /* Literal.String.Delimiter */
+.highlight .sd { color: #4070A0; font-style: italic } /* Literal.String.Doc */
+.highlight .s2 { color: #4070A0 } /* Literal.String.Double */
+.highlight .se { color: #4070A0; font-weight: bold } /* Literal.String.Escape */
+.highlight .sh { color: #4070A0 } /* Literal.String.Heredoc */
+.highlight .si { color: #70A0D0; font-style: italic } /* Literal.String.Interpol */
+.highlight .sx { color: #C65D09 } /* Literal.String.Other */
+.highlight .sr { color: #235388 } /* Literal.String.Regex */
+.highlight .s1 { color: #4070A0 } /* Literal.String.Single */
+.highlight .ss { color: #517918 } /* Literal.String.Symbol */
+.highlight .bp { color: #007020 } /* Name.Builtin.Pseudo */
+.highlight .fm { color: #06287E } /* Name.Function.Magic */
+.highlight .vc { color: #BB60D5 } /* Name.Variable.Class */
+.highlight .vg { color: #BB60D5 } /* Name.Variable.Global */
+.highlight .vi { color: #BB60D5 } /* Name.Variable.Instance */
+.highlight .vm { color: #BB60D5 } /* Name.Variable.Magic */
+.highlight .il { color: #40A070 } /* Literal.Number.Integer.Long */
+</style>
+  
+  
+  
+    
+        <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20100%20100'%3E%3Ctext%20y='.9em'%20font-size='90'%3E🐼%3C/text%3E%3C/svg%3E">
+    
+
+
+
+  <style>
+      
+      
+    
+:root {
+    --width: 720px;
+    --font-main: Verdana, sans-serif;
+    --font-secondary: Verdana, sans-serif;
+    --font-scale: 1em;
+    --background-color: #fff;
+    --heading-color: #222;
+    --text-color: #444;
+    --link-color: #3273dc;
+    --visited-color:  #8b6fcb;
+    --code-background-color: #f2f2f2;
+    --code-color: #222;
+    --blockquote-color: #222;
+}
+
+@media (prefers-color-scheme: dark) {
+    :root {
+        --background-color: #01242e;
+        --heading-color: #eee;
+        --text-color: #ddd;
+        --link-color: #8cc2dd;
+        --visited-color:  #8b6fcb;
+        --code-background-color: #000;
+        --code-color: #ddd;
+        --blockquote-color: #ccc;
+    }
+}
+
+body {
+    font-family: var(--font-secondary);
+    font-size: var(--font-scale);
+    margin: auto;
+    padding: 20px;
+    max-width: var(--width);
+    text-align: left;
+    background-color: var(--background-color);
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    line-height: 1.5;
+    color: var(--text-color);
+}
+
+h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-main);
+    color: var(--heading-color);
+}
+
+a {
+    color: var(--link-color);
+    cursor: pointer;
+    text-decoration: none;
+}
+
+a:hover {
+    text-decoration: underline; 
+}
+
+nav a {
+    margin-right: 8px;
+}
+
+strong, b {
+    color: var(--heading-color);
+}
+
+button {
+    margin: 0;
+    cursor: pointer;
+}
+
+time {
+ 	font-family: monospace;
+  	font-style: normal;
+  	font-size: 15px;
+}
+
+main {
+    line-height: 1.6;
+}
+
+table {
+    width: 100%;
+}
+
+hr {
+    border: 0;
+    border-top: 1px dashed;
+}
+
+img {
+    max-width: 100%;
+}
+
+code {
+    font-family: monospace;
+    padding: 2px;
+    background-color: var(--code-background-color);
+    color: var(--code-color);
+    border-radius: 3px;
+}
+
+blockquote {
+    border-left: 1px solid #999;
+    color: var(--code-color);
+    padding-left: 20px;
+    font-style: italic;
+}
+
+footer {
+    padding: 25px 0;
+    text-align: center;
+}
+
+.title:hover {
+    text-decoration: none;
+}
+
+.title h1 {
+    font-size: 1.5em;
+}
+
+.inline {
+    width: auto !important;
+}
+
+.highlight, .code {
+    padding: 1px 15px;
+    background-color: var(--code-background-color);
+    color: var(--code-color);
+    border-radius: 3px;
+    margin-block-start: 1em;
+    margin-block-end: 1em;
+    overflow-x: auto;
+}
+
+/* blog post list */
+ul.blog-posts {
+    list-style-type: none;
+    padding: unset;
+}
+
+ul.blog-posts li {
+    display: flex;
+}
+
+ul.blog-posts li span {
+    flex: 0 0 130px;
+}
+
+ul.blog-posts li a:visited {
+    color: var(--visited-color);
+}
+    .upvote-button {
+        padding: 0;
+        margin: 0;
+        border: 0;
+        background-color: inherit;
+        color: inherit;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+    .upvote-button.upvoted {
+        color: salmon;
+    }
+    .upvote-count {
+        margin-top: -3px;
+    }
+
+      
+  </style>
+</head>
+
+<body class="post " onload="(function() { document.cookie = `timezone=${Intl.DateTimeFormat().resolvedOptions().timeZone};path=/`; })()">
+  
+  <header>
+    <a class="title" href="/">
+      <h1>
+        simons blog
+      </h1>
+    </a>
+    <nav>
+      <p><a href='/'>Home</a> <a href='/blog/'>Blog</a></p>
+
+    </nav>
+  </header>
+  <main>
+    
+
+    
+
+    
+        <h1>CuTe partitions</h1>
+
+        <p>
+            <i>
+                <time datetime="2025-09-14T18:00Z">
+    14 Sep, 2025
+</time>
+            </i>
+        </p>
+    
+
+    <p>In <code>CuTe</code> we have multiple ways to tile our tensors, i.e. to divide the work onto the threads on our GPU.</p>
+<p>The <code>CuTe</code> docs describe three modes of tiling</p>
+<ul>
+<li><code>Inner Partition</code></li>
+<li><code>Outer Partition</code></li>
+<li><code>Thread Value Partition</code></li>
+</ul>
+<p>In this blogpost we will examine all three of them and implement a Copy kernel corresponding to each concept.</p>
+<h2 id=pure-codeinnercode-partition>Pure <code>Inner</code> Partition</h2><p>We can launch and verify the kernel like so:</p>
+<div class="highlight"><pre><span></span><span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+    <span class="n">cutlass</span><span class="o">.</span><span class="n">cuda</span><span class="o">.</span><span class="n">initialize_cuda_context</span><span class="p">()</span>
+
+    <span class="n">tensor_shape</span> <span class="o">=</span> <span class="p">(</span><span class="mi">8192</span><span class="p">,</span> <span class="mi">8192</span><span class="p">)</span>
+    <span class="n">block_shape</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">16</span><span class="p">)</span>
+    <span class="n">num_threads</span> <span class="o">=</span> <span class="mi">256</span>
+
+    <span class="n">S</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">8192</span><span class="p">,</span> <span class="mi">8192</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="s2">&quot;cuda&quot;</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">bfloat16</span><span class="p">)</span>
+    <span class="n">D</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="mi">8192</span><span class="p">,</span> <span class="mi">8192</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="s2">&quot;cuda&quot;</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">bfloat16</span><span class="p">)</span>
+
+    <span class="n">tensor_S</span> <span class="o">=</span> <span class="n">from_dlpack</span><span class="p">(</span><span class="n">S</span><span class="p">,</span> <span class="n">assumed_align</span><span class="o">=</span><span class="mi">16</span><span class="p">)</span>
+    <span class="n">tensor_D</span> <span class="o">=</span> <span class="n">from_dlpack</span><span class="p">(</span><span class="n">D</span><span class="p">,</span> <span class="n">assumed_align</span><span class="o">=</span><span class="mi">16</span><span class="p">)</span>
+
+    <span class="n">launch_copy</span><span class="p">(</span><span class="n">tensor_S</span><span class="p">,</span> <span class="n">tensor_D</span><span class="p">,</span> <span class="n">block_shape</span><span class="p">,</span> <span class="n">num_threads</span><span class="p">)</span>
+
+    <span class="n">torch</span><span class="o">.</span><span class="n">testing</span><span class="o">.</span><span class="n">assert_close</span><span class="p">(</span><span class="n">S</span><span class="p">,</span> <span class="n">D</span><span class="p">)</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="n">S</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">D</span><span class="p">)</span>
+</pre></div>
+<p>We see that we provide a <code>block_shape</code> along with the number of threads.</p>
+<p>Our launch function looks as follows:</p>
+<div class="highlight"><pre><span></span><span class="nd">@cute</span><span class="o">.</span><span class="n">jit</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">launch_copy</span><span class="p">(</span>
+    <span class="n">tensor_S</span><span class="p">:</span> <span class="n">cute</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> 
+    <span class="n">tensor_D</span><span class="p">:</span> <span class="n">cute</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> 
+    <span class="n">block_shape</span><span class="p">:</span> <span class="n">cute</span><span class="o">.</span><span class="n">Shape</span><span class="p">,</span>  
+    <span class="n">num_threads</span><span class="p">:</span> <span class="n">cutlass</span><span class="o">.</span><span class="n">Constexpr</span><span class="p">[</span><span class="n">cutlass</span><span class="o">.</span><span class="n">Int32</span><span class="p">],</span>
+<span class="p">):</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Tensors:&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;tensor_S = </span><span class="si">{</span><span class="n">tensor_S</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;tensor_D = </span><span class="si">{</span><span class="n">tensor_D</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Tile (m, n) by (M, N) to obtain ((M, N), m&#39;, n&#39;)</span>
+    <span class="c1"># , where M&#39; and N&#39; are the number of block tiles</span>
+    <span class="n">tiled_tensor_S</span> <span class="o">=</span> <span class="n">cute</span><span class="o">.</span><span class="n">tiled_divide</span><span class="p">(</span><span class="n">tensor_S</span><span class="p">,</span> <span class="n">block_shape</span><span class="p">)</span>  <span class="c1"># (M, N), m&#39;, n&#39;)</span>
+    <span class="n">tiled_tensor_D</span> <span class="o">=</span> <span class="n">cute</span><span class="o">.</span><span class="n">tiled_divide</span><span class="p">(</span><span class="n">tensor_D</span><span class="p">,</span> <span class="n">block_shape</span><span class="p">)</span>  <span class="c1"># (M, N), m&#39;, n&#39;)</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Block Tile Tensor:&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;tiled_tensor_S = </span><span class="si">{</span><span class="n">tiled_tensor_S</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;tiled_tensor_D = </span><span class="si">{</span><span class="n">tiled_tensor_D</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="n">grid_dim</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="p">(</span><span class="n">cute</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="n">tiled_tensor_D</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span> <span class="o">*</span> <span class="n">cute</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="n">tiled_tensor_D</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="p">[</span><span class="mi">2</span><span class="p">]))</span>
+        <span class="o">//</span> <span class="n">num_threads</span><span class="p">,</span>
+        <span class="mi">1</span><span class="p">,</span>
+        <span class="mi">1</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">block_dim</span> <span class="o">=</span> <span class="p">(</span><span class="n">num_threads</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Grid and Block Configuration:&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;grid_dim = </span><span class="si">{</span><span class="n">grid_dim</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;block_dim = </span><span class="si">{</span><span class="n">block_dim</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="n">copy_kernel</span><span class="p">(</span><span class="n">tiled_tensor_S</span><span class="p">,</span> <span class="n">tiled_tensor_D</span><span class="p">)</span><span class="o">.</span><span class="n">launch</span><span class="p">(</span><span class="n">grid</span><span class="o">=</span><span class="n">grid_dim</span><span class="p">,</span> <span class="n">block</span><span class="o">=</span><span class="n">block_dim</span><span class="p">)</span>
+    <span class="k">return</span>
+</pre></div>
+<p>Note that we use <code>tiled_divide</code> here and provide it with the block shape. What this function does is to tile the tensor.</p>
+<p>Assume the Tensor has a Layout of <code>(m,n):(n,1)</code> and the block shape is <code>(m, n)</code>. Application of tiled divide will than tile up the Layout associated to the Tensor to a shape <code>((m,n), M',N')</code> where <code>M'</code> and <code>N'</code> are simple the original modes divided by the corresponding mode of the block shape. Note that it's not randomly that we choose the block shape to be <code>(1, 16)</code>. A <code>bfloat16</code> number has <code>16 bits</code> and therefore we need to schedule <code>8</code> coalesced loads for the compiler to be able to turn that into <code>128Bit</code> load which is oftentimes more efficient. We chose the <code>16</code> along the coalesced column of the <code>K-Major</code> input tensor.</p>
+<p>This will give us</p>
+<div class="highlight"><pre><span></span>tiled_tensor_S = tensor&lt;ptr&lt;bf16, gmem, align&lt;16&gt;&gt; o ((1,16),8192,512):((0,1),8192,16)&gt;
+tiled_tensor_D = tensor&lt;ptr&lt;bf16, gmem, align&lt;16&gt;&gt; o ((1,16),8192,512):((0,1),8192,16)&gt;
+</pre></div>
+<p>Note that we can nicely see that the first mode is <code>(1,16):(0,1)</code> which means we will be able to schedule 2 <code>LD128</code> instructions.</p>
+<p>We than divide the product of the <code>Rest</code> modes <code>1</code> and <code>2</code> onto the threads and launch the kernel with the appropriate number of blocks to do that.</p>
+<div class="highlight"><pre><span></span>    <span class="n">grid_dim</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="p">(</span><span class="n">cute</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="n">tiled_tensor_D</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span> <span class="o">*</span> <span class="n">cute</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="n">tiled_tensor_D</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="p">[</span><span class="mi">2</span><span class="p">]))</span>
+        <span class="o">//</span> <span class="n">num_threads</span><span class="p">,</span>
+        <span class="mi">1</span><span class="p">,</span>
+        <span class="mi">1</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">block_dim</span> <span class="o">=</span> <span class="p">(</span><span class="n">num_threads</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+</pre></div>
+<p>Let's now look at the kernel:</p>
+<div class="highlight"><pre><span></span><span class="nd">@cute</span><span class="o">.</span><span class="n">kernel</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">copy_kernel</span><span class="p">(</span><span class="n">S</span><span class="p">:</span> <span class="n">cute</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">D</span><span class="p">:</span> <span class="n">cute</span><span class="o">.</span><span class="n">Tensor</span><span class="p">):</span>
+    <span class="n">tidx</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">cute</span><span class="o">.</span><span class="n">arch</span><span class="o">.</span><span class="n">thread_idx</span><span class="p">()</span>
+    <span class="n">bidx</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">cute</span><span class="o">.</span><span class="n">arch</span><span class="o">.</span><span class="n">block_idx</span><span class="p">()</span>
+    <span class="n">bdimx</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">cute</span><span class="o">.</span><span class="n">arch</span><span class="o">.</span><span class="n">block_dim</span><span class="p">()</span>
+
+    <span class="n">num</span> <span class="o">=</span> <span class="n">cute</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="n">S</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
+    <span class="n">block_start</span> <span class="o">=</span> <span class="n">bidx</span> <span class="o">*</span> <span class="n">bdimx</span> <span class="o">+</span> <span class="n">tidx</span>
+    <span class="n">x</span> <span class="o">=</span> <span class="n">block_start</span> <span class="o">//</span> <span class="n">num</span>
+    <span class="n">y</span> <span class="o">=</span> <span class="n">block_start</span> <span class="o">%</span> <span class="n">num</span>
+    <span class="c1"># Slice into the tiled tensors</span>
+    <span class="n">block_coordinate</span> <span class="o">=</span> <span class="p">((</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span>
+    <span class="n">tile_S</span> <span class="o">=</span> <span class="n">S</span><span class="p">[</span><span class="n">block_coordinate</span><span class="p">]</span>
+    <span class="n">tile_D</span> <span class="o">=</span> <span class="n">D</span><span class="p">[</span><span class="n">block_coordinate</span><span class="p">]</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Block Tile:&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;tile_S = </span><span class="si">{</span><span class="n">tile_S</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;tile_D = </span><span class="si">{</span><span class="n">tile_D</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="n">fragment</span> <span class="o">=</span> <span class="n">cute</span><span class="o">.</span><span class="n">make_fragment_like</span><span class="p">(</span><span class="n">tile_S</span><span class="p">)</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Fragment:&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;fragment = </span><span class="si">{</span><span class="n">fragment</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="n">fragment</span><span class="o">.</span><span class="n">store</span><span class="p">(</span><span class="n">tile_S</span><span class="o">.</span><span class="n">load</span><span class="p">())</span>
+    <span class="n">tile_D</span><span class="o">.</span><span class="n">store</span><span class="p">(</span><span class="n">fragment</span><span class="o">.</span><span class="n">load</span><span class="p">())</span>
+    <span class="k">return</span>
+</pre></div>
+<p>We recover index for <code>first</code> and <code>second</code> mode and slice the tensor appropriately. We take the whole zeroth mode (which is composed of two submodes) as this corresponds to the tile size we want to process with one thread.</p>
+<p>This will give us something like this:</p>
+<div class="highlight"><pre><span></span><span class="n">tile_S</span> <span class="o">=</span> <span class="n">tensor</span><span class="o">&lt;</span><span class="n">ptr</span><span class="o">&lt;</span><span class="n">bf16</span><span class="p">,</span> <span class="n">gmem</span><span class="p">,</span> <span class="n">align</span><span class="o">&lt;</span><span class="mi">16</span><span class="o">&gt;&gt;</span> <span class="n">o</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">16</span><span class="p">):(</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">)</span><span class="o">&gt;</span>
+<span class="n">tile_D</span> <span class="o">=</span> <span class="n">tensor</span><span class="o">&lt;</span><span class="n">ptr</span><span class="o">&lt;</span><span class="n">bf16</span><span class="p">,</span> <span class="n">gmem</span><span class="p">,</span> <span class="n">align</span><span class="o">&lt;</span><span class="mi">16</span><span class="o">&gt;&gt;</span> <span class="n">o</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">16</span><span class="p">):(</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">)</span><span class="o">&gt;</span>
+<span class="n">Fragment</span><span class="p">:</span>
+<span class="n">fragment</span> <span class="o">=</span> <span class="n">tensor</span><span class="o">&lt;</span><span class="n">ptr</span><span class="o">&lt;</span><span class="n">bf16</span><span class="p">,</span> <span class="n">rmem</span><span class="p">,</span> <span class="n">align</span><span class="o">&lt;</span><span class="mi">16</span><span class="o">&gt;&gt;</span> <span class="n">o</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">16</span><span class="p">):(</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">)</span><span class="o">&gt;</span>
+</pre></div>
+<p>Here we used <code>make_fragment</code> to register a fragment. We than finish off by transferring <code>GMEM -&gt; RMEM -&gt; GMEM</code>.</p>
+<p>In <code>ncu</code> we can verify the compiler is doing as we expected:</p>
+<div class="highlight"><pre><span></span>00007f79 07c71f20	      LDG.E.128 R12, [R2.64+0x10]
+00007f79 07c71f30	      LDG.E.128 R8, [R2.64]
+00007f79 07c71f40	      IMAD.WIDE R4, R4, R5, c[0x0][0x168]
+00007f79 07c71f50	      STG.E.128 [R4.64+0x10], R12
+00007f79 07c71f60	      STG.E.128 [R4.64], R8
+</pre></div>
+<p>This shows precisely that <code>128</code> <code>LD/STG</code> instructions were used.</p>
+<p>This kernel archives a Memory Throughput of <code>93.32%</code> on my consumer GPU (<code>NVIDIA GeForce RTX 3060 Laptop GPU</code>) .</p>
+<h2 id=codeinnercode-and-codeoutercode-partition><code>Inner</code> and <code>Outer</code> Partition</h2><p>In the kernel above we had to do some index gymnastic to choose the appropriate tile. It would be nice if we could somehow automate this process of assigning threads to tiles.</p>
+<p>It turns out <code>CuTe</code> offers a concept just for that: <code>Outer Partition</code>. In this approach we will first tile the matrix using a <code>block_shape</code> (i.e. perform inner partition) and than use a <code>thread_layout</code> to assign the subtiles of this tile to each thread (this is called outer partition).</p>
+<div class="highlight"><pre><span></span><span class="nd">@cute</span><span class="o">.</span><span class="n">jit</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">launch_copy</span><span class="p">(</span>
+    <span class="n">tensor_S</span><span class="p">:</span> <span class="n">cute</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span>  <span class="c1"># Pointer to Source</span>
+    <span class="n">tensor_D</span><span class="p">:</span> <span class="n">cute</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span>  <span class="c1"># Pointer to Destination</span>
+    <span class="n">block_shape</span><span class="p">:</span> <span class="n">cute</span><span class="o">.</span><span class="n">Shape</span><span class="p">,</span>  <span class="c1"># (M, N)</span>
+    <span class="n">thread_shape</span><span class="p">:</span> <span class="n">cutlass</span><span class="o">.</span><span class="n">Shape</span><span class="p">,</span>
+<span class="p">):</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Tensors:&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;tensor_S = </span><span class="si">{</span><span class="n">tensor_S</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;tensor_D = </span><span class="si">{</span><span class="n">tensor_D</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Tile (m, n) by (M, N) to obtain ((M, N), (m&#39;, n&#39;))</span>
+    <span class="c1"># , where M&#39; and N&#39; are the number of block tiles</span>
+    <span class="n">tiled_tensor_S</span> <span class="o">=</span> <span class="n">cute</span><span class="o">.</span><span class="n">zipped_divide</span><span class="p">(</span><span class="n">tensor_S</span><span class="p">,</span> <span class="n">block_shape</span><span class="p">)</span>  <span class="c1"># (M, N), (m&#39;, n&#39;))</span>
+    <span class="n">tiled_tensor_D</span> <span class="o">=</span> <span class="n">cute</span><span class="o">.</span><span class="n">zipped_divide</span><span class="p">(</span><span class="n">tensor_D</span><span class="p">,</span> <span class="n">block_shape</span><span class="p">)</span>  <span class="c1"># (M, N), (m&#39;, n&#39;))</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Block Tile Tensor:&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;tiled_tensor_S = </span><span class="si">{</span><span class="n">tiled_tensor_S</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;tiled_tensor_D = </span><span class="si">{</span><span class="n">tiled_tensor_D</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="n">thr_layout</span> <span class="o">=</span> <span class="n">cute</span><span class="o">.</span><span class="n">make_layout</span><span class="p">(</span><span class="n">thread_shape</span><span class="p">,</span> <span class="n">stride</span><span class="o">=</span><span class="p">(</span><span class="n">thread_shape</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="mi">1</span><span class="p">))</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Thread Layout:&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;thr_layout = </span><span class="si">{</span><span class="n">thr_layout</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="n">grid_dim</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">cute</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="n">tiled_tensor_D</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">]),</span>
+        <span class="mi">1</span><span class="p">,</span>
+        <span class="mi">1</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">block_dim</span> <span class="o">=</span> <span class="p">(</span><span class="n">cute</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="n">thr_layout</span><span class="p">),</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Grid and Block Configuration:&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;grid_dim = </span><span class="si">{</span><span class="n">grid_dim</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;block_dim = </span><span class="si">{</span><span class="n">block_dim</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="n">copy_kernel</span><span class="p">(</span><span class="n">tiled_tensor_S</span><span class="p">,</span> <span class="n">tiled_tensor_D</span><span class="p">,</span> <span class="n">thr_layout</span><span class="p">)</span><span class="o">.</span><span class="n">launch</span><span class="p">(</span>
+        <span class="n">grid</span><span class="o">=</span><span class="n">grid_dim</span><span class="p">,</span> <span class="n">block</span><span class="o">=</span><span class="n">block_dim</span>
+    <span class="p">)</span>
+    <span class="k">return</span>
+</pre></div>
+<p>Note that here we chose</p>
+<div class="highlight"><pre><span></span><span class="n">block_shape</span> <span class="o">=</span> <span class="p">(</span><span class="mi">32</span><span class="p">,</span> <span class="mi">256</span><span class="p">)</span>
+<span class="n">thread_shape</span> <span class="o">=</span> <span class="p">(</span><span class="mi">8</span><span class="p">,</span> <span class="mi">32</span><span class="p">)</span>
+</pre></div>
+<p>The block shape is a tunable parameter of the kernel.</p>
+<p>Here we perform <code>zipped_divide</code> which groups the Rest mode into the first mode and turned out to be a little bit more convenient (in my opinion).</p>
+<p>We chose the Thread Layout to be <code>(8,32):(32,1)</code>, i.e. we have a <code>K-Major</code> Layout for the threads which organizes 2 warp group of threads and follows the input tensor in its majorness.</p>
+<p>Here we define the <code>grid</code> and <code>blockdim</code> directly via the layouts.</p>
+<p>The kernel looks as follows:</p>
+<div class="highlight"><pre><span></span><span class="nd">@cute</span><span class="o">.</span><span class="n">kernel</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">copy_kernel</span><span class="p">(</span><span class="n">S</span><span class="p">:</span> <span class="n">cute</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">D</span><span class="p">:</span> <span class="n">cute</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">ThreadLayout</span><span class="p">:</span> <span class="n">cute</span><span class="o">.</span><span class="n">Layout</span><span class="p">):</span>
+    <span class="n">tidx</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">cute</span><span class="o">.</span><span class="n">arch</span><span class="o">.</span><span class="n">thread_idx</span><span class="p">()</span>
+    <span class="n">bidx</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">cute</span><span class="o">.</span><span class="n">arch</span><span class="o">.</span><span class="n">block_idx</span><span class="p">()</span>
+
+    <span class="n">x</span> <span class="o">=</span> <span class="n">bidx</span>
+    <span class="c1"># Slice into the tiled tensors</span>
+    <span class="n">block_coordinate</span> <span class="o">=</span> <span class="p">((</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span> <span class="n">x</span><span class="p">)</span>
+    <span class="n">tile_S</span> <span class="o">=</span> <span class="n">S</span><span class="p">[</span><span class="n">block_coordinate</span><span class="p">]</span>
+    <span class="n">tile_D</span> <span class="o">=</span> <span class="n">D</span><span class="p">[</span><span class="n">block_coordinate</span><span class="p">]</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Block Tile:&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;tile_S = </span><span class="si">{</span><span class="n">tile_S</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;tile_D = </span><span class="si">{</span><span class="n">tile_D</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="n">thr_tile_S</span> <span class="o">=</span> <span class="n">cute</span><span class="o">.</span><span class="n">local_partition</span><span class="p">(</span><span class="n">tile_S</span><span class="p">,</span> <span class="n">ThreadLayout</span><span class="p">,</span> <span class="n">tidx</span><span class="p">)</span>
+    <span class="n">thr_tile_D</span> <span class="o">=</span> <span class="n">cute</span><span class="o">.</span><span class="n">local_partition</span><span class="p">(</span><span class="n">tile_D</span><span class="p">,</span> <span class="n">ThreadLayout</span><span class="p">,</span> <span class="n">tidx</span><span class="p">)</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Thread Tile:&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;thr_tile_S = </span><span class="si">{</span><span class="n">thr_tile_S</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;thr_tile_D = </span><span class="si">{</span><span class="n">thr_tile_D</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="n">fragment</span> <span class="o">=</span> <span class="n">cute</span><span class="o">.</span><span class="n">make_fragment_like</span><span class="p">(</span><span class="n">thr_tile_S</span><span class="p">)</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Fragment:&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;fragment = </span><span class="si">{</span><span class="n">fragment</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="n">fragment</span><span class="o">.</span><span class="n">store</span><span class="p">(</span><span class="n">thr_tile_S</span><span class="o">.</span><span class="n">load</span><span class="p">())</span>
+    <span class="n">thr_tile_D</span><span class="o">.</span><span class="n">store</span><span class="p">(</span><span class="n">fragment</span><span class="o">.</span><span class="n">load</span><span class="p">())</span>
+    <span class="k">return</span>
+</pre></div>
+<p>Note that we only have 2 modes because we used <code>zipped_divide</code> and we can directly index into that via the <code>Block Index</code>.</p>
+<p>We than use <code>local_partition</code> to figure out how we distribute the tile onto the subtiles that will than be processed by individual threads.</p>
+<p>In our example:</p>
+<div class="highlight"><pre><span></span><span class="n">thr_tile_S</span> <span class="o">=</span> <span class="n">tensor</span><span class="o">&lt;</span><span class="n">ptr</span><span class="o">&lt;</span><span class="n">bf16</span><span class="p">,</span> <span class="n">gmem</span><span class="o">&gt;</span> <span class="n">o</span> <span class="p">(</span><span class="mi">4</span><span class="p">,</span><span class="mi">8</span><span class="p">):(</span><span class="mi">65536</span><span class="p">,</span><span class="mi">32</span><span class="p">)</span><span class="o">&gt;</span>
+<span class="n">thr_tile_D</span> <span class="o">=</span> <span class="n">tensor</span><span class="o">&lt;</span><span class="n">ptr</span><span class="o">&lt;</span><span class="n">bf16</span><span class="p">,</span> <span class="n">gmem</span><span class="o">&gt;</span> <span class="n">o</span> <span class="p">(</span><span class="mi">4</span><span class="p">,</span><span class="mi">8</span><span class="p">):(</span><span class="mi">65536</span><span class="p">,</span><span class="mi">32</span><span class="p">)</span><span class="o">&gt;</span>
+</pre></div>
+<p>Which is clear because <code>32/8 = 4</code> and <code>256/32 = 8</code>. Local partitioning needs to be provided with the <code>tidx</code> to figure out which sub tile to take.</p>
+<p>We'll than copy again from <code>GMEM -&gt; RMEM -&gt; GMEM</code>.</p>
+<p>This kernel archives <code>92,07%</code> efficiency. Note that this is archived without performing vectorized load per thread as can be verified in the profiler. However we have a higher workload per thread because each thread will take care of <code>32</code> elements in the matrix.</p>
+<h2 id=thread-value-partitioning>Thread Value Partitioning</h2><p>I wrote a blogpost on thread value layouts in the <a href='https://veitner.bearblog.dev/thread-value-layouts-in-cute/'>past</a>. Please read it if you are not familiar with the concept and a similar kernel as well <a href='https://veitner.bearblog.dev/an-applied-introduction-to-cutedsl/'>here</a>. That's why I will go quickly over this section.</p>
+<p>We choose:</p>
+<div class="highlight"><pre><span></span><span class="n">thread_shape</span> <span class="o">=</span> <span class="p">(</span><span class="mi">32</span><span class="p">,</span> <span class="mi">8</span><span class="p">)</span>
+<span class="n">value_shape</span> <span class="o">=</span> <span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="mi">8</span><span class="p">)</span>
+</pre></div>
+<p>Note that we have chosen the value shape such that we will later be able to perform vectorized load and store like in the first kernel.</p>
+<div class="highlight"><pre><span></span><span class="nd">@cute</span><span class="o">.</span><span class="n">jit</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">launch_copy</span><span class="p">(</span>
+    <span class="n">tensor_S</span><span class="p">:</span> <span class="n">cute</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span>
+    <span class="n">tensor_D</span><span class="p">:</span> <span class="n">cute</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span>
+    <span class="n">thread_shape</span><span class="p">:</span> <span class="n">cute</span><span class="o">.</span><span class="n">Shape</span><span class="p">,</span>
+    <span class="n">value_shape</span><span class="p">:</span> <span class="n">cute</span><span class="o">.</span><span class="n">Shape</span><span class="p">,</span>
+<span class="p">):</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Tensors:&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;tensor_S = </span><span class="si">{</span><span class="n">tensor_S</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;tensor_D = </span><span class="si">{</span><span class="n">tensor_D</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Obtain Tiler and TV Layout</span>
+    <span class="n">thr_layout</span> <span class="o">=</span> <span class="n">cute</span><span class="o">.</span><span class="n">make_layout</span><span class="p">(</span><span class="n">thread_shape</span><span class="p">,</span> <span class="n">stride</span><span class="o">=</span><span class="p">(</span><span class="n">thread_shape</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="mi">1</span><span class="p">))</span>
+    <span class="n">val_layout</span> <span class="o">=</span> <span class="n">cute</span><span class="o">.</span><span class="n">make_layout</span><span class="p">(</span><span class="n">value_shape</span><span class="p">,</span> <span class="n">stride</span><span class="o">=</span><span class="p">(</span><span class="n">value_shape</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="mi">1</span><span class="p">))</span>
+    <span class="n">tiler_mn</span><span class="p">,</span> <span class="n">tv_layout</span> <span class="o">=</span> <span class="n">cute</span><span class="o">.</span><span class="n">make_layout_tv</span><span class="p">(</span><span class="n">thr_layout</span><span class="p">,</span> <span class="n">val_layout</span><span class="p">)</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Block Tile Tensor:&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;thr_layout = </span><span class="si">{</span><span class="n">thr_layout</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;val_layout = </span><span class="si">{</span><span class="n">val_layout</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;tiler_mn = </span><span class="si">{</span><span class="n">tiler_mn</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;tv_layout = </span><span class="si">{</span><span class="n">tv_layout</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="n">tiled_tensor_S</span> <span class="o">=</span> <span class="n">cute</span><span class="o">.</span><span class="n">zipped_divide</span><span class="p">(</span><span class="n">tensor_S</span><span class="p">,</span> <span class="n">tiler_mn</span><span class="p">)</span>  <span class="c1"># (M, N), (m&#39;, n&#39;))</span>
+    <span class="n">tiled_tensor_D</span> <span class="o">=</span> <span class="n">cute</span><span class="o">.</span><span class="n">zipped_divide</span><span class="p">(</span><span class="n">tensor_D</span><span class="p">,</span> <span class="n">tiler_mn</span><span class="p">)</span>  <span class="c1"># (M, N), (m&#39;, n&#39;))</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Block Tile Tensor:&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;tiled_tensor_S = </span><span class="si">{</span><span class="n">tiled_tensor_S</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;tiled_tensor_D = </span><span class="si">{</span><span class="n">tiled_tensor_D</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="n">grid_dim</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">cute</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="n">tiled_tensor_D</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">]),</span>
+        <span class="mi">1</span><span class="p">,</span>
+        <span class="mi">1</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">block_dim</span> <span class="o">=</span> <span class="p">(</span><span class="n">cute</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="n">tv_layout</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Grid and Block Configuration:&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;grid_dim = </span><span class="si">{</span><span class="n">grid_dim</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;block_dim = </span><span class="si">{</span><span class="n">block_dim</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="n">copy_kernel</span><span class="p">(</span><span class="n">tiled_tensor_S</span><span class="p">,</span> <span class="n">tiled_tensor_D</span><span class="p">,</span> <span class="n">tv_layout</span><span class="p">)</span><span class="o">.</span><span class="n">launch</span><span class="p">(</span>
+        <span class="n">grid</span><span class="o">=</span><span class="n">grid_dim</span><span class="p">,</span> <span class="n">block</span><span class="o">=</span><span class="n">block_dim</span>
+    <span class="p">)</span>
+    <span class="k">return</span>
+</pre></div>
+<p>We'll let <code>make_layout_tv</code> to figure out tiler and layout we will need in the kernel to perform composition of the tiled layout with the TV Layout.</p>
+<p>Note that</p>
+<p><code>L o TV-Layout</code> will take <code>Thread, Value</code>  pair as input and map this via <code>L</code> to corresponding location in our matrix.</p>
+<div class="highlight"><pre><span></span><span class="nd">@cute</span><span class="o">.</span><span class="n">kernel</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">copy_kernel</span><span class="p">(</span><span class="n">S</span><span class="p">:</span> <span class="n">cute</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">D</span><span class="p">:</span> <span class="n">cute</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">tv_layout</span><span class="p">:</span> <span class="n">cute</span><span class="o">.</span><span class="n">Layout</span><span class="p">):</span>
+    <span class="n">tidx</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">cute</span><span class="o">.</span><span class="n">arch</span><span class="o">.</span><span class="n">thread_idx</span><span class="p">()</span>
+    <span class="n">bidx</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">cute</span><span class="o">.</span><span class="n">arch</span><span class="o">.</span><span class="n">block_idx</span><span class="p">()</span>
+
+    <span class="n">x</span> <span class="o">=</span> <span class="n">bidx</span>
+    <span class="c1"># Slice into the tiled tensors</span>
+    <span class="n">block_coordinate</span> <span class="o">=</span> <span class="p">((</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span> <span class="n">x</span><span class="p">)</span>
+    <span class="n">tile_S</span> <span class="o">=</span> <span class="n">S</span><span class="p">[</span><span class="n">block_coordinate</span><span class="p">]</span>
+    <span class="n">tile_D</span> <span class="o">=</span> <span class="n">D</span><span class="p">[</span><span class="n">block_coordinate</span><span class="p">]</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Block Tile:&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;tile_S = </span><span class="si">{</span><span class="n">tile_S</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;tile_D = </span><span class="si">{</span><span class="n">tile_D</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="n">thr_val_tile_S</span> <span class="o">=</span> <span class="n">cute</span><span class="o">.</span><span class="n">composition</span><span class="p">(</span><span class="n">tile_S</span><span class="p">,</span> <span class="n">tv_layout</span><span class="p">)</span>
+    <span class="n">thr_val_tile_D</span> <span class="o">=</span> <span class="n">cute</span><span class="o">.</span><span class="n">composition</span><span class="p">(</span><span class="n">tile_D</span><span class="p">,</span> <span class="n">tv_layout</span><span class="p">)</span>
+    <span class="n">thr_coord</span> <span class="o">=</span> <span class="p">(</span><span class="n">tidx</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="n">val_tile_S</span> <span class="o">=</span> <span class="n">thr_val_tile_S</span><span class="p">[</span><span class="n">thr_coord</span><span class="p">]</span>
+    <span class="n">val_tile_D</span> <span class="o">=</span> <span class="n">thr_val_tile_D</span><span class="p">[</span><span class="n">thr_coord</span><span class="p">]</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;thr_val_tile_S:&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;thr_val_tile_S = </span><span class="si">{</span><span class="n">thr_val_tile_S</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;thr_val_tile_D = </span><span class="si">{</span><span class="n">thr_val_tile_D</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;val_tile_S = </span><span class="si">{</span><span class="n">val_tile_S</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;val_tile_D = </span><span class="si">{</span><span class="n">val_tile_D</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="n">fragment</span> <span class="o">=</span> <span class="n">cute</span><span class="o">.</span><span class="n">make_fragment_like</span><span class="p">(</span><span class="n">val_tile_S</span><span class="p">)</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Fragment:&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;fragment = </span><span class="si">{</span><span class="n">fragment</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="n">fragment</span><span class="o">.</span><span class="n">store</span><span class="p">(</span><span class="n">val_tile_S</span><span class="o">.</span><span class="n">load</span><span class="p">())</span>
+    <span class="n">val_tile_D</span><span class="o">.</span><span class="n">store</span><span class="p">(</span><span class="n">fragment</span><span class="o">.</span><span class="n">load</span><span class="p">())</span>
+    <span class="k">return</span>
+</pre></div>
+<p>In the kernel we compose our tile with the <code>tv_layout</code>.</p>
+<p>This will look as follows:</p>
+<div class="highlight"><pre><span></span><span class="n">Block</span> <span class="n">Tile</span><span class="p">:</span>
+<span class="n">tile_S</span> <span class="o">=</span> <span class="n">tensor</span><span class="o">&lt;</span><span class="n">ptr</span><span class="o">&lt;</span><span class="n">bf16</span><span class="p">,</span> <span class="n">gmem</span><span class="p">,</span> <span class="n">align</span><span class="o">&lt;</span><span class="mi">16</span><span class="o">&gt;&gt;</span> <span class="n">o</span> <span class="p">(</span><span class="mi">128</span><span class="p">,</span><span class="mi">64</span><span class="p">):(</span><span class="mi">4096</span><span class="p">,</span><span class="mi">1</span><span class="p">)</span><span class="o">&gt;</span>
+<span class="n">tile_D</span> <span class="o">=</span> <span class="n">tensor</span><span class="o">&lt;</span><span class="n">ptr</span><span class="o">&lt;</span><span class="n">bf16</span><span class="p">,</span> <span class="n">gmem</span><span class="p">,</span> <span class="n">align</span><span class="o">&lt;</span><span class="mi">16</span><span class="o">&gt;&gt;</span> <span class="n">o</span> <span class="p">(</span><span class="mi">128</span><span class="p">,</span><span class="mi">64</span><span class="p">):(</span><span class="mi">4096</span><span class="p">,</span><span class="mi">1</span><span class="p">)</span><span class="o">&gt;</span>
+<span class="n">thr_val_tile_S</span><span class="p">:</span>
+<span class="n">thr_val_tile_S</span> <span class="o">=</span> <span class="n">tensor</span><span class="o">&lt;</span><span class="n">ptr</span><span class="o">&lt;</span><span class="n">bf16</span><span class="p">,</span> <span class="n">gmem</span><span class="p">,</span> <span class="n">align</span><span class="o">&lt;</span><span class="mi">16</span><span class="o">&gt;&gt;</span> <span class="n">o</span> <span class="p">((</span><span class="mi">8</span><span class="p">,</span><span class="mi">32</span><span class="p">),(</span><span class="mi">8</span><span class="p">,</span><span class="mi">4</span><span class="p">)):((</span><span class="mi">8</span><span class="p">,</span><span class="mi">16384</span><span class="p">),(</span><span class="mi">1</span><span class="p">,</span><span class="mi">4096</span><span class="p">))</span><span class="o">&gt;</span>
+<span class="n">thr_val_tile_D</span> <span class="o">=</span> <span class="n">tensor</span><span class="o">&lt;</span><span class="n">ptr</span><span class="o">&lt;</span><span class="n">bf16</span><span class="p">,</span> <span class="n">gmem</span><span class="p">,</span> <span class="n">align</span><span class="o">&lt;</span><span class="mi">16</span><span class="o">&gt;&gt;</span> <span class="n">o</span> <span class="p">((</span><span class="mi">8</span><span class="p">,</span><span class="mi">32</span><span class="p">),(</span><span class="mi">8</span><span class="p">,</span><span class="mi">4</span><span class="p">)):((</span><span class="mi">8</span><span class="p">,</span><span class="mi">16384</span><span class="p">),(</span><span class="mi">1</span><span class="p">,</span><span class="mi">4096</span><span class="p">))</span><span class="o">&gt;</span>
+<span class="n">val_tile_S</span> <span class="o">=</span> <span class="n">tensor</span><span class="o">&lt;</span><span class="n">ptr</span><span class="o">&lt;</span><span class="n">bf16</span><span class="p">,</span> <span class="n">gmem</span><span class="p">,</span> <span class="n">align</span><span class="o">&lt;</span><span class="mi">16</span><span class="o">&gt;&gt;</span> <span class="n">o</span> <span class="p">((</span><span class="mi">8</span><span class="p">,</span><span class="mi">4</span><span class="p">)):((</span><span class="mi">1</span><span class="p">,</span><span class="mi">4096</span><span class="p">))</span><span class="o">&gt;</span>
+<span class="n">val_tile_D</span> <span class="o">=</span> <span class="n">tensor</span><span class="o">&lt;</span><span class="n">ptr</span><span class="o">&lt;</span><span class="n">bf16</span><span class="p">,</span> <span class="n">gmem</span><span class="p">,</span> <span class="n">align</span><span class="o">&lt;</span><span class="mi">16</span><span class="o">&gt;&gt;</span> <span class="n">o</span> <span class="p">((</span><span class="mi">8</span><span class="p">,</span><span class="mi">4</span><span class="p">)):((</span><span class="mi">1</span><span class="p">,</span><span class="mi">4096</span><span class="p">))</span><span class="o">&gt;</span>
+<span class="n">Fragment</span><span class="p">:</span>
+<span class="n">fragment</span> <span class="o">=</span> <span class="n">tensor</span><span class="o">&lt;</span><span class="n">ptr</span><span class="o">&lt;</span><span class="n">bf16</span><span class="p">,</span> <span class="n">rmem</span><span class="p">,</span> <span class="n">align</span><span class="o">&lt;</span><span class="mi">16</span><span class="o">&gt;&gt;</span> <span class="n">o</span> <span class="p">((</span><span class="mi">8</span><span class="p">,</span><span class="mi">4</span><span class="p">)):((</span><span class="mi">1</span><span class="p">,</span><span class="mi">8</span><span class="p">))</span><span class="o">&gt;</span>
+</pre></div>
+<p>Note how nicely we obtain the <code>val_tile_S: ((8,4)):((1,4096))</code> for each thread. We see that this will give us the ability to perform vectorized load. We can confirm this in the profiler and indeed:</p>
+<div class="highlight"><pre><span></span>LDG.E.128 R8, [R2.64]
+LDG.E.128 R12, [R2.64+0x2000]
+LDG.E.128 R16, [R2.64+0x4000]
+LDG.E.128 R20, [R2.64+0x6000]
+IADD3 R4, P0, R4, c[0x0][0x168], RZ
+IADD3.X R5, R0, c[0x0][0x16c], RZ, P0, !PT
+STG.E.128 [R4.64], R8
+STG.E.128 [R4.64+0x2000], R12
+STG.E.128 [R4.64+0x4000], R16
+STG.E.128 [R4.64+0x6000], R20
+</pre></div>
+<p>which is what we expect and want: 4 times a vectorized load. Each of them differ by <code>0x2000 = 16^3 = 4096</code> which corresponds to the second stride for the value tiles. This kernel archives <code>89,53%</code> utilization.</p>
+<h2 id=conclusion>Conclusion</h2><p>I hope this blogpost showed that we can use multiple ways of partitioning our goal in the <code>CuTeDSL</code>. For a given situation we can pick what is most convenient and choose the corresponding partition pattern.
+This blogpost was inspired by multiple examples given in the <a href='https://github.com/NVIDIA/cutlass/tree/main'>CUTLASS</a> library. Please consider giving the library a star.
+You can connect with me via <a href='https://www.linkedin.com/in/simon-veitner-174a681b6/'>Linkedin</a> to exchange ideas.</p>
+
+
+    
+
+    
+        
+
+        
+            <form id="upvote-form" action="/upvote/" method="post" style="display: inline">
+    <small>
+        <input hidden name="uid" value="sIuavcXFqLXFbcXGgESZ" style="display:none">
+        <input hidden name="title" value="CuTe partitions" style="display:none">
+
+        <button
+            class="upvote-button"
+            aria-label="Toast this post"
+            title="Toast this post"
+        >
+            <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" class="css-i6dzq1">
+                <polyline points="17 11 12 6 7 11"></polyline>
+                <polyline points="17 18 12 13 7 18"></polyline>
+            </svg>
+            <small class="upvote-count" aria-hidden="true">&nbsp;</small>
+        </button>
+    </small>        
+</form>
+
+<script>
+    const $upvoteButton = document.querySelector('.upvote-button');
+    const $upvoteCount =  document.querySelector('.upvote-count')
+
+    fetch('/upvote-info/sIuavcXFqLXFbcXGgESZ/').then(response => response.json()).then(data => {
+        $upvoteCount.innerText = data.upvote_count;
+        if (data.upvoted) {
+            $upvoteButton.disabled = true
+            $upvoteButton.style.color = "salmon"
+            $upvoteButton.ariaLabel = "Toasted"
+            $upvoteButton.title = "Toasted"
+        }
+        $upvoteButton.ariaLabel += ` (${data.upvote_count})`
+    });
+
+    let moved = false;
+    let pageLoaded = Date.now();
+
+    document.addEventListener('touchmove', () => moved = true);
+    document.addEventListener('mousemove', () => moved = true);
+
+    document.querySelector('#upvote-form').addEventListener('submit', (e) => {
+        e.preventDefault();
+
+        if (moved) {
+            document.querySelector('input[name="title"]').value = "";
+        }
+        if (Date.now() - pageLoaded < 2000 || !moved) {
+            return;
+        }
+
+        fetch(e.target.action, {
+            method: 'post',
+            body: new FormData(e.target),
+        });
+        
+        $upvoteButton.disabled = true
+        $upvoteButton.style.color = "salmon"
+        $upvoteButton.ariaLabel = "Toasted"
+        $upvoteButton.title = "Toasted"
+        const newUpvoteCount = `${(parseInt($upvoteCount.innerHTML.split(" ")[0]) + 1)}`
+        $upvoteCount.innerHTML = newUpvoteCount
+        $upvoteButton.ariaLabel += ` (${newUpvoteCount})`
+    });
+</script>
+        
+
+        
+            <script>
+            window.addEventListener("load", () => {
+                if (navigator.webdriver !== true) {
+                    const sendHit = score => {
+                        const params = new URLSearchParams({
+                            blog: "veitner",
+                            token: "sIuavcXFqLXFbcXGgESZ",
+                            referrer: document.referrer.includes("veitner.bearblog.dev") ? "" : document.referrer,
+                            title: "",
+                            score: score
+                        });
+                        new Image().src = `/hit/?${params.toString()}`;
+                    };
+
+                    document.addEventListener('touchmove', () => sendHit(100), { once: true });
+                    document.addEventListener('mousemove', () => sendHit(100), { once: true });
+                }
+            });
+            </script>
+        
+    
+
+
+  </main>
+  <footer>
+    
+    
+    <span>
+        Powered by <a href="https://bearblog.dev">Bear <span role="img" class="bear" aria-label="ASCII bear logo">ʕ•ᴥ•ʔ</span></a>
+    </span>
+
+  </footer>
+
+  
+  <script>
+        (() => {
+          "use strict";
+          const times = document.querySelectorAll('time');
+          const format_string = "d M, Y" || "d M, Y"
+
+          times.forEach(time => {
+              time.innerText = formatDate(time.dateTime, format_string)
+          });
+
+          function formatDate(dateStr, formatStr) {
+            const date = new Date(dateStr);
+            const day = date.getDate();
+            const month = date.getMonth();
+            const year = date.getFullYear();
+            const weekday = date.getDay();
+            const hours = date.getHours();
+            const minutes = date.getMinutes();
+            const monthsFull = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+            const monthsShort = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+            const daysFull = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+            const daysShort = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+            
+            function getOrdinal(n) {
+                const s = ['th', 'st', 'nd', 'rd'];
+                const v = n % 100;
+                return s[(v - 20) % 10] || s[v] || s[0];
+            }
+            
+            const map = {
+                'd': () => day.toString().padStart(2, '0'),
+                'm': () => (month + 1).toString().padStart(2, '0'),
+                'Y': () => year.toString(),
+                'y': () => year.toString().slice(-2),
+                'F': () => monthsFull[month],
+                'j': () => day.toString(),
+                'D': () => daysShort[weekday],
+                'l': () => daysFull[weekday],
+                'S': () => getOrdinal(day),
+                'M': () => monthsShort[month],
+                'H': () => hours.toString().padStart(2, '0'),
+                'h': () => {
+                    let h = hours % 12;
+                    h = h === 0 ? 12 : h;
+                    return h.toString().padStart(2, '0');
+                },
+                'g': () => {
+                    let h = hours % 12;
+                    return h === 0 ? '12' : h.toString();
+                },
+                'i': () => minutes.toString().padStart(2, '0'),
+                'a': () => hours < 12 ? 'am' : 'pm',
+                'A': () => hours < 12 ? 'AM' : 'PM',
+            };
+            
+            let result = '';
+            for (let char of formatStr) {
+                result += map[char] ? map[char]() : char;
+            }
+            return result;
+        }
+        })();
+    </script>
+    
+</body>
+<!-- ID: veitner -->
+<!-- 🐻 -->
+</html>

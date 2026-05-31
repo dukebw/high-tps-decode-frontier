@@ -1,0 +1,809 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!-- Powered by Bear Blog -->
+
+<head>
+  
+  
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5">
+  
+  <title>Predication in Cutlass | simons blog</title>
+  <link rel="canonical" href="https://veitner.bearblog.dev/predication-in-cutlass/">
+  
+    
+
+    <meta name="veitner" content="look-for-the-bear-necessities">
+    <meta name="token" content="beRjNYeGCYAfbyuvtuog">
+
+    
+<!-- Primary Meta Tags -->
+<meta name="title" content="Predication in Cutlass">
+<meta name="description" content="The cutlass documentation on CuTe touches the topic of predication briefly but doesn&#x27;t give a full code example.
+In this blogpost I will explain how to use ...">
+
+<!-- Open Graph / Facebook -->
+<meta property="og:site_name" content="simons blog">
+<meta property="og:title" content="Predication in Cutlass">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://veitner.bearblog.dev/predication-in-cutlass/">
+<meta property="og:description" content="The cutlass documentation on CuTe touches the topic of predication briefly but doesn&#x27;t give a full code example.
+In this blogpost I will explain how to use ...">
+<meta property="og:image" content="/static/og-image.png">
+
+
+<!-- Twitter -->
+<meta property="twitter:card" content="summary">
+<meta property="twitter:url" content="https://veitner.bearblog.dev/predication-in-cutlass/">
+<meta property="twitter:title" content="Predication in Cutlass">
+<meta property="twitter:description" content="The cutlass documentation on CuTe touches the topic of predication briefly but doesn&#x27;t give a full code example.
+In this blogpost I will explain how to use ...">
+<meta property="twitter:image" content="/static/og-image.png">
+
+
+
+<!-- Microdata -->
+<script type="application/ld+json">
+  {
+    "@context": "http://schema.org",
+    "@type": "article",
+    "name": "Predication in Cutlass",
+    "headline": "Predication in Cutlass",
+    "url": "https://veitner.bearblog.dev/predication-in-cutlass/",
+    "description": "The cutlass documentation on CuTe touches the topic of predication briefly but doesn&#x27;t give a full code example.
+In this blogpost I will explain how to use ...",
+    "image": "/static/og-image.png"
+  }
+</script>
+    <link rel="alternate" type="application/atom+xml" href="/feed/" title="simons blog">
+    <link rel="alternate" type="application/rss+xml" href="/feed/?type=rss" title="simons blog">
+
+  
+    
+
+    
+    <style>pre { line-height: 125%; }
+td.linenos .normal { color: #666666; background-color: transparent; padding-left: 5px; padding-right: 5px; }
+span.linenos { color: #666666; background-color: transparent; padding-left: 5px; padding-right: 5px; }
+td.linenos .special { color: #000000; background-color: #ffffc0; padding-left: 5px; padding-right: 5px; }
+span.linenos.special { color: #000000; background-color: #ffffc0; padding-left: 5px; padding-right: 5px; }
+.highlight .hll { background-color: #ffffcc }
+.highlight { background: #f0f0f0; }
+.highlight .c { color: #60A0B0; font-style: italic } /* Comment */
+.highlight .err { border: 1px solid #F00 } /* Error */
+.highlight .k { color: #007020; font-weight: bold } /* Keyword */
+.highlight .o { color: #666 } /* Operator */
+.highlight .ch { color: #60A0B0; font-style: italic } /* Comment.Hashbang */
+.highlight .cm { color: #60A0B0; font-style: italic } /* Comment.Multiline */
+.highlight .cp { color: #007020 } /* Comment.Preproc */
+.highlight .cpf { color: #60A0B0; font-style: italic } /* Comment.PreprocFile */
+.highlight .c1 { color: #60A0B0; font-style: italic } /* Comment.Single */
+.highlight .cs { color: #60A0B0; background-color: #FFF0F0 } /* Comment.Special */
+.highlight .gd { color: #A00000 } /* Generic.Deleted */
+.highlight .ge { font-style: italic } /* Generic.Emph */
+.highlight .ges { font-weight: bold; font-style: italic } /* Generic.EmphStrong */
+.highlight .gr { color: #F00 } /* Generic.Error */
+.highlight .gh { color: #000080; font-weight: bold } /* Generic.Heading */
+.highlight .gi { color: #00A000 } /* Generic.Inserted */
+.highlight .go { color: #888 } /* Generic.Output */
+.highlight .gp { color: #C65D09; font-weight: bold } /* Generic.Prompt */
+.highlight .gs { font-weight: bold } /* Generic.Strong */
+.highlight .gu { color: #800080; font-weight: bold } /* Generic.Subheading */
+.highlight .gt { color: #04D } /* Generic.Traceback */
+.highlight .kc { color: #007020; font-weight: bold } /* Keyword.Constant */
+.highlight .kd { color: #007020; font-weight: bold } /* Keyword.Declaration */
+.highlight .kn { color: #007020; font-weight: bold } /* Keyword.Namespace */
+.highlight .kp { color: #007020 } /* Keyword.Pseudo */
+.highlight .kr { color: #007020; font-weight: bold } /* Keyword.Reserved */
+.highlight .kt { color: #902000 } /* Keyword.Type */
+.highlight .m { color: #40A070 } /* Literal.Number */
+.highlight .s { color: #4070A0 } /* Literal.String */
+.highlight .na { color: #4070A0 } /* Name.Attribute */
+.highlight .nb { color: #007020 } /* Name.Builtin */
+.highlight .nc { color: #0E84B5; font-weight: bold } /* Name.Class */
+.highlight .no { color: #60ADD5 } /* Name.Constant */
+.highlight .nd { color: #555; font-weight: bold } /* Name.Decorator */
+.highlight .ni { color: #D55537; font-weight: bold } /* Name.Entity */
+.highlight .ne { color: #007020 } /* Name.Exception */
+.highlight .nf { color: #06287E } /* Name.Function */
+.highlight .nl { color: #002070; font-weight: bold } /* Name.Label */
+.highlight .nn { color: #0E84B5; font-weight: bold } /* Name.Namespace */
+.highlight .nt { color: #062873; font-weight: bold } /* Name.Tag */
+.highlight .nv { color: #BB60D5 } /* Name.Variable */
+.highlight .ow { color: #007020; font-weight: bold } /* Operator.Word */
+.highlight .w { color: #BBB } /* Text.Whitespace */
+.highlight .mb { color: #40A070 } /* Literal.Number.Bin */
+.highlight .mf { color: #40A070 } /* Literal.Number.Float */
+.highlight .mh { color: #40A070 } /* Literal.Number.Hex */
+.highlight .mi { color: #40A070 } /* Literal.Number.Integer */
+.highlight .mo { color: #40A070 } /* Literal.Number.Oct */
+.highlight .sa { color: #4070A0 } /* Literal.String.Affix */
+.highlight .sb { color: #4070A0 } /* Literal.String.Backtick */
+.highlight .sc { color: #4070A0 } /* Literal.String.Char */
+.highlight .dl { color: #4070A0 } /* Literal.String.Delimiter */
+.highlight .sd { color: #4070A0; font-style: italic } /* Literal.String.Doc */
+.highlight .s2 { color: #4070A0 } /* Literal.String.Double */
+.highlight .se { color: #4070A0; font-weight: bold } /* Literal.String.Escape */
+.highlight .sh { color: #4070A0 } /* Literal.String.Heredoc */
+.highlight .si { color: #70A0D0; font-style: italic } /* Literal.String.Interpol */
+.highlight .sx { color: #C65D09 } /* Literal.String.Other */
+.highlight .sr { color: #235388 } /* Literal.String.Regex */
+.highlight .s1 { color: #4070A0 } /* Literal.String.Single */
+.highlight .ss { color: #517918 } /* Literal.String.Symbol */
+.highlight .bp { color: #007020 } /* Name.Builtin.Pseudo */
+.highlight .fm { color: #06287E } /* Name.Function.Magic */
+.highlight .vc { color: #BB60D5 } /* Name.Variable.Class */
+.highlight .vg { color: #BB60D5 } /* Name.Variable.Global */
+.highlight .vi { color: #BB60D5 } /* Name.Variable.Instance */
+.highlight .vm { color: #BB60D5 } /* Name.Variable.Magic */
+.highlight .il { color: #40A070 } /* Literal.Number.Integer.Long */
+</style>
+  
+  
+  
+    
+        <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20100%20100'%3E%3Ctext%20y='.9em'%20font-size='90'%3E🐼%3C/text%3E%3C/svg%3E">
+    
+
+
+
+  <style>
+      
+      
+    
+:root {
+    --width: 720px;
+    --font-main: Verdana, sans-serif;
+    --font-secondary: Verdana, sans-serif;
+    --font-scale: 1em;
+    --background-color: #fff;
+    --heading-color: #222;
+    --text-color: #444;
+    --link-color: #3273dc;
+    --visited-color:  #8b6fcb;
+    --code-background-color: #f2f2f2;
+    --code-color: #222;
+    --blockquote-color: #222;
+}
+
+@media (prefers-color-scheme: dark) {
+    :root {
+        --background-color: #01242e;
+        --heading-color: #eee;
+        --text-color: #ddd;
+        --link-color: #8cc2dd;
+        --visited-color:  #8b6fcb;
+        --code-background-color: #000;
+        --code-color: #ddd;
+        --blockquote-color: #ccc;
+    }
+}
+
+body {
+    font-family: var(--font-secondary);
+    font-size: var(--font-scale);
+    margin: auto;
+    padding: 20px;
+    max-width: var(--width);
+    text-align: left;
+    background-color: var(--background-color);
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    line-height: 1.5;
+    color: var(--text-color);
+}
+
+h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-main);
+    color: var(--heading-color);
+}
+
+a {
+    color: var(--link-color);
+    cursor: pointer;
+    text-decoration: none;
+}
+
+a:hover {
+    text-decoration: underline; 
+}
+
+nav a {
+    margin-right: 8px;
+}
+
+strong, b {
+    color: var(--heading-color);
+}
+
+button {
+    margin: 0;
+    cursor: pointer;
+}
+
+time {
+ 	font-family: monospace;
+  	font-style: normal;
+  	font-size: 15px;
+}
+
+main {
+    line-height: 1.6;
+}
+
+table {
+    width: 100%;
+}
+
+hr {
+    border: 0;
+    border-top: 1px dashed;
+}
+
+img {
+    max-width: 100%;
+}
+
+code {
+    font-family: monospace;
+    padding: 2px;
+    background-color: var(--code-background-color);
+    color: var(--code-color);
+    border-radius: 3px;
+}
+
+blockquote {
+    border-left: 1px solid #999;
+    color: var(--code-color);
+    padding-left: 20px;
+    font-style: italic;
+}
+
+footer {
+    padding: 25px 0;
+    text-align: center;
+}
+
+.title:hover {
+    text-decoration: none;
+}
+
+.title h1 {
+    font-size: 1.5em;
+}
+
+.inline {
+    width: auto !important;
+}
+
+.highlight, .code {
+    padding: 1px 15px;
+    background-color: var(--code-background-color);
+    color: var(--code-color);
+    border-radius: 3px;
+    margin-block-start: 1em;
+    margin-block-end: 1em;
+    overflow-x: auto;
+}
+
+/* blog post list */
+ul.blog-posts {
+    list-style-type: none;
+    padding: unset;
+}
+
+ul.blog-posts li {
+    display: flex;
+}
+
+ul.blog-posts li span {
+    flex: 0 0 130px;
+}
+
+ul.blog-posts li a:visited {
+    color: var(--visited-color);
+}
+    .upvote-button {
+        padding: 0;
+        margin: 0;
+        border: 0;
+        background-color: inherit;
+        color: inherit;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+    .upvote-button.upvoted {
+        color: salmon;
+    }
+    .upvote-count {
+        margin-top: -3px;
+    }
+
+      
+  </style>
+</head>
+
+<body class="post " onload="(function() { document.cookie = `timezone=${Intl.DateTimeFormat().resolvedOptions().timeZone};path=/`; })()">
+  
+  <header>
+    <a class="title" href="/">
+      <h1>
+        simons blog
+      </h1>
+    </a>
+    <nav>
+      <p><a href='/'>Home</a> <a href='/blog/'>Blog</a></p>
+
+    </nav>
+  </header>
+  <main>
+    
+
+    
+
+    
+        <h1>Predication in Cutlass</h1>
+
+        <p>
+            <i>
+                <time datetime="2025-03-31T16:02Z">
+    31 Mar, 2025
+</time>
+            </i>
+        </p>
+    
+
+    <p>The cutlass documentation on CuTe touches the topic of <a href='https://github.com/NVIDIA/cutlass/blob/main/media/docs/cute/0y_predication.md'>predication</a> briefly but doesn't give a full code example.
+In this blogpost I will explain how to use predication to perform appropriate boundary checking in a CuTe program.</p>
+<h2 id=introduction>Introduction</h2><p>The kernel we start from is taken from the <a href='https://github.com/NVIDIA/cutlass/blob/main/examples/cute/tutorial/tiled_copy.cu'>CuTe tutorial</a> and performs an efficient tiled copy.
+Before we start with the topic of predication let's briefly focus on the non vectorised version of tiled copy.</p>
+<div class="highlight"><pre><span></span><span class="cm">/***************************************************************************************************</span>
+<span class="cm"> * Copyright (c) 2023 - 2025 NVIDIA CORPORATION &amp; AFFILIATES. All rights</span>
+<span class="cm"> *reserved. SPDX-License-Identifier: BSD-3-Clause</span>
+<span class="cm"> *</span>
+<span class="cm"> * Redistribution and use in source and binary forms, with or without</span>
+<span class="cm"> * modification, are permitted provided that the following conditions are met:</span>
+<span class="cm"> *</span>
+<span class="cm"> * 1. Redistributions of source code must retain the above copyright notice,</span>
+<span class="cm"> *this list of conditions and the following disclaimer.</span>
+<span class="cm"> *</span>
+<span class="cm"> * 2. Redistributions in binary form must reproduce the above copyright notice,</span>
+<span class="cm"> * this list of conditions and the following disclaimer in the documentation</span>
+<span class="cm"> * and/or other materials provided with the distribution.</span>
+<span class="cm"> *</span>
+<span class="cm"> * 3. Neither the name of the copyright holder nor the names of its</span>
+<span class="cm"> * contributors may be used to endorse or promote products derived from</span>
+<span class="cm"> * this software without specific prior written permission.</span>
+<span class="cm"> *</span>
+<span class="cm"> * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS &quot;AS IS&quot;</span>
+<span class="cm"> * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE</span>
+<span class="cm"> * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE</span>
+<span class="cm"> *ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE</span>
+<span class="cm"> *LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR</span>
+<span class="cm"> *CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF</span>
+<span class="cm"> *SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS</span>
+<span class="cm"> *INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN</span>
+<span class="cm"> *CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)</span>
+<span class="cm"> *ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE</span>
+<span class="cm"> *POSSIBILITY OF SUCH DAMAGE.</span>
+<span class="cm"> *</span>
+<span class="cm"> **************************************************************************************************/</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;thrust/device_vector.h&gt;</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;thrust/host_vector.h&gt;</span>
+
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;cute/tensor.hpp&gt;</span>
+
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&quot;cutlass/util/GPU_Clock.hpp&quot;</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&quot;cutlass/util/helper_cuda.hpp&quot;</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&quot;cutlass/util/print_error.hpp&quot;</span>
+
+<span class="k">template</span><span class="w"> </span><span class="o">&lt;</span><span class="k">class</span><span class="w"> </span><span class="nc">TensorS</span><span class="p">,</span><span class="w"> </span><span class="k">class</span><span class="w"> </span><span class="nc">TensorD</span><span class="p">,</span><span class="w"> </span><span class="k">class</span><span class="w"> </span><span class="nc">ThreadLayout</span><span class="o">&gt;</span>
+<span class="n">__global__</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="n">copy_kernel</span><span class="p">(</span><span class="n">TensorS</span><span class="w"> </span><span class="n">S</span><span class="p">,</span><span class="w"> </span><span class="n">TensorD</span><span class="w"> </span><span class="n">D</span><span class="p">,</span><span class="w"> </span><span class="n">ThreadLayout</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="cp"># SEE BELOW</span>
+<span class="p">}</span>
+
+<span class="c1">/// Main function</span>
+<span class="kt">int</span><span class="w"> </span><span class="n">main</span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">argc</span><span class="p">,</span><span class="w"> </span><span class="kt">char</span><span class="o">**</span><span class="w"> </span><span class="n">argv</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="c1">//</span>
+<span class="w">  </span><span class="c1">// Given a 2D shape, perform an efficient copy</span>
+<span class="w">  </span><span class="c1">//</span>
+
+<span class="w">  </span><span class="k">using</span><span class="w"> </span><span class="k">namespace</span><span class="w"> </span><span class="nn">cute</span><span class="p">;</span>
+<span class="w">  </span><span class="k">using</span><span class="w"> </span><span class="n">Element</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kt">float</span><span class="p">;</span>
+
+<span class="w">  </span><span class="kt">int</span><span class="w"> </span><span class="n">M</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">32768</span><span class="p">;</span>
+<span class="w">  </span><span class="kt">int</span><span class="w"> </span><span class="n">N</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">16384</span><span class="p">;</span>
+
+<span class="w">  </span><span class="k">auto</span><span class="w"> </span><span class="n">tensor_shape</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">make_shape</span><span class="p">(</span><span class="n">M</span><span class="p">,</span><span class="w"> </span><span class="n">N</span><span class="p">);</span>
+
+<span class="w">  </span><span class="n">thrust</span><span class="o">::</span><span class="n">host_vector</span><span class="o">&lt;</span><span class="n">Element</span><span class="o">&gt;</span><span class="w"> </span><span class="n">h_S</span><span class="p">(</span><span class="n">size</span><span class="p">(</span><span class="n">tensor_shape</span><span class="p">));</span>
+<span class="w">  </span><span class="n">thrust</span><span class="o">::</span><span class="n">host_vector</span><span class="o">&lt;</span><span class="n">Element</span><span class="o">&gt;</span><span class="w"> </span><span class="n">h_D</span><span class="p">(</span><span class="n">size</span><span class="p">(</span><span class="n">tensor_shape</span><span class="p">));</span>
+
+<span class="w">  </span><span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="kt">size_t</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="n">h_S</span><span class="p">.</span><span class="n">size</span><span class="p">();</span><span class="w"> </span><span class="o">++</span><span class="n">i</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="n">h_S</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">static_cast</span><span class="o">&lt;</span><span class="n">Element</span><span class="o">&gt;</span><span class="p">(</span><span class="n">i</span><span class="p">);</span>
+<span class="w">    </span><span class="n">h_D</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">Element</span><span class="p">{};</span>
+<span class="w">  </span><span class="p">}</span>
+
+<span class="w">  </span><span class="n">thrust</span><span class="o">::</span><span class="n">device_vector</span><span class="o">&lt;</span><span class="n">Element</span><span class="o">&gt;</span><span class="w"> </span><span class="n">d_S</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">h_S</span><span class="p">;</span>
+<span class="w">  </span><span class="n">thrust</span><span class="o">::</span><span class="n">device_vector</span><span class="o">&lt;</span><span class="n">Element</span><span class="o">&gt;</span><span class="w"> </span><span class="n">d_D</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">h_D</span><span class="p">;</span>
+
+<span class="w">  </span><span class="n">Tensor</span><span class="w"> </span><span class="n">tensor_S</span><span class="w"> </span><span class="o">=</span>
+<span class="w">      </span><span class="n">make_tensor</span><span class="p">(</span><span class="n">make_gmem_ptr</span><span class="p">(</span><span class="n">thrust</span><span class="o">::</span><span class="n">raw_pointer_cast</span><span class="p">(</span><span class="n">d_S</span><span class="p">.</span><span class="n">data</span><span class="p">())),</span>
+<span class="w">                  </span><span class="n">make_layout</span><span class="p">(</span><span class="n">tensor_shape</span><span class="p">));</span>
+<span class="w">  </span><span class="n">Tensor</span><span class="w"> </span><span class="n">tensor_D</span><span class="w"> </span><span class="o">=</span>
+<span class="w">      </span><span class="n">make_tensor</span><span class="p">(</span><span class="n">make_gmem_ptr</span><span class="p">(</span><span class="n">thrust</span><span class="o">::</span><span class="n">raw_pointer_cast</span><span class="p">(</span><span class="n">d_D</span><span class="p">.</span><span class="n">data</span><span class="p">())),</span>
+<span class="w">                  </span><span class="n">make_layout</span><span class="p">(</span><span class="n">tensor_shape</span><span class="p">));</span>
+
+<span class="w">  </span><span class="k">auto</span><span class="w"> </span><span class="n">block_shape</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">make_shape</span><span class="p">(</span><span class="n">Int</span><span class="o">&lt;</span><span class="mi">256</span><span class="o">&gt;</span><span class="p">{},</span><span class="w"> </span><span class="n">Int</span><span class="o">&lt;</span><span class="mi">128</span><span class="o">&gt;</span><span class="p">{});</span>
+
+<span class="w">  </span><span class="n">Tensor</span><span class="w"> </span><span class="n">tiled_tensor_S</span><span class="w"> </span><span class="o">=</span>
+<span class="w">      </span><span class="n">tiled_divide</span><span class="p">(</span><span class="n">tensor_S</span><span class="p">,</span><span class="w"> </span><span class="n">block_shape</span><span class="p">);</span><span class="w">  </span><span class="c1">// ((M, N), m&#39;, n&#39;)</span>
+<span class="w">  </span><span class="n">Tensor</span><span class="w"> </span><span class="n">tiled_tensor_D</span><span class="w"> </span><span class="o">=</span>
+<span class="w">      </span><span class="n">tiled_divide</span><span class="p">(</span><span class="n">tensor_D</span><span class="p">,</span><span class="w"> </span><span class="n">block_shape</span><span class="p">);</span><span class="w">  </span><span class="c1">// ((M, N), m&#39;, n&#39;)</span>
+
+<span class="w">  </span><span class="c1">// Thread arrangement</span>
+<span class="w">  </span><span class="n">Layout</span><span class="w"> </span><span class="n">thr_layout</span><span class="w"> </span><span class="o">=</span>
+<span class="w">      </span><span class="n">make_layout</span><span class="p">(</span><span class="n">make_shape</span><span class="p">(</span><span class="n">Int</span><span class="o">&lt;</span><span class="mi">32</span><span class="o">&gt;</span><span class="p">{},</span><span class="w"> </span><span class="n">Int</span><span class="o">&lt;</span><span class="mi">8</span><span class="o">&gt;</span><span class="p">{}));</span><span class="w">  </span><span class="c1">// (32,8) -&gt; thr_idx</span>
+
+<span class="w">  </span><span class="n">dim3</span><span class="w"> </span><span class="nf">gridDim</span><span class="p">(</span>
+<span class="w">      </span><span class="n">size</span><span class="o">&lt;</span><span class="mi">1</span><span class="o">&gt;</span><span class="p">(</span><span class="n">tiled_tensor_D</span><span class="p">),</span>
+<span class="w">      </span><span class="n">size</span><span class="o">&lt;</span><span class="mi">2</span><span class="o">&gt;</span><span class="p">(</span><span class="n">tiled_tensor_D</span><span class="p">));</span><span class="w">  </span><span class="c1">// Grid shape corresponds to modes m&#39; and n&#39;</span>
+<span class="w">  </span><span class="n">dim3</span><span class="w"> </span><span class="nf">blockDim</span><span class="p">(</span><span class="n">size</span><span class="p">(</span><span class="n">thr_layout</span><span class="p">));</span>
+
+<span class="w">  </span><span class="n">copy_kernel</span><span class="o">&lt;&lt;&lt;</span><span class="n">gridDim</span><span class="p">,</span><span class="w"> </span><span class="n">blockDim</span><span class="o">&gt;&gt;&gt;</span><span class="p">(</span><span class="n">tiled_tensor_S</span><span class="p">,</span><span class="w"> </span><span class="n">tiled_tensor_D</span><span class="p">,</span>
+<span class="w">                                     </span><span class="n">thr_layout</span><span class="p">);</span>
+
+<span class="w">  </span><span class="n">cudaError</span><span class="w"> </span><span class="n">result</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">cudaDeviceSynchronize</span><span class="p">();</span>
+<span class="w">  </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">result</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="n">cudaSuccess</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="n">cerr</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;CUDA Runtime error: &quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">cudaGetErrorString</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+<span class="w">              </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="mi">-1</span><span class="p">;</span>
+<span class="w">  </span><span class="p">}</span>
+
+<span class="w">  </span><span class="n">h_D</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">d_D</span><span class="p">;</span>
+
+<span class="w">  </span><span class="kt">int32_t</span><span class="w"> </span><span class="n">errors</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span>
+<span class="w">  </span><span class="kt">int32_t</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="n">kErrorLimit</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">10</span><span class="p">;</span>
+
+<span class="w">  </span><span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="kt">size_t</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="n">h_D</span><span class="p">.</span><span class="n">size</span><span class="p">();</span><span class="w"> </span><span class="o">++</span><span class="n">i</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">h_S</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="n">h_D</span><span class="p">[</span><span class="n">i</span><span class="p">])</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="n">std</span><span class="o">::</span><span class="n">cerr</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;Error. S[&quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;]: &quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">h_S</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;,   D[&quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">i</span>
+<span class="w">                </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;]: &quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">h_D</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span>
+
+<span class="w">      </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="o">++</span><span class="n">errors</span><span class="w"> </span><span class="o">&gt;=</span><span class="w"> </span><span class="n">kErrorLimit</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="n">std</span><span class="o">::</span><span class="n">cerr</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;Aborting on &quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">kErrorLimit</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;nth error.&quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span>
+<span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="mi">-1</span><span class="p">;</span>
+<span class="w">      </span><span class="p">}</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">  </span><span class="p">}</span>
+
+<span class="w">  </span><span class="n">std</span><span class="o">::</span><span class="n">cout</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;Success.&quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span>
+
+<span class="w">  </span><span class="k">return</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span>
+<span class="p">}</span>
+</pre></div>
+<p>This example is adopted from the CuTe tutorial from the cutlass repo. These are the steps taken before we call the kernel in our main function. We will step by step explain them below.</p>
+<div class="highlight"><pre><span></span><span class="w">  </span><span class="n">Tensor</span><span class="w"> </span><span class="n">tensor_S</span><span class="w"> </span><span class="o">=</span>
+<span class="w">      </span><span class="n">make_tensor</span><span class="p">(</span><span class="n">make_gmem_ptr</span><span class="p">(</span><span class="n">thrust</span><span class="o">::</span><span class="n">raw_pointer_cast</span><span class="p">(</span><span class="n">d_S</span><span class="p">.</span><span class="n">data</span><span class="p">())),</span>
+<span class="w">                  </span><span class="n">make_layout</span><span class="p">(</span><span class="n">tensor_shape</span><span class="p">));</span>
+<span class="w">  </span><span class="n">Tensor</span><span class="w"> </span><span class="n">tensor_D</span><span class="w"> </span><span class="o">=</span>
+<span class="w">      </span><span class="n">make_tensor</span><span class="p">(</span><span class="n">make_gmem_ptr</span><span class="p">(</span><span class="n">thrust</span><span class="o">::</span><span class="n">raw_pointer_cast</span><span class="p">(</span><span class="n">d_D</span><span class="p">.</span><span class="n">data</span><span class="p">())),</span>
+<span class="w">                  </span><span class="n">make_layout</span><span class="p">(</span><span class="n">tensor_shape</span><span class="p">));</span>
+</pre></div>
+<p>simply initialises the tensors.</p>
+<div class="highlight"><pre><span></span><span class="w">  </span><span class="k">auto</span><span class="w"> </span><span class="n">block_shape</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">make_shape</span><span class="p">(</span><span class="n">Int</span><span class="o">&lt;</span><span class="mi">256</span><span class="o">&gt;</span><span class="p">{},</span><span class="w"> </span><span class="n">Int</span><span class="o">&lt;</span><span class="mi">128</span><span class="o">&gt;</span><span class="p">{});</span>
+
+<span class="w">  </span>
+<span class="w">  </span><span class="k">if</span><span class="w"> </span><span class="p">((</span><span class="n">size</span><span class="o">&lt;</span><span class="mi">0</span><span class="o">&gt;</span><span class="p">(</span><span class="n">tensor_shape</span><span class="p">)</span><span class="w"> </span><span class="o">%</span><span class="w"> </span><span class="n">size</span><span class="o">&lt;</span><span class="mi">0</span><span class="o">&gt;</span><span class="p">(</span><span class="n">block_shape</span><span class="p">))</span><span class="w"> </span><span class="o">||</span>
+<span class="w">      </span><span class="p">(</span><span class="n">size</span><span class="o">&lt;</span><span class="mi">1</span><span class="o">&gt;</span><span class="p">(</span><span class="n">tensor_shape</span><span class="p">)</span><span class="w"> </span><span class="o">%</span><span class="w"> </span><span class="n">size</span><span class="o">&lt;</span><span class="mi">1</span><span class="o">&gt;</span><span class="p">(</span><span class="n">block_shape</span><span class="p">)))</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="n">cerr</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;The tensor shape must be divisible by the block shape.&quot;</span>
+<span class="w">              </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="mi">-1</span><span class="p">;</span>
+<span class="w">  </span><span class="p">}</span>
+
+<span class="w">  </span><span class="n">Tensor</span><span class="w"> </span><span class="n">tiled_tensor_S</span><span class="w"> </span><span class="o">=</span>
+<span class="w">      </span><span class="n">tiled_divide</span><span class="p">(</span><span class="n">tensor_S</span><span class="p">,</span><span class="w"> </span><span class="n">block_shape</span><span class="p">);</span><span class="w">  </span>
+<span class="w">  </span><span class="n">Tensor</span><span class="w"> </span><span class="n">tiled_tensor_D</span><span class="w"> </span><span class="o">=</span>
+<span class="w">      </span><span class="n">tiled_divide</span><span class="p">(</span><span class="n">tensor_D</span><span class="p">,</span><span class="w"> </span><span class="n">block_shape</span><span class="p">);</span><span class="w">  </span>
+</pre></div>
+<p>Here we simply tile tensor. This will transform <code>(M,N) -&gt; ((blkM, blkN), ceil(M/blkM), ceil(N/blkN)</code>, i.e. we tile our initial matrix into smaller matrices with shape <code>(blkM, blkN)</code>. The last two dimensions of the shape correspond to the number of blocks we create in <code>x</code> and <code>y</code> dimension of the grid.
+For the example above we will have
+<code>(32768, 16384) -&gt; ((256, 128), 128, 128))</code></p>
+<div class="highlight"><pre><span></span><span class="w">  </span><span class="n">Layout</span><span class="w"> </span><span class="n">thr_layout</span><span class="w"> </span><span class="o">=</span>
+<span class="w">      </span><span class="n">make_layout</span><span class="p">(</span><span class="n">make_shape</span><span class="p">(</span><span class="n">Int</span><span class="o">&lt;</span><span class="mi">32</span><span class="o">&gt;</span><span class="p">{},</span><span class="w"> </span><span class="n">Int</span><span class="o">&lt;</span><span class="mi">8</span><span class="o">&gt;</span><span class="p">{}));</span><span class="w">  </span>
+
+<span class="w">  </span><span class="n">dim3</span><span class="w"> </span><span class="nf">gridDim</span><span class="p">(</span>
+<span class="w">      </span><span class="n">size</span><span class="o">&lt;</span><span class="mi">1</span><span class="o">&gt;</span><span class="p">(</span><span class="n">tiled_tensor_D</span><span class="p">),</span>
+<span class="w">      </span><span class="n">size</span><span class="o">&lt;</span><span class="mi">2</span><span class="o">&gt;</span><span class="p">(</span><span class="n">tiled_tensor_D</span><span class="p">));</span><span class="w">  </span>
+<span class="w">  </span><span class="n">dim3</span><span class="w"> </span><span class="nf">blockDim</span><span class="p">(</span><span class="n">size</span><span class="p">(</span><span class="n">thr_layout</span><span class="p">));</span>
+
+<span class="w">  </span><span class="n">copy_kernel</span><span class="o">&lt;&lt;&lt;</span><span class="n">gridDim</span><span class="p">,</span><span class="w"> </span><span class="n">blockDim</span><span class="o">&gt;&gt;&gt;</span><span class="p">(</span><span class="n">tiled_tensor_S</span><span class="p">,</span><span class="w"> </span><span class="n">tiled_tensor_D</span><span class="p">,</span>
+<span class="w">                                     </span><span class="n">thr_layout</span><span class="p">);</span>
+</pre></div>
+<p>Here we make a thread layout.
+This will further tile our block tiles onto the threads inside the kernel as we see below.
+<code>(256, 128) -&gt; (256/32, 128/8) = (8, 16)</code>
+We launch the kernel than with the number of blocks given by the tiled layout (i.e. <code>256</code> blocks in x and <code>128</code> blocks in y direction) and the number of threads we need for the thread tiling (i.e. <code>32 * 8 = 256</code>) per block.</p>
+<p>The kernel without predication looks like this:</p>
+<div class="highlight"><pre><span></span><span class="k">template</span><span class="w"> </span><span class="o">&lt;</span><span class="k">class</span><span class="w"> </span><span class="nc">TensorS</span><span class="p">,</span><span class="w"> </span><span class="k">class</span><span class="w"> </span><span class="nc">TensorD</span><span class="p">,</span><span class="w"> </span><span class="k">class</span><span class="w"> </span><span class="nc">ThreadLayout</span><span class="o">&gt;</span>
+<span class="n">__global__</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="n">copy_kernel</span><span class="p">(</span><span class="n">TensorS</span><span class="w"> </span><span class="n">S</span><span class="p">,</span><span class="w"> </span><span class="n">TensorD</span><span class="w"> </span><span class="n">D</span><span class="p">,</span><span class="w"> </span><span class="n">ThreadLayout</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="k">using</span><span class="w"> </span><span class="k">namespace</span><span class="w"> </span><span class="nn">cute</span><span class="p">;</span>
+<span class="w">  </span><span class="n">Tensor</span><span class="w"> </span><span class="n">tile_S</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">S</span><span class="p">(</span><span class="n">make_coord</span><span class="p">(</span><span class="n">_</span><span class="p">,</span><span class="w"> </span><span class="n">_</span><span class="p">),</span><span class="w"> </span><span class="n">blockIdx</span><span class="p">.</span><span class="n">x</span><span class="p">,</span>
+<span class="w">                    </span><span class="n">blockIdx</span><span class="p">.</span><span class="n">y</span><span class="p">);</span><span class="w">  </span><span class="c1">// (BlockShape_M, BlockShape_N)</span>
+<span class="w">  </span><span class="n">Tensor</span><span class="w"> </span><span class="n">tile_D</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">D</span><span class="p">(</span><span class="n">make_coord</span><span class="p">(</span><span class="n">_</span><span class="p">,</span><span class="w"> </span><span class="n">_</span><span class="p">),</span><span class="w"> </span><span class="n">blockIdx</span><span class="p">.</span><span class="n">x</span><span class="p">,</span>
+<span class="w">                    </span><span class="n">blockIdx</span><span class="p">.</span><span class="n">y</span><span class="p">);</span><span class="w">  </span><span class="c1">// (BlockShape_M, BlockShape_N)</span>
+
+<span class="w">  </span><span class="n">Tensor</span><span class="w"> </span><span class="n">thr_tile_S</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">local_partition</span><span class="p">(</span><span class="n">tile_S</span><span class="p">,</span><span class="w"> </span><span class="n">ThreadLayout</span><span class="p">{},</span>
+<span class="w">                                      </span><span class="n">threadIdx</span><span class="p">.</span><span class="n">x</span><span class="p">);</span><span class="w">  </span><span class="c1">// (ThrValM, ThrValN)</span>
+<span class="w">  </span><span class="n">Tensor</span><span class="w"> </span><span class="n">thr_tile_D</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">local_partition</span><span class="p">(</span><span class="n">tile_D</span><span class="p">,</span><span class="w"> </span><span class="n">ThreadLayout</span><span class="p">{},</span>
+<span class="w">                                      </span><span class="n">threadIdx</span><span class="p">.</span><span class="n">x</span><span class="p">);</span><span class="w">  </span><span class="c1">// (ThrValM, ThrValN)</span>
+
+<span class="w">  </span><span class="n">Tensor</span><span class="w"> </span><span class="n">fragment</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">make_tensor_like</span><span class="p">(</span><span class="n">thr_tile_S</span><span class="p">);</span><span class="w">  </span><span class="c1">// (ThrValM, ThrValN)</span>
+
+<span class="w">  </span><span class="c1">// Copy from GMEM to RMEM and from RMEM to GMEM</span>
+<span class="w">  </span><span class="n">copy</span><span class="p">(</span><span class="n">thr_tile_S</span><span class="p">,</span><span class="w"> </span><span class="n">fragment</span><span class="p">);</span>
+<span class="w">  </span><span class="n">copy</span><span class="p">(</span><span class="n">fragment</span><span class="p">,</span><span class="w"> </span><span class="n">thr_tile_D</span><span class="p">);</span>
+<span class="p">}</span>
+</pre></div>
+<p>It simply takes the whole matrix tile, than creates a local partition of it as described above. Each thread than copies one of these elements from <code>GMEM -&gt; RMEM -&gt; GMEM</code>.
+This processes is highly efficient and archives bandwidth of <code>~3 TB/s</code> on <code>H100</code>. We could further increase this by tuning the different tile sizes but this is not our focus in this blogpost.</p>
+<h2 id=why-we-need-predication>Why we need predication?</h2><p>Let's imagine we want to process a matrix of dimension <code>(M, N) = (32768 + 1, 16384 + 1)</code>, the above kernel will not work than.
+Why? Because our tiling will result in a Layout of  <code>(32768 + 1, 16384 + 1) -&gt; ((256, 128), 129, 129))</code>. The problem here is that in the last blocks we will attempt to copy data that we should not copy. That is because in the last block in x direction there will be only 1 element we need to process and similar in the last block in y direction. We don't want to copy the whole thread tile for these blocks!
+You can give it a try by trying to run the program with adjusted <code>M</code> and <code>N</code> and you will get an error like:</p>
+<div class="highlight"><pre><span></span><span class="n">CUDA</span><span class="w"> </span><span class="n">Runtime</span><span class="w"> </span><span class="n">error</span><span class="o">:</span><span class="w"> </span><span class="n">an</span><span class="w"> </span><span class="n">illegal</span><span class="w"> </span><span class="n">memory</span><span class="w"> </span><span class="n">access</span><span class="w"> </span><span class="n">was</span><span class="w"> </span><span class="n">encountered</span>
+<span class="n">terminate</span><span class="w"> </span><span class="n">called</span><span class="w"> </span><span class="n">after</span><span class="w"> </span><span class="n">throwing</span><span class="w"> </span><span class="n">an</span><span class="w"> </span><span class="n">instance</span><span class="w"> </span><span class="n">of</span><span class="w"> </span><span class="err">&#39;</span><span class="n">thrust</span><span class="o">::</span><span class="n">THRUST_200700_900_NS</span><span class="o">::</span><span class="n">system</span><span class="o">::</span><span class="n">system_error</span><span class="err">&#39;</span>
+<span class="w">  </span><span class="n">what</span><span class="p">()</span><span class="o">:</span><span class="w">  </span><span class="n">CUDA</span><span class="w"> </span><span class="n">free</span><span class="w"> </span><span class="n">failed</span><span class="o">:</span><span class="w"> </span><span class="n">cudaErrorIllegalAddress</span><span class="o">:</span><span class="w"> </span><span class="n">an</span><span class="w"> </span><span class="n">illegal</span><span class="w"> </span><span class="n">memory</span><span class="w"> </span><span class="n">access</span><span class="w"> </span><span class="n">was</span><span class="w"> </span><span class="n">encountered</span>
+<span class="n">Aborted</span><span class="w"> </span><span class="p">(</span><span class="n">core</span><span class="w"> </span><span class="n">dumped</span><span class="p">)</span>
+</pre></div>
+<p>This should in fact be not surprising for anyone who worked with CUDA kernels. We quiet frequently observe the need to do proper boundary checking.</p>
+<h2 id=predication-with-cute>Predication with CuTe</h2><p>In this part of the blogpost we will give the kernel that solves the above problem.</p>
+<div class="highlight"><pre><span></span><span class="k">template</span><span class="w"> </span><span class="o">&lt;</span><span class="k">class</span><span class="w"> </span><span class="nc">TensorS</span><span class="p">,</span><span class="w"> </span><span class="k">class</span><span class="w"> </span><span class="nc">TensorD</span><span class="p">,</span><span class="w"> </span><span class="k">class</span><span class="w"> </span><span class="nc">ThreadLayout</span><span class="o">&gt;</span>
+<span class="n">__global__</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="n">copy_kernel_predicate</span><span class="p">(</span><span class="n">TensorS</span><span class="w"> </span><span class="n">S</span><span class="p">,</span><span class="w"> </span><span class="n">TensorD</span><span class="w"> </span><span class="n">D</span><span class="p">,</span><span class="w"> </span><span class="n">ThreadLayout</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">M</span><span class="p">,</span>
+<span class="w">                                      </span><span class="kt">int</span><span class="w"> </span><span class="n">N</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="k">using</span><span class="w"> </span><span class="k">namespace</span><span class="w"> </span><span class="nn">cute</span><span class="p">;</span>
+
+<span class="w">  </span><span class="n">Tensor</span><span class="w"> </span><span class="n">tile_S</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">S</span><span class="p">(</span><span class="n">make_coord</span><span class="p">(</span><span class="n">_</span><span class="p">,</span><span class="w"> </span><span class="n">_</span><span class="p">),</span><span class="w"> </span><span class="n">blockIdx</span><span class="p">.</span><span class="n">x</span><span class="p">,</span>
+<span class="w">                    </span><span class="n">blockIdx</span><span class="p">.</span><span class="n">y</span><span class="p">);</span><span class="w">  </span><span class="c1">// (BlockShape_M, BlockShape_N)</span>
+<span class="w">  </span><span class="n">Tensor</span><span class="w"> </span><span class="n">tile_D</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">D</span><span class="p">(</span><span class="n">make_coord</span><span class="p">(</span><span class="n">_</span><span class="p">,</span><span class="w"> </span><span class="n">_</span><span class="p">),</span><span class="w"> </span><span class="n">blockIdx</span><span class="p">.</span><span class="n">x</span><span class="p">,</span>
+<span class="w">                    </span><span class="n">blockIdx</span><span class="p">.</span><span class="n">y</span><span class="p">);</span><span class="w">  </span><span class="c1">// (BlockShape_M, BlockShape_N)</span>
+
+<span class="w">  </span><span class="n">Tensor</span><span class="w"> </span><span class="n">thr_tile_S</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">local_partition</span><span class="p">(</span><span class="n">tile_S</span><span class="p">,</span><span class="w"> </span><span class="n">ThreadLayout</span><span class="p">{},</span>
+<span class="w">                                      </span><span class="n">threadIdx</span><span class="p">.</span><span class="n">x</span><span class="p">);</span><span class="w">  </span><span class="c1">// (ThrValM, ThrValN)</span>
+<span class="w">  </span><span class="n">Tensor</span><span class="w"> </span><span class="n">thr_tile_D</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">local_partition</span><span class="p">(</span><span class="n">tile_D</span><span class="p">,</span><span class="w"> </span><span class="n">ThreadLayout</span><span class="p">{},</span>
+<span class="w">                                      </span><span class="n">threadIdx</span><span class="p">.</span><span class="n">x</span><span class="p">);</span><span class="w">  </span><span class="c1">// (ThrValM, ThrValN)</span>
+
+<span class="w">  </span><span class="k">auto</span><span class="w"> </span><span class="n">identity_tensor</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">make_identity_tensor</span><span class="p">(</span><span class="n">make_shape</span><span class="p">(</span>
+<span class="w">      </span><span class="n">size</span><span class="o">&lt;</span><span class="mi">0</span><span class="o">&gt;</span><span class="p">(</span><span class="n">tile_S</span><span class="p">),</span><span class="w"> </span><span class="n">size</span><span class="o">&lt;</span><span class="mi">1</span><span class="o">&gt;</span><span class="p">(</span><span class="n">tile_S</span><span class="p">)));</span><span class="w">  </span><span class="c1">// (BlockShape_M, BlockShape_N)</span>
+<span class="w">  </span><span class="k">auto</span><span class="w"> </span><span class="n">thread_identity_tensor</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">local_partition</span><span class="p">(</span>
+<span class="w">      </span><span class="n">identity_tensor</span><span class="p">,</span><span class="w"> </span><span class="n">ThreadLayout</span><span class="p">{},</span><span class="w"> </span><span class="n">threadIdx</span><span class="p">.</span><span class="n">x</span><span class="p">);</span><span class="w">  </span><span class="c1">// (ThrValM, ThrValN)</span>
+
+<span class="w">  </span><span class="n">Tensor</span><span class="w"> </span><span class="n">fragment</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">make_tensor_like</span><span class="p">(</span><span class="n">thr_tile_S</span><span class="p">);</span><span class="w">  </span><span class="c1">// (ThrValM, ThrValN)</span>
+<span class="w">  </span><span class="k">auto</span><span class="w"> </span><span class="n">predicator</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">make_tensor</span><span class="o">&lt;</span><span class="kt">bool</span><span class="o">&gt;</span><span class="p">(</span>
+<span class="w">      </span><span class="n">make_shape</span><span class="p">(</span><span class="n">size</span><span class="o">&lt;</span><span class="mi">0</span><span class="o">&gt;</span><span class="p">(</span><span class="n">fragment</span><span class="p">),</span><span class="w"> </span><span class="n">size</span><span class="o">&lt;</span><span class="mi">1</span><span class="o">&gt;</span><span class="p">(</span><span class="n">fragment</span><span class="p">)));</span><span class="w">  </span><span class="c1">// (ThrValM, ThrValN)</span>
+
+<span class="w">  </span><span class="n">CUTE_UNROLL</span>
+<span class="w">  </span><span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="n">size</span><span class="o">&lt;</span><span class="mi">0</span><span class="o">&gt;</span><span class="p">(</span><span class="n">predicator</span><span class="p">);</span><span class="w"> </span><span class="o">++</span><span class="n">i</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="n">CUTE_UNROLL</span>
+<span class="w">    </span><span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">j</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span><span class="w"> </span><span class="n">j</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="n">size</span><span class="o">&lt;</span><span class="mi">1</span><span class="o">&gt;</span><span class="p">(</span><span class="n">predicator</span><span class="p">);</span><span class="w"> </span><span class="o">++</span><span class="n">j</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="k">auto</span><span class="w"> </span><span class="n">thread_identity</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">thread_identity_tensor</span><span class="p">(</span><span class="n">i</span><span class="p">,</span><span class="w"> </span><span class="n">j</span><span class="p">);</span>
+<span class="w">      </span><span class="kt">int</span><span class="w"> </span><span class="n">global_row</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">blockIdx</span><span class="p">.</span><span class="n">x</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">size</span><span class="o">&lt;</span><span class="mi">0</span><span class="o">&gt;</span><span class="p">(</span><span class="n">tile_S</span><span class="p">)</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">get</span><span class="o">&lt;</span><span class="mi">0</span><span class="o">&gt;</span><span class="p">(</span><span class="n">thread_identity</span><span class="p">);</span>
+<span class="w">      </span><span class="kt">int</span><span class="w"> </span><span class="n">global_col</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">blockIdx</span><span class="p">.</span><span class="n">y</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">size</span><span class="o">&lt;</span><span class="mi">1</span><span class="o">&gt;</span><span class="p">(</span><span class="n">tile_S</span><span class="p">)</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">get</span><span class="o">&lt;</span><span class="mi">1</span><span class="o">&gt;</span><span class="p">(</span><span class="n">thread_identity</span><span class="p">);</span>
+<span class="w">      </span><span class="n">predicator</span><span class="p">(</span><span class="n">i</span><span class="p">,</span><span class="w"> </span><span class="n">j</span><span class="p">)</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="n">global_row</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="n">M</span><span class="p">)</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="p">(</span><span class="n">global_col</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="n">N</span><span class="p">);</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">  </span><span class="p">}</span>
+
+<span class="w">  </span><span class="c1">// Copy from GMEM to RMEM and from RMEM to GMEM with predicate</span>
+<span class="w">  </span><span class="n">copy_if</span><span class="p">(</span><span class="n">predicator</span><span class="p">,</span><span class="w"> </span><span class="n">thr_tile_S</span><span class="p">,</span><span class="w"> </span><span class="n">fragment</span><span class="p">);</span>
+<span class="w">  </span><span class="n">copy_if</span><span class="p">(</span><span class="n">predicator</span><span class="p">,</span><span class="w"> </span><span class="n">fragment</span><span class="p">,</span><span class="w"> </span><span class="n">thr_tile_D</span><span class="p">);</span>
+<span class="p">}</span>
+</pre></div>
+<p>We see that the kernel is very similar to the version without predication. The logic for predication was adopted from <a href='https://leimao.github.io/article/CuTe-Matrix-Transpose/'>Lei Mao</a> who used similar technique for the task of matrix transpose. Check out his blogposts, they are very nice to read!
+Now we will explain what we needed to change in our kernel to make it work for matrices which are not exactly dividable by the block tile dimensions.</p>
+<div class="highlight"><pre><span></span><span class="w">  </span><span class="k">auto</span><span class="w"> </span><span class="n">identity_tensor</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">make_identity_tensor</span><span class="p">(</span><span class="n">make_shape</span><span class="p">(</span>
+<span class="w">      </span><span class="n">size</span><span class="o">&lt;</span><span class="mi">0</span><span class="o">&gt;</span><span class="p">(</span><span class="n">tile_S</span><span class="p">),</span><span class="w"> </span><span class="n">size</span><span class="o">&lt;</span><span class="mi">1</span><span class="o">&gt;</span><span class="p">(</span><span class="n">tile_S</span><span class="p">)));</span><span class="w">  </span><span class="c1">// (BlockShape_M, BlockShape_N)</span>
+<span class="w">  </span><span class="k">auto</span><span class="w"> </span><span class="n">thread_identity_tensor</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">local_partition</span><span class="p">(</span>
+<span class="w">      </span><span class="n">identity_tensor</span><span class="p">,</span><span class="w"> </span><span class="n">ThreadLayout</span><span class="p">{},</span><span class="w"> </span><span class="n">threadIdx</span><span class="p">.</span><span class="n">x</span><span class="p">);</span><span class="w">  </span><span class="c1">// (ThrValM, ThrValN)</span>
+</pre></div>
+<p>We create an identity tensor with exactly the same tiling like the tensors we want to copy. The identity tensor will simply map <code>(x,y)-&gt;(x,y)</code>.</p>
+<div class="highlight"><pre><span></span><span class="w">  </span><span class="k">auto</span><span class="w"> </span><span class="n">predicator</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">make_tensor</span><span class="o">&lt;</span><span class="kt">bool</span><span class="o">&gt;</span><span class="p">(</span>
+<span class="w">      </span><span class="n">make_shape</span><span class="p">(</span><span class="n">size</span><span class="o">&lt;</span><span class="mi">0</span><span class="o">&gt;</span><span class="p">(</span><span class="n">fragment</span><span class="p">),</span><span class="w"> </span><span class="n">size</span><span class="o">&lt;</span><span class="mi">1</span><span class="o">&gt;</span><span class="p">(</span><span class="n">fragment</span><span class="p">)));</span><span class="w">  </span><span class="c1">// (ThrValM, ThrValN)</span>
+</pre></div>
+<p>We initialise a predicator matrix. This matrix will be 1 for all tuples <code>(x,y)</code> which are within the bound <code>[0, M] x [0, N]</code>, i.e. it will be a simple indicator variable which is 1 when the element in question lies within our matrix.</p>
+<div class="highlight"><pre><span></span><span class="w">  </span><span class="n">CUTE_UNROLL</span>
+<span class="w">  </span><span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="n">size</span><span class="o">&lt;</span><span class="mi">0</span><span class="o">&gt;</span><span class="p">(</span><span class="n">predicator</span><span class="p">);</span><span class="w"> </span><span class="o">++</span><span class="n">i</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="n">CUTE_UNROLL</span>
+<span class="w">    </span><span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">j</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span><span class="w"> </span><span class="n">j</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="n">size</span><span class="o">&lt;</span><span class="mi">1</span><span class="o">&gt;</span><span class="p">(</span><span class="n">predicator</span><span class="p">);</span><span class="w"> </span><span class="o">++</span><span class="n">j</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="k">auto</span><span class="w"> </span><span class="n">thread_identity</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">thread_identity_tensor</span><span class="p">(</span><span class="n">i</span><span class="p">,</span><span class="w"> </span><span class="n">j</span><span class="p">);</span>
+<span class="w">      </span><span class="kt">int</span><span class="w"> </span><span class="n">global_row</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">blockIdx</span><span class="p">.</span><span class="n">x</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">size</span><span class="o">&lt;</span><span class="mi">0</span><span class="o">&gt;</span><span class="p">(</span><span class="n">tile_S</span><span class="p">)</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">get</span><span class="o">&lt;</span><span class="mi">0</span><span class="o">&gt;</span><span class="p">(</span><span class="n">thread_identity</span><span class="p">);</span>
+<span class="w">      </span><span class="kt">int</span><span class="w"> </span><span class="n">global_col</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">blockIdx</span><span class="p">.</span><span class="n">y</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">size</span><span class="o">&lt;</span><span class="mi">1</span><span class="o">&gt;</span><span class="p">(</span><span class="n">tile_S</span><span class="p">)</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">get</span><span class="o">&lt;</span><span class="mi">1</span><span class="o">&gt;</span><span class="p">(</span><span class="n">thread_identity</span><span class="p">);</span>
+<span class="w">      </span><span class="n">predicator</span><span class="p">(</span><span class="n">i</span><span class="p">,</span><span class="w"> </span><span class="n">j</span><span class="p">)</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="n">global_row</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="n">M</span><span class="p">)</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="p">(</span><span class="n">global_col</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="n">N</span><span class="p">);</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">  </span><span class="p">}</span>
+</pre></div>
+<p>We go over all thread tiles. We calculate the corresponding global row and col for each pair <code>(i, j)</code>. We can simply do that by multiplying <code>blockIdx</code> with the corresponding block tile length in dimension and adding the corresponding offset  due to the thread tiling.</p>
+<div class="highlight"><pre><span></span><span class="w">  </span><span class="n">copy_if</span><span class="p">(</span><span class="n">predicator</span><span class="p">,</span><span class="w"> </span><span class="n">thr_tile_S</span><span class="p">,</span><span class="w"> </span><span class="n">fragment</span><span class="p">);</span>
+<span class="w">  </span><span class="n">copy_if</span><span class="p">(</span><span class="n">predicator</span><span class="p">,</span><span class="w"> </span><span class="n">fragment</span><span class="p">,</span><span class="w"> </span><span class="n">thr_tile_D</span><span class="p">);</span>
+</pre></div>
+<p>This will simply copy the entries that are within the bounds of our matrix.
+You can convince yourself that the kernel will happily copy over the matrix with shape <code>(M, N) = (32768 + 1, 16384 + 1)</code> without complaining and gives the correct result.
+The performance is on pair with the copy kernel from above for matrix shapes that are evenly divisible by the block tile dimension. I guess that is due to the fact that compiler recognises he can optimise out the predication.  For matrices the kernel will perform slightly less optimal due to the warp divergence.</p>
+<p>I hope this blogpost helped you to understand predication with CuTe better.</p>
+
+
+    
+
+    
+        
+
+        
+            <form id="upvote-form" action="/upvote/" method="post" style="display: inline">
+    <small>
+        <input hidden name="uid" value="beRjNYeGCYAfbyuvtuog" style="display:none">
+        <input hidden name="title" value="Predication in Cutlass" style="display:none">
+
+        <button
+            class="upvote-button"
+            aria-label="Toast this post"
+            title="Toast this post"
+        >
+            <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" class="css-i6dzq1">
+                <polyline points="17 11 12 6 7 11"></polyline>
+                <polyline points="17 18 12 13 7 18"></polyline>
+            </svg>
+            <small class="upvote-count" aria-hidden="true">&nbsp;</small>
+        </button>
+    </small>        
+</form>
+
+<script>
+    const $upvoteButton = document.querySelector('.upvote-button');
+    const $upvoteCount =  document.querySelector('.upvote-count')
+
+    fetch('/upvote-info/beRjNYeGCYAfbyuvtuog/').then(response => response.json()).then(data => {
+        $upvoteCount.innerText = data.upvote_count;
+        if (data.upvoted) {
+            $upvoteButton.disabled = true
+            $upvoteButton.style.color = "salmon"
+            $upvoteButton.ariaLabel = "Toasted"
+            $upvoteButton.title = "Toasted"
+        }
+        $upvoteButton.ariaLabel += ` (${data.upvote_count})`
+    });
+
+    let moved = false;
+    let pageLoaded = Date.now();
+
+    document.addEventListener('touchmove', () => moved = true);
+    document.addEventListener('mousemove', () => moved = true);
+
+    document.querySelector('#upvote-form').addEventListener('submit', (e) => {
+        e.preventDefault();
+
+        if (moved) {
+            document.querySelector('input[name="title"]').value = "";
+        }
+        if (Date.now() - pageLoaded < 2000 || !moved) {
+            return;
+        }
+
+        fetch(e.target.action, {
+            method: 'post',
+            body: new FormData(e.target),
+        });
+        
+        $upvoteButton.disabled = true
+        $upvoteButton.style.color = "salmon"
+        $upvoteButton.ariaLabel = "Toasted"
+        $upvoteButton.title = "Toasted"
+        const newUpvoteCount = `${(parseInt($upvoteCount.innerHTML.split(" ")[0]) + 1)}`
+        $upvoteCount.innerHTML = newUpvoteCount
+        $upvoteButton.ariaLabel += ` (${newUpvoteCount})`
+    });
+</script>
+        
+
+        
+            <script>
+            window.addEventListener("load", () => {
+                if (navigator.webdriver !== true) {
+                    const sendHit = score => {
+                        const params = new URLSearchParams({
+                            blog: "veitner",
+                            token: "beRjNYeGCYAfbyuvtuog",
+                            referrer: document.referrer.includes("veitner.bearblog.dev") ? "" : document.referrer,
+                            title: "",
+                            score: score
+                        });
+                        new Image().src = `/hit/?${params.toString()}`;
+                    };
+
+                    document.addEventListener('touchmove', () => sendHit(100), { once: true });
+                    document.addEventListener('mousemove', () => sendHit(100), { once: true });
+                }
+            });
+            </script>
+        
+    
+
+
+  </main>
+  <footer>
+    
+    
+    <span>
+        Powered by <a href="https://bearblog.dev">Bear <span role="img" class="bear" aria-label="ASCII bear logo">ʕ•ᴥ•ʔ</span></a>
+    </span>
+
+  </footer>
+
+  
+  <script>
+        (() => {
+          "use strict";
+          const times = document.querySelectorAll('time');
+          const format_string = "d M, Y" || "d M, Y"
+
+          times.forEach(time => {
+              time.innerText = formatDate(time.dateTime, format_string)
+          });
+
+          function formatDate(dateStr, formatStr) {
+            const date = new Date(dateStr);
+            const day = date.getDate();
+            const month = date.getMonth();
+            const year = date.getFullYear();
+            const weekday = date.getDay();
+            const hours = date.getHours();
+            const minutes = date.getMinutes();
+            const monthsFull = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+            const monthsShort = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+            const daysFull = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+            const daysShort = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+            
+            function getOrdinal(n) {
+                const s = ['th', 'st', 'nd', 'rd'];
+                const v = n % 100;
+                return s[(v - 20) % 10] || s[v] || s[0];
+            }
+            
+            const map = {
+                'd': () => day.toString().padStart(2, '0'),
+                'm': () => (month + 1).toString().padStart(2, '0'),
+                'Y': () => year.toString(),
+                'y': () => year.toString().slice(-2),
+                'F': () => monthsFull[month],
+                'j': () => day.toString(),
+                'D': () => daysShort[weekday],
+                'l': () => daysFull[weekday],
+                'S': () => getOrdinal(day),
+                'M': () => monthsShort[month],
+                'H': () => hours.toString().padStart(2, '0'),
+                'h': () => {
+                    let h = hours % 12;
+                    h = h === 0 ? 12 : h;
+                    return h.toString().padStart(2, '0');
+                },
+                'g': () => {
+                    let h = hours % 12;
+                    return h === 0 ? '12' : h.toString();
+                },
+                'i': () => minutes.toString().padStart(2, '0'),
+                'a': () => hours < 12 ? 'am' : 'pm',
+                'A': () => hours < 12 ? 'AM' : 'PM',
+            };
+            
+            let result = '';
+            for (let char of formatStr) {
+                result += map[char] ? map[char]() : char;
+            }
+            return result;
+        }
+        })();
+    </script>
+    
+</body>
+<!-- ID: veitner -->
+<!-- 🐻 -->
+</html>

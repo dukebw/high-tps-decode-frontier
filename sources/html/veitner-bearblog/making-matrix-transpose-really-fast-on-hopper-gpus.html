@@ -1,0 +1,971 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!-- Powered by Bear Blog -->
+
+<head>
+  
+  
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5">
+  
+  <title>Making matrix transpose really fast on Hopper GPUs | simons blog</title>
+  <link rel="canonical" href="https://veitner.bearblog.dev/making-matrix-transpose-really-fast-on-hopper-gpus/">
+  
+    
+
+    <meta name="veitner" content="look-for-the-bear-necessities">
+    <meta name="token" content="oKMybUILLJZrioYVhaKc">
+
+    
+<!-- Primary Meta Tags -->
+<meta name="title" content="Making matrix transpose really fast on Hopper GPUs">
+<meta name="description" content="Introduction
+
+In this blogpost I want to show how to implement highly efficent matrix transpose operation for Hopper GPUs.
+I will use native CUDA APIs wit...">
+
+<!-- Open Graph / Facebook -->
+<meta property="og:site_name" content="simons blog">
+<meta property="og:title" content="Making matrix transpose really fast on Hopper GPUs">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://veitner.bearblog.dev/making-matrix-transpose-really-fast-on-hopper-gpus/">
+<meta property="og:description" content="Introduction
+
+In this blogpost I want to show how to implement highly efficent matrix transpose operation for Hopper GPUs.
+I will use native CUDA APIs wit...">
+<meta property="og:image" content="/static/og-image.png">
+
+
+<!-- Twitter -->
+<meta property="twitter:card" content="summary">
+<meta property="twitter:url" content="https://veitner.bearblog.dev/making-matrix-transpose-really-fast-on-hopper-gpus/">
+<meta property="twitter:title" content="Making matrix transpose really fast on Hopper GPUs">
+<meta property="twitter:description" content="Introduction
+
+In this blogpost I want to show how to implement highly efficent matrix transpose operation for Hopper GPUs.
+I will use native CUDA APIs wit...">
+<meta property="twitter:image" content="/static/og-image.png">
+
+
+
+<!-- Microdata -->
+<script type="application/ld+json">
+  {
+    "@context": "http://schema.org",
+    "@type": "article",
+    "name": "Making matrix transpose really fast on Hopper GPUs",
+    "headline": "Making matrix transpose really fast on Hopper GPUs",
+    "url": "https://veitner.bearblog.dev/making-matrix-transpose-really-fast-on-hopper-gpus/",
+    "description": "Introduction
+
+In this blogpost I want to show how to implement highly efficent matrix transpose operation for Hopper GPUs.
+I will use native CUDA APIs wit...",
+    "image": "/static/og-image.png"
+  }
+</script>
+    <link rel="alternate" type="application/atom+xml" href="/feed/" title="simons blog">
+    <link rel="alternate" type="application/rss+xml" href="/feed/?type=rss" title="simons blog">
+
+  
+    
+
+    
+    <style>pre { line-height: 125%; }
+td.linenos .normal { color: #666666; background-color: transparent; padding-left: 5px; padding-right: 5px; }
+span.linenos { color: #666666; background-color: transparent; padding-left: 5px; padding-right: 5px; }
+td.linenos .special { color: #000000; background-color: #ffffc0; padding-left: 5px; padding-right: 5px; }
+span.linenos.special { color: #000000; background-color: #ffffc0; padding-left: 5px; padding-right: 5px; }
+.highlight .hll { background-color: #ffffcc }
+.highlight { background: #f0f0f0; }
+.highlight .c { color: #60A0B0; font-style: italic } /* Comment */
+.highlight .err { border: 1px solid #F00 } /* Error */
+.highlight .k { color: #007020; font-weight: bold } /* Keyword */
+.highlight .o { color: #666 } /* Operator */
+.highlight .ch { color: #60A0B0; font-style: italic } /* Comment.Hashbang */
+.highlight .cm { color: #60A0B0; font-style: italic } /* Comment.Multiline */
+.highlight .cp { color: #007020 } /* Comment.Preproc */
+.highlight .cpf { color: #60A0B0; font-style: italic } /* Comment.PreprocFile */
+.highlight .c1 { color: #60A0B0; font-style: italic } /* Comment.Single */
+.highlight .cs { color: #60A0B0; background-color: #FFF0F0 } /* Comment.Special */
+.highlight .gd { color: #A00000 } /* Generic.Deleted */
+.highlight .ge { font-style: italic } /* Generic.Emph */
+.highlight .ges { font-weight: bold; font-style: italic } /* Generic.EmphStrong */
+.highlight .gr { color: #F00 } /* Generic.Error */
+.highlight .gh { color: #000080; font-weight: bold } /* Generic.Heading */
+.highlight .gi { color: #00A000 } /* Generic.Inserted */
+.highlight .go { color: #888 } /* Generic.Output */
+.highlight .gp { color: #C65D09; font-weight: bold } /* Generic.Prompt */
+.highlight .gs { font-weight: bold } /* Generic.Strong */
+.highlight .gu { color: #800080; font-weight: bold } /* Generic.Subheading */
+.highlight .gt { color: #04D } /* Generic.Traceback */
+.highlight .kc { color: #007020; font-weight: bold } /* Keyword.Constant */
+.highlight .kd { color: #007020; font-weight: bold } /* Keyword.Declaration */
+.highlight .kn { color: #007020; font-weight: bold } /* Keyword.Namespace */
+.highlight .kp { color: #007020 } /* Keyword.Pseudo */
+.highlight .kr { color: #007020; font-weight: bold } /* Keyword.Reserved */
+.highlight .kt { color: #902000 } /* Keyword.Type */
+.highlight .m { color: #40A070 } /* Literal.Number */
+.highlight .s { color: #4070A0 } /* Literal.String */
+.highlight .na { color: #4070A0 } /* Name.Attribute */
+.highlight .nb { color: #007020 } /* Name.Builtin */
+.highlight .nc { color: #0E84B5; font-weight: bold } /* Name.Class */
+.highlight .no { color: #60ADD5 } /* Name.Constant */
+.highlight .nd { color: #555; font-weight: bold } /* Name.Decorator */
+.highlight .ni { color: #D55537; font-weight: bold } /* Name.Entity */
+.highlight .ne { color: #007020 } /* Name.Exception */
+.highlight .nf { color: #06287E } /* Name.Function */
+.highlight .nl { color: #002070; font-weight: bold } /* Name.Label */
+.highlight .nn { color: #0E84B5; font-weight: bold } /* Name.Namespace */
+.highlight .nt { color: #062873; font-weight: bold } /* Name.Tag */
+.highlight .nv { color: #BB60D5 } /* Name.Variable */
+.highlight .ow { color: #007020; font-weight: bold } /* Operator.Word */
+.highlight .w { color: #BBB } /* Text.Whitespace */
+.highlight .mb { color: #40A070 } /* Literal.Number.Bin */
+.highlight .mf { color: #40A070 } /* Literal.Number.Float */
+.highlight .mh { color: #40A070 } /* Literal.Number.Hex */
+.highlight .mi { color: #40A070 } /* Literal.Number.Integer */
+.highlight .mo { color: #40A070 } /* Literal.Number.Oct */
+.highlight .sa { color: #4070A0 } /* Literal.String.Affix */
+.highlight .sb { color: #4070A0 } /* Literal.String.Backtick */
+.highlight .sc { color: #4070A0 } /* Literal.String.Char */
+.highlight .dl { color: #4070A0 } /* Literal.String.Delimiter */
+.highlight .sd { color: #4070A0; font-style: italic } /* Literal.String.Doc */
+.highlight .s2 { color: #4070A0 } /* Literal.String.Double */
+.highlight .se { color: #4070A0; font-weight: bold } /* Literal.String.Escape */
+.highlight .sh { color: #4070A0 } /* Literal.String.Heredoc */
+.highlight .si { color: #70A0D0; font-style: italic } /* Literal.String.Interpol */
+.highlight .sx { color: #C65D09 } /* Literal.String.Other */
+.highlight .sr { color: #235388 } /* Literal.String.Regex */
+.highlight .s1 { color: #4070A0 } /* Literal.String.Single */
+.highlight .ss { color: #517918 } /* Literal.String.Symbol */
+.highlight .bp { color: #007020 } /* Name.Builtin.Pseudo */
+.highlight .fm { color: #06287E } /* Name.Function.Magic */
+.highlight .vc { color: #BB60D5 } /* Name.Variable.Class */
+.highlight .vg { color: #BB60D5 } /* Name.Variable.Global */
+.highlight .vi { color: #BB60D5 } /* Name.Variable.Instance */
+.highlight .vm { color: #BB60D5 } /* Name.Variable.Magic */
+.highlight .il { color: #40A070 } /* Literal.Number.Integer.Long */
+</style>
+  
+  
+  
+    
+        <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20100%20100'%3E%3Ctext%20y='.9em'%20font-size='90'%3E🐼%3C/text%3E%3C/svg%3E">
+    
+
+
+
+  <style>
+      
+      
+    
+:root {
+    --width: 720px;
+    --font-main: Verdana, sans-serif;
+    --font-secondary: Verdana, sans-serif;
+    --font-scale: 1em;
+    --background-color: #fff;
+    --heading-color: #222;
+    --text-color: #444;
+    --link-color: #3273dc;
+    --visited-color:  #8b6fcb;
+    --code-background-color: #f2f2f2;
+    --code-color: #222;
+    --blockquote-color: #222;
+}
+
+@media (prefers-color-scheme: dark) {
+    :root {
+        --background-color: #01242e;
+        --heading-color: #eee;
+        --text-color: #ddd;
+        --link-color: #8cc2dd;
+        --visited-color:  #8b6fcb;
+        --code-background-color: #000;
+        --code-color: #ddd;
+        --blockquote-color: #ccc;
+    }
+}
+
+body {
+    font-family: var(--font-secondary);
+    font-size: var(--font-scale);
+    margin: auto;
+    padding: 20px;
+    max-width: var(--width);
+    text-align: left;
+    background-color: var(--background-color);
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    line-height: 1.5;
+    color: var(--text-color);
+}
+
+h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-main);
+    color: var(--heading-color);
+}
+
+a {
+    color: var(--link-color);
+    cursor: pointer;
+    text-decoration: none;
+}
+
+a:hover {
+    text-decoration: underline; 
+}
+
+nav a {
+    margin-right: 8px;
+}
+
+strong, b {
+    color: var(--heading-color);
+}
+
+button {
+    margin: 0;
+    cursor: pointer;
+}
+
+time {
+ 	font-family: monospace;
+  	font-style: normal;
+  	font-size: 15px;
+}
+
+main {
+    line-height: 1.6;
+}
+
+table {
+    width: 100%;
+}
+
+hr {
+    border: 0;
+    border-top: 1px dashed;
+}
+
+img {
+    max-width: 100%;
+}
+
+code {
+    font-family: monospace;
+    padding: 2px;
+    background-color: var(--code-background-color);
+    color: var(--code-color);
+    border-radius: 3px;
+}
+
+blockquote {
+    border-left: 1px solid #999;
+    color: var(--code-color);
+    padding-left: 20px;
+    font-style: italic;
+}
+
+footer {
+    padding: 25px 0;
+    text-align: center;
+}
+
+.title:hover {
+    text-decoration: none;
+}
+
+.title h1 {
+    font-size: 1.5em;
+}
+
+.inline {
+    width: auto !important;
+}
+
+.highlight, .code {
+    padding: 1px 15px;
+    background-color: var(--code-background-color);
+    color: var(--code-color);
+    border-radius: 3px;
+    margin-block-start: 1em;
+    margin-block-end: 1em;
+    overflow-x: auto;
+}
+
+/* blog post list */
+ul.blog-posts {
+    list-style-type: none;
+    padding: unset;
+}
+
+ul.blog-posts li {
+    display: flex;
+}
+
+ul.blog-posts li span {
+    flex: 0 0 130px;
+}
+
+ul.blog-posts li a:visited {
+    color: var(--visited-color);
+}
+    .upvote-button {
+        padding: 0;
+        margin: 0;
+        border: 0;
+        background-color: inherit;
+        color: inherit;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+    .upvote-button.upvoted {
+        color: salmon;
+    }
+    .upvote-count {
+        margin-top: -3px;
+    }
+
+      
+  </style>
+</head>
+
+<body class="post " onload="(function() { document.cookie = `timezone=${Intl.DateTimeFormat().resolvedOptions().timeZone};path=/`; })()">
+  
+  <header>
+    <a class="title" href="/">
+      <h1>
+        simons blog
+      </h1>
+    </a>
+    <nav>
+      <p><a href='/'>Home</a> <a href='/blog/'>Blog</a></p>
+
+    </nav>
+  </header>
+  <main>
+    
+
+    
+
+    
+        <h1>Making matrix transpose really fast on Hopper GPUs</h1>
+
+        <p>
+            <i>
+                <time datetime="2025-05-02T12:30Z">
+    02 May, 2025
+</time>
+            </i>
+        </p>
+    
+
+    <h2 id=introduction>Introduction</h2><p>In this blogpost I want to show how to implement highly efficent matrix transpose operation for Hopper GPUs.
+I will use native CUDA APIs without abstraction as I believe this is good way to learn about the hardware in detail.
+As you will see it is very important to use swizzling and being able to map swizzled indices to normal indices. Unfortunately this is not well documented in the otherwise excellent CUDA programming guide.
+I hope this blogpost gives more people ability to implement highly performant kernels for Hopper using native CUDA.</p>
+<h2 id=swizzling>Swizzling</h2><h3 id=visualizing-swizzling-pattern>Visualizing swizzling pattern</h3><p>Before implementing matrix transpose it is important we understand Swizzling.
+Swizzling is a technique to avoid bank conflicts in shared memory.
+In the following we will make use of concept that are essential for TMA on Hopper GPUs. If you are not familiar, please read my introductory <a href='https://veitner.bearblog.dev/tma-introduction/'>blogpost</a> on this topic.
+To understand bank conflicts that can occur better let's visualize the bank assignment for a 2d <code>int</code> matrix.
+We use the following layout without swizzling:</p>
+<div class="highlight"><pre><span></span><span class="k">const</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">GMEM_WIDTH</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">32</span><span class="p">;</span>
+<span class="k">const</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">GMEM_HEIGHT</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">32</span><span class="p">;</span>
+<span class="k">const</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">BLOCK_SIZE</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">32</span><span class="p">;</span>
+<span class="k">const</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">SMEM_WIDTH</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">BLOCK_SIZE</span><span class="p">;</span>
+<span class="k">const</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">SMEM_HEIGHT</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">BLOCK_SIZE</span><span class="p">;</span>
+<span class="w">  </span>
+<span class="w">  </span><span class="c1">// Create the tensor descriptor.</span>
+<span class="w">  </span><span class="n">CUresult</span><span class="w"> </span><span class="n">res</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">cuTensorMapEncodeTiled</span><span class="p">(</span>
+<span class="w">      </span><span class="o">&amp;</span><span class="n">tensor_map</span><span class="p">,</span><span class="w">  </span><span class="c1">// CUtensorMap *tensorMap,</span>
+<span class="w">      </span><span class="n">CUtensorMapDataType</span><span class="o">::</span><span class="n">CU_TENSOR_MAP_DATA_TYPE_INT32</span><span class="p">,</span>
+<span class="w">      </span><span class="n">rank</span><span class="p">,</span><span class="w">         </span><span class="c1">// cuuint32_t tensorRank,</span>
+<span class="w">      </span><span class="n">tensor_ptr</span><span class="p">,</span><span class="w">   </span><span class="c1">// void *globalAddress,</span>
+<span class="w">      </span><span class="n">size</span><span class="p">,</span><span class="w">         </span><span class="c1">// const cuuint64_t *globalDim,</span>
+<span class="w">      </span><span class="n">stride</span><span class="p">,</span><span class="w">       </span><span class="c1">// const cuuint64_t *globalStrides,</span>
+<span class="w">      </span><span class="n">box_size</span><span class="p">,</span><span class="w">     </span><span class="c1">// const cuuint32_t *boxDim,</span>
+<span class="w">      </span><span class="n">elem_stride</span><span class="p">,</span><span class="w">  </span><span class="c1">// const cuuint32_t *elementStrides,</span>
+<span class="w">      </span><span class="c1">// Interleave patterns can be used to accelerate loading of values that</span>
+<span class="w">      </span><span class="c1">// are less than 4 bytes long.</span>
+<span class="w">      </span><span class="n">CUtensorMapInterleave</span><span class="o">::</span><span class="n">CU_TENSOR_MAP_INTERLEAVE_NONE</span><span class="p">,</span>
+<span class="w">      </span><span class="c1">// Swizzling can be used to avoid shared memory bank conflicts.</span>
+<span class="w">      </span><span class="n">CUtensorMapSwizzle</span><span class="o">::</span><span class="n">CU_TENSOR_MAP_SWIZZLE_NONE</span><span class="p">,</span>
+<span class="w">      </span><span class="c1">// L2 Promotion can be used to widen the effect of a cache-policy to a</span>
+<span class="w">      </span><span class="c1">// wider set of L2 cache lines.</span>
+<span class="w">      </span><span class="n">CUtensorMapL2promotion</span><span class="o">::</span><span class="n">CU_TENSOR_MAP_L2_PROMOTION_NONE</span><span class="p">,</span>
+<span class="w">      </span><span class="c1">// Any element that is outside of bounds will be set to zero by the TMA</span>
+<span class="w">      </span><span class="c1">// transfer.</span>
+<span class="w">      </span><span class="n">CUtensorMapFloatOOBfill</span><span class="o">::</span><span class="n">CU_TENSOR_MAP_FLOAT_OOB_FILL_NONE</span><span class="p">);</span>
+</pre></div>
+<p>Than fill the shared memory tiles as follows.</p>
+<div class="highlight"><pre><span></span><span class="n">smem_buffer</span><span class="p">[</span><span class="n">row</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">BLOCK_SIZE</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">col</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="n">row</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">BLOCK_SIZE</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">col</span><span class="p">)</span><span class="w"> </span><span class="o">%</span><span class="w"> </span><span class="mi">32</span><span class="p">;</span>
+</pre></div>
+<p>We can visualize this:
+<img src="https://bear-images.sfo2.cdn.digitaloceanspaces.com/veitner/40.webp" alt="Screenshot 2025-05-01 at 15" /></p>
+<p>We see that each column gets assigned to one bank.
+That means if threads in the same warp access the the same column we will have a <a href='https://leimao.github.io/blog/CUDA-Shared-Memory-Bank/'>bank conflict</a>.
+We can now modify the layout such that we use 128B swizzling pattern</p>
+<div class="highlight"><pre><span></span><span class="w">  </span><span class="c1">// Create the tensor descriptor.</span>
+<span class="w">  </span><span class="n">CUresult</span><span class="w"> </span><span class="n">res</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">cuTensorMapEncodeTiled</span><span class="p">(</span>
+<span class="w">      </span><span class="o">&amp;</span><span class="n">tensor_map</span><span class="p">,</span><span class="w">  </span><span class="c1">// CUtensorMap *tensorMap,</span>
+<span class="w">      </span><span class="n">CUtensorMapDataType</span><span class="o">::</span><span class="n">CU_TENSOR_MAP_DATA_TYPE_INT32</span><span class="p">,</span>
+<span class="w">      </span><span class="n">rank</span><span class="p">,</span><span class="w">         </span><span class="c1">// cuuint32_t tensorRank,</span>
+<span class="w">      </span><span class="n">tensor_ptr</span><span class="p">,</span><span class="w">   </span><span class="c1">// void *globalAddress,</span>
+<span class="w">      </span><span class="n">size</span><span class="p">,</span><span class="w">         </span><span class="c1">// const cuuint64_t *globalDim,</span>
+<span class="w">      </span><span class="n">stride</span><span class="p">,</span><span class="w">       </span><span class="c1">// const cuuint64_t *globalStrides,</span>
+<span class="w">      </span><span class="n">box_size</span><span class="p">,</span><span class="w">     </span><span class="c1">// const cuuint32_t *boxDim,</span>
+<span class="w">      </span><span class="n">elem_stride</span><span class="p">,</span><span class="w">  </span><span class="c1">// const cuuint32_t *elementStrides,</span>
+<span class="w">      </span><span class="c1">// Interleave patterns can be used to accelerate loading of values that</span>
+<span class="w">      </span><span class="c1">// are less than 4 bytes long.</span>
+<span class="w">      </span><span class="n">CUtensorMapInterleave</span><span class="o">::</span><span class="n">CU_TENSOR_MAP_INTERLEAVE_NONE</span><span class="p">,</span>
+<span class="w">      </span><span class="c1">// Swizzling can be used to avoid shared memory bank conflicts.</span>
+<span class="w">      </span><span class="n">CUtensorMapSwizzle</span><span class="o">::</span><span class="n">CU_TENSOR_MAP_SWIZZLE_128B</span><span class="p">,</span>
+<span class="w">      </span><span class="c1">// L2 Promotion can be used to widen the effect of a cache-policy to a</span>
+<span class="w">      </span><span class="c1">// wider set of L2 cache lines.</span>
+<span class="w">      </span><span class="n">CUtensorMapL2promotion</span><span class="o">::</span><span class="n">CU_TENSOR_MAP_L2_PROMOTION_NONE</span><span class="p">,</span>
+<span class="w">      </span><span class="c1">// Any element that is outside of bounds will be set to zero by the TMA</span>
+<span class="w">      </span><span class="c1">// transfer.</span>
+<span class="w">      </span><span class="n">CUtensorMapFloatOOBfill</span><span class="o">::</span><span class="n">CU_TENSOR_MAP_FLOAT_OOB_FILL_NONE</span><span class="p">);</span>
+
+<span class="w">  </span><span class="n">assert</span><span class="p">(</span><span class="n">res</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">CUDA_SUCCESS</span><span class="p">);</span>
+</pre></div>
+<p>Doing the same assignment for values in SMEM will now yield the following picture:
+<img src="https://bear-images.sfo2.cdn.digitaloceanspaces.com/veitner/28.webp" alt="Screenshot 2025-05-01 at 15" /></p>
+<p>We can see that we have now significantly less potential bank conflicts.
+The swizzling pattern is periodic and repeats after <code>8 * 32 * sizeof(int) = 128</code> entries in the matrix.</p>
+<h3 id=modify-shared-memory-with-correct-indices>Modify shared memory with correct indices.</h3><p>TMA does the swizzling for us when transferring data from <code>GMEM</code> to <code>SMEM</code>. But how can we recover the swizzling index?
+It turns out there is a formula which is unfortunately not in the official NVIDIA docs for <a href='https://docs.nvidia.com/cuda/cuda-c-programming-guide/#tma-swizzle'>TMA swizzle.</a>
+The formula however can be found on a <a href='https://www.nvidia.com/en-us/on-demand/session/gtc24-s62192/'>GCT Talk</a> by Igor Terentyev.
+The formula looks as follows:
+<img src="https://bear-images.sfo2.cdn.digitaloceanspaces.com/veitner/43.webp" alt="Screenshot 2025-05-01 at 15" />
+We can implement this for a a datatype which has <code>sizeof(T)=4</code> as follows:</p>
+<div class="highlight"><pre><span></span><span class="k">template</span><span class="w"> </span><span class="o">&lt;</span><span class="kt">int</span><span class="w"> </span><span class="n">BLOCK_SIZE</span><span class="o">&gt;</span>
+<span class="n">__device__</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">calculate_col_swizzle</span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">row</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">col</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="kt">int</span><span class="w"> </span><span class="n">i16</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="n">row</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">BLOCK_SIZE</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">col</span><span class="p">)</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="mi">4</span><span class="w"> </span><span class="o">&gt;&gt;</span><span class="w"> </span><span class="mi">4</span><span class="p">;</span>
+<span class="w">  </span><span class="kt">int</span><span class="w"> </span><span class="n">y16</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">i16</span><span class="w"> </span><span class="o">&gt;&gt;</span><span class="w"> </span><span class="mi">3</span><span class="p">;</span>
+<span class="w">  </span><span class="kt">int</span><span class="w"> </span><span class="n">x16</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">i16</span><span class="w"> </span><span class="o">&amp;</span><span class="w"> </span><span class="mi">7</span><span class="p">;</span>
+<span class="w">  </span><span class="kt">int</span><span class="w"> </span><span class="n">x16_swz</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">y16</span><span class="w"> </span><span class="o">^</span><span class="w"> </span><span class="n">x16</span><span class="p">;</span>
+<span class="w">  </span><span class="k">return</span><span class="w"> </span><span class="p">((</span><span class="n">x16_swz</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="mi">4</span><span class="p">)</span><span class="w"> </span><span class="o">&amp;</span><span class="w"> </span><span class="p">(</span><span class="n">BLOCK_SIZE</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="mi">1</span><span class="p">))</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="p">(</span><span class="n">col</span><span class="w"> </span><span class="o">&amp;</span><span class="w"> </span><span class="mi">3</span><span class="p">);</span>
+<span class="p">}</span>
+</pre></div>
+<p>We can verify the correctness of this formula by</p>
+<div class="highlight"><pre><span></span><span class="kt">int</span><span class="w"> </span><span class="n">col_swizzle</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">calculate_col_swizzle</span><span class="o">&lt;</span><span class="n">BLOCK_SIZE</span><span class="o">&gt;</span><span class="p">(</span><span class="n">row</span><span class="p">,</span><span class="w"> </span><span class="n">col</span><span class="p">);</span>
+<span class="n">smem_buffer</span><span class="p">[</span><span class="n">row</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">BLOCK_SIZE</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">col_swizzle</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="n">row</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">BLOCK_SIZE</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">col</span><span class="p">)</span><span class="w"> </span><span class="o">%</span><span class="w"> </span><span class="mi">32</span><span class="p">;</span>
+</pre></div>
+<p>with the swizzled layout.
+Plotting yields than the unswizzled version:
+<img src="https://bear-images.sfo2.cdn.digitaloceanspaces.com/veitner/58.webp" alt="Screenshot 2025-05-01 at 19" /></p>
+<h2 id=application-matrix-transpose>Application: Matrix transpose</h2><h3 id=naive-approach>Naive approach</h3><p>The following picture taken from <a href='https://developer.nvidia.com/blog/efficient-matrix-transpose-cuda-cc/'>an NVIDIA blogpost</a> very clearly illustrates how to perform transposition in shared memory:
+<img src="https://bear-images.sfo2.cdn.digitaloceanspaces.com/veitner/33.webp" alt="Screenshot 2025-05-01 at 19" /></p>
+<p>We take a matrix tile, transpose the tile and put at the other end of the matrix.
+Below we outline how we can implement a naive version without swizzling of this algorithm using TMA and Layouts. The full code can be found in my github repo which I will link at the end of this blogpost.
+We need two layouts, which are in relation of transpose:</p>
+<div class="highlight"><pre><span></span><span class="c1">// Create the tensor descriptor.</span>
+<span class="n">CUresult</span><span class="w"> </span><span class="n">res</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">cuTensorMapEncodeTiled</span><span class="p">(</span>
+<span class="w">  </span><span class="o">&amp;</span><span class="n">tensor_map</span><span class="p">,</span><span class="w">  </span><span class="c1">// CUtensorMap *tensorMap,</span>
+<span class="w">  </span><span class="n">CUtensorMapDataType</span><span class="o">::</span><span class="n">CU_TENSOR_MAP_DATA_TYPE_FLOAT32</span><span class="p">,</span>
+<span class="w">  </span><span class="n">rank</span><span class="p">,</span><span class="w">         </span><span class="c1">// cuuint32_t tensorRank,</span>
+<span class="w">  </span><span class="n">tensor_ptr</span><span class="p">,</span><span class="w">   </span><span class="c1">// void *globalAddress,</span>
+<span class="w">  </span><span class="n">size</span><span class="p">,</span><span class="w">         </span><span class="c1">// const cuuint64_t *globalDim,</span>
+<span class="w">  </span><span class="n">stride</span><span class="p">,</span><span class="w">       </span><span class="c1">// const cuuint64_t *globalStrides,</span>
+<span class="w">  </span><span class="n">box_size</span><span class="p">,</span><span class="w">     </span><span class="c1">// const cuuint32_t *boxDim,</span>
+<span class="w">  </span><span class="n">elem_stride</span><span class="p">,</span><span class="w">  </span><span class="c1">// const cuuint32_t *elementStrides,</span>
+<span class="w">  </span><span class="n">CUtensorMapInterleave</span><span class="o">::</span><span class="n">CU_TENSOR_MAP_INTERLEAVE_NONE</span><span class="p">,</span>
+<span class="w">  </span><span class="n">CUtensorMapSwizzle</span><span class="o">::</span><span class="n">CU_TENSOR_MAP_SWIZZLE_NONE</span><span class="p">,</span>
+<span class="w">  </span><span class="n">CUtensorMapL2promotion</span><span class="o">::</span><span class="n">CU_TENSOR_MAP_L2_PROMOTION_NONE</span><span class="p">,</span>
+<span class="w">  </span><span class="n">CUtensorMapFloatOOBfill</span><span class="o">::</span><span class="n">CU_TENSOR_MAP_FLOAT_OOB_FILL_NONE</span><span class="p">);</span>
+
+<span class="n">assert</span><span class="p">(</span><span class="n">res</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">CUDA_SUCCESS</span><span class="p">);</span>
+
+<span class="n">CUresult</span><span class="w"> </span><span class="n">res_tr</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">cuTensorMapEncodeTiled</span><span class="p">(</span>
+<span class="w">  </span><span class="o">&amp;</span><span class="n">tensor_map_tr</span><span class="p">,</span><span class="w">  </span><span class="c1">// CUtensorMap *tensorMap,</span>
+<span class="w">  </span><span class="n">CUtensorMapDataType</span><span class="o">::</span><span class="n">CU_TENSOR_MAP_DATA_TYPE_FLOAT32</span><span class="p">,</span>
+<span class="w">  </span><span class="n">rank</span><span class="p">,</span><span class="w">           </span><span class="c1">// cuuint32_t tensorRank,</span>
+<span class="w">  </span><span class="n">tensor_ptr_tr</span><span class="p">,</span><span class="w">  </span><span class="c1">// void *globalAddress,</span>
+<span class="w">  </span><span class="n">size_tr</span><span class="p">,</span><span class="w">        </span><span class="c1">// const cuuint64_t *globalDim,</span>
+<span class="w">  </span><span class="n">stride</span><span class="p">,</span><span class="w">         </span><span class="c1">// const cuuint64_t *globalStrides,</span>
+<span class="w">  </span><span class="n">box_size_tr</span><span class="p">,</span><span class="w">    </span><span class="c1">// const cuuint32_t *boxDim,</span>
+<span class="w">  </span><span class="n">elem_stride</span><span class="p">,</span><span class="w">    </span><span class="c1">// const cuuint32_t *elementStrides,</span>
+<span class="w">  </span><span class="n">CUtensorMapInterleave</span><span class="o">::</span><span class="n">CU_TENSOR_MAP_INTERLEAVE_NONE</span><span class="p">,</span>
+<span class="w">  </span><span class="n">CUtensorMapSwizzle</span><span class="o">::</span><span class="n">CU_TENSOR_MAP_SWIZZLE_NONE</span><span class="p">,</span>
+<span class="w">  </span><span class="n">CUtensorMapL2promotion</span><span class="o">::</span><span class="n">CU_TENSOR_MAP_L2_PROMOTION_NONE</span><span class="p">,</span>
+<span class="w">  </span><span class="n">CUtensorMapFloatOOBfill</span><span class="o">::</span><span class="n">CU_TENSOR_MAP_FLOAT_OOB_FILL_NONE</span><span class="p">);</span>
+
+<span class="n">assert</span><span class="p">(</span><span class="n">res_tr</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">CUDA_SUCCESS</span><span class="p">);</span>
+</pre></div>
+<p>We can than use the following kernel to perform transposition</p>
+<div class="highlight"><pre><span></span><span class="k">template</span><span class="w"> </span><span class="o">&lt;</span><span class="kt">int</span><span class="w"> </span><span class="n">BLOCK_SIZE</span><span class="o">&gt;</span>
+<span class="n">__global__</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="n">kernel</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="n">__grid_constant__</span><span class="w"> </span><span class="n">CUtensorMap</span><span class="w"> </span><span class="n">tensor_map</span><span class="p">,</span>
+<span class="w">                       </span><span class="k">const</span><span class="w"> </span><span class="n">__grid_constant__</span><span class="w"> </span><span class="n">CUtensorMap</span><span class="w"> </span><span class="n">tensor_map_tr</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="c1">// The destination shared memory buffer of a bulk tensor operation should be</span>
+<span class="w">  </span><span class="c1">// 128 byte aligned.</span>
+<span class="w">  </span><span class="n">__shared__</span><span class="w"> </span><span class="nf">alignas</span><span class="p">(</span><span class="mi">1024</span><span class="p">)</span><span class="w"> </span><span class="kt">float</span><span class="w"> </span><span class="n">smem_buffer</span><span class="p">[</span><span class="n">BLOCK_SIZE</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">BLOCK_SIZE</span><span class="p">];</span>
+<span class="w">  </span><span class="n">__shared__</span><span class="w"> </span><span class="nf">alignas</span><span class="p">(</span><span class="mi">1024</span><span class="p">)</span><span class="w"> </span><span class="kt">float</span><span class="w"> </span><span class="n">smem_buffer_tr</span><span class="p">[</span><span class="n">BLOCK_SIZE</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">BLOCK_SIZE</span><span class="p">];</span>
+<span class="w">  </span><span class="c1">// Coordinates for upper left tile in GMEM.</span>
+<span class="w">  </span><span class="kt">int</span><span class="w"> </span><span class="n">x</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">blockIdx</span><span class="p">.</span><span class="n">x</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">BLOCK_SIZE</span><span class="p">;</span>
+<span class="w">  </span><span class="kt">int</span><span class="w"> </span><span class="n">y</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">blockIdx</span><span class="p">.</span><span class="n">y</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">BLOCK_SIZE</span><span class="p">;</span>
+
+<span class="w">  </span><span class="kt">int</span><span class="w"> </span><span class="n">col</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">threadIdx</span><span class="p">.</span><span class="n">x</span><span class="w"> </span><span class="o">%</span><span class="w"> </span><span class="n">BLOCK_SIZE</span><span class="p">;</span>
+<span class="w">  </span><span class="kt">int</span><span class="w"> </span><span class="n">row</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">threadIdx</span><span class="p">.</span><span class="n">x</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">BLOCK_SIZE</span><span class="p">;</span>
+
+<span class="c1">// Initialize shared memory barrier with the number of threads participating in</span>
+<span class="c1">// the barrier.</span>
+<span class="cp">#pragma nv_diag_suppress static_var_with_dynamic_init</span>
+<span class="w">  </span><span class="n">__shared__</span><span class="w"> </span><span class="n">barrier</span><span class="w"> </span><span class="n">bar</span><span class="p">;</span>
+
+<span class="w">  </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">threadIdx</span><span class="p">.</span><span class="n">x</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="c1">// Initialize barrier. All `blockDim.x` threads in block participate.</span>
+<span class="w">    </span><span class="n">init</span><span class="p">(</span><span class="o">&amp;</span><span class="n">bar</span><span class="p">,</span><span class="w"> </span><span class="n">blockDim</span><span class="p">.</span><span class="n">x</span><span class="p">);</span>
+<span class="w">    </span><span class="c1">// Make initialized barrier visible in async proxy.</span>
+<span class="w">    </span><span class="n">cde</span><span class="o">::</span><span class="n">fence_proxy_async_shared_cta</span><span class="p">();</span>
+<span class="w">  </span><span class="p">}</span>
+<span class="w">  </span><span class="c1">// Syncthreads so initialized barrier is visible to all threads.</span>
+<span class="w">  </span><span class="n">__syncthreads</span><span class="p">();</span>
+
+<span class="w">  </span><span class="n">barrier</span><span class="o">::</span><span class="n">arrival_token</span><span class="w"> </span><span class="n">token</span><span class="p">;</span>
+<span class="w">  </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">threadIdx</span><span class="p">.</span><span class="n">x</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="c1">// Initiate bulk tensor copy.</span>
+<span class="w">    </span><span class="n">cde</span><span class="o">::</span><span class="n">cp_async_bulk_tensor_2d_global_to_shared</span><span class="p">(</span><span class="o">&amp;</span><span class="n">smem_buffer</span><span class="p">,</span><span class="w"> </span><span class="o">&amp;</span><span class="n">tensor_map</span><span class="p">,</span><span class="w"> </span><span class="n">x</span><span class="p">,</span>
+<span class="w">                                                  </span><span class="n">y</span><span class="p">,</span><span class="w"> </span><span class="n">bar</span><span class="p">);</span>
+<span class="w">    </span><span class="c1">// Arrive on the barrier and tell how many bytes are expected to come in.</span>
+<span class="w">    </span><span class="n">token</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">cuda</span><span class="o">::</span><span class="n">device</span><span class="o">::</span><span class="n">barrier_arrive_tx</span><span class="p">(</span><span class="n">bar</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="k">sizeof</span><span class="p">(</span><span class="n">smem_buffer</span><span class="p">));</span>
+<span class="w">  </span><span class="p">}</span><span class="w"> </span><span class="k">else</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="c1">// Other threads just arrive.</span>
+<span class="w">    </span><span class="n">token</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">bar</span><span class="p">.</span><span class="n">arrive</span><span class="p">();</span>
+<span class="w">  </span><span class="p">}</span>
+<span class="w">  </span><span class="c1">// Wait for the data to have arrived.</span>
+<span class="w">  </span><span class="n">bar</span><span class="p">.</span><span class="n">wait</span><span class="p">(</span><span class="n">std</span><span class="o">::</span><span class="n">move</span><span class="p">(</span><span class="n">token</span><span class="p">));</span>
+
+<span class="w">  </span><span class="c1">// Transpose tile.</span>
+<span class="w">  </span><span class="n">smem_buffer_tr</span><span class="p">[</span><span class="n">col</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">BLOCK_SIZE</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">row</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">smem_buffer</span><span class="p">[</span><span class="n">row</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">BLOCK_SIZE</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">col</span><span class="p">];</span>
+
+<span class="w">  </span><span class="c1">// Wait for shared memory writes to be visible to TMA engine.</span>
+<span class="w">  </span><span class="n">cde</span><span class="o">::</span><span class="n">fence_proxy_async_shared_cta</span><span class="p">();</span>
+<span class="w">  </span><span class="n">__syncthreads</span><span class="p">();</span>
+<span class="w">  </span><span class="c1">// After syncthreads, writes by all threads are visible to TMA engine.</span>
+
+<span class="w">  </span><span class="c1">// Initiate TMA transfer to copy shared memory to global memory</span>
+<span class="w">  </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">threadIdx</span><span class="p">.</span><span class="n">x</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="c1">// Transpose tile inside matrix</span>
+<span class="w">    </span><span class="n">cde</span><span class="o">::</span><span class="n">cp_async_bulk_tensor_2d_shared_to_global</span><span class="p">(</span><span class="o">&amp;</span><span class="n">tensor_map_tr</span><span class="p">,</span><span class="w"> </span><span class="n">y</span><span class="p">,</span><span class="w"> </span><span class="n">x</span><span class="p">,</span>
+<span class="w">                                                  </span><span class="o">&amp;</span><span class="n">smem_buffer_tr</span><span class="p">);</span>
+<span class="w">    </span><span class="c1">// Wait for TMA transfer to have finished reading shared memory.</span>
+<span class="w">    </span><span class="c1">// Create a &quot;bulk async-group&quot; out of the previous bulk copy operation.</span>
+<span class="w">    </span><span class="n">cde</span><span class="o">::</span><span class="n">cp_async_bulk_commit_group</span><span class="p">();</span>
+<span class="w">    </span><span class="c1">// Wait for the group to have completed reading from shared memory.</span>
+<span class="w">    </span><span class="n">cde</span><span class="o">::</span><span class="n">cp_async_bulk_wait_group_read</span><span class="o">&lt;</span><span class="mi">0</span><span class="o">&gt;</span><span class="p">();</span>
+<span class="w">  </span><span class="p">}</span>
+
+<span class="w">  </span><span class="c1">// Destroy barrier. This invalidates the memory region of the barrier. If</span>
+<span class="w">  </span><span class="c1">// further computations were to take place in the kernel, this allows the</span>
+<span class="w">  </span><span class="c1">// memory location of the shared memory barrier to be reused.</span>
+<span class="w">  </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">threadIdx</span><span class="p">.</span><span class="n">x</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="p">(</span><span class="o">&amp;</span><span class="n">bar</span><span class="p">)</span><span class="o">-&gt;~</span><span class="n">barrier</span><span class="p">();</span>
+<span class="w">  </span><span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+<p>Everything should be pretty straightforward. If you are not familiar with TMA please read my previous blogpost. For transpose we only need to</p>
+<div class="highlight"><pre><span></span><span class="n">smem_buffer_tr</span><span class="p">[</span><span class="n">col</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">BLOCK_SIZE</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">row</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">smem_buffer</span><span class="p">[</span><span class="n">row</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">BLOCK_SIZE</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">col</span><span class="p">];</span>
+</pre></div>
+<p>once that is done we transfer the transposed tile to the opposite tile of the transposed layout (i.e. we swap <code>x</code> and <code>y</code>).</p>
+<p>This kernel archieves the following performance for transpose of a matrix of dimension <code>32768 x 32768</code>:</p>
+<div class="highlight"><pre><span></span>Latency = 9.81191 ms
+Bandwidth = 875.46 GB/s
+% of max = 26.5291 %
+</pre></div>
+<h3 id=swizzling-transpose>Swizzling transpose</h3><p>In principle swizzling is pretty straightforward once we have the index formula above. Unfortunately this formula is hard to find so it took me some time to get it correct.
+For the layouts we only need to change the swizzling mode to</p>
+<div class="highlight"><pre><span></span><span class="n">CUtensorMapSwizzle</span><span class="o">::</span><span class="n">CU_TENSOR_MAP_SWIZZLE_128B</span>
+</pre></div>
+<p>The important thing is than, that we need to use the above formula to take into account that TMA swizzles and unswizzles the memory when transforming from <code>GMEM-&gt;SMEM</code> or from <code>SMEM-&gt;GMEM</code>.
+The input layout is in row major format and the output layout is in column major layout so we need to use
+<code>col_swizzle</code> instead of <code>col</code> for the shared memory corresponding to the input tile and <code>row_swizzle</code> instead of <code>row</code> for the output tile.
+The full kernel looks as follows:</p>
+<div class="highlight"><pre><span></span><span class="k">template</span><span class="w"> </span><span class="o">&lt;</span><span class="kt">int</span><span class="w"> </span><span class="n">BLOCK_SIZE</span><span class="o">&gt;</span>
+<span class="n">__device__</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">calculate_col_swizzle</span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">row</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">col</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="kt">int</span><span class="w"> </span><span class="n">i16</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="n">row</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">BLOCK_SIZE</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">col</span><span class="p">)</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="mi">4</span><span class="w"> </span><span class="o">&gt;&gt;</span><span class="w"> </span><span class="mi">4</span><span class="p">;</span>
+<span class="w">  </span><span class="kt">int</span><span class="w"> </span><span class="n">y16</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">i16</span><span class="w"> </span><span class="o">&gt;&gt;</span><span class="w"> </span><span class="mi">3</span><span class="p">;</span>
+<span class="w">  </span><span class="kt">int</span><span class="w"> </span><span class="n">x16</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">i16</span><span class="w"> </span><span class="o">&amp;</span><span class="w"> </span><span class="mi">7</span><span class="p">;</span>
+<span class="w">  </span><span class="kt">int</span><span class="w"> </span><span class="n">x16_swz</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">y16</span><span class="w"> </span><span class="o">^</span><span class="w"> </span><span class="n">x16</span><span class="p">;</span>
+<span class="w">  </span><span class="k">return</span><span class="w"> </span><span class="p">((</span><span class="n">x16_swz</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="mi">4</span><span class="p">)</span><span class="w"> </span><span class="o">&amp;</span><span class="w"> </span><span class="p">(</span><span class="n">BLOCK_SIZE</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="mi">1</span><span class="p">))</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="p">(</span><span class="n">col</span><span class="w"> </span><span class="o">&amp;</span><span class="w"> </span><span class="mi">3</span><span class="p">);</span>
+<span class="p">}</span>
+
+<span class="k">template</span><span class="w"> </span><span class="o">&lt;</span><span class="kt">int</span><span class="w"> </span><span class="n">BLOCK_SIZE</span><span class="o">&gt;</span>
+<span class="n">__device__</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">calculate_row_swizzle</span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">row</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">col</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="kt">int</span><span class="w"> </span><span class="n">i16_tr</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="n">col</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">BLOCK_SIZE</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">row</span><span class="p">)</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="mi">4</span><span class="w"> </span><span class="o">&gt;&gt;</span><span class="w"> </span><span class="mi">4</span><span class="p">;</span>
+<span class="w">  </span><span class="kt">int</span><span class="w"> </span><span class="n">y16_tr</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">i16_tr</span><span class="w"> </span><span class="o">&gt;&gt;</span><span class="w"> </span><span class="mi">3</span><span class="p">;</span>
+<span class="w">  </span><span class="kt">int</span><span class="w"> </span><span class="n">x16_tr</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">i16_tr</span><span class="w"> </span><span class="o">&amp;</span><span class="w"> </span><span class="mi">7</span><span class="p">;</span>
+<span class="w">  </span><span class="kt">int</span><span class="w"> </span><span class="n">x16_swz_tr</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">y16_tr</span><span class="w"> </span><span class="o">^</span><span class="w"> </span><span class="n">x16_tr</span><span class="p">;</span>
+<span class="w">  </span><span class="k">return</span><span class="w"> </span><span class="p">((</span><span class="n">x16_swz_tr</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="mi">4</span><span class="p">)</span><span class="w"> </span><span class="o">&amp;</span><span class="w"> </span><span class="p">(</span><span class="n">BLOCK_SIZE</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="mi">1</span><span class="p">))</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="p">(</span><span class="n">row</span><span class="w"> </span><span class="o">&amp;</span><span class="w"> </span><span class="mi">3</span><span class="p">);</span>
+<span class="p">}</span>
+
+<span class="k">template</span><span class="w"> </span><span class="o">&lt;</span><span class="kt">int</span><span class="w"> </span><span class="n">BLOCK_SIZE</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">LOG_BLOCK</span><span class="o">&gt;</span>
+<span class="n">__global__</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="n">kernel</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="n">__grid_constant__</span><span class="w"> </span><span class="n">CUtensorMap</span><span class="w"> </span><span class="n">tensor_map</span><span class="p">,</span>
+<span class="w">                       </span><span class="k">const</span><span class="w"> </span><span class="n">__grid_constant__</span><span class="w"> </span><span class="n">CUtensorMap</span><span class="w"> </span><span class="n">tensor_map_tr</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="c1">// The destination shared memory buffer of a bulk tensor operation should be</span>
+<span class="w">  </span><span class="c1">// 128 byte aligned.</span>
+<span class="w">  </span><span class="n">__shared__</span><span class="w"> </span><span class="nf">alignas</span><span class="p">(</span><span class="mi">1024</span><span class="p">)</span><span class="w"> </span><span class="kt">float</span><span class="w"> </span><span class="n">smem_buffer</span><span class="p">[</span><span class="n">BLOCK_SIZE</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">BLOCK_SIZE</span><span class="p">];</span>
+<span class="w">  </span><span class="n">__shared__</span><span class="w"> </span><span class="nf">alignas</span><span class="p">(</span><span class="mi">1024</span><span class="p">)</span><span class="w"> </span><span class="kt">float</span><span class="w"> </span><span class="n">smem_buffer_tr</span><span class="p">[</span><span class="n">BLOCK_SIZE</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">BLOCK_SIZE</span><span class="p">];</span>
+<span class="w">  </span><span class="c1">// Coordinates for upper left tile in GMEM.</span>
+<span class="w">  </span><span class="kt">int</span><span class="w"> </span><span class="n">x</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">blockIdx</span><span class="p">.</span><span class="n">x</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">BLOCK_SIZE</span><span class="p">;</span>
+<span class="w">  </span><span class="kt">int</span><span class="w"> </span><span class="n">y</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">blockIdx</span><span class="p">.</span><span class="n">y</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">BLOCK_SIZE</span><span class="p">;</span>
+
+<span class="w">  </span><span class="kt">int</span><span class="w"> </span><span class="n">col</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">threadIdx</span><span class="p">.</span><span class="n">x</span><span class="w"> </span><span class="o">&amp;</span><span class="w"> </span><span class="p">(</span><span class="n">BLOCK_SIZE</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="mi">1</span><span class="p">);</span>
+<span class="w">  </span><span class="kt">int</span><span class="w"> </span><span class="n">row</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">threadIdx</span><span class="p">.</span><span class="n">x</span><span class="w"> </span><span class="o">&gt;&gt;</span><span class="w"> </span><span class="n">LOG_BLOCK</span><span class="p">;</span>
+
+<span class="w">  </span><span class="kt">int</span><span class="w"> </span><span class="n">col_swizzle</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">calculate_col_swizzle</span><span class="o">&lt;</span><span class="n">BLOCK_SIZE</span><span class="o">&gt;</span><span class="p">(</span><span class="n">row</span><span class="p">,</span><span class="w"> </span><span class="n">col</span><span class="p">);</span>
+
+<span class="w">  </span><span class="kt">int</span><span class="w"> </span><span class="n">row_swizzle</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">calculate_row_swizzle</span><span class="o">&lt;</span><span class="n">BLOCK_SIZE</span><span class="o">&gt;</span><span class="p">(</span><span class="n">row</span><span class="p">,</span><span class="w"> </span><span class="n">col</span><span class="p">);</span>
+
+<span class="c1">// Initialize shared memory barrier with the number of threads participating in</span>
+<span class="c1">// the barrier.</span>
+<span class="cp">#pragma nv_diag_suppress static_var_with_dynamic_init</span>
+<span class="w">  </span><span class="n">__shared__</span><span class="w"> </span><span class="n">barrier</span><span class="w"> </span><span class="n">bar</span><span class="p">;</span>
+
+<span class="w">  </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">threadIdx</span><span class="p">.</span><span class="n">x</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="c1">// Initialize barrier. All `blockDim.x` threads in block participate.</span>
+<span class="w">    </span><span class="n">init</span><span class="p">(</span><span class="o">&amp;</span><span class="n">bar</span><span class="p">,</span><span class="w"> </span><span class="n">blockDim</span><span class="p">.</span><span class="n">x</span><span class="p">);</span>
+<span class="w">    </span><span class="c1">// Make initialized barrier visible in async proxy.</span>
+<span class="w">    </span><span class="n">cde</span><span class="o">::</span><span class="n">fence_proxy_async_shared_cta</span><span class="p">();</span>
+<span class="w">  </span><span class="p">}</span>
+<span class="w">  </span><span class="c1">// Syncthreads so initialized barrier is visible to all threads.</span>
+<span class="w">  </span><span class="n">__syncthreads</span><span class="p">();</span>
+
+<span class="w">  </span><span class="n">barrier</span><span class="o">::</span><span class="n">arrival_token</span><span class="w"> </span><span class="n">token</span><span class="p">;</span>
+<span class="w">  </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">threadIdx</span><span class="p">.</span><span class="n">x</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="c1">// Initiate bulk tensor copy.</span>
+<span class="w">    </span><span class="n">cde</span><span class="o">::</span><span class="n">cp_async_bulk_tensor_2d_global_to_shared</span><span class="p">(</span><span class="o">&amp;</span><span class="n">smem_buffer</span><span class="p">,</span><span class="w"> </span><span class="o">&amp;</span><span class="n">tensor_map</span><span class="p">,</span><span class="w"> </span><span class="n">x</span><span class="p">,</span>
+<span class="w">                                                  </span><span class="n">y</span><span class="p">,</span><span class="w"> </span><span class="n">bar</span><span class="p">);</span>
+<span class="w">    </span><span class="c1">// Arrive on the barrier and tell how many bytes are expected to come in.</span>
+<span class="w">    </span><span class="n">token</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">cuda</span><span class="o">::</span><span class="n">device</span><span class="o">::</span><span class="n">barrier_arrive_tx</span><span class="p">(</span><span class="n">bar</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="k">sizeof</span><span class="p">(</span><span class="n">smem_buffer</span><span class="p">));</span>
+<span class="w">  </span><span class="p">}</span><span class="w"> </span><span class="k">else</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="c1">// Other threads just arrive.</span>
+<span class="w">    </span><span class="n">token</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">bar</span><span class="p">.</span><span class="n">arrive</span><span class="p">();</span>
+<span class="w">  </span><span class="p">}</span>
+<span class="w">  </span><span class="c1">// Wait for the data to have arrived.</span>
+<span class="w">  </span><span class="n">bar</span><span class="p">.</span><span class="n">wait</span><span class="p">(</span><span class="n">std</span><span class="o">::</span><span class="n">move</span><span class="p">(</span><span class="n">token</span><span class="p">));</span>
+
+<span class="w">  </span><span class="c1">// Transpose tile.</span>
+<span class="w">  </span><span class="n">smem_buffer_tr</span><span class="p">[</span><span class="n">col</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">BLOCK_SIZE</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">row_swizzle</span><span class="p">]</span><span class="w"> </span><span class="o">=</span>
+<span class="w">      </span><span class="n">smem_buffer</span><span class="p">[</span><span class="n">row</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">BLOCK_SIZE</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">col_swizzle</span><span class="p">];</span>
+
+<span class="w">  </span><span class="c1">// Wait for shared memory writes to be visible to TMA engine.</span>
+<span class="w">  </span><span class="n">cde</span><span class="o">::</span><span class="n">fence_proxy_async_shared_cta</span><span class="p">();</span>
+<span class="w">  </span><span class="n">__syncthreads</span><span class="p">();</span>
+<span class="w">  </span><span class="c1">// After syncthreads, writes by all threads are visible to TMA engine.</span>
+
+<span class="w">  </span><span class="c1">// Initiate TMA transfer to copy shared memory to global memory</span>
+<span class="w">  </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">threadIdx</span><span class="p">.</span><span class="n">x</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="c1">// Transpose tile inside matrix</span>
+<span class="w">    </span><span class="n">cde</span><span class="o">::</span><span class="n">cp_async_bulk_tensor_2d_shared_to_global</span><span class="p">(</span><span class="o">&amp;</span><span class="n">tensor_map_tr</span><span class="p">,</span><span class="w"> </span><span class="n">y</span><span class="p">,</span><span class="w"> </span><span class="n">x</span><span class="p">,</span>
+<span class="w">                                                  </span><span class="o">&amp;</span><span class="n">smem_buffer_tr</span><span class="p">);</span>
+<span class="w">    </span><span class="c1">// Wait for TMA transfer to have finished reading shared memory.</span>
+<span class="w">    </span><span class="c1">// Create a &quot;bulk async-group&quot; out of the previous bulk copy operation.</span>
+<span class="w">    </span><span class="n">cde</span><span class="o">::</span><span class="n">cp_async_bulk_commit_group</span><span class="p">();</span>
+<span class="w">    </span><span class="c1">// Wait for the group to have completed reading from shared memory.</span>
+<span class="w">    </span><span class="n">cde</span><span class="o">::</span><span class="n">cp_async_bulk_wait_group_read</span><span class="o">&lt;</span><span class="mi">0</span><span class="o">&gt;</span><span class="p">();</span>
+<span class="w">  </span><span class="p">}</span>
+
+<span class="w">  </span><span class="c1">// Destroy barrier. This invalidates the memory region of the barrier. If</span>
+<span class="w">  </span><span class="c1">// further computations were to take place in the kernel, this allows the</span>
+<span class="w">  </span><span class="c1">// memory location of the shared memory barrier to be reused.</span>
+<span class="w">  </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">threadIdx</span><span class="p">.</span><span class="n">x</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="p">(</span><span class="o">&amp;</span><span class="n">bar</span><span class="p">)</span><span class="o">-&gt;~</span><span class="n">barrier</span><span class="p">();</span>
+<span class="w">  </span><span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+<p>This kernel archieves the following performance for transpose of a matrix of dimension <code>32768 x 32768</code>:</p>
+<div class="highlight"><pre><span></span>Latency = 6.86226 ms
+Bandwidth = 1251.76 GB/s
+% of max = 37.9323 %
+</pre></div>
+<h3 id=batches-for-threads>Batches for threads</h3><p>In memory bandwidth problems like matrix transpose it is common (as you can read in my blogpost on <a href='https://veitner.bearblog.dev/making-vector-sum-really-fast/'>reduction</a> or <a href='https://veitner.bearblog.dev/making-prefix-sum-really-fast/'>scan</a> that we can get a huge performance boost by letting each thread handle multiple elements.
+We can implement this as follows:
+We launch only a proportion of the threads, i.e. instead of <code>BLOCK_SIZE * BLOCK_SIZE</code> threads we launch only <code>BLOCK_SIZE * BLOCK_SIZE / BATCH_SIZE</code> threads. We than let each thread handle <code>BATCH_SIZE</code> elements (note: in our implementation we chose <code>BLOCK_SIZE=32</code> to launch maximum number of threads, we can increase <code>BLOCK_SIZE=64</code> and launch with <code>BATCH_SIZE=16</code> to again launch maximum number of threads.)</p>
+<p>The full kernel looks as follows:</p>
+<div class="highlight"><pre><span></span><span class="k">template</span><span class="w"> </span><span class="o">&lt;</span><span class="kt">int</span><span class="w"> </span><span class="n">BLOCK_SIZE</span><span class="o">&gt;</span>
+<span class="n">__device__</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">calculate_col_swizzle</span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">row</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">col</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="kt">int</span><span class="w"> </span><span class="n">i16</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="n">row</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">BLOCK_SIZE</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">col</span><span class="p">)</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="mi">4</span><span class="w"> </span><span class="o">&gt;&gt;</span><span class="w"> </span><span class="mi">4</span><span class="p">;</span>
+<span class="w">  </span><span class="kt">int</span><span class="w"> </span><span class="n">y16</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">i16</span><span class="w"> </span><span class="o">&gt;&gt;</span><span class="w"> </span><span class="mi">3</span><span class="p">;</span>
+<span class="w">  </span><span class="kt">int</span><span class="w"> </span><span class="n">x16</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">i16</span><span class="w"> </span><span class="o">&amp;</span><span class="w"> </span><span class="mi">7</span><span class="p">;</span>
+<span class="w">  </span><span class="kt">int</span><span class="w"> </span><span class="n">x16_swz</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">y16</span><span class="w"> </span><span class="o">^</span><span class="w"> </span><span class="n">x16</span><span class="p">;</span>
+<span class="w">  </span><span class="k">return</span><span class="w"> </span><span class="p">((</span><span class="n">x16_swz</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="mi">4</span><span class="p">)</span><span class="w"> </span><span class="o">&amp;</span><span class="w"> </span><span class="p">(</span><span class="n">BLOCK_SIZE</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="mi">1</span><span class="p">))</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="p">(</span><span class="n">col</span><span class="w"> </span><span class="o">&amp;</span><span class="w"> </span><span class="mi">3</span><span class="p">);</span>
+<span class="p">}</span>
+
+<span class="k">template</span><span class="w"> </span><span class="o">&lt;</span><span class="kt">int</span><span class="w"> </span><span class="n">BLOCK_SIZE</span><span class="o">&gt;</span>
+<span class="n">__device__</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">calculate_row_swizzle</span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">row</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">col</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="kt">int</span><span class="w"> </span><span class="n">i16_tr</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="n">col</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">BLOCK_SIZE</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">row</span><span class="p">)</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="mi">4</span><span class="w"> </span><span class="o">&gt;&gt;</span><span class="w"> </span><span class="mi">4</span><span class="p">;</span>
+<span class="w">  </span><span class="kt">int</span><span class="w"> </span><span class="n">y16_tr</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">i16_tr</span><span class="w"> </span><span class="o">&gt;&gt;</span><span class="w"> </span><span class="mi">3</span><span class="p">;</span>
+<span class="w">  </span><span class="kt">int</span><span class="w"> </span><span class="n">x16_tr</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">i16_tr</span><span class="w"> </span><span class="o">&amp;</span><span class="w"> </span><span class="mi">7</span><span class="p">;</span>
+<span class="w">  </span><span class="kt">int</span><span class="w"> </span><span class="n">x16_swz_tr</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">y16_tr</span><span class="w"> </span><span class="o">^</span><span class="w"> </span><span class="n">x16_tr</span><span class="p">;</span>
+<span class="w">  </span><span class="k">return</span><span class="w"> </span><span class="p">((</span><span class="n">x16_swz_tr</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="mi">4</span><span class="p">)</span><span class="w"> </span><span class="o">&amp;</span><span class="w"> </span><span class="p">(</span><span class="n">BLOCK_SIZE</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="mi">1</span><span class="p">))</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="p">(</span><span class="n">row</span><span class="w"> </span><span class="o">&amp;</span><span class="w"> </span><span class="mi">3</span><span class="p">);</span>
+<span class="p">}</span>
+
+<span class="k">template</span><span class="w"> </span><span class="o">&lt;</span><span class="kt">int</span><span class="w"> </span><span class="n">BLOCK_SIZE</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">LOG_BLOCK</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">BATCH_SIZE</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">LOG_BATCH_SIZE</span><span class="o">&gt;</span>
+<span class="n">__global__</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="n">kernel</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="n">__grid_constant__</span><span class="w"> </span><span class="n">CUtensorMap</span><span class="w"> </span><span class="n">tensor_map</span><span class="p">,</span>
+<span class="w">                       </span><span class="k">const</span><span class="w"> </span><span class="n">__grid_constant__</span><span class="w"> </span><span class="n">CUtensorMap</span><span class="w"> </span><span class="n">tensor_map_tr</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="c1">// The destination shared memory buffer of a bulk tensor operation should be</span>
+<span class="w">  </span><span class="c1">// 128 byte aligned.</span>
+<span class="w">  </span><span class="n">__shared__</span><span class="w"> </span><span class="nf">alignas</span><span class="p">(</span><span class="mi">1024</span><span class="p">)</span><span class="w"> </span><span class="kt">float</span><span class="w"> </span><span class="n">smem_buffer</span><span class="p">[</span><span class="n">BLOCK_SIZE</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">BLOCK_SIZE</span><span class="p">];</span>
+<span class="w">  </span><span class="n">__shared__</span><span class="w"> </span><span class="nf">alignas</span><span class="p">(</span><span class="mi">1024</span><span class="p">)</span><span class="w"> </span><span class="kt">float</span><span class="w"> </span><span class="n">smem_buffer_tr</span><span class="p">[</span><span class="n">BLOCK_SIZE</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">BLOCK_SIZE</span><span class="p">];</span>
+<span class="w">  </span><span class="c1">// Coordinates for upper left tile in GMEM.</span>
+<span class="w">  </span><span class="kt">int</span><span class="w"> </span><span class="n">x</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">blockIdx</span><span class="p">.</span><span class="n">x</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">BLOCK_SIZE</span><span class="p">;</span>
+<span class="w">  </span><span class="kt">int</span><span class="w"> </span><span class="n">y</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">blockIdx</span><span class="p">.</span><span class="n">y</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">BLOCK_SIZE</span><span class="p">;</span>
+
+<span class="w">  </span><span class="kt">int</span><span class="w"> </span><span class="n">col</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="n">threadIdx</span><span class="p">.</span><span class="n">x</span><span class="w"> </span><span class="o">&amp;</span><span class="w"> </span><span class="p">(</span><span class="n">BLOCK_SIZE</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">BATCH_SIZE</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="mi">1</span><span class="p">))</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">BATCH_SIZE</span><span class="p">;</span>
+<span class="w">  </span><span class="kt">int</span><span class="w"> </span><span class="n">row</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">threadIdx</span><span class="p">.</span><span class="n">x</span><span class="w"> </span><span class="o">&gt;&gt;</span><span class="w"> </span><span class="p">(</span><span class="n">LOG_BLOCK</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">LOG_BATCH_SIZE</span><span class="p">);</span>
+
+<span class="c1">// Initialize shared memory barrier with the number of threads participating in</span>
+<span class="c1">// the barrier.</span>
+<span class="cp">#pragma nv_diag_suppress static_var_with_dynamic_init</span>
+<span class="w">  </span><span class="n">__shared__</span><span class="w"> </span><span class="n">barrier</span><span class="w"> </span><span class="n">bar</span><span class="p">;</span>
+
+<span class="w">  </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">threadIdx</span><span class="p">.</span><span class="n">x</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="c1">// Initialize barrier. All `blockDim.x` threads in block participate.</span>
+<span class="w">    </span><span class="n">init</span><span class="p">(</span><span class="o">&amp;</span><span class="n">bar</span><span class="p">,</span><span class="w"> </span><span class="n">blockDim</span><span class="p">.</span><span class="n">x</span><span class="p">);</span>
+<span class="w">    </span><span class="c1">// Make initialized barrier visible in async proxy.</span>
+<span class="w">    </span><span class="n">cde</span><span class="o">::</span><span class="n">fence_proxy_async_shared_cta</span><span class="p">();</span>
+<span class="w">  </span><span class="p">}</span>
+<span class="w">  </span><span class="c1">// Syncthreads so initialized barrier is visible to all threads.</span>
+<span class="w">  </span><span class="n">__syncthreads</span><span class="p">();</span>
+
+<span class="w">  </span><span class="n">barrier</span><span class="o">::</span><span class="n">arrival_token</span><span class="w"> </span><span class="n">token</span><span class="p">;</span>
+<span class="w">  </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">threadIdx</span><span class="p">.</span><span class="n">x</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="c1">// Initiate bulk tensor copy.</span>
+<span class="w">    </span><span class="n">cde</span><span class="o">::</span><span class="n">cp_async_bulk_tensor_2d_global_to_shared</span><span class="p">(</span><span class="o">&amp;</span><span class="n">smem_buffer</span><span class="p">,</span><span class="w"> </span><span class="o">&amp;</span><span class="n">tensor_map</span><span class="p">,</span><span class="w"> </span><span class="n">x</span><span class="p">,</span>
+<span class="w">                                                  </span><span class="n">y</span><span class="p">,</span><span class="w"> </span><span class="n">bar</span><span class="p">);</span>
+<span class="w">    </span><span class="c1">// Arrive on the barrier and tell how many bytes are expected to come in.</span>
+<span class="w">    </span><span class="n">token</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">cuda</span><span class="o">::</span><span class="n">device</span><span class="o">::</span><span class="n">barrier_arrive_tx</span><span class="p">(</span><span class="n">bar</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="k">sizeof</span><span class="p">(</span><span class="n">smem_buffer</span><span class="p">));</span>
+<span class="w">  </span><span class="p">}</span><span class="w"> </span><span class="k">else</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="c1">// Other threads just arrive.</span>
+<span class="w">    </span><span class="n">token</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">bar</span><span class="p">.</span><span class="n">arrive</span><span class="p">();</span>
+<span class="w">  </span><span class="p">}</span>
+<span class="w">  </span><span class="c1">// Wait for the data to have arrived.</span>
+<span class="w">  </span><span class="n">bar</span><span class="p">.</span><span class="n">wait</span><span class="p">(</span><span class="n">std</span><span class="o">::</span><span class="n">move</span><span class="p">(</span><span class="n">token</span><span class="p">));</span>
+
+<span class="c1">// Transpose tile.</span>
+<span class="cp">#pragma unroll</span>
+<span class="w">  </span><span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">j</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span><span class="w"> </span><span class="n">j</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="n">BATCH_SIZE</span><span class="p">;</span><span class="w"> </span><span class="n">j</span><span class="o">++</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="kt">int</span><span class="w"> </span><span class="n">col_</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">col</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">j</span><span class="p">;</span>
+<span class="w">    </span><span class="kt">int</span><span class="w"> </span><span class="n">row_</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">row</span><span class="p">;</span>
+<span class="w">    </span><span class="kt">int</span><span class="w"> </span><span class="n">col_swizzle</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">calculate_col_swizzle</span><span class="o">&lt;</span><span class="n">BLOCK_SIZE</span><span class="o">&gt;</span><span class="p">(</span><span class="n">row_</span><span class="p">,</span><span class="w"> </span><span class="n">col_</span><span class="p">);</span>
+<span class="w">    </span><span class="kt">int</span><span class="w"> </span><span class="n">row_swizzle</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">calculate_row_swizzle</span><span class="o">&lt;</span><span class="n">BLOCK_SIZE</span><span class="o">&gt;</span><span class="p">(</span><span class="n">row_</span><span class="p">,</span><span class="w"> </span><span class="n">col_</span><span class="p">);</span>
+
+<span class="w">    </span><span class="n">smem_buffer_tr</span><span class="p">[</span><span class="n">col_</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">BLOCK_SIZE</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">row_swizzle</span><span class="p">]</span><span class="w"> </span><span class="o">=</span>
+<span class="w">        </span><span class="n">smem_buffer</span><span class="p">[</span><span class="n">row_</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">BLOCK_SIZE</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">col_swizzle</span><span class="p">];</span>
+<span class="w">  </span><span class="p">}</span>
+<span class="w">  </span><span class="c1">// Wait for shared memory writes to be visible to TMA engine.</span>
+<span class="w">  </span><span class="n">cde</span><span class="o">::</span><span class="n">fence_proxy_async_shared_cta</span><span class="p">();</span>
+<span class="w">  </span><span class="n">__syncthreads</span><span class="p">();</span>
+<span class="w">  </span><span class="c1">// After syncthreads, writes by all threads are visible to TMA engine.</span>
+
+<span class="w">  </span><span class="c1">// Initiate TMA transfer to copy shared memory to global memory</span>
+<span class="w">  </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">threadIdx</span><span class="p">.</span><span class="n">x</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="c1">// Transpose tile inside matrix</span>
+<span class="w">    </span><span class="n">cde</span><span class="o">::</span><span class="n">cp_async_bulk_tensor_2d_shared_to_global</span><span class="p">(</span><span class="o">&amp;</span><span class="n">tensor_map_tr</span><span class="p">,</span><span class="w"> </span><span class="n">y</span><span class="p">,</span><span class="w"> </span><span class="n">x</span><span class="p">,</span>
+<span class="w">                                                  </span><span class="o">&amp;</span><span class="n">smem_buffer_tr</span><span class="p">);</span>
+<span class="w">    </span><span class="c1">// Wait for TMA transfer to have finished reading shared memory.</span>
+<span class="w">    </span><span class="c1">// Create a &quot;bulk async-group&quot; out of the previous bulk copy operation.</span>
+<span class="w">    </span><span class="n">cde</span><span class="o">::</span><span class="n">cp_async_bulk_commit_group</span><span class="p">();</span>
+<span class="w">    </span><span class="c1">// Wait for the group to have completed reading from shared memory.</span>
+<span class="w">    </span><span class="n">cde</span><span class="o">::</span><span class="n">cp_async_bulk_wait_group_read</span><span class="o">&lt;</span><span class="mi">0</span><span class="o">&gt;</span><span class="p">();</span>
+<span class="w">  </span><span class="p">}</span>
+
+<span class="w">  </span><span class="c1">// Destroy barrier. This invalidates the memory region of the barrier. If</span>
+<span class="w">  </span><span class="c1">// further computations were to take place in the kernel, this allows the</span>
+<span class="w">  </span><span class="c1">// memory location of the shared memory barrier to be reused.</span>
+<span class="w">  </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">threadIdx</span><span class="p">.</span><span class="n">x</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="p">(</span><span class="o">&amp;</span><span class="n">bar</span><span class="p">)</span><span class="o">-&gt;~</span><span class="n">barrier</span><span class="p">();</span>
+<span class="w">  </span><span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+<p>This kernel archieves the following performance for transpose of a matrix of dimension <code>32768 x 32768</code>:</p>
+<div class="highlight"><pre><span></span>Latency = 3.09955 ms
+Bandwidth = 2771.35 GB/s
+% of max = 83.9804 %
+</pre></div>
+<h2 id=conclusion>Conclusion</h2><p>We saw that once we have the formula to obtain the indices from the swizzled indices it is pretty straightforward to implement matrix transpose in highly efficient way for Hopper architecture.
+There is also a nice blogpost that uses <code>CUTLASS</code> to perform the same operation but i believe it is educational to implement the operation without any abstraction.
+If you are interested in <code>CUTLASS</code> you can check out the <a href='https://research.colfax-intl.com/tutorial-matrix-transpose-in-cutlass/'>Colfax blogpost</a> on this blogpost.</p>
+<p>All code can be found on my <a href='https://github.com/simveit/effective_transpose'>Github</a>.
+I am happy to connect on <a href='https://www.linkedin.com/in/simon-veitner-174a681b6/'>Linkedin</a> if you want to discuss CUDA or other things related to ML Sys and high performance computing.</p>
+
+
+    
+
+    
+        
+
+        
+            <form id="upvote-form" action="/upvote/" method="post" style="display: inline">
+    <small>
+        <input hidden name="uid" value="oKMybUILLJZrioYVhaKc" style="display:none">
+        <input hidden name="title" value="Making matrix transpose really fast on Hopper GPUs" style="display:none">
+
+        <button
+            class="upvote-button"
+            aria-label="Toast this post"
+            title="Toast this post"
+        >
+            <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" class="css-i6dzq1">
+                <polyline points="17 11 12 6 7 11"></polyline>
+                <polyline points="17 18 12 13 7 18"></polyline>
+            </svg>
+            <small class="upvote-count" aria-hidden="true">&nbsp;</small>
+        </button>
+    </small>        
+</form>
+
+<script>
+    const $upvoteButton = document.querySelector('.upvote-button');
+    const $upvoteCount =  document.querySelector('.upvote-count')
+
+    fetch('/upvote-info/oKMybUILLJZrioYVhaKc/').then(response => response.json()).then(data => {
+        $upvoteCount.innerText = data.upvote_count;
+        if (data.upvoted) {
+            $upvoteButton.disabled = true
+            $upvoteButton.style.color = "salmon"
+            $upvoteButton.ariaLabel = "Toasted"
+            $upvoteButton.title = "Toasted"
+        }
+        $upvoteButton.ariaLabel += ` (${data.upvote_count})`
+    });
+
+    let moved = false;
+    let pageLoaded = Date.now();
+
+    document.addEventListener('touchmove', () => moved = true);
+    document.addEventListener('mousemove', () => moved = true);
+
+    document.querySelector('#upvote-form').addEventListener('submit', (e) => {
+        e.preventDefault();
+
+        if (moved) {
+            document.querySelector('input[name="title"]').value = "";
+        }
+        if (Date.now() - pageLoaded < 2000 || !moved) {
+            return;
+        }
+
+        fetch(e.target.action, {
+            method: 'post',
+            body: new FormData(e.target),
+        });
+        
+        $upvoteButton.disabled = true
+        $upvoteButton.style.color = "salmon"
+        $upvoteButton.ariaLabel = "Toasted"
+        $upvoteButton.title = "Toasted"
+        const newUpvoteCount = `${(parseInt($upvoteCount.innerHTML.split(" ")[0]) + 1)}`
+        $upvoteCount.innerHTML = newUpvoteCount
+        $upvoteButton.ariaLabel += ` (${newUpvoteCount})`
+    });
+</script>
+        
+
+        
+            <script>
+            window.addEventListener("load", () => {
+                if (navigator.webdriver !== true) {
+                    const sendHit = score => {
+                        const params = new URLSearchParams({
+                            blog: "veitner",
+                            token: "oKMybUILLJZrioYVhaKc",
+                            referrer: document.referrer.includes("veitner.bearblog.dev") ? "" : document.referrer,
+                            title: "",
+                            score: score
+                        });
+                        new Image().src = `/hit/?${params.toString()}`;
+                    };
+
+                    document.addEventListener('touchmove', () => sendHit(100), { once: true });
+                    document.addEventListener('mousemove', () => sendHit(100), { once: true });
+                }
+            });
+            </script>
+        
+    
+
+
+  </main>
+  <footer>
+    
+    
+    <span>
+        Powered by <a href="https://bearblog.dev">Bear <span role="img" class="bear" aria-label="ASCII bear logo">ʕ•ᴥ•ʔ</span></a>
+    </span>
+
+  </footer>
+
+  
+  <script>
+        (() => {
+          "use strict";
+          const times = document.querySelectorAll('time');
+          const format_string = "d M, Y" || "d M, Y"
+
+          times.forEach(time => {
+              time.innerText = formatDate(time.dateTime, format_string)
+          });
+
+          function formatDate(dateStr, formatStr) {
+            const date = new Date(dateStr);
+            const day = date.getDate();
+            const month = date.getMonth();
+            const year = date.getFullYear();
+            const weekday = date.getDay();
+            const hours = date.getHours();
+            const minutes = date.getMinutes();
+            const monthsFull = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+            const monthsShort = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+            const daysFull = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+            const daysShort = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+            
+            function getOrdinal(n) {
+                const s = ['th', 'st', 'nd', 'rd'];
+                const v = n % 100;
+                return s[(v - 20) % 10] || s[v] || s[0];
+            }
+            
+            const map = {
+                'd': () => day.toString().padStart(2, '0'),
+                'm': () => (month + 1).toString().padStart(2, '0'),
+                'Y': () => year.toString(),
+                'y': () => year.toString().slice(-2),
+                'F': () => monthsFull[month],
+                'j': () => day.toString(),
+                'D': () => daysShort[weekday],
+                'l': () => daysFull[weekday],
+                'S': () => getOrdinal(day),
+                'M': () => monthsShort[month],
+                'H': () => hours.toString().padStart(2, '0'),
+                'h': () => {
+                    let h = hours % 12;
+                    h = h === 0 ? 12 : h;
+                    return h.toString().padStart(2, '0');
+                },
+                'g': () => {
+                    let h = hours % 12;
+                    return h === 0 ? '12' : h.toString();
+                },
+                'i': () => minutes.toString().padStart(2, '0'),
+                'a': () => hours < 12 ? 'am' : 'pm',
+                'A': () => hours < 12 ? 'AM' : 'PM',
+            };
+            
+            let result = '';
+            for (let char of formatStr) {
+                result += map[char] ? map[char]() : char;
+            }
+            return result;
+        }
+        })();
+    </script>
+    
+</body>
+<!-- ID: veitner -->
+<!-- 🐻 -->
+</html>

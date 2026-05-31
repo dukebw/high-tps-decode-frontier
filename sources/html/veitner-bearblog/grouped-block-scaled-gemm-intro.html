@@ -1,0 +1,896 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!-- Powered by Bear Blog -->
+
+<head>
+  
+  
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5">
+  
+  <title>Grouped Block scaled Gemm - Intro | simons blog</title>
+  <link rel="canonical" href="https://veitner.bearblog.dev/grouped-block-scaled-gemm-intro/">
+  
+    
+
+    <meta name="veitner" content="look-for-the-bear-necessities">
+    <meta name="token" content="ZHyASxqTYBESkVsxiFnw">
+
+    
+<!-- Primary Meta Tags -->
+<meta name="title" content="Grouped Block scaled Gemm - Intro">
+<meta name="description" content="This is the first blogpost on a series which will be about Grouped Blockscaled GEMM on Blackwell of which the code can be found here.
+
+In ordinary english ...">
+
+<!-- Open Graph / Facebook -->
+<meta property="og:site_name" content="simons blog">
+<meta property="og:title" content="Grouped Block scaled Gemm - Intro">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://veitner.bearblog.dev/grouped-block-scaled-gemm-intro/">
+<meta property="og:description" content="This is the first blogpost on a series which will be about Grouped Blockscaled GEMM on Blackwell of which the code can be found here.
+
+In ordinary english ...">
+<meta property="og:image" content="/static/og-image.png">
+
+
+<!-- Twitter -->
+<meta property="twitter:card" content="summary">
+<meta property="twitter:url" content="https://veitner.bearblog.dev/grouped-block-scaled-gemm-intro/">
+<meta property="twitter:title" content="Grouped Block scaled Gemm - Intro">
+<meta property="twitter:description" content="This is the first blogpost on a series which will be about Grouped Blockscaled GEMM on Blackwell of which the code can be found here.
+
+In ordinary english ...">
+<meta property="twitter:image" content="/static/og-image.png">
+
+
+
+<!-- Microdata -->
+<script type="application/ld+json">
+  {
+    "@context": "http://schema.org",
+    "@type": "article",
+    "name": "Grouped Block scaled Gemm - Intro",
+    "headline": "Grouped Block scaled Gemm - Intro",
+    "url": "https://veitner.bearblog.dev/grouped-block-scaled-gemm-intro/",
+    "description": "This is the first blogpost on a series which will be about Grouped Blockscaled GEMM on Blackwell of which the code can be found here.
+
+In ordinary english ...",
+    "image": "/static/og-image.png"
+  }
+</script>
+    <link rel="alternate" type="application/atom+xml" href="/feed/" title="simons blog">
+    <link rel="alternate" type="application/rss+xml" href="/feed/?type=rss" title="simons blog">
+
+  
+    
+
+    
+    <style>pre { line-height: 125%; }
+td.linenos .normal { color: #666666; background-color: transparent; padding-left: 5px; padding-right: 5px; }
+span.linenos { color: #666666; background-color: transparent; padding-left: 5px; padding-right: 5px; }
+td.linenos .special { color: #000000; background-color: #ffffc0; padding-left: 5px; padding-right: 5px; }
+span.linenos.special { color: #000000; background-color: #ffffc0; padding-left: 5px; padding-right: 5px; }
+.highlight .hll { background-color: #ffffcc }
+.highlight { background: #f0f0f0; }
+.highlight .c { color: #60A0B0; font-style: italic } /* Comment */
+.highlight .err { border: 1px solid #F00 } /* Error */
+.highlight .k { color: #007020; font-weight: bold } /* Keyword */
+.highlight .o { color: #666 } /* Operator */
+.highlight .ch { color: #60A0B0; font-style: italic } /* Comment.Hashbang */
+.highlight .cm { color: #60A0B0; font-style: italic } /* Comment.Multiline */
+.highlight .cp { color: #007020 } /* Comment.Preproc */
+.highlight .cpf { color: #60A0B0; font-style: italic } /* Comment.PreprocFile */
+.highlight .c1 { color: #60A0B0; font-style: italic } /* Comment.Single */
+.highlight .cs { color: #60A0B0; background-color: #FFF0F0 } /* Comment.Special */
+.highlight .gd { color: #A00000 } /* Generic.Deleted */
+.highlight .ge { font-style: italic } /* Generic.Emph */
+.highlight .ges { font-weight: bold; font-style: italic } /* Generic.EmphStrong */
+.highlight .gr { color: #F00 } /* Generic.Error */
+.highlight .gh { color: #000080; font-weight: bold } /* Generic.Heading */
+.highlight .gi { color: #00A000 } /* Generic.Inserted */
+.highlight .go { color: #888 } /* Generic.Output */
+.highlight .gp { color: #C65D09; font-weight: bold } /* Generic.Prompt */
+.highlight .gs { font-weight: bold } /* Generic.Strong */
+.highlight .gu { color: #800080; font-weight: bold } /* Generic.Subheading */
+.highlight .gt { color: #04D } /* Generic.Traceback */
+.highlight .kc { color: #007020; font-weight: bold } /* Keyword.Constant */
+.highlight .kd { color: #007020; font-weight: bold } /* Keyword.Declaration */
+.highlight .kn { color: #007020; font-weight: bold } /* Keyword.Namespace */
+.highlight .kp { color: #007020 } /* Keyword.Pseudo */
+.highlight .kr { color: #007020; font-weight: bold } /* Keyword.Reserved */
+.highlight .kt { color: #902000 } /* Keyword.Type */
+.highlight .m { color: #40A070 } /* Literal.Number */
+.highlight .s { color: #4070A0 } /* Literal.String */
+.highlight .na { color: #4070A0 } /* Name.Attribute */
+.highlight .nb { color: #007020 } /* Name.Builtin */
+.highlight .nc { color: #0E84B5; font-weight: bold } /* Name.Class */
+.highlight .no { color: #60ADD5 } /* Name.Constant */
+.highlight .nd { color: #555; font-weight: bold } /* Name.Decorator */
+.highlight .ni { color: #D55537; font-weight: bold } /* Name.Entity */
+.highlight .ne { color: #007020 } /* Name.Exception */
+.highlight .nf { color: #06287E } /* Name.Function */
+.highlight .nl { color: #002070; font-weight: bold } /* Name.Label */
+.highlight .nn { color: #0E84B5; font-weight: bold } /* Name.Namespace */
+.highlight .nt { color: #062873; font-weight: bold } /* Name.Tag */
+.highlight .nv { color: #BB60D5 } /* Name.Variable */
+.highlight .ow { color: #007020; font-weight: bold } /* Operator.Word */
+.highlight .w { color: #BBB } /* Text.Whitespace */
+.highlight .mb { color: #40A070 } /* Literal.Number.Bin */
+.highlight .mf { color: #40A070 } /* Literal.Number.Float */
+.highlight .mh { color: #40A070 } /* Literal.Number.Hex */
+.highlight .mi { color: #40A070 } /* Literal.Number.Integer */
+.highlight .mo { color: #40A070 } /* Literal.Number.Oct */
+.highlight .sa { color: #4070A0 } /* Literal.String.Affix */
+.highlight .sb { color: #4070A0 } /* Literal.String.Backtick */
+.highlight .sc { color: #4070A0 } /* Literal.String.Char */
+.highlight .dl { color: #4070A0 } /* Literal.String.Delimiter */
+.highlight .sd { color: #4070A0; font-style: italic } /* Literal.String.Doc */
+.highlight .s2 { color: #4070A0 } /* Literal.String.Double */
+.highlight .se { color: #4070A0; font-weight: bold } /* Literal.String.Escape */
+.highlight .sh { color: #4070A0 } /* Literal.String.Heredoc */
+.highlight .si { color: #70A0D0; font-style: italic } /* Literal.String.Interpol */
+.highlight .sx { color: #C65D09 } /* Literal.String.Other */
+.highlight .sr { color: #235388 } /* Literal.String.Regex */
+.highlight .s1 { color: #4070A0 } /* Literal.String.Single */
+.highlight .ss { color: #517918 } /* Literal.String.Symbol */
+.highlight .bp { color: #007020 } /* Name.Builtin.Pseudo */
+.highlight .fm { color: #06287E } /* Name.Function.Magic */
+.highlight .vc { color: #BB60D5 } /* Name.Variable.Class */
+.highlight .vg { color: #BB60D5 } /* Name.Variable.Global */
+.highlight .vi { color: #BB60D5 } /* Name.Variable.Instance */
+.highlight .vm { color: #BB60D5 } /* Name.Variable.Magic */
+.highlight .il { color: #40A070 } /* Literal.Number.Integer.Long */
+</style>
+  
+  
+  
+    
+        <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20100%20100'%3E%3Ctext%20y='.9em'%20font-size='90'%3E🐼%3C/text%3E%3C/svg%3E">
+    
+
+
+
+  <style>
+      
+      
+    
+:root {
+    --width: 720px;
+    --font-main: Verdana, sans-serif;
+    --font-secondary: Verdana, sans-serif;
+    --font-scale: 1em;
+    --background-color: #fff;
+    --heading-color: #222;
+    --text-color: #444;
+    --link-color: #3273dc;
+    --visited-color:  #8b6fcb;
+    --code-background-color: #f2f2f2;
+    --code-color: #222;
+    --blockquote-color: #222;
+}
+
+@media (prefers-color-scheme: dark) {
+    :root {
+        --background-color: #01242e;
+        --heading-color: #eee;
+        --text-color: #ddd;
+        --link-color: #8cc2dd;
+        --visited-color:  #8b6fcb;
+        --code-background-color: #000;
+        --code-color: #ddd;
+        --blockquote-color: #ccc;
+    }
+}
+
+body {
+    font-family: var(--font-secondary);
+    font-size: var(--font-scale);
+    margin: auto;
+    padding: 20px;
+    max-width: var(--width);
+    text-align: left;
+    background-color: var(--background-color);
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    line-height: 1.5;
+    color: var(--text-color);
+}
+
+h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-main);
+    color: var(--heading-color);
+}
+
+a {
+    color: var(--link-color);
+    cursor: pointer;
+    text-decoration: none;
+}
+
+a:hover {
+    text-decoration: underline; 
+}
+
+nav a {
+    margin-right: 8px;
+}
+
+strong, b {
+    color: var(--heading-color);
+}
+
+button {
+    margin: 0;
+    cursor: pointer;
+}
+
+time {
+ 	font-family: monospace;
+  	font-style: normal;
+  	font-size: 15px;
+}
+
+main {
+    line-height: 1.6;
+}
+
+table {
+    width: 100%;
+}
+
+hr {
+    border: 0;
+    border-top: 1px dashed;
+}
+
+img {
+    max-width: 100%;
+}
+
+code {
+    font-family: monospace;
+    padding: 2px;
+    background-color: var(--code-background-color);
+    color: var(--code-color);
+    border-radius: 3px;
+}
+
+blockquote {
+    border-left: 1px solid #999;
+    color: var(--code-color);
+    padding-left: 20px;
+    font-style: italic;
+}
+
+footer {
+    padding: 25px 0;
+    text-align: center;
+}
+
+.title:hover {
+    text-decoration: none;
+}
+
+.title h1 {
+    font-size: 1.5em;
+}
+
+.inline {
+    width: auto !important;
+}
+
+.highlight, .code {
+    padding: 1px 15px;
+    background-color: var(--code-background-color);
+    color: var(--code-color);
+    border-radius: 3px;
+    margin-block-start: 1em;
+    margin-block-end: 1em;
+    overflow-x: auto;
+}
+
+/* blog post list */
+ul.blog-posts {
+    list-style-type: none;
+    padding: unset;
+}
+
+ul.blog-posts li {
+    display: flex;
+}
+
+ul.blog-posts li span {
+    flex: 0 0 130px;
+}
+
+ul.blog-posts li a:visited {
+    color: var(--visited-color);
+}
+    .upvote-button {
+        padding: 0;
+        margin: 0;
+        border: 0;
+        background-color: inherit;
+        color: inherit;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+    .upvote-button.upvoted {
+        color: salmon;
+    }
+    .upvote-count {
+        margin-top: -3px;
+    }
+
+      
+  </style>
+</head>
+
+<body class="post " onload="(function() { document.cookie = `timezone=${Intl.DateTimeFormat().resolvedOptions().timeZone};path=/`; })()">
+  
+  <header>
+    <a class="title" href="/">
+      <h1>
+        simons blog
+      </h1>
+    </a>
+    <nav>
+      <p><a href='/'>Home</a> <a href='/blog/'>Blog</a></p>
+
+    </nav>
+  </header>
+  <main>
+    
+
+    
+
+    
+        <h1>Grouped Block scaled Gemm - Intro</h1>
+
+        <p>
+            <i>
+                <time datetime="2026-01-22T19:13Z">
+    22 Jan, 2026
+</time>
+            </i>
+        </p>
+    
+
+    <p>This is the first blogpost on a series which will be about Grouped Blockscaled GEMM on Blackwell of which the code can be found <a href='https://github.com/NVIDIA/cutlass/blob/main/examples/python/CuTeDSL/blackwell/grouped_blockscaled_gemm.py'>here</a>.</p>
+<p>In ordinary english that means we can calculate a group of GEMMS, i.e. multiple blockscaled GEMMS with potentially distinct problem sizes. Before we study the kernel itself it is useful exercise to understand the setup within the <code>run</code> function because we can learn about the expected parameters we will use during our computation. Here we will focus on that part before studying more interesting aspects of the example.</p>
+<h2 id=coderuncode><code>run</code></h2><div class="highlight"><pre><span></span><span class="c1"># Create tensor and return the pointer, tensor, and stride</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">create_tensor_and_stride</span><span class="p">(</span>
+    <span class="n">l</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+    <span class="n">mode0</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+    <span class="n">mode1</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+    <span class="n">is_mode0_major</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
+    <span class="n">dtype</span><span class="p">:</span> <span class="nb">type</span><span class="p">[</span><span class="n">cutlass</span><span class="o">.</span><span class="n">Numeric</span><span class="p">],</span>
+    <span class="n">is_dynamic_layout</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">cute</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Create GPU tensor from either a new or existing CPU tensor.</span>
+
+<span class="sd">    :param torch_tensor_cpu: Optional existing CPU tensor to reuse. If None, creates a new one.</span>
+<span class="sd">    :type torch_tensor_cpu: torch.Tensor, optional</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c1"># Create new CPU tensor</span>
+    <span class="n">torch_tensor_cpu</span> <span class="o">=</span> <span class="n">cutlass_torch</span><span class="o">.</span><span class="n">matrix</span><span class="p">(</span>
+        <span class="n">l</span><span class="p">,</span>
+        <span class="n">mode0</span><span class="p">,</span>
+        <span class="n">mode1</span><span class="p">,</span>
+        <span class="n">is_mode0_major</span><span class="p">,</span>
+        <span class="n">cutlass</span><span class="o">.</span><span class="n">Float32</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="c1"># Create GPU tensor from CPU tensor (new or existing)</span>
+    <span class="n">cute_tensor</span><span class="p">,</span> <span class="n">torch_tensor</span> <span class="o">=</span> <span class="n">cutlass_torch</span><span class="o">.</span><span class="n">cute_tensor_like</span><span class="p">(</span>
+        <span class="n">torch_tensor_cpu</span><span class="p">,</span> <span class="n">dtype</span><span class="p">,</span> <span class="n">is_dynamic_layout</span><span class="p">,</span> <span class="n">assumed_align</span><span class="o">=</span><span class="mi">16</span>
+    <span class="p">)</span>
+
+    <span class="c1"># Mark tensor with element divisibility for 16B alignment</span>
+    <span class="n">cute_tensor</span><span class="o">.</span><span class="n">mark_compact_shape_dynamic</span><span class="p">(</span>
+        <span class="n">mode</span><span class="o">=</span><span class="mi">0</span> <span class="k">if</span> <span class="n">is_mode0_major</span> <span class="k">else</span> <span class="mi">1</span><span class="p">,</span>
+        <span class="n">stride_order</span><span class="o">=</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span> <span class="k">if</span> <span class="n">is_mode0_major</span> <span class="k">else</span> <span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>
+        <span class="n">divisibility</span><span class="o">=</span><span class="mi">32</span> <span class="k">if</span> <span class="n">dtype</span> <span class="o">==</span> <span class="n">cutlass</span><span class="o">.</span><span class="n">Float4E2M1FN</span> <span class="k">else</span> <span class="mi">16</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="c1"># omit stride for L mode as it is always 1</span>
+    <span class="n">stride</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">mode0</span><span class="p">)</span> <span class="k">if</span> <span class="n">is_mode0_major</span> <span class="k">else</span> <span class="p">(</span><span class="n">mode1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="p">(</span>
+        <span class="n">torch_tensor</span><span class="o">.</span><span class="n">data_ptr</span><span class="p">(),</span>
+        <span class="n">torch_tensor</span><span class="p">,</span>
+        <span class="n">cute_tensor</span><span class="p">,</span>
+        <span class="n">torch_tensor_cpu</span><span class="p">,</span>
+        <span class="n">stride</span><span class="p">,</span>
+    <span class="p">)</span>
+</pre></div>
+<p>This is very simple function that will create a tensor with given shape, stride and divisibility for alignment. It will return</p>
+<ul>
+<li>Pointer to the torch tensor</li>
+<li>The torch tensor</li>
+<li>The cute tensor</li>
+<li>The torch tensor on the CPU (in <code>Float32</code>)</li>
+<li>The stride- simply indicates if we have <code>M</code> or <code>K</code> major tensor</li>
+</ul>
+<div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">create_tensors_abc_for_all_groups</span><span class="p">(</span>
+    <span class="n">problem_sizes_mnkl</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]],</span>
+    <span class="n">ab_dtype</span><span class="p">:</span> <span class="n">Type</span><span class="p">[</span><span class="n">cutlass</span><span class="o">.</span><span class="n">Numeric</span><span class="p">],</span>
+    <span class="n">c_dtype</span><span class="p">:</span> <span class="n">Type</span><span class="p">[</span><span class="n">cutlass</span><span class="o">.</span><span class="n">Numeric</span><span class="p">],</span>
+    <span class="n">a_major</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">b_major</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">c_major</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span>
+    <span class="n">List</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]],</span>
+    <span class="n">List</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">]],</span>
+    <span class="n">List</span><span class="p">[</span><span class="nb">tuple</span><span class="p">],</span>
+    <span class="n">List</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">tuple</span><span class="p">]],</span>
+    <span class="n">List</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">]],</span>
+<span class="p">]:</span>
+    <span class="n">ref_torch_fp32_tensors_abc</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">torch_tensors_abc</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">cute_tensors_abc</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">strides_abc</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">ptrs_abc</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="c1"># Iterate through all groups and create tensors for each group</span>
+    <span class="k">for</span> <span class="n">group_idx</span><span class="p">,</span> <span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="n">l</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">problem_sizes_mnkl</span><span class="p">):</span>
+        <span class="c1"># Create tensors  A, B, C</span>
+        <span class="p">(</span>
+            <span class="n">ptr_a</span><span class="p">,</span>
+            <span class="n">torch_tensor_a</span><span class="p">,</span>
+            <span class="n">cute_tensor_a</span><span class="p">,</span>
+            <span class="n">ref_torch_fp32_tensor_a</span><span class="p">,</span>
+            <span class="n">stride_mk_a</span><span class="p">,</span>
+        <span class="p">)</span> <span class="o">=</span> <span class="n">create_tensor_and_stride</span><span class="p">(</span><span class="n">l</span><span class="p">,</span> <span class="n">m</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="n">a_major</span> <span class="o">==</span> <span class="s2">&quot;m&quot;</span><span class="p">,</span> <span class="n">ab_dtype</span><span class="p">)</span>
+
+        <span class="p">(</span>
+            <span class="n">ptr_b</span><span class="p">,</span>
+            <span class="n">torch_tensor_b</span><span class="p">,</span>
+            <span class="n">cute_tensor_b</span><span class="p">,</span>
+            <span class="n">ref_torch_fp32_tensor_b</span><span class="p">,</span>
+            <span class="n">stride_nk_b</span><span class="p">,</span>
+        <span class="p">)</span> <span class="o">=</span> <span class="n">create_tensor_and_stride</span><span class="p">(</span><span class="n">l</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="n">b_major</span> <span class="o">==</span> <span class="s2">&quot;n&quot;</span><span class="p">,</span> <span class="n">ab_dtype</span><span class="p">)</span>
+
+        <span class="p">(</span>
+            <span class="n">ptr_c</span><span class="p">,</span>
+            <span class="n">torch_tensor_c</span><span class="p">,</span>
+            <span class="n">cute_tensor_c</span><span class="p">,</span>
+            <span class="n">ref_torch_fp32_tensor_c</span><span class="p">,</span>
+            <span class="n">stride_mn_c</span><span class="p">,</span>
+        <span class="p">)</span> <span class="o">=</span> <span class="n">create_tensor_and_stride</span><span class="p">(</span><span class="n">l</span><span class="p">,</span> <span class="n">m</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="n">c_major</span> <span class="o">==</span> <span class="s2">&quot;m&quot;</span><span class="p">,</span> <span class="n">c_dtype</span><span class="p">)</span>
+
+        <span class="n">ref_torch_fp32_tensors_abc</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+            <span class="p">[</span><span class="n">ref_torch_fp32_tensor_a</span><span class="p">,</span> <span class="n">ref_torch_fp32_tensor_b</span><span class="p">,</span> <span class="n">ref_torch_fp32_tensor_c</span><span class="p">]</span>
+        <span class="p">)</span>
+
+        <span class="n">ptrs_abc</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">ptr_a</span><span class="p">,</span> <span class="n">ptr_b</span><span class="p">,</span> <span class="n">ptr_c</span><span class="p">])</span>
+        <span class="n">torch_tensors_abc</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">torch_tensor_a</span><span class="p">,</span> <span class="n">torch_tensor_b</span><span class="p">,</span> <span class="n">torch_tensor_c</span><span class="p">])</span>
+        <span class="n">strides_abc</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">stride_mk_a</span><span class="p">,</span> <span class="n">stride_nk_b</span><span class="p">,</span> <span class="n">stride_mn_c</span><span class="p">])</span>
+        <span class="n">cute_tensors_abc</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+            <span class="p">(</span>
+                <span class="n">cute_tensor_a</span><span class="p">,</span>
+                <span class="n">cute_tensor_b</span><span class="p">,</span>
+                <span class="n">cute_tensor_c</span><span class="p">,</span>
+            <span class="p">)</span>
+        <span class="p">)</span>
+
+    <span class="k">return</span> <span class="p">(</span>
+        <span class="n">ptrs_abc</span><span class="p">,</span>
+        <span class="n">torch_tensors_abc</span><span class="p">,</span>
+        <span class="n">cute_tensors_abc</span><span class="p">,</span>
+        <span class="n">strides_abc</span><span class="p">,</span>
+        <span class="n">ref_torch_fp32_tensors_abc</span><span class="p">,</span>
+    <span class="p">)</span>
+</pre></div>
+<p>Essentially we will have nested lists because we have different groups. So the length of each list is the number of groups and each list entry contains 3 entries. One for <code>a</code>, <code>b</code> and <code>c</code> each.</p>
+<ul>
+<li>List of pointers for <code>(a, b, c)</code> for each group</li>
+<li>List of corresponding torch tensors for <code>(a, b, c)</code> for each group</li>
+<li>List of cute tensors for <code>(a, b, c)</code> for each group</li>
+<li>List of strides for <code>(a, b, c)</code> for each group</li>
+<li>List of torch tensors on CPU in <code>Float32</code> data format for <code>(a, b, c)</code> for each group</li>
+</ul>
+<p>Same for the scale factors for <code>(a,b)</code> for each group.</p>
+<div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">create_tensors_sfasfb_for_all_groups</span><span class="p">(</span>
+    <span class="n">problem_sizes_mnkl</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]],</span>
+    <span class="n">sf_dtype</span><span class="p">:</span> <span class="n">Type</span><span class="p">[</span><span class="n">cutlass</span><span class="o">.</span><span class="n">Numeric</span><span class="p">],</span>
+    <span class="n">sf_vec_size</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span>
+    <span class="n">List</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]],</span>
+    <span class="n">List</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">]],</span>
+    <span class="n">List</span><span class="p">[</span><span class="nb">tuple</span><span class="p">],</span>
+    <span class="n">List</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">]],</span>
+<span class="p">]:</span>
+    <span class="n">ptrs_sfasfb</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">torch_tensors_sfasfb</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">cute_tensors_sfasfb</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">refs_sfasfb</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="c1"># Iterate through all groups and create tensors for each group</span>
+    <span class="k">for</span> <span class="n">group_idx</span><span class="p">,</span> <span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="n">l</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">problem_sizes_mnkl</span><span class="p">):</span>
+        <span class="n">sfa_ref</span><span class="p">,</span> <span class="n">ptr_sfa</span><span class="p">,</span> <span class="n">sfa_tensor</span><span class="p">,</span> <span class="n">sfa_torch</span> <span class="o">=</span> <span class="n">create_scale_factor_tensor</span><span class="p">(</span>
+            <span class="n">l</span><span class="p">,</span> <span class="n">m</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="n">sf_vec_size</span><span class="p">,</span> <span class="n">sf_dtype</span>
+        <span class="p">)</span>
+        <span class="n">sfb_ref</span><span class="p">,</span> <span class="n">ptr_sfb</span><span class="p">,</span> <span class="n">sfb_tensor</span><span class="p">,</span> <span class="n">sfb_torch</span> <span class="o">=</span> <span class="n">create_scale_factor_tensor</span><span class="p">(</span>
+            <span class="n">l</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="n">sf_vec_size</span><span class="p">,</span> <span class="n">sf_dtype</span>
+        <span class="p">)</span>
+        <span class="n">ptrs_sfasfb</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">ptr_sfa</span><span class="p">,</span> <span class="n">ptr_sfb</span><span class="p">])</span>
+        <span class="n">torch_tensors_sfasfb</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">sfa_torch</span><span class="p">,</span> <span class="n">sfb_torch</span><span class="p">])</span>
+        <span class="n">cute_tensors_sfasfb</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+            <span class="p">(</span>
+                <span class="n">sfa_tensor</span><span class="p">,</span>
+                <span class="n">sfb_tensor</span><span class="p">,</span>
+            <span class="p">)</span>
+        <span class="p">)</span>
+        <span class="n">refs_sfasfb</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">sfa_ref</span><span class="p">,</span> <span class="n">sfb_ref</span><span class="p">])</span>
+
+    <span class="k">return</span> <span class="p">(</span>
+        <span class="n">ptrs_sfasfb</span><span class="p">,</span>
+        <span class="n">torch_tensors_sfasfb</span><span class="p">,</span>
+        <span class="n">cute_tensors_sfasfb</span><span class="p">,</span>
+        <span class="n">refs_sfasfb</span><span class="p">,</span>
+    <span class="p">)</span>
+</pre></div>
+<p>See the example for the helper functions which I will omit here.</p>
+<div class="highlight"><pre><span></span>    <span class="c1"># Create tensors A, B, C for all groups</span>
+    <span class="p">(</span>
+        <span class="n">ptrs_abc</span><span class="p">,</span>
+        <span class="n">torch_tensors_abc</span><span class="p">,</span>
+        <span class="n">cute_tensors_abc</span><span class="p">,</span>
+        <span class="n">strides_abc</span><span class="p">,</span>
+        <span class="n">ref_f32_torch_tensors_abc</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">=</span> <span class="n">create_tensors_abc_for_all_groups</span><span class="p">(</span>
+        <span class="n">problem_sizes_mnkl</span><span class="p">,</span>
+        <span class="n">ab_dtype</span><span class="p">,</span>
+        <span class="n">c_dtype</span><span class="p">,</span>
+        <span class="n">a_major</span><span class="p">,</span>
+        <span class="n">b_major</span><span class="p">,</span>
+        <span class="n">c_major</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="c1"># Create tensors SFA, SFB for all groups</span>
+    <span class="p">(</span>
+        <span class="n">ptrs_sfasfb</span><span class="p">,</span>
+        <span class="n">torch_tensors_sfasfb</span><span class="p">,</span>
+        <span class="n">cute_tensors_sfasfb</span><span class="p">,</span>
+        <span class="n">refs_f32_torch_tensors_sfasfb</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">=</span> <span class="n">create_tensors_sfasfb_for_all_groups</span><span class="p">(</span>
+        <span class="n">problem_sizes_mnkl</span><span class="p">,</span>
+        <span class="n">sf_dtype</span><span class="p">,</span>
+        <span class="n">sf_vec_size</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="c1"># Choose A, B, C, SFA, SFB with the smallest size to create initial tensormaps</span>
+    <span class="n">key_size_a</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">item</span><span class="p">:</span> <span class="n">item</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="n">item</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">2</span><span class="p">]</span>
+    <span class="n">key_size_b</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">item</span><span class="p">:</span> <span class="n">item</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span> <span class="o">*</span> <span class="n">item</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">2</span><span class="p">]</span>
+    <span class="n">key_size_c</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">item</span><span class="p">:</span> <span class="n">item</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="n">item</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span>
+    <span class="c1"># Find the indices of the groups with the smallest tensor sizes</span>
+    <span class="n">min_a_idx</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="nb">enumerate</span><span class="p">(</span><span class="n">problem_sizes_mnkl</span><span class="p">),</span> <span class="n">key</span><span class="o">=</span><span class="n">key_size_a</span><span class="p">)</span>
+    <span class="n">min_b_idx</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="nb">enumerate</span><span class="p">(</span><span class="n">problem_sizes_mnkl</span><span class="p">),</span> <span class="n">key</span><span class="o">=</span><span class="n">key_size_b</span><span class="p">)</span>
+    <span class="n">min_c_idx</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="nb">enumerate</span><span class="p">(</span><span class="n">problem_sizes_mnkl</span><span class="p">),</span> <span class="n">key</span><span class="o">=</span><span class="n">key_size_c</span><span class="p">)</span>
+    <span class="n">initial_cute_tensors_abc</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">cute_tensors_abc</span><span class="p">[</span><span class="n">min_a_idx</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span>  <span class="c1"># A with smallest (m, k)</span>
+        <span class="n">cute_tensors_abc</span><span class="p">[</span><span class="n">min_b_idx</span><span class="p">][</span><span class="mi">1</span><span class="p">],</span>  <span class="c1"># B with smallest (n, k)</span>
+        <span class="n">cute_tensors_abc</span><span class="p">[</span><span class="n">min_c_idx</span><span class="p">][</span><span class="mi">2</span><span class="p">],</span>  <span class="c1"># C with smallest (m, n)</span>
+    <span class="p">]</span>
+    <span class="n">initial_cute_tensors_sfasfb</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">cute_tensors_sfasfb</span><span class="p">[</span><span class="n">min_a_idx</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span>  <span class="c1"># SFA with smallest (m, k)&#39;s group</span>
+        <span class="n">cute_tensors_sfasfb</span><span class="p">[</span><span class="n">min_b_idx</span><span class="p">][</span><span class="mi">1</span><span class="p">],</span>  <span class="c1"># SFB with smallest (n, k)&#39;s group</span>
+    <span class="p">]</span>
+</pre></div>
+<p>Here we use convenience lambdas to setup the initial tensormaps.
+The <code>run</code> signature tells us that <code>problem_size</code> is <code>List[Tuple[int, int, int, int]]</code> so it will contain the problem sizes for each group.</p>
+<p>Assume we have two groups which are two GEMMs with problem sizes:</p>
+<ul>
+<li>256 x 256 x 256 x 1</li>
+<li>512  x 512 x 512 x 1
+Then <code>problem_size</code> is <code>[(256, 256, 256, 1), (512, 512, 512, 1)]</code>. In the lambdas we always have <code>item[1][X]</code> because we apply it to the enumerate, i.e. the first item will just be the group index (which we will return). If this is understood the whole thing is clear:</li>
+<li><code>item[1][0] * item[1][2]</code> will give us smallest <code>M * K</code>, i.e. smallest "area" of matrix A across the groups</li>
+<li><code>item[1][1] * item[1][2]</code> will give us smallest <code>N * K</code>, i.e. smallest "area" of matrix B across the groups</li>
+<li><code>item[1][0] * item[1][1]</code> will give us smallest <code>M * N</code>, i.e. smallest "area" of matrix C across the groups
+So we will smallest areas separately for <code>A</code>, <code>B</code> and <code>C</code> across all groups and use this as the <code>initial_cute_tensors_abc</code>. The scale factors are choses correspondingly to <code>A/B</code>.</li>
+</ul>
+<div class="highlight"><pre><span></span>    <span class="n">hardware_info</span> <span class="o">=</span> <span class="n">cutlass</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">HardwareInfo</span><span class="p">()</span>
+    <span class="n">sm_count</span> <span class="o">=</span> <span class="n">hardware_info</span><span class="o">.</span><span class="n">get_max_active_clusters</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">max_active_clusters</span> <span class="o">=</span> <span class="n">hardware_info</span><span class="o">.</span><span class="n">get_max_active_clusters</span><span class="p">(</span>
+        <span class="n">cluster_shape_mn</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="n">cluster_shape_mn</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+    <span class="p">)</span>
+    <span class="c1"># Prepare tensormap buffer for each SM</span>
+    <span class="n">num_tensormap_buffers</span> <span class="o">=</span> <span class="n">sm_count</span>
+    <span class="n">tensormap_shape</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">num_tensormap_buffers</span><span class="p">,</span>
+        <span class="n">Sm100GroupedBlockScaledGemmKernel</span><span class="o">.</span><span class="n">num_tensormaps</span><span class="p">,</span>
+        <span class="n">Sm100GroupedBlockScaledGemmKernel</span><span class="o">.</span><span class="n">bytes_per_tensormap</span> <span class="o">//</span> <span class="mi">8</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">tensor_of_tensormap</span><span class="p">,</span> <span class="n">tensor_of_tensormap_torch</span> <span class="o">=</span> <span class="n">cutlass_torch</span><span class="o">.</span><span class="n">cute_tensor_like</span><span class="p">(</span>
+        <span class="n">torch</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="n">tensormap_shape</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">int64</span><span class="p">),</span>
+        <span class="n">cutlass</span><span class="o">.</span><span class="n">Int64</span><span class="p">,</span>
+        <span class="n">is_dynamic_layout</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="p">)</span>
+</pre></div>
+<p>note that:</p>
+<div class="highlight"><pre><span></span>    <span class="n">bytes_per_tensormap</span> <span class="o">=</span> <span class="mi">128</span>
+    <span class="n">num_tensormaps</span> <span class="o">=</span> <span class="mi">5</span>
+</pre></div>
+<p>are hardcoded and independent of our problem config. The <code>sm_count</code> on <code>B200</code> is <code>148</code> and thus we will have for the shape <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mo stretchy="false">&#x00028;</mo><mn>148</mn><mo>&#x0002C;</mo><mn>5</mn><mo>&#x0002C;</mo><mn>16</mn><mo stretchy="false">&#x00029;</mo></mrow></math>.  Note we scaled <code>bytes_per_tensormap</code> by a factor of <code>8</code>- the number of bytes in <code>int64</code>.</p>
+<p>The <code>tensor_of_tensormap</code> will have a layout <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mo stretchy="false">&#x00028;</mo><mn>148</mn><mo>&#x0002C;</mo><mn>5</mn><mo>&#x0002C;</mo><mn>16</mn><mo stretchy="false">&#x00029;</mo><mi>:</mi><mo stretchy="false">&#x00028;</mo><mn>80</mn><mo>&#x0002C;</mo><mn>16</mn><mo>&#x0002C;</mo><mn>1</mn><mo stretchy="false">&#x00029;</mo></mrow></math>. Note that means we will offset underlying pointer such that one tensor map will get an offset of exactly the number of bytes in one tensor map. The Layout can be thought of as multiple planes. Each plane corresponds to one <code>SM</code>. Each plane has layed out the <code>num_tensormaps</code> tensor maps layed out after one another.</p>
+<div class="highlight"><pre><span></span>    <span class="n">grouped_blockscaled_gemm</span> <span class="o">=</span> <span class="n">Sm100GroupedBlockScaledGemmKernel</span><span class="p">(</span>
+        <span class="n">sf_vec_size</span><span class="p">,</span>
+        <span class="n">mma_tiler_mn</span><span class="p">,</span>
+        <span class="n">cluster_shape_mn</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="c1"># layout (num_groups, 4):(4, 1)</span>
+    <span class="p">(</span>
+        <span class="n">tensor_of_dim_size_mnkl</span><span class="p">,</span>
+        <span class="n">tensor_of_dim_size_mnkl_torch</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">=</span> <span class="n">cutlass_torch</span><span class="o">.</span><span class="n">cute_tensor_like</span><span class="p">(</span>
+        <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">(</span><span class="n">problem_sizes_mnkl</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">int32</span><span class="p">),</span>
+        <span class="n">cutlass</span><span class="o">.</span><span class="n">Int32</span><span class="p">,</span>
+        <span class="n">is_dynamic_layout</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="n">assumed_align</span><span class="o">=</span><span class="mi">16</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="c1"># layout (num_groups, 3, 2):(6, 2, 1)</span>
+    <span class="n">tensor_of_strides_abc</span><span class="p">,</span> <span class="n">tensor_of_strides_abc_torch</span> <span class="o">=</span> <span class="n">cutlass_torch</span><span class="o">.</span><span class="n">cute_tensor_like</span><span class="p">(</span>
+        <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">(</span><span class="n">strides_abc</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">int32</span><span class="p">),</span>
+        <span class="n">cutlass</span><span class="o">.</span><span class="n">Int32</span><span class="p">,</span>
+        <span class="n">is_dynamic_layout</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="n">assumed_align</span><span class="o">=</span><span class="mi">16</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="c1"># layout (num_groups,3):(3, 1)</span>
+    <span class="n">tensor_of_ptrs_abc</span><span class="p">,</span> <span class="n">tensor_of_ptrs_abc_torch</span> <span class="o">=</span> <span class="n">cutlass_torch</span><span class="o">.</span><span class="n">cute_tensor_like</span><span class="p">(</span>
+        <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">(</span><span class="n">ptrs_abc</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">int64</span><span class="p">),</span>
+        <span class="n">cutlass</span><span class="o">.</span><span class="n">Int64</span><span class="p">,</span>
+        <span class="n">is_dynamic_layout</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="n">assumed_align</span><span class="o">=</span><span class="mi">16</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="c1"># layout (num_groups,2):(2, 1)</span>
+    <span class="n">tensor_of_ptrs_sfasfb</span><span class="p">,</span> <span class="n">tensor_of_ptrs_sfasfb_torch</span> <span class="o">=</span> <span class="n">cutlass_torch</span><span class="o">.</span><span class="n">cute_tensor_like</span><span class="p">(</span>
+        <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">(</span><span class="n">ptrs_sfasfb</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">int64</span><span class="p">),</span>
+        <span class="n">cutlass</span><span class="o">.</span><span class="n">Int64</span><span class="p">,</span>
+        <span class="n">is_dynamic_layout</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="n">assumed_align</span><span class="o">=</span><span class="mi">16</span><span class="p">,</span>
+    <span class="p">)</span>
+</pre></div>
+<p>Let's unpack what is happening here:</p>
+<ul>
+<li><code>tensor_of_dim_size_mnkl</code> has Layout <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mo stretchy="false">&#x00028;</mo><msub><mi>N</mi><mi>g</mi></msub><mo>&#x0002C;</mo><mn>4</mn><mo stretchy="false">&#x00029;</mo><mi>:</mi><mo stretchy="false">&#x00028;</mo><mn>4</mn><mo>&#x0002C;</mo><mn>1</mn><mo stretchy="false">&#x00029;</mo></mrow></math> which is clear because each group has a distinct problem size <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mo stretchy="false">&#x00028;</mo><mi>M</mi><mo>&#x0002C;</mo><mi>N</mi><mo>&#x0002C;</mo><mi>K</mi><mo>&#x0002C;</mo><mi>L</mi><mo stretchy="false">&#x00029;</mo></mrow></math></li>
+<li><code>tensor_of_strides_abc</code> has Layout <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mo stretchy="false">&#x00028;</mo><msub><mi>N</mi><mi>g</mi></msub><mo>&#x0002C;</mo><mn>3</mn><mo>&#x0002C;</mo><mn>2</mn><mo stretchy="false">&#x00029;</mo><mi>:</mi><mo stretchy="false">&#x00028;</mo><mn>6</mn><mo>&#x0002C;</mo><mn>2</mn><mo>&#x0002C;</mo><mn>1</mn><mo stretchy="false">&#x00029;</mo></mrow></math> because we specify two strides per tensor <code>a,b,c</code> per group.</li>
+<li><code>tensor_of_ptrs_abc</code> has Layout <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mo stretchy="false">&#x00028;</mo><msub><mi>N</mi><mi>g</mi></msub><mo>&#x0002C;</mo><mn>3</mn><mo stretchy="false">&#x00029;</mo><mi>:</mi><mo stretchy="false">&#x00028;</mo><mn>3</mn><mo>&#x0002C;</mo><mn>1</mn><mo stretchy="false">&#x00029;</mo></mrow></math> because we have three pointers to <code>a,b,c</code> per group.</li>
+<li><code>tensor_of_ptrs_sfasfb</code> has Layout <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mo stretchy="false">&#x00028;</mo><msub><mi>N</mi><mi>g</mi></msub><mo>&#x0002C;</mo><mn>2</mn><mo stretchy="false">&#x00029;</mo><mi>:</mi><mo stretchy="false">&#x00028;</mo><mn>2</mn><mo>&#x0002C;</mo><mn>1</mn><mo stretchy="false">&#x00029;</mo></mrow></math> because we have two scale factor pointers per group.</li>
+</ul>
+<div class="highlight"><pre><span></span>    <span class="c1"># Compute total number of cluster tiles we need to compute for given grouped GEMM problem</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">compute_total_num_clusters</span><span class="p">(</span>
+        <span class="n">problem_sizes_mnkl</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]],</span>
+        <span class="n">cluster_tile_shape_mn</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">],</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+        <span class="n">total_num_clusters</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">for</span> <span class="n">m</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">problem_sizes_mnkl</span><span class="p">:</span>
+            <span class="n">num_clusters_mn</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span>
+                <span class="p">(</span><span class="n">x</span> <span class="o">+</span> <span class="n">y</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">//</span> <span class="n">y</span> <span class="k">for</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">((</span><span class="n">m</span><span class="p">,</span> <span class="n">n</span><span class="p">),</span> <span class="n">cluster_tile_shape_mn</span><span class="p">)</span>
+            <span class="p">)</span>
+            <span class="n">total_num_clusters</span> <span class="o">+=</span> <span class="n">functools</span><span class="o">.</span><span class="n">reduce</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">:</span> <span class="n">x</span> <span class="o">*</span> <span class="n">y</span><span class="p">,</span> <span class="n">num_clusters_mn</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">total_num_clusters</span>
+
+    <span class="c1"># Compute cluster tile shape</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">compute_cluster_tile_shape</span><span class="p">(</span>
+        <span class="n">mma_tiler_mn</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">],</span>
+        <span class="n">cluster_shape_mn</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">],</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]:</span>
+        <span class="n">cta_tile_shape_mn</span> <span class="o">=</span> <span class="p">[</span><span class="mi">128</span><span class="p">,</span> <span class="n">mma_tiler_mn</span><span class="p">[</span><span class="mi">1</span><span class="p">]]</span>
+        <span class="k">return</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">x</span> <span class="o">*</span> <span class="n">y</span> <span class="k">for</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">cta_tile_shape_mn</span><span class="p">,</span> <span class="n">cluster_shape_mn</span><span class="p">))</span>
+
+    <span class="n">cluster_tile_shape_mn</span> <span class="o">=</span> <span class="n">compute_cluster_tile_shape</span><span class="p">(</span><span class="n">mma_tiler_mn</span><span class="p">,</span> <span class="n">cluster_shape_mn</span><span class="p">)</span>
+    <span class="n">total_num_clusters</span> <span class="o">=</span> <span class="n">compute_total_num_clusters</span><span class="p">(</span>
+        <span class="n">problem_sizes_mnkl</span><span class="p">,</span> <span class="n">cluster_tile_shape_mn</span>
+    <span class="p">)</span>
+</pre></div>
+<p><code>compute_cluster_tile_shape</code> will calculate the cluster tile shape, which is essentially <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mo stretchy="false">&#x00028;</mo><mn>128</mn><mi>&#x000B7;</mi><msub><mi>N</mi><mrow><mi>c</mi><mo>&#x0002C;</mo><mi>x</mi></mrow></msub><mo>&#x0002C;</mo><mi>b</mi><mi>N</mi><mi>&#x000B7;</mi><msub><mi>N</mi><mrow><mi>c</mi><mo>&#x0002C;</mo><mi>y</mi></mrow></msub><mo stretchy="false">&#x00029;</mo></mrow></math>, afterwards we calculate for each group how many of these tiles we need to cover the whole matrix <code>(M, N)</code> and this is <code>total_num_clusters</code>.</p>
+<div class="highlight"><pre><span></span>    <span class="c1"># Initialize Stream</span>
+    <span class="n">current_stream</span> <span class="o">=</span> <span class="n">cutlass_torch</span><span class="o">.</span><span class="n">default_stream</span><span class="p">()</span>
+
+    <span class="c1"># Compile grouped GEMM kernel</span>
+    <span class="n">compiled_grouped_gemm</span> <span class="o">=</span> <span class="n">cute</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span>
+        <span class="n">grouped_blockscaled_gemm</span><span class="p">,</span>
+        <span class="n">initial_cute_tensors_abc</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+        <span class="n">initial_cute_tensors_abc</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span>
+        <span class="n">initial_cute_tensors_abc</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span>
+        <span class="n">initial_cute_tensors_sfasfb</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+        <span class="n">initial_cute_tensors_sfasfb</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span>
+        <span class="n">num_groups</span><span class="p">,</span>
+        <span class="n">tensor_of_dim_size_mnkl</span><span class="p">,</span>
+        <span class="n">tensor_of_strides_abc</span><span class="p">,</span>
+        <span class="n">tensor_of_ptrs_abc</span><span class="p">,</span>
+        <span class="n">tensor_of_ptrs_sfasfb</span><span class="p">,</span>
+        <span class="n">total_num_clusters</span><span class="p">,</span>
+        <span class="n">tensor_of_tensormap</span><span class="p">,</span>
+        <span class="n">max_active_clusters</span><span class="p">,</span>
+        <span class="n">current_stream</span><span class="p">,</span>
+        <span class="n">options</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;--opt-level 2&quot;</span><span class="p">,</span>
+    <span class="p">)</span>
+</pre></div>
+<p>We'll finally pass all these parameters to the kernel and that's it with the basic setup.</p>
+<h2 id=conclusion>Conclusion</h2><p>I hope this blogpost serves as a good intro to the basic setup before launching a <code>CuTeDSL</code> grouped blockscaled GEMM kernel. The experimentation was enabled by <a href='https://verda.com/'>Verda</a>, please check out their website if you want to perform your own experiments on a B200 GPU. I am happy to connect on <a href='https://www.linkedin.com/in/simon-veitner-174a681b6/'>Linkedin</a> to exchange ideas.</p>
+
+
+    
+
+    
+        
+
+        
+            <form id="upvote-form" action="/upvote/" method="post" style="display: inline">
+    <small>
+        <input hidden name="uid" value="ZHyASxqTYBESkVsxiFnw" style="display:none">
+        <input hidden name="title" value="Grouped Block scaled Gemm - Intro" style="display:none">
+
+        <button
+            class="upvote-button"
+            aria-label="Toast this post"
+            title="Toast this post"
+        >
+            <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" class="css-i6dzq1">
+                <polyline points="17 11 12 6 7 11"></polyline>
+                <polyline points="17 18 12 13 7 18"></polyline>
+            </svg>
+            <small class="upvote-count" aria-hidden="true">&nbsp;</small>
+        </button>
+    </small>        
+</form>
+
+<script>
+    const $upvoteButton = document.querySelector('.upvote-button');
+    const $upvoteCount =  document.querySelector('.upvote-count')
+
+    fetch('/upvote-info/ZHyASxqTYBESkVsxiFnw/').then(response => response.json()).then(data => {
+        $upvoteCount.innerText = data.upvote_count;
+        if (data.upvoted) {
+            $upvoteButton.disabled = true
+            $upvoteButton.style.color = "salmon"
+            $upvoteButton.ariaLabel = "Toasted"
+            $upvoteButton.title = "Toasted"
+        }
+        $upvoteButton.ariaLabel += ` (${data.upvote_count})`
+    });
+
+    let moved = false;
+    let pageLoaded = Date.now();
+
+    document.addEventListener('touchmove', () => moved = true);
+    document.addEventListener('mousemove', () => moved = true);
+
+    document.querySelector('#upvote-form').addEventListener('submit', (e) => {
+        e.preventDefault();
+
+        if (moved) {
+            document.querySelector('input[name="title"]').value = "";
+        }
+        if (Date.now() - pageLoaded < 2000 || !moved) {
+            return;
+        }
+
+        fetch(e.target.action, {
+            method: 'post',
+            body: new FormData(e.target),
+        });
+        
+        $upvoteButton.disabled = true
+        $upvoteButton.style.color = "salmon"
+        $upvoteButton.ariaLabel = "Toasted"
+        $upvoteButton.title = "Toasted"
+        const newUpvoteCount = `${(parseInt($upvoteCount.innerHTML.split(" ")[0]) + 1)}`
+        $upvoteCount.innerHTML = newUpvoteCount
+        $upvoteButton.ariaLabel += ` (${newUpvoteCount})`
+    });
+</script>
+        
+
+        
+            <script>
+            window.addEventListener("load", () => {
+                if (navigator.webdriver !== true) {
+                    const sendHit = score => {
+                        const params = new URLSearchParams({
+                            blog: "veitner",
+                            token: "ZHyASxqTYBESkVsxiFnw",
+                            referrer: document.referrer.includes("veitner.bearblog.dev") ? "" : document.referrer,
+                            title: "",
+                            score: score
+                        });
+                        new Image().src = `/hit/?${params.toString()}`;
+                    };
+
+                    document.addEventListener('touchmove', () => sendHit(100), { once: true });
+                    document.addEventListener('mousemove', () => sendHit(100), { once: true });
+                }
+            });
+            </script>
+        
+    
+
+
+  </main>
+  <footer>
+    
+    
+    <span>
+        Powered by <a href="https://bearblog.dev">Bear <span role="img" class="bear" aria-label="ASCII bear logo">ʕ•ᴥ•ʔ</span></a>
+    </span>
+
+  </footer>
+
+  
+  <script>
+        (() => {
+          "use strict";
+          const times = document.querySelectorAll('time');
+          const format_string = "d M, Y" || "d M, Y"
+
+          times.forEach(time => {
+              time.innerText = formatDate(time.dateTime, format_string)
+          });
+
+          function formatDate(dateStr, formatStr) {
+            const date = new Date(dateStr);
+            const day = date.getDate();
+            const month = date.getMonth();
+            const year = date.getFullYear();
+            const weekday = date.getDay();
+            const hours = date.getHours();
+            const minutes = date.getMinutes();
+            const monthsFull = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+            const monthsShort = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+            const daysFull = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+            const daysShort = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+            
+            function getOrdinal(n) {
+                const s = ['th', 'st', 'nd', 'rd'];
+                const v = n % 100;
+                return s[(v - 20) % 10] || s[v] || s[0];
+            }
+            
+            const map = {
+                'd': () => day.toString().padStart(2, '0'),
+                'm': () => (month + 1).toString().padStart(2, '0'),
+                'Y': () => year.toString(),
+                'y': () => year.toString().slice(-2),
+                'F': () => monthsFull[month],
+                'j': () => day.toString(),
+                'D': () => daysShort[weekday],
+                'l': () => daysFull[weekday],
+                'S': () => getOrdinal(day),
+                'M': () => monthsShort[month],
+                'H': () => hours.toString().padStart(2, '0'),
+                'h': () => {
+                    let h = hours % 12;
+                    h = h === 0 ? 12 : h;
+                    return h.toString().padStart(2, '0');
+                },
+                'g': () => {
+                    let h = hours % 12;
+                    return h === 0 ? '12' : h.toString();
+                },
+                'i': () => minutes.toString().padStart(2, '0'),
+                'a': () => hours < 12 ? 'am' : 'pm',
+                'A': () => hours < 12 ? 'AM' : 'PM',
+            };
+            
+            let result = '';
+            for (let char of formatStr) {
+                result += map[char] ? map[char]() : char;
+            }
+            return result;
+        }
+        })();
+    </script>
+    
+</body>
+<!-- ID: veitner -->
+<!-- 🐻 -->
+</html>

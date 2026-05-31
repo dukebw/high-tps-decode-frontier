@@ -1,0 +1,799 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!-- Powered by Bear Blog -->
+
+<head>
+  
+  
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5">
+  
+  <title>An applied introduction to CuTeDSL | simons blog</title>
+  <link rel="canonical" href="https://veitner.bearblog.dev/an-applied-introduction-to-cutedsl/">
+  
+    
+
+    <meta name="veitner" content="look-for-the-bear-necessities">
+    <meta name="token" content="YtbRVNHkPnkRFpqojFxR">
+
+    
+<!-- Primary Meta Tags -->
+<meta name="title" content="An applied introduction to CuTeDSL">
+<meta name="description" content="Introduction
+
+In this blogpost I aim to explain a specific example from the CuTeDSL library in depth. To get familiar with some of the mathematical concept...">
+
+<!-- Open Graph / Facebook -->
+<meta property="og:site_name" content="simons blog">
+<meta property="og:title" content="An applied introduction to CuTeDSL">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://veitner.bearblog.dev/an-applied-introduction-to-cutedsl/">
+<meta property="og:description" content="Introduction
+
+In this blogpost I aim to explain a specific example from the CuTeDSL library in depth. To get familiar with some of the mathematical concept...">
+<meta property="og:image" content="/static/og-image.png">
+
+
+<!-- Twitter -->
+<meta property="twitter:card" content="summary">
+<meta property="twitter:url" content="https://veitner.bearblog.dev/an-applied-introduction-to-cutedsl/">
+<meta property="twitter:title" content="An applied introduction to CuTeDSL">
+<meta property="twitter:description" content="Introduction
+
+In this blogpost I aim to explain a specific example from the CuTeDSL library in depth. To get familiar with some of the mathematical concept...">
+<meta property="twitter:image" content="/static/og-image.png">
+
+
+
+<!-- Microdata -->
+<script type="application/ld+json">
+  {
+    "@context": "http://schema.org",
+    "@type": "article",
+    "name": "An applied introduction to CuTeDSL",
+    "headline": "An applied introduction to CuTeDSL",
+    "url": "https://veitner.bearblog.dev/an-applied-introduction-to-cutedsl/",
+    "description": "Introduction
+
+In this blogpost I aim to explain a specific example from the CuTeDSL library in depth. To get familiar with some of the mathematical concept...",
+    "image": "/static/og-image.png"
+  }
+</script>
+    <link rel="alternate" type="application/atom+xml" href="/feed/" title="simons blog">
+    <link rel="alternate" type="application/rss+xml" href="/feed/?type=rss" title="simons blog">
+
+  
+    
+
+    
+    <style>pre { line-height: 125%; }
+td.linenos .normal { color: #666666; background-color: transparent; padding-left: 5px; padding-right: 5px; }
+span.linenos { color: #666666; background-color: transparent; padding-left: 5px; padding-right: 5px; }
+td.linenos .special { color: #000000; background-color: #ffffc0; padding-left: 5px; padding-right: 5px; }
+span.linenos.special { color: #000000; background-color: #ffffc0; padding-left: 5px; padding-right: 5px; }
+.highlight .hll { background-color: #ffffcc }
+.highlight { background: #f0f0f0; }
+.highlight .c { color: #60A0B0; font-style: italic } /* Comment */
+.highlight .err { border: 1px solid #F00 } /* Error */
+.highlight .k { color: #007020; font-weight: bold } /* Keyword */
+.highlight .o { color: #666 } /* Operator */
+.highlight .ch { color: #60A0B0; font-style: italic } /* Comment.Hashbang */
+.highlight .cm { color: #60A0B0; font-style: italic } /* Comment.Multiline */
+.highlight .cp { color: #007020 } /* Comment.Preproc */
+.highlight .cpf { color: #60A0B0; font-style: italic } /* Comment.PreprocFile */
+.highlight .c1 { color: #60A0B0; font-style: italic } /* Comment.Single */
+.highlight .cs { color: #60A0B0; background-color: #FFF0F0 } /* Comment.Special */
+.highlight .gd { color: #A00000 } /* Generic.Deleted */
+.highlight .ge { font-style: italic } /* Generic.Emph */
+.highlight .ges { font-weight: bold; font-style: italic } /* Generic.EmphStrong */
+.highlight .gr { color: #F00 } /* Generic.Error */
+.highlight .gh { color: #000080; font-weight: bold } /* Generic.Heading */
+.highlight .gi { color: #00A000 } /* Generic.Inserted */
+.highlight .go { color: #888 } /* Generic.Output */
+.highlight .gp { color: #C65D09; font-weight: bold } /* Generic.Prompt */
+.highlight .gs { font-weight: bold } /* Generic.Strong */
+.highlight .gu { color: #800080; font-weight: bold } /* Generic.Subheading */
+.highlight .gt { color: #04D } /* Generic.Traceback */
+.highlight .kc { color: #007020; font-weight: bold } /* Keyword.Constant */
+.highlight .kd { color: #007020; font-weight: bold } /* Keyword.Declaration */
+.highlight .kn { color: #007020; font-weight: bold } /* Keyword.Namespace */
+.highlight .kp { color: #007020 } /* Keyword.Pseudo */
+.highlight .kr { color: #007020; font-weight: bold } /* Keyword.Reserved */
+.highlight .kt { color: #902000 } /* Keyword.Type */
+.highlight .m { color: #40A070 } /* Literal.Number */
+.highlight .s { color: #4070A0 } /* Literal.String */
+.highlight .na { color: #4070A0 } /* Name.Attribute */
+.highlight .nb { color: #007020 } /* Name.Builtin */
+.highlight .nc { color: #0E84B5; font-weight: bold } /* Name.Class */
+.highlight .no { color: #60ADD5 } /* Name.Constant */
+.highlight .nd { color: #555; font-weight: bold } /* Name.Decorator */
+.highlight .ni { color: #D55537; font-weight: bold } /* Name.Entity */
+.highlight .ne { color: #007020 } /* Name.Exception */
+.highlight .nf { color: #06287E } /* Name.Function */
+.highlight .nl { color: #002070; font-weight: bold } /* Name.Label */
+.highlight .nn { color: #0E84B5; font-weight: bold } /* Name.Namespace */
+.highlight .nt { color: #062873; font-weight: bold } /* Name.Tag */
+.highlight .nv { color: #BB60D5 } /* Name.Variable */
+.highlight .ow { color: #007020; font-weight: bold } /* Operator.Word */
+.highlight .w { color: #BBB } /* Text.Whitespace */
+.highlight .mb { color: #40A070 } /* Literal.Number.Bin */
+.highlight .mf { color: #40A070 } /* Literal.Number.Float */
+.highlight .mh { color: #40A070 } /* Literal.Number.Hex */
+.highlight .mi { color: #40A070 } /* Literal.Number.Integer */
+.highlight .mo { color: #40A070 } /* Literal.Number.Oct */
+.highlight .sa { color: #4070A0 } /* Literal.String.Affix */
+.highlight .sb { color: #4070A0 } /* Literal.String.Backtick */
+.highlight .sc { color: #4070A0 } /* Literal.String.Char */
+.highlight .dl { color: #4070A0 } /* Literal.String.Delimiter */
+.highlight .sd { color: #4070A0; font-style: italic } /* Literal.String.Doc */
+.highlight .s2 { color: #4070A0 } /* Literal.String.Double */
+.highlight .se { color: #4070A0; font-weight: bold } /* Literal.String.Escape */
+.highlight .sh { color: #4070A0 } /* Literal.String.Heredoc */
+.highlight .si { color: #70A0D0; font-style: italic } /* Literal.String.Interpol */
+.highlight .sx { color: #C65D09 } /* Literal.String.Other */
+.highlight .sr { color: #235388 } /* Literal.String.Regex */
+.highlight .s1 { color: #4070A0 } /* Literal.String.Single */
+.highlight .ss { color: #517918 } /* Literal.String.Symbol */
+.highlight .bp { color: #007020 } /* Name.Builtin.Pseudo */
+.highlight .fm { color: #06287E } /* Name.Function.Magic */
+.highlight .vc { color: #BB60D5 } /* Name.Variable.Class */
+.highlight .vg { color: #BB60D5 } /* Name.Variable.Global */
+.highlight .vi { color: #BB60D5 } /* Name.Variable.Instance */
+.highlight .vm { color: #BB60D5 } /* Name.Variable.Magic */
+.highlight .il { color: #40A070 } /* Literal.Number.Integer.Long */
+</style>
+  
+  
+  
+    
+        <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20100%20100'%3E%3Ctext%20y='.9em'%20font-size='90'%3E🐼%3C/text%3E%3C/svg%3E">
+    
+
+
+
+  <style>
+      
+      
+    
+:root {
+    --width: 720px;
+    --font-main: Verdana, sans-serif;
+    --font-secondary: Verdana, sans-serif;
+    --font-scale: 1em;
+    --background-color: #fff;
+    --heading-color: #222;
+    --text-color: #444;
+    --link-color: #3273dc;
+    --visited-color:  #8b6fcb;
+    --code-background-color: #f2f2f2;
+    --code-color: #222;
+    --blockquote-color: #222;
+}
+
+@media (prefers-color-scheme: dark) {
+    :root {
+        --background-color: #01242e;
+        --heading-color: #eee;
+        --text-color: #ddd;
+        --link-color: #8cc2dd;
+        --visited-color:  #8b6fcb;
+        --code-background-color: #000;
+        --code-color: #ddd;
+        --blockquote-color: #ccc;
+    }
+}
+
+body {
+    font-family: var(--font-secondary);
+    font-size: var(--font-scale);
+    margin: auto;
+    padding: 20px;
+    max-width: var(--width);
+    text-align: left;
+    background-color: var(--background-color);
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    line-height: 1.5;
+    color: var(--text-color);
+}
+
+h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-main);
+    color: var(--heading-color);
+}
+
+a {
+    color: var(--link-color);
+    cursor: pointer;
+    text-decoration: none;
+}
+
+a:hover {
+    text-decoration: underline; 
+}
+
+nav a {
+    margin-right: 8px;
+}
+
+strong, b {
+    color: var(--heading-color);
+}
+
+button {
+    margin: 0;
+    cursor: pointer;
+}
+
+time {
+ 	font-family: monospace;
+  	font-style: normal;
+  	font-size: 15px;
+}
+
+main {
+    line-height: 1.6;
+}
+
+table {
+    width: 100%;
+}
+
+hr {
+    border: 0;
+    border-top: 1px dashed;
+}
+
+img {
+    max-width: 100%;
+}
+
+code {
+    font-family: monospace;
+    padding: 2px;
+    background-color: var(--code-background-color);
+    color: var(--code-color);
+    border-radius: 3px;
+}
+
+blockquote {
+    border-left: 1px solid #999;
+    color: var(--code-color);
+    padding-left: 20px;
+    font-style: italic;
+}
+
+footer {
+    padding: 25px 0;
+    text-align: center;
+}
+
+.title:hover {
+    text-decoration: none;
+}
+
+.title h1 {
+    font-size: 1.5em;
+}
+
+.inline {
+    width: auto !important;
+}
+
+.highlight, .code {
+    padding: 1px 15px;
+    background-color: var(--code-background-color);
+    color: var(--code-color);
+    border-radius: 3px;
+    margin-block-start: 1em;
+    margin-block-end: 1em;
+    overflow-x: auto;
+}
+
+/* blog post list */
+ul.blog-posts {
+    list-style-type: none;
+    padding: unset;
+}
+
+ul.blog-posts li {
+    display: flex;
+}
+
+ul.blog-posts li span {
+    flex: 0 0 130px;
+}
+
+ul.blog-posts li a:visited {
+    color: var(--visited-color);
+}
+    .upvote-button {
+        padding: 0;
+        margin: 0;
+        border: 0;
+        background-color: inherit;
+        color: inherit;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+    .upvote-button.upvoted {
+        color: salmon;
+    }
+    .upvote-count {
+        margin-top: -3px;
+    }
+
+      
+  </style>
+</head>
+
+<body class="post " onload="(function() { document.cookie = `timezone=${Intl.DateTimeFormat().resolvedOptions().timeZone};path=/`; })()">
+  
+  <header>
+    <a class="title" href="/">
+      <h1>
+        simons blog
+      </h1>
+    </a>
+    <nav>
+      <p><a href='/'>Home</a> <a href='/blog/'>Blog</a></p>
+
+    </nav>
+  </header>
+  <main>
+    
+
+    
+
+    
+        <h1>An applied introduction to CuTeDSL</h1>
+
+        <p>
+            <i>
+                <time datetime="2025-06-23T17:43Z">
+    23 Jun, 2025
+</time>
+            </i>
+        </p>
+    
+
+    <h2 id=introduction>Introduction</h2><p>In this blogpost I aim to explain a <a href='https://github.com/NVIDIA/cutlass/blob/main/examples/python/CuTeDSL/notebooks/elementwise_add.ipynb'>specific example</a> from the <code>CuTeDSL</code> library in depth. To get familiar with some of the mathematical concepts used here you may checkout my previous blogpost <a href='https://veitner.bearblog.dev/bridging-math-and-code-cute-layout-algebra-in-cutedsl/'>here</a>.</p>
+<h2 id=simple-kernel>Simple kernel</h2><p>A simple kernel to add the elements of two matrices with same layouts.</p>
+<div class="highlight"><pre><span></span><span class="nd">@cute</span><span class="o">.</span><span class="n">kernel</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">naive_elementwise_add_kernel</span><span class="p">(</span>
+    <span class="n">gA</span><span class="p">:</span> <span class="n">cute</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span>
+    <span class="n">gB</span><span class="p">:</span> <span class="n">cute</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span>
+    <span class="n">gC</span><span class="p">:</span> <span class="n">cute</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span>
+<span class="p">):</span>
+    <span class="n">tidx</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">cute</span><span class="o">.</span><span class="n">arch</span><span class="o">.</span><span class="n">thread_idx</span><span class="p">()</span>
+    <span class="n">bidx</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">cute</span><span class="o">.</span><span class="n">arch</span><span class="o">.</span><span class="n">block_idx</span><span class="p">()</span>
+    <span class="n">bdim</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">cute</span><span class="o">.</span><span class="n">arch</span><span class="o">.</span><span class="n">block_dim</span><span class="p">()</span>
+
+    <span class="n">thread_idx</span> <span class="o">=</span> <span class="n">bidx</span> <span class="o">*</span> <span class="n">bdim</span> <span class="o">+</span> <span class="n">tidx</span>
+
+    <span class="c1"># Map thread index to logical index of input tensor</span>
+    <span class="n">m</span><span class="p">,</span> <span class="n">n</span> <span class="o">=</span> <span class="n">gA</span><span class="o">.</span><span class="n">shape</span>
+    <span class="n">ni</span> <span class="o">=</span> <span class="n">thread_idx</span> <span class="o">%</span> <span class="n">n</span>
+    <span class="n">mi</span> <span class="o">=</span> <span class="n">thread_idx</span> <span class="o">//</span> <span class="n">n</span>
+
+    <span class="c1"># Map logical index to physical address via tensor layout</span>
+    <span class="n">a_val</span> <span class="o">=</span> <span class="n">gA</span><span class="p">[</span><span class="n">mi</span><span class="p">,</span> <span class="n">ni</span><span class="p">]</span>
+    <span class="n">b_val</span> <span class="o">=</span> <span class="n">gB</span><span class="p">[</span><span class="n">mi</span><span class="p">,</span> <span class="n">ni</span><span class="p">]</span>
+
+    <span class="c1"># Perform element-wise addition</span>
+    <span class="n">gC</span><span class="p">[</span><span class="n">mi</span><span class="p">,</span> <span class="n">ni</span><span class="p">]</span> <span class="o">=</span> <span class="n">a_val</span> <span class="o">+</span> <span class="n">b_val</span>
+</pre></div>
+<p>The kernel launches a grid with <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>&#x0230A;</mi><mfrac><mrow><mi>n</mi><mi>&#x000B7;</mi><mi>m</mi></mrow><mrow><mi>T</mi><mi>P</mi><mi>B</mi></mrow></mfrac><mi>&#x0230B;</mi></mrow></math> where <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>T</mi><mi>P</mi><mi>B</mi><mo>&#x0003D;</mo><mn>256</mn></mrow></math> is the number of threads per block.</p>
+<div class="highlight"><pre><span></span><span class="nd">@cute</span><span class="o">.</span><span class="n">jit</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">naive_elementwise_add</span><span class="p">(</span><span class="n">mA</span><span class="p">:</span> <span class="n">cute</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">mB</span><span class="p">:</span> <span class="n">cute</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">mC</span><span class="p">:</span> <span class="n">cute</span><span class="o">.</span><span class="n">Tensor</span><span class="p">):</span>
+    <span class="n">num_threads_per_block</span> <span class="o">=</span> <span class="mi">256</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;[DSL INFO] Input tensors:&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;[DSL INFO]   mA = </span><span class="si">{</span><span class="n">mA</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;[DSL INFO]   mB = </span><span class="si">{</span><span class="n">mB</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;[DSL INFO]   mC = </span><span class="si">{</span><span class="n">mC</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="n">m</span><span class="p">,</span> <span class="n">n</span> <span class="o">=</span> <span class="n">mA</span><span class="o">.</span><span class="n">shape</span>
+    <span class="n">kernel</span> <span class="o">=</span> <span class="n">naive_elementwise_add_kernel</span><span class="p">(</span><span class="n">mA</span><span class="p">,</span> <span class="n">mB</span><span class="p">,</span> <span class="n">mC</span><span class="p">)</span>
+    <span class="n">kernel</span><span class="o">.</span><span class="n">launch</span><span class="p">(</span>
+        <span class="n">grid</span><span class="o">=</span><span class="p">((</span><span class="n">m</span> <span class="o">*</span> <span class="n">n</span><span class="p">)</span> <span class="o">//</span> <span class="n">num_threads_per_block</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>
+        <span class="n">block</span><span class="o">=</span><span class="p">(</span><span class="n">num_threads_per_block</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>
+    <span class="p">)</span>
+</pre></div>
+<p>We call compile, call and make sure we obtain the correct result.</p>
+<div class="highlight"><pre><span></span><span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+    <span class="n">M</span><span class="p">,</span> <span class="n">N</span> <span class="o">=</span> <span class="mi">2048</span><span class="p">,</span> <span class="mi">2048</span>
+
+    <span class="n">a</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="n">M</span><span class="p">,</span> <span class="n">N</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="s2">&quot;cuda&quot;</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">float16</span><span class="p">)</span>
+    <span class="n">b</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="n">M</span><span class="p">,</span> <span class="n">N</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="s2">&quot;cuda&quot;</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">float16</span><span class="p">)</span>
+    <span class="n">c</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">M</span><span class="p">,</span> <span class="n">N</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="s2">&quot;cuda&quot;</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">float16</span><span class="p">)</span>
+
+    <span class="n">a_</span> <span class="o">=</span> <span class="n">from_dlpack</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">assumed_align</span><span class="o">=</span><span class="mi">16</span><span class="p">)</span>
+    <span class="n">b_</span> <span class="o">=</span> <span class="n">from_dlpack</span><span class="p">(</span><span class="n">b</span><span class="p">,</span> <span class="n">assumed_align</span><span class="o">=</span><span class="mi">16</span><span class="p">)</span>
+    <span class="n">c_</span> <span class="o">=</span> <span class="n">from_dlpack</span><span class="p">(</span><span class="n">c</span><span class="p">,</span> <span class="n">assumed_align</span><span class="o">=</span><span class="mi">16</span><span class="p">)</span>
+
+    <span class="c1"># Compile kernel</span>
+    <span class="n">naive_elementwise_add_</span> <span class="o">=</span> <span class="n">cute</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="n">naive_elementwise_add</span><span class="p">,</span> <span class="n">a_</span><span class="p">,</span> <span class="n">b_</span><span class="p">,</span> <span class="n">c_</span><span class="p">)</span>
+    <span class="n">naive_elementwise_add_</span><span class="p">(</span><span class="n">a_</span><span class="p">,</span> <span class="n">b_</span><span class="p">,</span> <span class="n">c_</span><span class="p">)</span>
+
+    <span class="c1"># verify correctness</span>
+    <span class="n">torch</span><span class="o">.</span><span class="n">testing</span><span class="o">.</span><span class="n">assert_close</span><span class="p">(</span><span class="n">c</span><span class="p">,</span> <span class="n">a</span> <span class="o">+</span> <span class="n">b</span><span class="p">)</span>
+</pre></div>
+<p><strong>Layouts</strong> are a mapping from an N dimensional index to a physical coordinate.
+In our example we have:</p>
+<div class="highlight"><pre><span></span><span class="p">[</span><span class="n">DSL</span> <span class="n">INFO</span><span class="p">]</span> <span class="n">Input</span> <span class="n">tensors</span><span class="p">:</span>
+<span class="p">[</span><span class="n">DSL</span> <span class="n">INFO</span><span class="p">]</span>   <span class="n">mA</span> <span class="o">=</span> <span class="n">tensor</span><span class="o">&lt;</span><span class="n">ptr</span><span class="o">&lt;</span><span class="n">f16</span><span class="p">,</span> <span class="n">gmem</span><span class="p">,</span> <span class="n">align</span><span class="o">&lt;</span><span class="mi">16</span><span class="o">&gt;&gt;</span> <span class="n">o</span> <span class="p">(</span><span class="mi">2048</span><span class="p">,</span><span class="mi">2048</span><span class="p">):(</span><span class="mi">2048</span><span class="p">,</span><span class="mi">1</span><span class="p">)</span><span class="o">&gt;</span>
+<span class="p">[</span><span class="n">DSL</span> <span class="n">INFO</span><span class="p">]</span>   <span class="n">mB</span> <span class="o">=</span> <span class="n">tensor</span><span class="o">&lt;</span><span class="n">ptr</span><span class="o">&lt;</span><span class="n">f16</span><span class="p">,</span> <span class="n">gmem</span><span class="p">,</span> <span class="n">align</span><span class="o">&lt;</span><span class="mi">16</span><span class="o">&gt;&gt;</span> <span class="n">o</span> <span class="p">(</span><span class="mi">2048</span><span class="p">,</span><span class="mi">2048</span><span class="p">):(</span><span class="mi">2048</span><span class="p">,</span><span class="mi">1</span><span class="p">)</span><span class="o">&gt;</span>
+<span class="p">[</span><span class="n">DSL</span> <span class="n">INFO</span><span class="p">]</span>   <span class="n">mC</span> <span class="o">=</span> <span class="n">tensor</span><span class="o">&lt;</span><span class="n">ptr</span><span class="o">&lt;</span><span class="n">f16</span><span class="p">,</span> <span class="n">gmem</span><span class="p">,</span> <span class="n">align</span><span class="o">&lt;</span><span class="mi">16</span><span class="o">&gt;&gt;</span> <span class="n">o</span> <span class="p">(</span><span class="mi">2048</span><span class="p">,</span><span class="mi">2048</span><span class="p">):(</span><span class="mi">2048</span><span class="p">,</span><span class="mi">1</span><span class="p">)</span><span class="o">&gt;</span>
+</pre></div>
+<p>What does that mean?
+In general a layout consists of a <strong>shape</strong> <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>S</mi></mrow></math> and a <strong>stride</strong> <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>D</mi></mrow></math>. Using this notation we can write the <strong>Layout</strong> <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>L</mi></mrow></math> with the following equation</p>
+<math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><mrow><mi>L</mi><mo>&#x0003D;</mo><mi>S</mi><mi>:</mi><mi>D</mi></mrow></math><p>From above we can read off that <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>S</mi><mo>&#x0003D;</mo><mo stretchy="false">&#x00028;</mo><mn>2048</mn><mo>&#x0002C;</mo><mn>2048</mn><mo stretchy="false">&#x00029;</mo></mrow></math> and <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>D</mi><mo>&#x0003D;</mo><mo stretchy="false">&#x00028;</mo><mn>2048</mn><mo>&#x0002C;</mo><mn>1</mn><mo stretchy="false">&#x00029;</mo></mrow></math>.</p>
+<p>Memory in a GPU is layed out in a linear fashion. That means for a two dimensional structure like a matrix we need a map</p>
+<math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><mrow><mo stretchy="false">&#x00028;</mo><msub><mi>x</mi><mn>1</mn></msub><mo>&#x0002C;</mo><msub><mi>x</mi><mn>2</mn></msub><mo stretchy="false">&#x00029;</mo><mo>&#x02192;</mo><mi>x</mi></mrow></math><p>where <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mo stretchy="false">&#x00028;</mo><msub><mi>x</mi><mn>1</mn></msub><mo>&#x0002C;</mo><msub><mi>x</mi><mn>2</mn></msub><mo stretchy="false">&#x00029;</mo></mrow></math> is the row/column index and <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>x</mi></mrow></math> the corresponding linear index. That is fundamentally what our layout does.</p>
+<p>If we have a stride of <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mo stretchy="false">&#x00028;</mo><mn>2048</mn><mo>&#x0002C;</mo><mn>1</mn><mo stretchy="false">&#x00029;</mo></mrow></math> we have that <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>L</mi><mo stretchy="false">&#x00028;</mo><msub><mi>x</mi><mn>1</mn></msub><mo>&#x0002B;</mo><mn>1</mn><mo>&#x0002C;</mo><msub><mi>x</mi><mn>2</mn></msub><mo stretchy="false">&#x00029;</mo><mo>&#x02212;</mo><mi>L</mi><mo stretchy="false">&#x00028;</mo><msub><mi>x</mi><mn>1</mn></msub><mo>&#x0002C;</mo><msub><mi>x</mi><mn>2</mn></msub><mo stretchy="false">&#x00029;</mo><mo>&#x0003D;</mo><mn>2048</mn></mrow></math> and <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>L</mi><mo stretchy="false">&#x00028;</mo><msub><mi>x</mi><mn>1</mn></msub><mo>&#x0002C;</mo><msub><mi>x</mi><mn>2</mn></msub><mo>&#x0002B;</mo><mn>1</mn><mo stretchy="false">&#x00029;</mo><mo>&#x02212;</mo><mi>L</mi><mo stretchy="false">&#x00028;</mo><msub><mi>x</mi><mn>1</mn></msub><mo>&#x0002C;</mo><msub><mi>x</mi><mn>2</mn></msub><mo stretchy="false">&#x00029;</mo><mo>&#x0003D;</mo><mn>1</mn></mrow></math> which means that two columns are adjacent in memory whereas two rows are "distant" in memory.</p>
+<p>We could visualise that as follows:</p>
+<p><img src="https://bear-images.sfo2.cdn.digitaloceanspaces.com/veitner/07-1.webp" alt="Screenshot 2025-06-23 at 17" /></p>
+<p>Similarly we could visualize the Layout where the entries in the stride are permutated:</p>
+<p><img src="https://bear-images.sfo2.cdn.digitaloceanspaces.com/veitner/58-1.webp" alt="Screenshot 2025-06-23 at 17" /></p>
+<p>A layout like <code>(2048, 2048):(2048,1)</code> is frequently called <code>row-major</code> or in <code>CuTe</code> lingo <code>K-major</code>.</p>
+<p>In our kernel we see the <code>CuTe</code> layout doing the job of obtaining the linear indexing for us.</p>
+<div class="highlight"><pre><span></span><span class="c1"># Map logical index to physical address via tensor layout</span>
+    <span class="n">a_val</span> <span class="o">=</span> <span class="n">gA</span><span class="p">[</span><span class="n">mi</span><span class="p">,</span> <span class="n">ni</span><span class="p">]</span>
+    <span class="n">b_val</span> <span class="o">=</span> <span class="n">gB</span><span class="p">[</span><span class="n">mi</span><span class="p">,</span> <span class="n">ni</span><span class="p">]</span>
+
+    <span class="c1"># Perform element-wise addition</span>
+    <span class="n">gC</span><span class="p">[</span><span class="n">mi</span><span class="p">,</span> <span class="n">ni</span><span class="p">]</span> <span class="o">=</span> <span class="n">a_val</span> <span class="o">+</span> <span class="n">b_val</span>
+</pre></div>
+<p>When benchmarking with a matrix of size <code>32768 x 32768</code> this kernel archives <code>1936 GB/s</code> on <code>NVIDIA H100 80GB HBM3</code> using <code>256</code> threads per block.</p>
+<h2 id=vectorised-kernel>Vectorised kernel</h2><p>The kernel below performs</p>
+<div class="highlight"><pre><span></span><span class="nd">@cute</span><span class="o">.</span><span class="n">kernel</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">vectorized_elementwise_add_kernel</span><span class="p">(</span>
+    <span class="n">gA</span><span class="p">:</span> <span class="n">cute</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span>
+    <span class="n">gB</span><span class="p">:</span> <span class="n">cute</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span>
+    <span class="n">gC</span><span class="p">:</span> <span class="n">cute</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span>
+<span class="p">):</span>
+    <span class="n">tidx</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">cute</span><span class="o">.</span><span class="n">arch</span><span class="o">.</span><span class="n">thread_idx</span><span class="p">()</span>
+    <span class="n">bidx</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">cute</span><span class="o">.</span><span class="n">arch</span><span class="o">.</span><span class="n">block_idx</span><span class="p">()</span>
+    <span class="n">bdim</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">cute</span><span class="o">.</span><span class="n">arch</span><span class="o">.</span><span class="n">block_dim</span><span class="p">()</span>
+
+    <span class="n">thread_idx</span> <span class="o">=</span> <span class="n">bidx</span> <span class="o">*</span> <span class="n">bdim</span> <span class="o">+</span> <span class="n">tidx</span>
+
+    <span class="c1"># Map thread index to logical index of input tensor</span>
+    <span class="n">m</span><span class="p">,</span> <span class="n">n</span> <span class="o">=</span> <span class="n">gA</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>  <span class="c1"># thread-domain</span>
+    <span class="n">ni</span> <span class="o">=</span> <span class="n">thread_idx</span> <span class="o">%</span> <span class="n">n</span>
+    <span class="n">mi</span> <span class="o">=</span> <span class="n">thread_idx</span> <span class="o">//</span> <span class="n">n</span>
+
+    <span class="c1"># Map logical index to physical address via tensor layout</span>
+    <span class="n">a_val</span> <span class="o">=</span> <span class="n">gA</span><span class="p">[(</span><span class="kc">None</span><span class="p">,</span> <span class="p">(</span><span class="n">mi</span><span class="p">,</span> <span class="n">ni</span><span class="p">))]</span><span class="o">.</span><span class="n">load</span><span class="p">()</span>
+    <span class="n">b_val</span> <span class="o">=</span> <span class="n">gB</span><span class="p">[(</span><span class="kc">None</span><span class="p">,</span> <span class="p">(</span><span class="n">mi</span><span class="p">,</span> <span class="n">ni</span><span class="p">))]</span><span class="o">.</span><span class="n">load</span><span class="p">()</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;[DSL INFO] sliced gA = </span><span class="si">{</span><span class="n">gA</span><span class="p">[(</span><span class="kc">None</span><span class="p">,</span><span class="w"> </span><span class="p">(</span><span class="n">mi</span><span class="p">,</span><span class="w"> </span><span class="n">ni</span><span class="p">))]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;[DSL INFO] sliced gB = </span><span class="si">{</span><span class="n">gB</span><span class="p">[(</span><span class="kc">None</span><span class="p">,</span><span class="w"> </span><span class="p">(</span><span class="n">mi</span><span class="p">,</span><span class="w"> </span><span class="n">ni</span><span class="p">))]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Perform element-wise addition</span>
+    <span class="n">gC</span><span class="p">[(</span><span class="kc">None</span><span class="p">,</span> <span class="p">(</span><span class="n">mi</span><span class="p">,</span> <span class="n">ni</span><span class="p">))]</span> <span class="o">=</span> <span class="n">a_val</span> <span class="o">+</span> <span class="n">b_val</span>
+</pre></div>
+<p>It can be called as follows</p>
+<div class="highlight"><pre><span></span><span class="nd">@cute</span><span class="o">.</span><span class="n">jit</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">vectorized_elementwise_add</span><span class="p">(</span><span class="n">mA</span><span class="p">:</span> <span class="n">cute</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">mB</span><span class="p">:</span> <span class="n">cute</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">mC</span><span class="p">:</span> <span class="n">cute</span><span class="o">.</span><span class="n">Tensor</span><span class="p">):</span>
+    <span class="n">threads_per_block</span> <span class="o">=</span> <span class="mi">256</span>
+
+    <span class="n">gA</span> <span class="o">=</span> <span class="n">cute</span><span class="o">.</span><span class="n">zipped_divide</span><span class="p">(</span><span class="n">mA</span><span class="p">,</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">4</span><span class="p">))</span>
+    <span class="n">gB</span> <span class="o">=</span> <span class="n">cute</span><span class="o">.</span><span class="n">zipped_divide</span><span class="p">(</span><span class="n">mB</span><span class="p">,</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">4</span><span class="p">))</span>
+    <span class="n">gC</span> <span class="o">=</span> <span class="n">cute</span><span class="o">.</span><span class="n">zipped_divide</span><span class="p">(</span><span class="n">mC</span><span class="p">,</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">4</span><span class="p">))</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;[DSL INFO] Tiled Tensors:&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;[DSL INFO]   gA = </span><span class="si">{</span><span class="n">gA</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;[DSL INFO]   gB = </span><span class="si">{</span><span class="n">gB</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;[DSL INFO]   gC = </span><span class="si">{</span><span class="n">gC</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="n">vectorized_elementwise_add_kernel</span><span class="p">(</span><span class="n">gA</span><span class="p">,</span> <span class="n">gB</span><span class="p">,</span> <span class="n">gC</span><span class="p">)</span><span class="o">.</span><span class="n">launch</span><span class="p">(</span>
+        <span class="n">grid</span><span class="o">=</span><span class="p">(</span><span class="n">cute</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="n">gC</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span> <span class="o">//</span> <span class="n">threads_per_block</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>
+        <span class="n">block</span><span class="o">=</span><span class="p">(</span><span class="n">threads_per_block</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>
+    <span class="p">)</span>
+</pre></div>
+<p>When running this we can see in the terminal:</p>
+<div class="highlight"><pre><span></span>[DSL INFO] Tiled Tensors:
+[DSL INFO]   gA = tensor&lt;ptr&lt;f16, gmem, align&lt;16&gt;&gt; o ((1,4),(2048,512)):((0,1),(2048,4))&gt;
+[DSL INFO]   gB = tensor&lt;ptr&lt;f16, gmem, align&lt;16&gt;&gt; o ((1,4),(2048,512)):((0,1),(2048,4))&gt;
+[DSL INFO]   gC = tensor&lt;ptr&lt;f16, gmem, align&lt;16&gt;&gt; o ((1,4),(2048,512)):((0,1),(2048,4))&gt;
+[DSL INFO] sliced gA = tensor&lt;ptr&lt;f16, gmem, align&lt;8&gt;&gt; o ((1,4)):((0,1))&gt;
+[DSL INFO] sliced gB = tensor&lt;ptr&lt;f16, gmem, align&lt;8&gt;&gt; o ((1,4)):((0,1))&gt;
+</pre></div>
+<p>This tell's us what is going on:</p>
+<p>We simply tile the matrix along the columns, i.e. one thread handles 4 consecutive elements in memory.
+<code>cute.size(gC, mode=[1]) // threads_per_block</code> takes this accordingly into account, because we will launch <code>4</code> times less blocks for this kernel.</p>
+<p>This tiling makes sense and will improve the performance of our kernel because GPUs are capable of <code>64B = 4 * 16B</code> loads, i.e. we can load all 4 elements for the thread at once. This is a well known technique to improve performance in memory bound kernels. We choose the tiler to be <code>(1, 4)</code> because the original layout is <code>N-major</code>, i.e. the adjacent elements in memory are all in one column.</p>
+<p>This kernel archives <code>3123 GB/s</code> on  <code>NVIDIA H100 80GB HBM3</code> using <code>512</code> threads per block.</p>
+<h2 id=use-thread-value-layout>Use thread value layout</h2><p>In more advanced <code>CuTeDSL</code> examples the concept of <code>thread value</code> layout is used heavily. It is therefore useful to study this concept more closely.</p>
+<p>A kernel using thread value layout looks as follows:</p>
+<div class="highlight"><pre><span></span><span class="nd">@cute</span><span class="o">.</span><span class="n">kernel</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">elementwise_add_kernel</span><span class="p">(</span>
+    <span class="n">gA</span><span class="p">:</span> <span class="n">cute</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">gB</span><span class="p">:</span> <span class="n">cute</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">gC</span><span class="p">:</span> <span class="n">cute</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">tv_layout</span><span class="p">:</span> <span class="n">cute</span><span class="o">.</span><span class="n">Layout</span>
+<span class="p">):</span>
+    <span class="n">tidx</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">cute</span><span class="o">.</span><span class="n">arch</span><span class="o">.</span><span class="n">thread_idx</span><span class="p">()</span>
+    <span class="n">bidx</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">cute</span><span class="o">.</span><span class="n">arch</span><span class="o">.</span><span class="n">block_idx</span><span class="p">()</span>
+
+    <span class="c1"># --------------------------------</span>
+    <span class="c1"># slice for thread-block level view</span>
+    <span class="c1"># --------------------------------</span>
+    <span class="n">blk_coord</span> <span class="o">=</span> <span class="p">((</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span> <span class="n">bidx</span><span class="p">)</span>
+
+    <span class="c1"># logical coord -&gt; address</span>
+    <span class="n">blkA</span> <span class="o">=</span> <span class="n">gA</span><span class="p">[</span><span class="n">blk_coord</span><span class="p">]</span>  <span class="c1"># (TileM, TileN) -&gt; physical address</span>
+    <span class="n">blkB</span> <span class="o">=</span> <span class="n">gB</span><span class="p">[</span><span class="n">blk_coord</span><span class="p">]</span>  <span class="c1"># (TileM, TileN) -&gt; physical address</span>
+    <span class="n">blkC</span> <span class="o">=</span> <span class="n">gC</span><span class="p">[</span><span class="n">blk_coord</span><span class="p">]</span>  <span class="c1"># (TileM, TileN) -&gt; physical address</span>
+
+    <span class="c1"># --------------------------------</span>
+    <span class="c1"># compose for thread-index &amp; value-index to physical mapping</span>
+    <span class="c1"># --------------------------------</span>
+    <span class="c1"># blockA:    (TileM, TileN) -&gt; physical address</span>
+    <span class="c1"># tv_layout: (tid, vid)     -&gt; (TileM, TileN)</span>
+    <span class="c1"># tidfrgA = blkA o tv_layout</span>
+    <span class="c1"># tidfrgA:   (tid, vid) -&gt; physical address</span>
+    <span class="n">tidfrgA</span> <span class="o">=</span> <span class="n">cute</span><span class="o">.</span><span class="n">composition</span><span class="p">(</span><span class="n">blkA</span><span class="p">,</span> <span class="n">tv_layout</span><span class="p">)</span>
+    <span class="n">tidfrgB</span> <span class="o">=</span> <span class="n">cute</span><span class="o">.</span><span class="n">composition</span><span class="p">(</span><span class="n">blkB</span><span class="p">,</span> <span class="n">tv_layout</span><span class="p">)</span>
+    <span class="n">tidfrgC</span> <span class="o">=</span> <span class="n">cute</span><span class="o">.</span><span class="n">composition</span><span class="p">(</span><span class="n">blkC</span><span class="p">,</span> <span class="n">tv_layout</span><span class="p">)</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Composed with TV layout:&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  tidfrgA: </span><span class="si">{</span><span class="n">tidfrgA</span><span class="o">.</span><span class="n">type</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="c1"># --------------------------------</span>
+    <span class="c1"># slice for thread-level view</span>
+    <span class="c1"># --------------------------------</span>
+    <span class="c1"># `None` represent slice of the entire per-thread data</span>
+    <span class="n">thr_coord</span> <span class="o">=</span> <span class="p">(</span><span class="n">tidx</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+
+    <span class="c1"># slice for threads: vid -&gt; address</span>
+    <span class="n">thrA</span> <span class="o">=</span> <span class="n">tidfrgA</span><span class="p">[</span><span class="n">thr_coord</span><span class="p">]</span>  <span class="c1"># (V) -&gt; physical address</span>
+    <span class="n">thrB</span> <span class="o">=</span> <span class="n">tidfrgB</span><span class="p">[</span><span class="n">thr_coord</span><span class="p">]</span>  <span class="c1"># (V) -&gt; physical address</span>
+    <span class="n">thrC</span> <span class="o">=</span> <span class="n">tidfrgC</span><span class="p">[</span><span class="n">thr_coord</span><span class="p">]</span>  <span class="c1"># (V) -&gt; physical address</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;thrA/B/C:&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  thrA: </span><span class="si">{</span><span class="n">thrA</span><span class="o">.</span><span class="n">type</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  thrB: </span><span class="si">{</span><span class="n">thrB</span><span class="o">.</span><span class="n">type</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  thrC: </span><span class="si">{</span><span class="n">thrC</span><span class="o">.</span><span class="n">type</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="n">thrC</span><span class="p">[</span><span class="kc">None</span><span class="p">]</span> <span class="o">=</span> <span class="n">thrA</span><span class="o">.</span><span class="n">load</span><span class="p">()</span> <span class="o">+</span> <span class="n">thrB</span><span class="o">.</span><span class="n">load</span><span class="p">()</span>
+</pre></div>
+<p>The launch from the host side is as follows:</p>
+<div class="highlight"><pre><span></span><span class="nd">@cute</span><span class="o">.</span><span class="n">jit</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">elementwise_add</span><span class="p">(</span>
+    <span class="n">mA</span><span class="p">:</span> <span class="n">cute</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span>
+    <span class="n">mB</span><span class="p">:</span> <span class="n">cute</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span>
+    <span class="n">mC</span><span class="p">:</span> <span class="n">cute</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span>
+<span class="p">):</span>
+    <span class="c1"># mA layout: (M, N):(N, 1)</span>
+    <span class="c1"># TV layout map thread &amp; value index to (16, 256) logical tile</span>
+    <span class="c1">#  - contiguous thread index maps to mode-1 because input layout is contiguous on</span>
+    <span class="c1">#     mode-1 for coalesced load-store</span>
+    <span class="c1">#  - each thread load 8 contiguous element each row and load 4 rows</span>
+    <span class="n">thr_layout</span> <span class="o">=</span> <span class="n">cute</span><span class="o">.</span><span class="n">make_layout</span><span class="p">((</span><span class="mi">4</span><span class="p">,</span> <span class="mi">32</span><span class="p">),</span> <span class="n">stride</span><span class="o">=</span><span class="p">(</span><span class="mi">32</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
+    <span class="n">val_layout</span> <span class="o">=</span> <span class="n">cute</span><span class="o">.</span><span class="n">make_layout</span><span class="p">((</span><span class="mi">4</span><span class="p">,</span> <span class="mi">8</span><span class="p">),</span> <span class="n">stride</span><span class="o">=</span><span class="p">(</span><span class="mi">8</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
+    <span class="n">tiler_mn</span><span class="p">,</span> <span class="n">tv_layout</span> <span class="o">=</span> <span class="n">cute</span><span class="o">.</span><span class="n">make_layout_tv</span><span class="p">(</span><span class="n">thr_layout</span><span class="p">,</span> <span class="n">val_layout</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Tiler: </span><span class="si">{</span><span class="n">tiler_mn</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;TV Layout: </span><span class="si">{</span><span class="n">tv_layout</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="n">gA</span> <span class="o">=</span> <span class="n">cute</span><span class="o">.</span><span class="n">zipped_divide</span><span class="p">(</span><span class="n">mA</span><span class="p">,</span> <span class="n">tiler_mn</span><span class="p">)</span>  <span class="c1"># ((TileM, TileN), (RestM, RestN))</span>
+    <span class="n">gB</span> <span class="o">=</span> <span class="n">cute</span><span class="o">.</span><span class="n">zipped_divide</span><span class="p">(</span><span class="n">mB</span><span class="p">,</span> <span class="n">tiler_mn</span><span class="p">)</span>  <span class="c1"># ((TileM, TileN), (RestM, RestN))</span>
+    <span class="n">gC</span> <span class="o">=</span> <span class="n">cute</span><span class="o">.</span><span class="n">zipped_divide</span><span class="p">(</span><span class="n">mC</span><span class="p">,</span> <span class="n">tiler_mn</span><span class="p">)</span>  <span class="c1"># ((TileM, TileN), (RestM, RestN))</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Tiled Input Tensors:&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  gA: </span><span class="si">{</span><span class="n">gA</span><span class="o">.</span><span class="n">type</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  gB: </span><span class="si">{</span><span class="n">gB</span><span class="o">.</span><span class="n">type</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  gC: </span><span class="si">{</span><span class="n">gC</span><span class="o">.</span><span class="n">type</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Launch the kernel asynchronously</span>
+    <span class="c1"># Async token(s) can also be specified as dependencies</span>
+    <span class="n">elementwise_add_kernel</span><span class="p">(</span><span class="n">gA</span><span class="p">,</span> <span class="n">gB</span><span class="p">,</span> <span class="n">gC</span><span class="p">,</span> <span class="n">tv_layout</span><span class="p">)</span><span class="o">.</span><span class="n">launch</span><span class="p">(</span>
+        <span class="n">grid</span><span class="o">=</span><span class="p">[</span><span class="n">cute</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="n">gC</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">]),</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span>
+        <span class="n">block</span><span class="o">=</span><span class="p">[</span><span class="n">cute</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="n">tv_layout</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span>
+    <span class="p">)</span>
+</pre></div>
+<p>Running this will print out:</p>
+<div class="highlight"><pre><span></span>Tiler: (16, 256)
+TV Layout: ((32,4),(8,4)):((128,4),(16,1))
+Tiled Input Tensors:
+  gA: !cute.memref&lt;f16, gmem, align&lt;16&gt;, &quot;((16,256),(128,8)):((2048,1),(32768,256))&quot;&gt;
+  gB: !cute.memref&lt;f16, gmem, align&lt;16&gt;, &quot;((16,256),(128,8)):((2048,1),(32768,256))&quot;&gt;
+  gC: !cute.memref&lt;f16, gmem, align&lt;16&gt;, &quot;((16,256),(128,8)):((2048,1),(32768,256))&quot;&gt;
+Composed with TV layout:
+  tidfrgA: !cute.memref&lt;f16, gmem, align&lt;16&gt;, &quot;((32,4),(8,4)):((8,8192),(1,2048))&quot;&gt;
+thrA/B/C:
+  thrA: !cute.memref&lt;f16, gmem, align&lt;16&gt;, &quot;((8,4)):((1,2048))&quot;&gt;
+  thrB: !cute.memref&lt;f16, gmem, align&lt;16&gt;, &quot;((8,4)):((1,2048))&quot;&gt;
+  thrC: !cute.memref&lt;f16, gmem, align&lt;16&gt;, &quot;((8,4)):((1,2048))&quot;&gt;
+</pre></div>
+<p>We see that now we have a hierarchy in the tiling: <code>BLOCK TILE -&gt; THREAD TILE</code>.
+TV layout is a map from the pairs <code>(THREAD, VALUE)</code> to the pair <code>(TILE_M, TILE_N)</code>.
+The tiled layouts are a map from <code>(TILE_M, TILE_N)</code> to the physical address in memory.
+Therefore the composition of the to is a map from <code>(THREAD, VALUE)</code> to the physical address in memory.
+<code>make_layout_tv</code> will giv us the correct <code>tiler_mn</code> and <code>tv_layout</code> to obtain a valid map.</p>
+<p>Let's take a closer look at thread and value layouts:</p>
+<div class="highlight"><pre><span></span><span class="n">thr_layout</span> <span class="o">=</span> <span class="n">cute</span><span class="o">.</span><span class="n">make_layout</span><span class="p">((</span><span class="mi">4</span><span class="p">,</span> <span class="mi">32</span><span class="p">),</span> <span class="n">stride</span><span class="o">=</span><span class="p">(</span><span class="mi">32</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
+<span class="n">val_layout</span> <span class="o">=</span> <span class="n">cute</span><span class="o">.</span><span class="n">make_layout</span><span class="p">((</span><span class="mi">4</span><span class="p">,</span> <span class="mi">8</span><span class="p">),</span> <span class="n">stride</span><span class="o">=</span><span class="p">(</span><span class="mi">8</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
+</pre></div>
+<p>Threads are organised into warps. A warp consists of <code>32</code> elements. Sequential memory accesses by threads within a warp can be grouped and executed as one. The above thread layout uses this fact and makes the threads within one warp sequential, i.e. they are next to each other in memory. In this way we organize a whole warp group, which is defined as the grouping of 4 warps.</p>
+<p>The value layout reflects the fact that we load 8 sequential elements in one row. This can be done with an <code>8 * 16B = 128B</code> load instruction. Each thread does this for 4 contiguous rows. This can be thought as a form of thread coarsening because we let each thread load multiple elements.</p>
+<p>With the above setting this kernel archives <code>2960.80 GB/s</code>. Note we could potentially apply <a href='https://docs.nvidia.com/cutlass/media/docs/pythonDSL/cute_dsl_general/autotuning_gemm.html'>Autotuning</a> to improve performance, but I will stop at this point to keep the blog concise.</p>
+<h2 id=conclusion>Conclusion</h2><p>I hope the above block can explain some of the concepts behind <code>CuTeDSL</code> for <code>CUDA</code> programmers more accessible.
+For more tutorials please see the <a href='https://github.com/NVIDIA/cutlass/tree/main/examples/python/CuTeDSL'>CuTeDSL</a> example folder of the <code>CUTLASS</code> repo.</p>
+
+
+    
+
+    
+        
+
+        
+            <form id="upvote-form" action="/upvote/" method="post" style="display: inline">
+    <small>
+        <input hidden name="uid" value="YtbRVNHkPnkRFpqojFxR" style="display:none">
+        <input hidden name="title" value="An applied introduction to CuTeDSL" style="display:none">
+
+        <button
+            class="upvote-button"
+            aria-label="Toast this post"
+            title="Toast this post"
+        >
+            <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" class="css-i6dzq1">
+                <polyline points="17 11 12 6 7 11"></polyline>
+                <polyline points="17 18 12 13 7 18"></polyline>
+            </svg>
+            <small class="upvote-count" aria-hidden="true">&nbsp;</small>
+        </button>
+    </small>        
+</form>
+
+<script>
+    const $upvoteButton = document.querySelector('.upvote-button');
+    const $upvoteCount =  document.querySelector('.upvote-count')
+
+    fetch('/upvote-info/YtbRVNHkPnkRFpqojFxR/').then(response => response.json()).then(data => {
+        $upvoteCount.innerText = data.upvote_count;
+        if (data.upvoted) {
+            $upvoteButton.disabled = true
+            $upvoteButton.style.color = "salmon"
+            $upvoteButton.ariaLabel = "Toasted"
+            $upvoteButton.title = "Toasted"
+        }
+        $upvoteButton.ariaLabel += ` (${data.upvote_count})`
+    });
+
+    let moved = false;
+    let pageLoaded = Date.now();
+
+    document.addEventListener('touchmove', () => moved = true);
+    document.addEventListener('mousemove', () => moved = true);
+
+    document.querySelector('#upvote-form').addEventListener('submit', (e) => {
+        e.preventDefault();
+
+        if (moved) {
+            document.querySelector('input[name="title"]').value = "";
+        }
+        if (Date.now() - pageLoaded < 2000 || !moved) {
+            return;
+        }
+
+        fetch(e.target.action, {
+            method: 'post',
+            body: new FormData(e.target),
+        });
+        
+        $upvoteButton.disabled = true
+        $upvoteButton.style.color = "salmon"
+        $upvoteButton.ariaLabel = "Toasted"
+        $upvoteButton.title = "Toasted"
+        const newUpvoteCount = `${(parseInt($upvoteCount.innerHTML.split(" ")[0]) + 1)}`
+        $upvoteCount.innerHTML = newUpvoteCount
+        $upvoteButton.ariaLabel += ` (${newUpvoteCount})`
+    });
+</script>
+        
+
+        
+            <script>
+            window.addEventListener("load", () => {
+                if (navigator.webdriver !== true) {
+                    const sendHit = score => {
+                        const params = new URLSearchParams({
+                            blog: "veitner",
+                            token: "YtbRVNHkPnkRFpqojFxR",
+                            referrer: document.referrer.includes("veitner.bearblog.dev") ? "" : document.referrer,
+                            title: "",
+                            score: score
+                        });
+                        new Image().src = `/hit/?${params.toString()}`;
+                    };
+
+                    document.addEventListener('touchmove', () => sendHit(100), { once: true });
+                    document.addEventListener('mousemove', () => sendHit(100), { once: true });
+                }
+            });
+            </script>
+        
+    
+
+
+  </main>
+  <footer>
+    
+    
+    <span>
+        Powered by <a href="https://bearblog.dev">Bear <span role="img" class="bear" aria-label="ASCII bear logo">ʕ•ᴥ•ʔ</span></a>
+    </span>
+
+  </footer>
+
+  
+  <script>
+        (() => {
+          "use strict";
+          const times = document.querySelectorAll('time');
+          const format_string = "d M, Y" || "d M, Y"
+
+          times.forEach(time => {
+              time.innerText = formatDate(time.dateTime, format_string)
+          });
+
+          function formatDate(dateStr, formatStr) {
+            const date = new Date(dateStr);
+            const day = date.getDate();
+            const month = date.getMonth();
+            const year = date.getFullYear();
+            const weekday = date.getDay();
+            const hours = date.getHours();
+            const minutes = date.getMinutes();
+            const monthsFull = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+            const monthsShort = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+            const daysFull = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+            const daysShort = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+            
+            function getOrdinal(n) {
+                const s = ['th', 'st', 'nd', 'rd'];
+                const v = n % 100;
+                return s[(v - 20) % 10] || s[v] || s[0];
+            }
+            
+            const map = {
+                'd': () => day.toString().padStart(2, '0'),
+                'm': () => (month + 1).toString().padStart(2, '0'),
+                'Y': () => year.toString(),
+                'y': () => year.toString().slice(-2),
+                'F': () => monthsFull[month],
+                'j': () => day.toString(),
+                'D': () => daysShort[weekday],
+                'l': () => daysFull[weekday],
+                'S': () => getOrdinal(day),
+                'M': () => monthsShort[month],
+                'H': () => hours.toString().padStart(2, '0'),
+                'h': () => {
+                    let h = hours % 12;
+                    h = h === 0 ? 12 : h;
+                    return h.toString().padStart(2, '0');
+                },
+                'g': () => {
+                    let h = hours % 12;
+                    return h === 0 ? '12' : h.toString();
+                },
+                'i': () => minutes.toString().padStart(2, '0'),
+                'a': () => hours < 12 ? 'am' : 'pm',
+                'A': () => hours < 12 ? 'AM' : 'PM',
+            };
+            
+            let result = '';
+            for (let char of formatStr) {
+                result += map[char] ? map[char]() : char;
+            }
+            return result;
+        }
+        })();
+    </script>
+    
+</body>
+<!-- ID: veitner -->
+<!-- 🐻 -->
+</html>

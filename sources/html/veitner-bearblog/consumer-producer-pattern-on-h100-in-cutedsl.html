@@ -1,0 +1,641 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!-- Powered by Bear Blog -->
+
+<head>
+  
+  
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5">
+  
+  <title>Consumer-Producer pattern on H100 in CuTeDSL | simons blog</title>
+  <link rel="canonical" href="https://veitner.bearblog.dev/consumer-producer-pattern-on-h100-in-cutedsl/">
+  
+    
+
+    <meta name="veitner" content="look-for-the-bear-necessities">
+    <meta name="token" content="BvkwRoNszgiqdRucpptL">
+
+    
+<!-- Primary Meta Tags -->
+<meta name="title" content="Consumer-Producer pattern on H100 in CuTeDSL">
+<meta name="description" content="GPUs are bound by memory transfer. As I explained in a past post this makes it oftentimes necessary to overlap memory transfer and computation to archive pea...">
+
+<!-- Open Graph / Facebook -->
+<meta property="og:site_name" content="simons blog">
+<meta property="og:title" content="Consumer-Producer pattern on H100 in CuTeDSL">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://veitner.bearblog.dev/consumer-producer-pattern-on-h100-in-cutedsl/">
+<meta property="og:description" content="GPUs are bound by memory transfer. As I explained in a past post this makes it oftentimes necessary to overlap memory transfer and computation to archive pea...">
+<meta property="og:image" content="/static/og-image.png">
+
+
+<!-- Twitter -->
+<meta property="twitter:card" content="summary">
+<meta property="twitter:url" content="https://veitner.bearblog.dev/consumer-producer-pattern-on-h100-in-cutedsl/">
+<meta property="twitter:title" content="Consumer-Producer pattern on H100 in CuTeDSL">
+<meta property="twitter:description" content="GPUs are bound by memory transfer. As I explained in a past post this makes it oftentimes necessary to overlap memory transfer and computation to archive pea...">
+<meta property="twitter:image" content="/static/og-image.png">
+
+
+
+<!-- Microdata -->
+<script type="application/ld+json">
+  {
+    "@context": "http://schema.org",
+    "@type": "article",
+    "name": "Consumer-Producer pattern on H100 in CuTeDSL",
+    "headline": "Consumer-Producer pattern on H100 in CuTeDSL",
+    "url": "https://veitner.bearblog.dev/consumer-producer-pattern-on-h100-in-cutedsl/",
+    "description": "GPUs are bound by memory transfer. As I explained in a past post this makes it oftentimes necessary to overlap memory transfer and computation to archive pea...",
+    "image": "/static/og-image.png"
+  }
+</script>
+    <link rel="alternate" type="application/atom+xml" href="/feed/" title="simons blog">
+    <link rel="alternate" type="application/rss+xml" href="/feed/?type=rss" title="simons blog">
+
+  
+    
+
+    
+    <style>pre { line-height: 125%; }
+td.linenos .normal { color: #666666; background-color: transparent; padding-left: 5px; padding-right: 5px; }
+span.linenos { color: #666666; background-color: transparent; padding-left: 5px; padding-right: 5px; }
+td.linenos .special { color: #000000; background-color: #ffffc0; padding-left: 5px; padding-right: 5px; }
+span.linenos.special { color: #000000; background-color: #ffffc0; padding-left: 5px; padding-right: 5px; }
+.highlight .hll { background-color: #ffffcc }
+.highlight { background: #f0f0f0; }
+.highlight .c { color: #60A0B0; font-style: italic } /* Comment */
+.highlight .err { border: 1px solid #F00 } /* Error */
+.highlight .k { color: #007020; font-weight: bold } /* Keyword */
+.highlight .o { color: #666 } /* Operator */
+.highlight .ch { color: #60A0B0; font-style: italic } /* Comment.Hashbang */
+.highlight .cm { color: #60A0B0; font-style: italic } /* Comment.Multiline */
+.highlight .cp { color: #007020 } /* Comment.Preproc */
+.highlight .cpf { color: #60A0B0; font-style: italic } /* Comment.PreprocFile */
+.highlight .c1 { color: #60A0B0; font-style: italic } /* Comment.Single */
+.highlight .cs { color: #60A0B0; background-color: #FFF0F0 } /* Comment.Special */
+.highlight .gd { color: #A00000 } /* Generic.Deleted */
+.highlight .ge { font-style: italic } /* Generic.Emph */
+.highlight .ges { font-weight: bold; font-style: italic } /* Generic.EmphStrong */
+.highlight .gr { color: #F00 } /* Generic.Error */
+.highlight .gh { color: #000080; font-weight: bold } /* Generic.Heading */
+.highlight .gi { color: #00A000 } /* Generic.Inserted */
+.highlight .go { color: #888 } /* Generic.Output */
+.highlight .gp { color: #C65D09; font-weight: bold } /* Generic.Prompt */
+.highlight .gs { font-weight: bold } /* Generic.Strong */
+.highlight .gu { color: #800080; font-weight: bold } /* Generic.Subheading */
+.highlight .gt { color: #04D } /* Generic.Traceback */
+.highlight .kc { color: #007020; font-weight: bold } /* Keyword.Constant */
+.highlight .kd { color: #007020; font-weight: bold } /* Keyword.Declaration */
+.highlight .kn { color: #007020; font-weight: bold } /* Keyword.Namespace */
+.highlight .kp { color: #007020 } /* Keyword.Pseudo */
+.highlight .kr { color: #007020; font-weight: bold } /* Keyword.Reserved */
+.highlight .kt { color: #902000 } /* Keyword.Type */
+.highlight .m { color: #40A070 } /* Literal.Number */
+.highlight .s { color: #4070A0 } /* Literal.String */
+.highlight .na { color: #4070A0 } /* Name.Attribute */
+.highlight .nb { color: #007020 } /* Name.Builtin */
+.highlight .nc { color: #0E84B5; font-weight: bold } /* Name.Class */
+.highlight .no { color: #60ADD5 } /* Name.Constant */
+.highlight .nd { color: #555; font-weight: bold } /* Name.Decorator */
+.highlight .ni { color: #D55537; font-weight: bold } /* Name.Entity */
+.highlight .ne { color: #007020 } /* Name.Exception */
+.highlight .nf { color: #06287E } /* Name.Function */
+.highlight .nl { color: #002070; font-weight: bold } /* Name.Label */
+.highlight .nn { color: #0E84B5; font-weight: bold } /* Name.Namespace */
+.highlight .nt { color: #062873; font-weight: bold } /* Name.Tag */
+.highlight .nv { color: #BB60D5 } /* Name.Variable */
+.highlight .ow { color: #007020; font-weight: bold } /* Operator.Word */
+.highlight .w { color: #BBB } /* Text.Whitespace */
+.highlight .mb { color: #40A070 } /* Literal.Number.Bin */
+.highlight .mf { color: #40A070 } /* Literal.Number.Float */
+.highlight .mh { color: #40A070 } /* Literal.Number.Hex */
+.highlight .mi { color: #40A070 } /* Literal.Number.Integer */
+.highlight .mo { color: #40A070 } /* Literal.Number.Oct */
+.highlight .sa { color: #4070A0 } /* Literal.String.Affix */
+.highlight .sb { color: #4070A0 } /* Literal.String.Backtick */
+.highlight .sc { color: #4070A0 } /* Literal.String.Char */
+.highlight .dl { color: #4070A0 } /* Literal.String.Delimiter */
+.highlight .sd { color: #4070A0; font-style: italic } /* Literal.String.Doc */
+.highlight .s2 { color: #4070A0 } /* Literal.String.Double */
+.highlight .se { color: #4070A0; font-weight: bold } /* Literal.String.Escape */
+.highlight .sh { color: #4070A0 } /* Literal.String.Heredoc */
+.highlight .si { color: #70A0D0; font-style: italic } /* Literal.String.Interpol */
+.highlight .sx { color: #C65D09 } /* Literal.String.Other */
+.highlight .sr { color: #235388 } /* Literal.String.Regex */
+.highlight .s1 { color: #4070A0 } /* Literal.String.Single */
+.highlight .ss { color: #517918 } /* Literal.String.Symbol */
+.highlight .bp { color: #007020 } /* Name.Builtin.Pseudo */
+.highlight .fm { color: #06287E } /* Name.Function.Magic */
+.highlight .vc { color: #BB60D5 } /* Name.Variable.Class */
+.highlight .vg { color: #BB60D5 } /* Name.Variable.Global */
+.highlight .vi { color: #BB60D5 } /* Name.Variable.Instance */
+.highlight .vm { color: #BB60D5 } /* Name.Variable.Magic */
+.highlight .il { color: #40A070 } /* Literal.Number.Integer.Long */
+</style>
+  
+  
+  
+    
+        <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20100%20100'%3E%3Ctext%20y='.9em'%20font-size='90'%3E🐼%3C/text%3E%3C/svg%3E">
+    
+
+
+
+  <style>
+      
+      
+    
+:root {
+    --width: 720px;
+    --font-main: Verdana, sans-serif;
+    --font-secondary: Verdana, sans-serif;
+    --font-scale: 1em;
+    --background-color: #fff;
+    --heading-color: #222;
+    --text-color: #444;
+    --link-color: #3273dc;
+    --visited-color:  #8b6fcb;
+    --code-background-color: #f2f2f2;
+    --code-color: #222;
+    --blockquote-color: #222;
+}
+
+@media (prefers-color-scheme: dark) {
+    :root {
+        --background-color: #01242e;
+        --heading-color: #eee;
+        --text-color: #ddd;
+        --link-color: #8cc2dd;
+        --visited-color:  #8b6fcb;
+        --code-background-color: #000;
+        --code-color: #ddd;
+        --blockquote-color: #ccc;
+    }
+}
+
+body {
+    font-family: var(--font-secondary);
+    font-size: var(--font-scale);
+    margin: auto;
+    padding: 20px;
+    max-width: var(--width);
+    text-align: left;
+    background-color: var(--background-color);
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    line-height: 1.5;
+    color: var(--text-color);
+}
+
+h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-main);
+    color: var(--heading-color);
+}
+
+a {
+    color: var(--link-color);
+    cursor: pointer;
+    text-decoration: none;
+}
+
+a:hover {
+    text-decoration: underline; 
+}
+
+nav a {
+    margin-right: 8px;
+}
+
+strong, b {
+    color: var(--heading-color);
+}
+
+button {
+    margin: 0;
+    cursor: pointer;
+}
+
+time {
+ 	font-family: monospace;
+  	font-style: normal;
+  	font-size: 15px;
+}
+
+main {
+    line-height: 1.6;
+}
+
+table {
+    width: 100%;
+}
+
+hr {
+    border: 0;
+    border-top: 1px dashed;
+}
+
+img {
+    max-width: 100%;
+}
+
+code {
+    font-family: monospace;
+    padding: 2px;
+    background-color: var(--code-background-color);
+    color: var(--code-color);
+    border-radius: 3px;
+}
+
+blockquote {
+    border-left: 1px solid #999;
+    color: var(--code-color);
+    padding-left: 20px;
+    font-style: italic;
+}
+
+footer {
+    padding: 25px 0;
+    text-align: center;
+}
+
+.title:hover {
+    text-decoration: none;
+}
+
+.title h1 {
+    font-size: 1.5em;
+}
+
+.inline {
+    width: auto !important;
+}
+
+.highlight, .code {
+    padding: 1px 15px;
+    background-color: var(--code-background-color);
+    color: var(--code-color);
+    border-radius: 3px;
+    margin-block-start: 1em;
+    margin-block-end: 1em;
+    overflow-x: auto;
+}
+
+/* blog post list */
+ul.blog-posts {
+    list-style-type: none;
+    padding: unset;
+}
+
+ul.blog-posts li {
+    display: flex;
+}
+
+ul.blog-posts li span {
+    flex: 0 0 130px;
+}
+
+ul.blog-posts li a:visited {
+    color: var(--visited-color);
+}
+    .upvote-button {
+        padding: 0;
+        margin: 0;
+        border: 0;
+        background-color: inherit;
+        color: inherit;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+    .upvote-button.upvoted {
+        color: salmon;
+    }
+    .upvote-count {
+        margin-top: -3px;
+    }
+
+      
+  </style>
+</head>
+
+<body class="post " onload="(function() { document.cookie = `timezone=${Intl.DateTimeFormat().resolvedOptions().timeZone};path=/`; })()">
+  
+  <header>
+    <a class="title" href="/">
+      <h1>
+        simons blog
+      </h1>
+    </a>
+    <nav>
+      <p><a href='/'>Home</a> <a href='/blog/'>Blog</a></p>
+
+    </nav>
+  </header>
+  <main>
+    
+
+    
+
+    
+        <h1>Consumer-Producer pattern on H100 in CuTeDSL</h1>
+
+        <p>
+            <i>
+                <time datetime="2025-07-20T16:22Z">
+    20 Jul, 2025
+</time>
+            </i>
+        </p>
+    
+
+    <p><code>GPUs</code> are bound by memory transfer. As I explained in a past post this makes it oftentimes necessary to overlap memory transfer and computation to archive peak performance.
+In this blogpost I will focus on the PTX instructions around mbarrier which is the concept needed to implement Consumer Producer Patterns from scratch on Hopper GPUs. I take a an efficient RMSNorm backwards kernel and analyse the code related to the communication between Producer and Consumer.
+I assume the <a href='https://github.com/Dao-AILab/quack/blob/main/quack/rmsnorm.py'>code</a> is known so make sure to take a look at <code>RMSNormBackward</code> before continuing to read.</p>
+<h2 id=analysis>Analysis</h2><p>We initialise the <code>mbar_ptr</code> calling</p>
+<div class="highlight"><pre><span></span>        <span class="n">reduction_buffer</span><span class="p">,</span> <span class="n">mbar_ptr</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_allocate_reduction_buffer_and_mbar</span><span class="p">(</span>
+            <span class="n">smem</span><span class="p">,</span> <span class="n">tv_layout</span><span class="p">,</span> <span class="n">is_persistent</span><span class="o">=</span><span class="kc">True</span>
+        <span class="p">)</span>
+</pre></div>
+<p>this will reserve the appropriate section in memory on the <code>SMEM</code>. Here <code>stage = 2</code>, so we have <code>4</code> elements in <code>mbar_ptr</code>.</p>
+<div class="highlight"><pre><span></span>            <span class="n">mbar_ptr</span> <span class="o">=</span> <span class="n">smem</span><span class="o">.</span><span class="n">allocate_array</span><span class="p">(</span>
+                <span class="n">cutlass</span><span class="o">.</span><span class="n">Int64</span><span class="p">,</span> <span class="n">num_elems</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">stage</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">is_persistent</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">stage</span> <span class="o">*</span> <span class="mi">2</span>
+            <span class="p">)</span>
+</pre></div>
+<p>We'll than identify the <code>full_barrier</code> and the <code>empty_barrier</code> using pointer arithmetics</p>
+<div class="highlight"><pre><span></span><span class="n">mbar_full_ptr</span><span class="p">,</span> <span class="n">mbar_empty_ptr</span> <span class="o">=</span> <span class="n">mbar_ptr</span><span class="p">,</span> <span class="n">mbar_ptr</span> <span class="o">+</span> <span class="mi">2</span>
+</pre></div>
+<p>Two elements will be used for each of the above barriers.</p>
+<p>We will use these in the following way:</p>
+<p><code>empty_barrier[s].wait()</code> will be used by the producer to decide if the index <code>s</code> in the buffer is ready to be filled. If that is the case producer will transfer from <code>GMEM -&gt; SMEM</code> and signal via <code>full_barrier[s].arrive()</code> that it is done with the processing.</p>
+<p>Similar the consumer uses <code>full_barrier[s].wait()</code> to see if it can perform the computation for the corresponding element in the buffer (in our case <code>reduction</code>) and will let producer know via <code>empty_barrier[s].arrive()</code> that it's done doing so. We will see that the instruction additionally expects a <code>phase</code> variable which will be a <code>bit</code> of information that keeps track of parity of how many times we called <code>wait</code> on a barrier.</p>
+<p>Let us see how this is implemented in <code>QuACK</code> which uses the <code>CuTeDSL</code>.</p>
+<p>Before entering the loop we perform a prefetch of the first batch and <code>commit</code> this operation.</p>
+<div class="highlight"><pre><span></span>        <span class="c1"># Prefetch the first batch</span>
+        <span class="n">row</span> <span class="o">=</span> <span class="n">tXcX</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="n">bidx_start</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">row</span> <span class="o">&lt;</span> <span class="n">M</span><span class="p">:</span>
+            <span class="o">...</span>
+        <span class="k">elif</span> <span class="n">tiler_mn</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="c1"># Fill with zero, otherwise smem will be uninitialized, and we could read this back</span>
+            <span class="c1"># later into registers, causing wrong dW.</span>
+            <span class="o">...</span>
+        <span class="n">cute</span><span class="o">.</span><span class="n">arch</span><span class="o">.</span><span class="n">cp_async_commit_group</span><span class="p">()</span>
+
+        <span class="k">if</span> <span class="n">cutlass</span><span class="o">.</span><span class="n">const_expr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cluster_n</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">):</span>
+            <span class="n">cute</span><span class="o">.</span><span class="n">arch</span><span class="o">.</span><span class="n">cluster_wait</span><span class="p">()</span>
+</pre></div>
+<p>We'll than initialise the stage and the phases. The stage tells us which tile is currently being processed. Note that the producer phase get's initialised to <code>1</code> because we performed the prefetch above.</p>
+<div class="highlight"><pre><span></span>        <span class="n">stage</span> <span class="o">=</span> <span class="n">cutlass</span><span class="o">.</span><span class="n">Int32</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+        <span class="n">producer_phase</span> <span class="o">=</span> <span class="n">cutlass</span><span class="o">.</span><span class="n">Int32</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">consumer_phase</span> <span class="o">=</span> <span class="n">cutlass</span><span class="o">.</span><span class="n">Int32</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+</pre></div>
+<p>We'll than loop in a fashion that allows for one block to process multiple tiles if the total number of blocks would not cover the whole row dimension of the input matrix. In <code>CUDA</code> this is sometimes called a <a href='https://developer.nvidia.com/blog/cuda-pro-tip-write-flexible-kernels-grid-stride-loops/'>Grid-Stride Loop</a>.</p>
+<div class="highlight"><pre><span></span><span class="k">for</span> <span class="n">bidx</span> <span class="ow">in</span> <span class="n">cutlass</span><span class="o">.</span><span class="n">range</span><span class="p">(</span><span class="n">bidx_start</span><span class="p">,</span> <span class="n">cute</span><span class="o">.</span><span class="n">ceil_div</span><span class="p">(</span><span class="n">M</span><span class="p">,</span> <span class="n">tiler_mn</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="n">gdim</span><span class="p">):</span>
+</pre></div>
+<p>At the beginning of each loop we prefetch the next batch (<code>stage ^ 1</code>):</p>
+<div class="highlight"><pre><span></span>            <span class="k">if</span> <span class="n">row</span> <span class="o">+</span> <span class="n">gdim</span> <span class="o">*</span> <span class="n">tiler_mn</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">M</span><span class="p">:</span>  <span class="c1"># Prefetch the next batch</span>
+                <span class="o">...</span>
+            <span class="k">elif</span> <span class="n">tiler_mn</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="o">...</span>
+            <span class="n">cute</span><span class="o">.</span><span class="n">arch</span><span class="o">.</span><span class="n">cp_async_commit_group</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">row</span> <span class="o">&lt;</span> <span class="n">M</span> <span class="ow">or</span> <span class="n">tiler_mn</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="n">rstd</span> <span class="o">=</span> <span class="n">mRstd</span><span class="p">[</span><span class="n">row</span><span class="p">]</span>
+            <span class="n">cute</span><span class="o">.</span><span class="n">arch</span><span class="o">.</span><span class="n">cp_async_wait_group</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+</pre></div>
+<p>Note that we call <code>cute.arch.cp_async_wait_group(1)</code>. The argument <code>1</code> means we wait until <code>1</code> <code>cp_async</code> instruction is pending. This makes sense because we don't need the copy of the next batch to be finished at this point.</p>
+<p>We perform <code>wait</code> on the <code>empty[stage]</code> barrier for the current <code>stage</code>. I.e we check with the <code>producer</code> if the current tile is ready to be copied.</p>
+<div class="highlight"><pre><span></span>            <span class="k">if</span> <span class="n">cutlass</span><span class="o">.</span><span class="n">const_expr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cluster_n</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">):</span>
+                <span class="n">cute</span><span class="o">.</span><span class="n">arch</span><span class="o">.</span><span class="n">mbarrier_wait</span><span class="p">(</span><span class="n">mbar_empty_ptr</span> <span class="o">+</span> <span class="n">stage</span><span class="p">,</span> <span class="n">producer_phase</span><span class="p">)</span>
+</pre></div>
+<p>We'll than call the <code>row_reduce</code> function and provide it with the <code>full_barrier</code>.</p>
+<div class="highlight"><pre><span></span>            <span class="n">mean_xhat_wdy</span> <span class="o">=</span> <span class="p">(</span>
+                <span class="n">utils</span><span class="o">.</span><span class="n">row_reduce</span><span class="p">(</span>
+                    <span class="o">...</span>
+                    <span class="p">(</span><span class="n">mbar_full_ptr</span> <span class="o">+</span> <span class="n">stage</span> <span class="k">if</span> <span class="n">cutlass</span><span class="o">.</span><span class="n">const_expr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cluster_n</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">)</span> <span class="k">else</span> <span class="kc">None</span><span class="p">),</span>
+                    <span class="n">phase</span><span class="o">=</span><span class="n">consumer_phase</span><span class="p">,</span>
+                    <span class="o">...</span>
+                <span class="p">)</span>
+                <span class="o">/</span> <span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+            <span class="p">)</span>
+</pre></div>
+<p>Inside it we will call <code>cluster_reduce</code> (in the case we consider here, i.e. we use cluster).</p>
+<div class="highlight"><pre><span></span>    <span class="k">if</span> <span class="n">warp_idx</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">with</span> <span class="n">cute</span><span class="o">.</span><span class="n">arch</span><span class="o">.</span><span class="n">elect_one</span><span class="p">():</span>
+            <span class="n">num_warps</span> <span class="o">=</span> <span class="n">rows_per_block</span> <span class="o">*</span> <span class="n">warps_per_row</span>
+            <span class="n">cute</span><span class="o">.</span><span class="n">arch</span><span class="o">.</span><span class="n">mbarrier_arrive_and_expect_tx</span><span class="p">(</span>
+                <span class="n">mbar_ptr</span><span class="p">,</span>
+                <span class="n">num_warps</span> <span class="o">*</span> <span class="n">cluster_n</span> <span class="o">*</span> <span class="n">reduction_buffer</span><span class="o">.</span><span class="n">element_type</span><span class="o">.</span><span class="n">width</span> <span class="o">//</span> <span class="mi">8</span><span class="p">,</span>
+            <span class="p">)</span>
+</pre></div>
+<p>i.e. producer <code>arrives</code> on <code>full_barrier[s]</code> and expects a specified number of bytes (which is determined by the shape of the reduction buffer).</p>
+<p>We'll than call <code>wait</code> on <code>full_barrier[s]</code>, i.e. consumer checks if the tile is ready to be processed with it's <code>phase</code> and than if that is the case performs the reduction.</p>
+<div class="highlight"><pre><span></span>    <span class="n">cute</span><span class="o">.</span><span class="n">arch</span><span class="o">.</span><span class="n">mbarrier_wait</span><span class="p">(</span><span class="n">mbar_ptr</span><span class="p">,</span> <span class="n">phase</span><span class="o">=</span><span class="n">phase</span> <span class="k">if</span> <span class="n">phase</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="mi">0</span><span class="p">)</span>
+    <span class="n">block_reduce_val</span> <span class="o">=</span> <span class="n">init_val</span>
+    <span class="n">num_iter</span> <span class="o">=</span> <span class="n">cute</span><span class="o">.</span><span class="n">ceil_div</span><span class="p">(</span><span class="n">warps_per_row</span> <span class="o">*</span> <span class="n">cluster_n</span><span class="p">,</span> <span class="n">cute</span><span class="o">.</span><span class="n">arch</span><span class="o">.</span><span class="n">WARP_SIZE</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">cutlass</span><span class="o">.</span><span class="n">range_constexpr</span><span class="p">(</span><span class="n">num_iter</span><span class="p">):</span>
+        <span class="n">idx</span> <span class="o">=</span> <span class="n">lane_idx</span> <span class="o">+</span> <span class="n">i</span> <span class="o">*</span> <span class="n">cute</span><span class="o">.</span><span class="n">arch</span><span class="o">.</span><span class="n">WARP_SIZE</span>
+        <span class="k">if</span> <span class="n">idx</span> <span class="o">&lt;</span> <span class="n">cute</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="n">reduction_buffer</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">]):</span>
+            <span class="n">block_reduce_val</span> <span class="o">=</span> <span class="n">op</span><span class="p">(</span><span class="n">block_reduce_val</span><span class="p">,</span> <span class="n">reduction_buffer</span><span class="p">[</span><span class="n">row_idx</span><span class="p">,</span> <span class="n">idx</span><span class="p">])</span>
+    <span class="k">return</span> <span class="n">warp_reduce</span><span class="p">(</span><span class="n">block_reduce_val</span><span class="p">,</span> <span class="n">op</span><span class="p">)</span>
+</pre></div>
+<p>After being done we arrive on the <code>empty_barrier[stage]</code> to signal completion of the reduction op</p>
+<div class="highlight"><pre><span></span>            <span class="k">if</span> <span class="n">cutlass</span><span class="o">.</span><span class="n">const_expr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cluster_n</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">):</span>
+                <span class="c1"># It&#39;s faster to have 1 lane per warp to signal the mbar, rather than all lanes</span>
+                <span class="c1"># Requires adjusting the thread_count when initializing the mbar</span>
+                <span class="n">cute</span><span class="o">.</span><span class="n">arch</span><span class="o">.</span><span class="n">sync_warp</span><span class="p">()</span>
+                <span class="n">lane_idx</span> <span class="o">=</span> <span class="n">cute</span><span class="o">.</span><span class="n">arch</span><span class="o">.</span><span class="n">lane_idx</span><span class="p">()</span>
+                <span class="k">if</span> <span class="n">lane_idx</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">cluster_n</span><span class="p">:</span>
+                    <span class="n">cute</span><span class="o">.</span><span class="n">arch</span><span class="o">.</span><span class="n">mbarrier_arrive</span><span class="p">(</span>
+                        <span class="n">mbar_empty_ptr</span> <span class="o">+</span> <span class="n">stage</span><span class="p">,</span> <span class="n">peer_cta_rank_in_cluster</span><span class="o">=</span><span class="n">lane_idx</span>
+                    <span class="p">)</span>
+</pre></div>
+<p>We'll than update the stage. If one stage is finished (i.e. we went one time through a cycle of length <code>2</code> in our case) we update the phases as well.</p>
+<div class="highlight"><pre><span></span>            <span class="n">stage</span> <span class="o">^=</span> <span class="mi">1</span>
+            <span class="k">if</span> <span class="n">stage</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">consumer_phase</span> <span class="o">^=</span> <span class="mi">1</span>
+                <span class="n">producer_phase</span> <span class="o">^=</span> <span class="mi">1</span>
+</pre></div>
+<p>To prevent early exit of cluster we perform another <code>wait</code> on the <code>empty_barrier[stage]</code></p>
+<div class="highlight"><pre><span></span>        <span class="k">if</span> <span class="n">cutlass</span><span class="o">.</span><span class="n">const_expr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cluster_n</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">):</span>  <span class="c1"># Prevent cluster from exiting early</span>
+            <span class="n">cute</span><span class="o">.</span><span class="n">arch</span><span class="o">.</span><span class="n">mbarrier_wait</span><span class="p">(</span><span class="n">mbar_empty_ptr</span> <span class="o">+</span> <span class="n">stage</span><span class="p">,</span> <span class="n">producer_phase</span><span class="p">)</span>
+</pre></div>
+<h2 id=conclusion>Conclusion</h2><p>I hope this blogpost made the <code>mbarrier</code> instructions more accessible and helps in understanding the Backward Kernel for <code>RMSNorm</code> in <code>QuACK</code>.</p>
+
+
+    
+
+    
+        
+
+        
+            <form id="upvote-form" action="/upvote/" method="post" style="display: inline">
+    <small>
+        <input hidden name="uid" value="BvkwRoNszgiqdRucpptL" style="display:none">
+        <input hidden name="title" value="Consumer-Producer pattern on H100 in CuTeDSL" style="display:none">
+
+        <button
+            class="upvote-button"
+            aria-label="Toast this post"
+            title="Toast this post"
+        >
+            <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" class="css-i6dzq1">
+                <polyline points="17 11 12 6 7 11"></polyline>
+                <polyline points="17 18 12 13 7 18"></polyline>
+            </svg>
+            <small class="upvote-count" aria-hidden="true">&nbsp;</small>
+        </button>
+    </small>        
+</form>
+
+<script>
+    const $upvoteButton = document.querySelector('.upvote-button');
+    const $upvoteCount =  document.querySelector('.upvote-count')
+
+    fetch('/upvote-info/BvkwRoNszgiqdRucpptL/').then(response => response.json()).then(data => {
+        $upvoteCount.innerText = data.upvote_count;
+        if (data.upvoted) {
+            $upvoteButton.disabled = true
+            $upvoteButton.style.color = "salmon"
+            $upvoteButton.ariaLabel = "Toasted"
+            $upvoteButton.title = "Toasted"
+        }
+        $upvoteButton.ariaLabel += ` (${data.upvote_count})`
+    });
+
+    let moved = false;
+    let pageLoaded = Date.now();
+
+    document.addEventListener('touchmove', () => moved = true);
+    document.addEventListener('mousemove', () => moved = true);
+
+    document.querySelector('#upvote-form').addEventListener('submit', (e) => {
+        e.preventDefault();
+
+        if (moved) {
+            document.querySelector('input[name="title"]').value = "";
+        }
+        if (Date.now() - pageLoaded < 2000 || !moved) {
+            return;
+        }
+
+        fetch(e.target.action, {
+            method: 'post',
+            body: new FormData(e.target),
+        });
+        
+        $upvoteButton.disabled = true
+        $upvoteButton.style.color = "salmon"
+        $upvoteButton.ariaLabel = "Toasted"
+        $upvoteButton.title = "Toasted"
+        const newUpvoteCount = `${(parseInt($upvoteCount.innerHTML.split(" ")[0]) + 1)}`
+        $upvoteCount.innerHTML = newUpvoteCount
+        $upvoteButton.ariaLabel += ` (${newUpvoteCount})`
+    });
+</script>
+        
+
+        
+            <script>
+            window.addEventListener("load", () => {
+                if (navigator.webdriver !== true) {
+                    const sendHit = score => {
+                        const params = new URLSearchParams({
+                            blog: "veitner",
+                            token: "BvkwRoNszgiqdRucpptL",
+                            referrer: document.referrer.includes("veitner.bearblog.dev") ? "" : document.referrer,
+                            title: "",
+                            score: score
+                        });
+                        new Image().src = `/hit/?${params.toString()}`;
+                    };
+
+                    document.addEventListener('touchmove', () => sendHit(100), { once: true });
+                    document.addEventListener('mousemove', () => sendHit(100), { once: true });
+                }
+            });
+            </script>
+        
+    
+
+
+  </main>
+  <footer>
+    
+    
+    <span>
+        Powered by <a href="https://bearblog.dev">Bear <span role="img" class="bear" aria-label="ASCII bear logo">ʕ•ᴥ•ʔ</span></a>
+    </span>
+
+  </footer>
+
+  
+  <script>
+        (() => {
+          "use strict";
+          const times = document.querySelectorAll('time');
+          const format_string = "d M, Y" || "d M, Y"
+
+          times.forEach(time => {
+              time.innerText = formatDate(time.dateTime, format_string)
+          });
+
+          function formatDate(dateStr, formatStr) {
+            const date = new Date(dateStr);
+            const day = date.getDate();
+            const month = date.getMonth();
+            const year = date.getFullYear();
+            const weekday = date.getDay();
+            const hours = date.getHours();
+            const minutes = date.getMinutes();
+            const monthsFull = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+            const monthsShort = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+            const daysFull = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+            const daysShort = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+            
+            function getOrdinal(n) {
+                const s = ['th', 'st', 'nd', 'rd'];
+                const v = n % 100;
+                return s[(v - 20) % 10] || s[v] || s[0];
+            }
+            
+            const map = {
+                'd': () => day.toString().padStart(2, '0'),
+                'm': () => (month + 1).toString().padStart(2, '0'),
+                'Y': () => year.toString(),
+                'y': () => year.toString().slice(-2),
+                'F': () => monthsFull[month],
+                'j': () => day.toString(),
+                'D': () => daysShort[weekday],
+                'l': () => daysFull[weekday],
+                'S': () => getOrdinal(day),
+                'M': () => monthsShort[month],
+                'H': () => hours.toString().padStart(2, '0'),
+                'h': () => {
+                    let h = hours % 12;
+                    h = h === 0 ? 12 : h;
+                    return h.toString().padStart(2, '0');
+                },
+                'g': () => {
+                    let h = hours % 12;
+                    return h === 0 ? '12' : h.toString();
+                },
+                'i': () => minutes.toString().padStart(2, '0'),
+                'a': () => hours < 12 ? 'am' : 'pm',
+                'A': () => hours < 12 ? 'AM' : 'PM',
+            };
+            
+            let result = '';
+            for (let char of formatStr) {
+                result += map[char] ? map[char]() : char;
+            }
+            return result;
+        }
+        })();
+    </script>
+    
+</body>
+<!-- ID: veitner -->
+<!-- 🐻 -->
+</html>

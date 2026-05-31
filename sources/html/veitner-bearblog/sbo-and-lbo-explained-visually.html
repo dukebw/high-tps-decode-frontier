@@ -1,0 +1,1040 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!-- Powered by Bear Blog -->
+
+<head>
+  
+  
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5">
+  
+  <title>SBO and LBO explained visually | simons blog</title>
+  <link rel="canonical" href="https://veitner.bearblog.dev/sbo-and-lbo-explained-visually/">
+  
+    
+
+    <meta name="veitner" content="look-for-the-bear-necessities">
+    <meta name="token" content="CpbnSKLTMEwmavRXaLVU">
+
+    
+<!-- Primary Meta Tags -->
+<meta name="title" content="SBO and LBO explained visually">
+<meta name="description" content="SBO and LBO are essential to write correct Kernels on B200 GPUs that leverage Tensor Cores. That is because they need to be provided to the SMEM descriptor t...">
+
+<!-- Open Graph / Facebook -->
+<meta property="og:site_name" content="simons blog">
+<meta property="og:title" content="SBO and LBO explained visually">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://veitner.bearblog.dev/sbo-and-lbo-explained-visually/">
+<meta property="og:description" content="SBO and LBO are essential to write correct Kernels on B200 GPUs that leverage Tensor Cores. That is because they need to be provided to the SMEM descriptor t...">
+<meta property="og:image" content="/static/og-image.png">
+
+
+<!-- Twitter -->
+<meta property="twitter:card" content="summary">
+<meta property="twitter:url" content="https://veitner.bearblog.dev/sbo-and-lbo-explained-visually/">
+<meta property="twitter:title" content="SBO and LBO explained visually">
+<meta property="twitter:description" content="SBO and LBO are essential to write correct Kernels on B200 GPUs that leverage Tensor Cores. That is because they need to be provided to the SMEM descriptor t...">
+<meta property="twitter:image" content="/static/og-image.png">
+
+
+
+<!-- Microdata -->
+<script type="application/ld+json">
+  {
+    "@context": "http://schema.org",
+    "@type": "article",
+    "name": "SBO and LBO explained visually",
+    "headline": "SBO and LBO explained visually",
+    "url": "https://veitner.bearblog.dev/sbo-and-lbo-explained-visually/",
+    "description": "SBO and LBO are essential to write correct Kernels on B200 GPUs that leverage Tensor Cores. That is because they need to be provided to the SMEM descriptor t...",
+    "image": "/static/og-image.png"
+  }
+</script>
+    <link rel="alternate" type="application/atom+xml" href="/feed/" title="simons blog">
+    <link rel="alternate" type="application/rss+xml" href="/feed/?type=rss" title="simons blog">
+
+  
+    
+
+    
+    <style>pre { line-height: 125%; }
+td.linenos .normal { color: #666666; background-color: transparent; padding-left: 5px; padding-right: 5px; }
+span.linenos { color: #666666; background-color: transparent; padding-left: 5px; padding-right: 5px; }
+td.linenos .special { color: #000000; background-color: #ffffc0; padding-left: 5px; padding-right: 5px; }
+span.linenos.special { color: #000000; background-color: #ffffc0; padding-left: 5px; padding-right: 5px; }
+.highlight .hll { background-color: #ffffcc }
+.highlight { background: #f0f0f0; }
+.highlight .c { color: #60A0B0; font-style: italic } /* Comment */
+.highlight .err { border: 1px solid #F00 } /* Error */
+.highlight .k { color: #007020; font-weight: bold } /* Keyword */
+.highlight .o { color: #666 } /* Operator */
+.highlight .ch { color: #60A0B0; font-style: italic } /* Comment.Hashbang */
+.highlight .cm { color: #60A0B0; font-style: italic } /* Comment.Multiline */
+.highlight .cp { color: #007020 } /* Comment.Preproc */
+.highlight .cpf { color: #60A0B0; font-style: italic } /* Comment.PreprocFile */
+.highlight .c1 { color: #60A0B0; font-style: italic } /* Comment.Single */
+.highlight .cs { color: #60A0B0; background-color: #FFF0F0 } /* Comment.Special */
+.highlight .gd { color: #A00000 } /* Generic.Deleted */
+.highlight .ge { font-style: italic } /* Generic.Emph */
+.highlight .ges { font-weight: bold; font-style: italic } /* Generic.EmphStrong */
+.highlight .gr { color: #F00 } /* Generic.Error */
+.highlight .gh { color: #000080; font-weight: bold } /* Generic.Heading */
+.highlight .gi { color: #00A000 } /* Generic.Inserted */
+.highlight .go { color: #888 } /* Generic.Output */
+.highlight .gp { color: #C65D09; font-weight: bold } /* Generic.Prompt */
+.highlight .gs { font-weight: bold } /* Generic.Strong */
+.highlight .gu { color: #800080; font-weight: bold } /* Generic.Subheading */
+.highlight .gt { color: #04D } /* Generic.Traceback */
+.highlight .kc { color: #007020; font-weight: bold } /* Keyword.Constant */
+.highlight .kd { color: #007020; font-weight: bold } /* Keyword.Declaration */
+.highlight .kn { color: #007020; font-weight: bold } /* Keyword.Namespace */
+.highlight .kp { color: #007020 } /* Keyword.Pseudo */
+.highlight .kr { color: #007020; font-weight: bold } /* Keyword.Reserved */
+.highlight .kt { color: #902000 } /* Keyword.Type */
+.highlight .m { color: #40A070 } /* Literal.Number */
+.highlight .s { color: #4070A0 } /* Literal.String */
+.highlight .na { color: #4070A0 } /* Name.Attribute */
+.highlight .nb { color: #007020 } /* Name.Builtin */
+.highlight .nc { color: #0E84B5; font-weight: bold } /* Name.Class */
+.highlight .no { color: #60ADD5 } /* Name.Constant */
+.highlight .nd { color: #555; font-weight: bold } /* Name.Decorator */
+.highlight .ni { color: #D55537; font-weight: bold } /* Name.Entity */
+.highlight .ne { color: #007020 } /* Name.Exception */
+.highlight .nf { color: #06287E } /* Name.Function */
+.highlight .nl { color: #002070; font-weight: bold } /* Name.Label */
+.highlight .nn { color: #0E84B5; font-weight: bold } /* Name.Namespace */
+.highlight .nt { color: #062873; font-weight: bold } /* Name.Tag */
+.highlight .nv { color: #BB60D5 } /* Name.Variable */
+.highlight .ow { color: #007020; font-weight: bold } /* Operator.Word */
+.highlight .w { color: #BBB } /* Text.Whitespace */
+.highlight .mb { color: #40A070 } /* Literal.Number.Bin */
+.highlight .mf { color: #40A070 } /* Literal.Number.Float */
+.highlight .mh { color: #40A070 } /* Literal.Number.Hex */
+.highlight .mi { color: #40A070 } /* Literal.Number.Integer */
+.highlight .mo { color: #40A070 } /* Literal.Number.Oct */
+.highlight .sa { color: #4070A0 } /* Literal.String.Affix */
+.highlight .sb { color: #4070A0 } /* Literal.String.Backtick */
+.highlight .sc { color: #4070A0 } /* Literal.String.Char */
+.highlight .dl { color: #4070A0 } /* Literal.String.Delimiter */
+.highlight .sd { color: #4070A0; font-style: italic } /* Literal.String.Doc */
+.highlight .s2 { color: #4070A0 } /* Literal.String.Double */
+.highlight .se { color: #4070A0; font-weight: bold } /* Literal.String.Escape */
+.highlight .sh { color: #4070A0 } /* Literal.String.Heredoc */
+.highlight .si { color: #70A0D0; font-style: italic } /* Literal.String.Interpol */
+.highlight .sx { color: #C65D09 } /* Literal.String.Other */
+.highlight .sr { color: #235388 } /* Literal.String.Regex */
+.highlight .s1 { color: #4070A0 } /* Literal.String.Single */
+.highlight .ss { color: #517918 } /* Literal.String.Symbol */
+.highlight .bp { color: #007020 } /* Name.Builtin.Pseudo */
+.highlight .fm { color: #06287E } /* Name.Function.Magic */
+.highlight .vc { color: #BB60D5 } /* Name.Variable.Class */
+.highlight .vg { color: #BB60D5 } /* Name.Variable.Global */
+.highlight .vi { color: #BB60D5 } /* Name.Variable.Instance */
+.highlight .vm { color: #BB60D5 } /* Name.Variable.Magic */
+.highlight .il { color: #40A070 } /* Literal.Number.Integer.Long */
+</style>
+  
+  
+  
+    
+        <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20100%20100'%3E%3Ctext%20y='.9em'%20font-size='90'%3E🐼%3C/text%3E%3C/svg%3E">
+    
+
+
+
+  <style>
+      
+      
+    
+:root {
+    --width: 720px;
+    --font-main: Verdana, sans-serif;
+    --font-secondary: Verdana, sans-serif;
+    --font-scale: 1em;
+    --background-color: #fff;
+    --heading-color: #222;
+    --text-color: #444;
+    --link-color: #3273dc;
+    --visited-color:  #8b6fcb;
+    --code-background-color: #f2f2f2;
+    --code-color: #222;
+    --blockquote-color: #222;
+}
+
+@media (prefers-color-scheme: dark) {
+    :root {
+        --background-color: #01242e;
+        --heading-color: #eee;
+        --text-color: #ddd;
+        --link-color: #8cc2dd;
+        --visited-color:  #8b6fcb;
+        --code-background-color: #000;
+        --code-color: #ddd;
+        --blockquote-color: #ccc;
+    }
+}
+
+body {
+    font-family: var(--font-secondary);
+    font-size: var(--font-scale);
+    margin: auto;
+    padding: 20px;
+    max-width: var(--width);
+    text-align: left;
+    background-color: var(--background-color);
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    line-height: 1.5;
+    color: var(--text-color);
+}
+
+h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-main);
+    color: var(--heading-color);
+}
+
+a {
+    color: var(--link-color);
+    cursor: pointer;
+    text-decoration: none;
+}
+
+a:hover {
+    text-decoration: underline; 
+}
+
+nav a {
+    margin-right: 8px;
+}
+
+strong, b {
+    color: var(--heading-color);
+}
+
+button {
+    margin: 0;
+    cursor: pointer;
+}
+
+time {
+ 	font-family: monospace;
+  	font-style: normal;
+  	font-size: 15px;
+}
+
+main {
+    line-height: 1.6;
+}
+
+table {
+    width: 100%;
+}
+
+hr {
+    border: 0;
+    border-top: 1px dashed;
+}
+
+img {
+    max-width: 100%;
+}
+
+code {
+    font-family: monospace;
+    padding: 2px;
+    background-color: var(--code-background-color);
+    color: var(--code-color);
+    border-radius: 3px;
+}
+
+blockquote {
+    border-left: 1px solid #999;
+    color: var(--code-color);
+    padding-left: 20px;
+    font-style: italic;
+}
+
+footer {
+    padding: 25px 0;
+    text-align: center;
+}
+
+.title:hover {
+    text-decoration: none;
+}
+
+.title h1 {
+    font-size: 1.5em;
+}
+
+.inline {
+    width: auto !important;
+}
+
+.highlight, .code {
+    padding: 1px 15px;
+    background-color: var(--code-background-color);
+    color: var(--code-color);
+    border-radius: 3px;
+    margin-block-start: 1em;
+    margin-block-end: 1em;
+    overflow-x: auto;
+}
+
+/* blog post list */
+ul.blog-posts {
+    list-style-type: none;
+    padding: unset;
+}
+
+ul.blog-posts li {
+    display: flex;
+}
+
+ul.blog-posts li span {
+    flex: 0 0 130px;
+}
+
+ul.blog-posts li a:visited {
+    color: var(--visited-color);
+}
+    .upvote-button {
+        padding: 0;
+        margin: 0;
+        border: 0;
+        background-color: inherit;
+        color: inherit;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+    .upvote-button.upvoted {
+        color: salmon;
+    }
+    .upvote-count {
+        margin-top: -3px;
+    }
+
+      
+  </style>
+</head>
+
+<body class="post " onload="(function() { document.cookie = `timezone=${Intl.DateTimeFormat().resolvedOptions().timeZone};path=/`; })()">
+  
+  <header>
+    <a class="title" href="/">
+      <h1>
+        simons blog
+      </h1>
+    </a>
+    <nav>
+      <p><a href='/'>Home</a> <a href='/blog/'>Blog</a></p>
+
+    </nav>
+  </header>
+  <main>
+    
+
+    
+
+    
+        <h1>SBO and LBO explained visually</h1>
+
+        <p>
+            <i>
+                <time datetime="2026-04-18T17:30Z">
+    18 Apr, 2026
+</time>
+            </i>
+        </p>
+    
+
+    <p>SBO and LBO are essential to write correct Kernels on B200 GPUs that leverage Tensor Cores. That is because they need to be provided to the SMEM descriptor that the tcgen05 MMA op expects the programmer to provide as an operand. The corresponding section in the PTX docs commonly is perceived as confusing and in this blogpost I try to explain the mechanism for both K-Major and M-Major matrix operands.</p>
+<h3 id=swizzle-atoms>Swizzle Atoms</h3><p>To understand notation of swizzle in CUDA C++ we need to first familiarise ourselves with the notation of Swizzle Atoms. We can extract the following information from PTX docs:</p>
+<table>
+<thead>
+<tr>
+  <th>Swizzling Mode</th>
+  <th>Leading Dimension / Major-ness</th>
+  <th>Swizzle Atom Layout</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td>128B</td>
+  <td>M/N</td>
+  <td>8×8</td>
+</tr>
+<tr>
+  <td>128B</td>
+  <td>K</td>
+  <td>8×8</td>
+</tr>
+<tr>
+  <td>64B</td>
+  <td>M/N</td>
+  <td>4×8</td>
+</tr>
+<tr>
+  <td>64B</td>
+  <td>K</td>
+  <td>8×4</td>
+</tr>
+<tr>
+  <td>32B</td>
+  <td>M/N</td>
+  <td>2×8</td>
+</tr>
+<tr>
+  <td>32B</td>
+  <td>K</td>
+  <td>8×2</td>
+</tr>
+<tr>
+  <td>None</td>
+  <td>M/N</td>
+  <td>1×8</td>
+</tr>
+<tr>
+  <td>None</td>
+  <td>K</td>
+  <td>8×1</td>
+</tr>
+</tbody>
+</table>
+<p>Note that this is for elements with <code>128 bits</code>. If we consider the case of datatype <code>T</code> the table needs to be adjusted such that we "stretch" the atom across the non major mode by <code>128 / sizeof(T)</code> across the major mode. For example for <code>BFloat16</code> the table turns into:</p>
+<table>
+<thead>
+<tr>
+  <th>Swizzling Mode</th>
+  <th>Leading Dimension / Major-ness</th>
+  <th>Adjusted Swizzle Atom Layout (BF16)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td>128B</td>
+  <td>M/N</td>
+  <td>64×8</td>
+</tr>
+<tr>
+  <td>128B</td>
+  <td>K</td>
+  <td>8×64</td>
+</tr>
+<tr>
+  <td>64B</td>
+  <td>M/N</td>
+  <td>32×8</td>
+</tr>
+<tr>
+  <td>64B</td>
+  <td>K</td>
+  <td>8×32</td>
+</tr>
+<tr>
+  <td>32B</td>
+  <td>M/N</td>
+  <td>16×8</td>
+</tr>
+<tr>
+  <td>32B</td>
+  <td>K</td>
+  <td>8×16</td>
+</tr>
+<tr>
+  <td>None</td>
+  <td>M/N</td>
+  <td>8×8</td>
+</tr>
+<tr>
+  <td>None</td>
+  <td>K</td>
+  <td>8×8</td>
+</tr>
+</tbody>
+</table>
+<p>alternatively we could write:</p>
+<table>
+<thead>
+<tr>
+  <th>Swizzling Mode</th>
+  <th>Leading Dimension / Major-ness</th>
+  <th>Adjusted Swizzle Atom Layout</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td>128B</td>
+  <td>M/N</td>
+  <td>128B × 8</td>
+</tr>
+<tr>
+  <td>128B</td>
+  <td>K</td>
+  <td>8 × 128B</td>
+</tr>
+<tr>
+  <td>64B</td>
+  <td>M/N</td>
+  <td>64B × 8</td>
+</tr>
+<tr>
+  <td>64B</td>
+  <td>K</td>
+  <td>8 × 64B</td>
+</tr>
+<tr>
+  <td>32B</td>
+  <td>M/N</td>
+  <td>32B × 8</td>
+</tr>
+<tr>
+  <td>32B</td>
+  <td>K</td>
+  <td>8 × 32B</td>
+</tr>
+<tr>
+  <td>None</td>
+  <td>M/N</td>
+  <td>16B × 8</td>
+</tr>
+<tr>
+  <td>None</td>
+  <td>K</td>
+  <td>8 × 16B</td>
+</tr>
+</tbody>
+</table>
+<h3 id=cover-a-tile-with-swizzle-atoms>Cover a Tile with Swizzle Atoms</h3><p>The covering of a tile with Swizzle Atoms <a href='https://veitner.bearblog.dev/swizzles-and-their-usage-in-cutedsl-kernels/'>works as follows</a> for K-Major and M-Major.</p>
+<p>For K-Major we have a Covering as follows. Each number indiciates the order in which we lay out the swizzle atoms. (here right direction is K-Mode, down direction is M-Mode). Note that if we increased one of the two Modes the picture below would of course extend naturally. For visualisation i choose a tile of smaller size here. Although I use <code>128B</code> Swizzle here, the process of covering is the same for other Swizzle Atoms aswell.</p>
+<p><img src="https://bear-images.sfo2.cdn.digitaloceanspaces.com/veitner/50-1.webp" alt="Screenshot 2026-04-18 at 07" /></p>
+<p>For M-Major we have the following picture:</p>
+<p><img src="https://bear-images.sfo2.cdn.digitaloceanspaces.com/veitner/11-1.webp" alt="Screenshot 2026-04-18 at 07" /></p>
+<h2 id=determine-sbo-and-lbo>Determine SBO and LBO</h2><p>Let us first pull the definition of LBO and SBO from the PTX docs:</p>
+<p>LBO:</p>
+<table>
+<thead>
+<tr>
+  <th>Major-ness</th>
+  <th>Case</th>
+  <th>Definition</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td>K-Major</td>
+  <td>No-Swizzling</td>
+  <td>Offset from one row to the second column in the 128-bit element type matrix</td>
+</tr>
+<tr>
+  <td>K-Major</td>
+  <td>Swizzled layouts</td>
+  <td>Not used (treated as 1)</td>
+</tr>
+<tr>
+  <td>MN-Major</td>
+  <td>Interleave</td>
+  <td>Offset from the first to the next 8 columns</td>
+</tr>
+<tr>
+  <td>MN-Major</td>
+  <td>Swizzled layouts</td>
+  <td>Offset = (swizzle-byte-size / 16) rows</td>
+</tr>
+</tbody>
+</table>
+<p>SBO:</p>
+<table>
+<thead>
+<tr>
+  <th>Major-ness</th>
+  <th>Case</th>
+  <th>Definition</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td>K-Major</td>
+  <td>—</td>
+  <td>Offset from the first 8 rows to the next 8 rows</td>
+</tr>
+<tr>
+  <td>MN-Major</td>
+  <td>Interleave</td>
+  <td>Offset from the first row to the next row</td>
+</tr>
+<tr>
+  <td>MN-Major</td>
+  <td>Swizzled layout</td>
+  <td>Offset from the first 8 columns to the next 8 columns</td>
+</tr>
+</tbody>
+</table>
+<h2 id=k-major>K-Major</h2><p>For <code>K-Major</code> that means the following visually for SBO and LBO in the no swizzle case:</p>
+<p><img src="https://bear-images.sfo2.cdn.digitaloceanspaces.com/veitner/21-1.webp" alt="Screenshot 2026-04-18 at 07" /></p>
+<p>Here the red arrow indicates the LBO and the green arrow indicates the SBO.
+We can translate this into</p>
+<ul>
+<li>LBO = Jump one Atom into the direction of the major mode</li>
+<li>SBO = Jump one Atom into the direction of the minor mode</li>
+</ul>
+<p>In code for <code>BFloat16</code> (for other datatypes rescale the swizzle atoms accordingly):</p>
+<div class="highlight"><pre><span></span><span class="k">constexpr</span><span class="w"> </span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">SWIZZLE_HEIGHT_M</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">BLOCK_M</span><span class="p">;</span>
+<span class="k">constexpr</span><span class="w"> </span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">SWIZZLE_WIDTH_M</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">16U</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="k">sizeof</span><span class="p">(</span><span class="n">nv_bfloat16</span><span class="p">);</span>
+<span class="k">constexpr</span><span class="w"> </span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">SBO_M</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">8U</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="p">(</span><span class="mi">128U</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="mi">8U</span><span class="p">);</span>
+<span class="k">constexpr</span><span class="w"> </span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">LBO_M</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="n">SWIZZLE_HEIGHT_M</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="mi">8U</span><span class="p">)</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">SBO_M</span><span class="p">;</span>
+<span class="k">constexpr</span><span class="w"> </span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">SWIZZLE_HEIGHT_N</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">BLOCK_N</span><span class="p">;</span>
+<span class="k">constexpr</span><span class="w"> </span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">SWIZZLE_WIDTH_N</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">16U</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="k">sizeof</span><span class="p">(</span><span class="n">nv_bfloat16</span><span class="p">);</span>
+<span class="k">constexpr</span><span class="w"> </span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">SBO_N</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">8U</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="p">(</span><span class="mi">128U</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="mi">8U</span><span class="p">);</span>
+<span class="k">constexpr</span><span class="w"> </span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">LBO_N</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="n">SWIZZLE_HEIGHT_N</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="mi">8U</span><span class="p">)</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">SBO_N</span><span class="p">;</span>
+</pre></div>
+<p>For a 128B Swizzle we only have to determine SBO and it's definition (and thus visual interpretation) stays the same:</p>
+<div class="highlight"><pre><span></span><span class="k">constexpr</span><span class="w"> </span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">SWIZZLE_HEIGHT_M</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">BLOCK_M</span><span class="p">;</span>
+<span class="k">constexpr</span><span class="w"> </span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">SWIZZLE_WIDTH_M</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">128U</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="k">sizeof</span><span class="p">(</span><span class="n">nv_bfloat16</span><span class="p">);</span>
+<span class="k">constexpr</span><span class="w"> </span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">SWIZZLE_HEIGHT_N</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">BLOCK_N</span><span class="p">;</span>
+<span class="k">constexpr</span><span class="w"> </span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">SWIZZLE_WIDTH_N</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">128U</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="k">sizeof</span><span class="p">(</span><span class="n">nv_bfloat16</span><span class="p">);</span>
+<span class="k">constexpr</span><span class="w"> </span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">SBO</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">8U</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="p">(</span><span class="mi">1024U</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="mi">8U</span><span class="p">);</span>
+</pre></div>
+<p>Note that we can initialise the corresponding Tensormaps as:</p>
+<div class="highlight"><pre><span></span><span class="c1">//// Tensormap (No Swizzle)</span>
+<span class="kr">inline</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="nf">init_tensormap</span><span class="p">(</span><span class="n">CUtensorMap</span><span class="w"> </span><span class="o">*</span><span class="n">tmap</span><span class="p">,</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="n">nv_bfloat16</span><span class="w"> </span><span class="o">*</span><span class="n">ptr</span><span class="p">,</span>
+<span class="w">                           </span><span class="kt">uint64_t</span><span class="w"> </span><span class="n">gmem_height</span><span class="p">,</span><span class="w"> </span><span class="kt">uint64_t</span><span class="w"> </span><span class="n">gmem_width</span><span class="p">,</span>
+<span class="w">                           </span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">smem_height</span><span class="p">,</span><span class="w"> </span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">smem_width</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="k">constexpr</span><span class="w"> </span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">rank</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">2</span><span class="p">;</span>
+<span class="w">  </span><span class="kt">uint64_t</span><span class="w"> </span><span class="n">globalDim</span><span class="p">[</span><span class="n">rank</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span><span class="n">gmem_width</span><span class="p">,</span><span class="w"> </span><span class="n">gmem_height</span><span class="p">};</span>
+<span class="w">  </span><span class="kt">uint64_t</span><span class="w"> </span><span class="n">globalStrides</span><span class="p">[</span><span class="n">rank</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="mi">1</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span><span class="n">gmem_width</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="k">sizeof</span><span class="p">(</span><span class="n">nv_bfloat16</span><span class="p">)};</span>
+<span class="w">  </span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">boxDim</span><span class="p">[</span><span class="n">rank</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span><span class="n">smem_width</span><span class="p">,</span><span class="w"> </span><span class="n">smem_height</span><span class="p">};</span>
+<span class="w">  </span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">elementStrides</span><span class="p">[</span><span class="n">rank</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">};</span>
+
+<span class="w">  </span><span class="n">CUresult</span><span class="w"> </span><span class="n">err</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">cuTensorMapEncodeTiled</span><span class="p">(</span>
+<span class="w">      </span><span class="n">tmap</span><span class="p">,</span><span class="w"> </span><span class="n">CUtensorMapDataType</span><span class="o">::</span><span class="n">CU_TENSOR_MAP_DATA_TYPE_BFLOAT16</span><span class="p">,</span><span class="w"> </span><span class="n">rank</span><span class="p">,</span>
+<span class="w">      </span><span class="p">(</span><span class="kt">void</span><span class="w"> </span><span class="o">*</span><span class="p">)</span><span class="n">ptr</span><span class="p">,</span><span class="w"> </span><span class="n">globalDim</span><span class="p">,</span><span class="w"> </span><span class="n">globalStrides</span><span class="p">,</span><span class="w"> </span><span class="n">boxDim</span><span class="p">,</span><span class="w"> </span><span class="n">elementStrides</span><span class="p">,</span>
+<span class="w">      </span><span class="n">CUtensorMapInterleave</span><span class="o">::</span><span class="n">CU_TENSOR_MAP_INTERLEAVE_NONE</span><span class="p">,</span>
+<span class="w">      </span><span class="n">CUtensorMapSwizzle</span><span class="o">::</span><span class="n">CU_TENSOR_MAP_SWIZZLE_NONE</span><span class="p">,</span>
+<span class="w">      </span><span class="n">CUtensorMapL2promotion</span><span class="o">::</span><span class="n">CU_TENSOR_MAP_L2_PROMOTION_NONE</span><span class="p">,</span>
+<span class="w">      </span><span class="n">CUtensorMapFloatOOBfill</span><span class="o">::</span><span class="n">CU_TENSOR_MAP_FLOAT_OOB_FILL_NONE</span><span class="p">);</span>
+<span class="w">  </span><span class="n">assert</span><span class="p">(</span><span class="n">err</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">CUDA_SUCCESS</span><span class="p">);</span>
+<span class="p">}</span>
+<span class="p">...</span>
+<span class="n">CUtensorMap</span><span class="w"> </span><span class="n">tmap_a</span><span class="p">{},</span><span class="w"> </span><span class="n">tmap_b</span><span class="p">{};</span>
+<span class="n">init_tensormap</span><span class="p">(</span><span class="o">&amp;</span><span class="n">tmap_a</span><span class="p">,</span><span class="w"> </span><span class="k">static_cast</span><span class="o">&lt;</span><span class="k">const</span><span class="w"> </span><span class="n">nv_bfloat16</span><span class="w"> </span><span class="o">*&gt;</span><span class="p">(</span><span class="n">a</span><span class="p">.</span><span class="n">data_ptr</span><span class="p">()),</span><span class="w"> </span><span class="n">M</span><span class="p">,</span><span class="w"> </span><span class="n">K</span><span class="p">,</span>
+<span class="w">			 </span><span class="n">SWIZZLE_HEIGHT_M</span><span class="p">,</span><span class="w"> </span><span class="n">SWIZZLE_WIDTH_M</span><span class="p">);</span>
+<span class="n">init_tensormap</span><span class="p">(</span><span class="o">&amp;</span><span class="n">tmap_b</span><span class="p">,</span><span class="w"> </span><span class="k">static_cast</span><span class="o">&lt;</span><span class="k">const</span><span class="w"> </span><span class="n">nv_bfloat16</span><span class="w"> </span><span class="o">*&gt;</span><span class="p">(</span><span class="n">b</span><span class="p">.</span><span class="n">data_ptr</span><span class="p">()),</span><span class="w"> </span><span class="n">N</span><span class="p">,</span><span class="w"> </span><span class="n">K</span><span class="p">,</span>
+<span class="w">			 </span><span class="n">SWIZZLE_HEIGHT_N</span><span class="p">,</span><span class="w"> </span><span class="n">SWIZZLE_WIDTH_N</span><span class="p">);</span>
+</pre></div>
+<div class="highlight"><pre><span></span><span class="c1">//// Tensormap (Swizzle 128B)</span>
+<span class="kr">inline</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="nf">init_tensormap</span><span class="p">(</span><span class="n">CUtensorMap</span><span class="w"> </span><span class="o">*</span><span class="n">tmap</span><span class="p">,</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="n">nv_bfloat16</span><span class="w"> </span><span class="o">*</span><span class="n">ptr</span><span class="p">,</span>
+<span class="w">                           </span><span class="kt">uint64_t</span><span class="w"> </span><span class="n">gmem_height</span><span class="p">,</span><span class="w"> </span><span class="kt">uint64_t</span><span class="w"> </span><span class="n">gmem_width</span><span class="p">,</span>
+<span class="w">                           </span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">smem_height</span><span class="p">,</span><span class="w"> </span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">smem_width</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="k">constexpr</span><span class="w"> </span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">rank</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">2</span><span class="p">;</span>
+<span class="w">  </span><span class="kt">uint64_t</span><span class="w"> </span><span class="n">globalDim</span><span class="p">[</span><span class="n">rank</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span><span class="n">gmem_width</span><span class="p">,</span><span class="w"> </span><span class="n">gmem_height</span><span class="p">};</span>
+<span class="w">  </span><span class="kt">uint64_t</span><span class="w"> </span><span class="n">globalStrides</span><span class="p">[</span><span class="n">rank</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="mi">1</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span><span class="n">gmem_width</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="k">sizeof</span><span class="p">(</span><span class="n">nv_bfloat16</span><span class="p">)};</span>
+<span class="w">  </span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">boxDim</span><span class="p">[</span><span class="n">rank</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span><span class="n">smem_width</span><span class="p">,</span><span class="w"> </span><span class="n">smem_height</span><span class="p">};</span>
+<span class="w">  </span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">elementStrides</span><span class="p">[</span><span class="n">rank</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">};</span>
+
+<span class="w">  </span><span class="n">CUresult</span><span class="w"> </span><span class="n">err</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">cuTensorMapEncodeTiled</span><span class="p">(</span>
+<span class="w">      </span><span class="n">tmap</span><span class="p">,</span><span class="w"> </span><span class="n">CUtensorMapDataType</span><span class="o">::</span><span class="n">CU_TENSOR_MAP_DATA_TYPE_BFLOAT16</span><span class="p">,</span><span class="w"> </span><span class="n">rank</span><span class="p">,</span>
+<span class="w">      </span><span class="p">(</span><span class="kt">void</span><span class="w"> </span><span class="o">*</span><span class="p">)</span><span class="n">ptr</span><span class="p">,</span><span class="w"> </span><span class="n">globalDim</span><span class="p">,</span><span class="w"> </span><span class="n">globalStrides</span><span class="p">,</span><span class="w"> </span><span class="n">boxDim</span><span class="p">,</span><span class="w"> </span><span class="n">elementStrides</span><span class="p">,</span>
+<span class="w">      </span><span class="n">CUtensorMapInterleave</span><span class="o">::</span><span class="n">CU_TENSOR_MAP_INTERLEAVE_NONE</span><span class="p">,</span>
+<span class="w">      </span><span class="n">CUtensorMapSwizzle</span><span class="o">::</span><span class="n">CU_TENSOR_MAP_SWIZZLE_128B</span><span class="p">,</span>
+<span class="w">      </span><span class="n">CUtensorMapL2promotion</span><span class="o">::</span><span class="n">CU_TENSOR_MAP_L2_PROMOTION_NONE</span><span class="p">,</span>
+<span class="w">      </span><span class="n">CUtensorMapFloatOOBfill</span><span class="o">::</span><span class="n">CU_TENSOR_MAP_FLOAT_OOB_FILL_NONE</span><span class="p">);</span>
+<span class="w">  </span><span class="n">assert</span><span class="p">(</span><span class="n">err</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">CUDA_SUCCESS</span><span class="p">);</span>
+<span class="p">}</span>
+<span class="p">...</span>
+<span class="n">CUtensorMap</span><span class="w"> </span><span class="n">tmap_a</span><span class="p">{},</span><span class="w"> </span><span class="n">tmap_b</span><span class="p">{};</span>
+<span class="n">init_tensormap</span><span class="p">(</span><span class="o">&amp;</span><span class="n">tmap_a</span><span class="p">,</span><span class="w"> </span><span class="k">static_cast</span><span class="o">&lt;</span><span class="k">const</span><span class="w"> </span><span class="n">nv_bfloat16</span><span class="w"> </span><span class="o">*&gt;</span><span class="p">(</span><span class="n">a</span><span class="p">.</span><span class="n">data_ptr</span><span class="p">()),</span><span class="w"> </span><span class="n">M</span><span class="p">,</span><span class="w"> </span><span class="n">K</span><span class="p">,</span>
+<span class="w">			 </span><span class="n">SWIZZLE_HEIGHT_M</span><span class="p">,</span><span class="w"> </span><span class="n">SWIZZLE_WIDTH_M</span><span class="p">);</span>
+<span class="n">init_tensormap</span><span class="p">(</span><span class="o">&amp;</span><span class="n">tmap_b</span><span class="p">,</span><span class="w"> </span><span class="k">static_cast</span><span class="o">&lt;</span><span class="k">const</span><span class="w"> </span><span class="n">nv_bfloat16</span><span class="w"> </span><span class="o">*&gt;</span><span class="p">(</span><span class="n">b</span><span class="p">.</span><span class="n">data_ptr</span><span class="p">()),</span><span class="w"> </span><span class="n">N</span><span class="p">,</span><span class="w"> </span><span class="n">K</span><span class="p">,</span>
+<span class="w">			 </span><span class="n">SWIZZLE_HEIGHT_N</span><span class="p">,</span><span class="w"> </span><span class="n">SWIZZLE_WIDTH_N</span><span class="p">);</span>
+</pre></div>
+<p>Note that in this case we need to transfer multiple times via 2d TMA copy as described in excellent blogpost of my friend <a href='https://gau-nernst.github.io/tcgen05/'>Thien</a>.</p>
+<p>If we'd like to avoid the loop we can leverage <code>3D TMA</code> operation, for example like this:</p>
+<div class="highlight"><pre><span></span><span class="c1">//// Tensormap 3D swizzle</span>
+<span class="kr">inline</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="nf">init_tensormap_3d</span><span class="p">(</span><span class="n">CUtensorMap</span><span class="w"> </span><span class="o">*</span><span class="n">tmap</span><span class="p">,</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="n">nv_bfloat16</span><span class="w"> </span><span class="o">*</span><span class="n">ptr</span><span class="p">,</span>
+<span class="w">                              </span><span class="kt">uint64_t</span><span class="w"> </span><span class="n">gmem_height</span><span class="p">,</span><span class="w"> </span><span class="kt">uint64_t</span><span class="w"> </span><span class="n">gmem_width</span><span class="p">,</span>
+<span class="w">                              </span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">smem_height</span><span class="p">,</span><span class="w"> </span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">plane_width</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="k">constexpr</span><span class="w"> </span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">rank</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">3</span><span class="p">;</span>
+<span class="w">  </span><span class="n">TVM_FFI_CHECK</span><span class="p">(</span><span class="n">gmem_width</span><span class="w"> </span><span class="o">%</span><span class="w"> </span><span class="n">plane_width</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="n">ValueError</span><span class="p">)</span>
+<span class="w">      </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;K dimension must be divisible by the 3D TMA plane width&quot;</span><span class="p">;</span>
+<span class="w">  </span><span class="n">TVM_FFI_CHECK</span><span class="p">(</span><span class="n">BLOCK_K</span><span class="w"> </span><span class="o">%</span><span class="w"> </span><span class="n">plane_width</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="n">ValueError</span><span class="p">)</span>
+<span class="w">      </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;BLOCK_K must be divisible by the 3D TMA plane width&quot;</span><span class="p">;</span>
+<span class="w">  </span><span class="kt">uint32_t</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="n">smem_planes</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">BLOCK_K</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">plane_width</span><span class="p">;</span>
+
+<span class="w">  </span><span class="c1">// Interpret the source as [64, height, K/64]. With 128B swizzle, a single</span>
+<span class="w">  </span><span class="c1">// 3D TMA lands directly in the canonical K-major swizzled shared layout.</span>
+<span class="w">  </span><span class="kt">uint64_t</span><span class="w"> </span><span class="n">globalDim</span><span class="p">[</span><span class="n">rank</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span><span class="n">plane_width</span><span class="p">,</span><span class="w"> </span><span class="n">gmem_height</span><span class="p">,</span>
+<span class="w">                              </span><span class="n">gmem_width</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">plane_width</span><span class="p">};</span>
+<span class="w">  </span><span class="kt">uint64_t</span><span class="w"> </span><span class="n">globalStrides</span><span class="p">[</span><span class="n">rank</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="mi">1</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span><span class="n">gmem_width</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="k">sizeof</span><span class="p">(</span><span class="n">nv_bfloat16</span><span class="p">),</span>
+<span class="w">                                      </span><span class="n">plane_width</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="k">sizeof</span><span class="p">(</span><span class="n">nv_bfloat16</span><span class="p">)};</span>
+<span class="w">  </span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">boxDim</span><span class="p">[</span><span class="n">rank</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span><span class="n">plane_width</span><span class="p">,</span><span class="w"> </span><span class="n">smem_height</span><span class="p">,</span><span class="w"> </span><span class="n">smem_planes</span><span class="p">};</span>
+<span class="w">  </span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">elementStrides</span><span class="p">[</span><span class="n">rank</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">};</span>
+
+<span class="w">  </span><span class="n">CUresult</span><span class="w"> </span><span class="n">err</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">cuTensorMapEncodeTiled</span><span class="p">(</span>
+<span class="w">      </span><span class="n">tmap</span><span class="p">,</span><span class="w"> </span><span class="n">CUtensorMapDataType</span><span class="o">::</span><span class="n">CU_TENSOR_MAP_DATA_TYPE_BFLOAT16</span><span class="p">,</span><span class="w"> </span><span class="n">rank</span><span class="p">,</span>
+<span class="w">      </span><span class="p">(</span><span class="kt">void</span><span class="w"> </span><span class="o">*</span><span class="p">)</span><span class="n">ptr</span><span class="p">,</span><span class="w"> </span><span class="n">globalDim</span><span class="p">,</span><span class="w"> </span><span class="n">globalStrides</span><span class="p">,</span><span class="w"> </span><span class="n">boxDim</span><span class="p">,</span><span class="w"> </span><span class="n">elementStrides</span><span class="p">,</span>
+<span class="w">      </span><span class="n">CUtensorMapInterleave</span><span class="o">::</span><span class="n">CU_TENSOR_MAP_INTERLEAVE_NONE</span><span class="p">,</span>
+<span class="w">      </span><span class="n">CUtensorMapSwizzle</span><span class="o">::</span><span class="n">CU_TENSOR_MAP_SWIZZLE_128B</span><span class="p">,</span>
+<span class="w">      </span><span class="n">CUtensorMapL2promotion</span><span class="o">::</span><span class="n">CU_TENSOR_MAP_L2_PROMOTION_NONE</span><span class="p">,</span>
+<span class="w">      </span><span class="n">CUtensorMapFloatOOBfill</span><span class="o">::</span><span class="n">CU_TENSOR_MAP_FLOAT_OOB_FILL_NONE</span><span class="p">);</span>
+<span class="w">  </span><span class="n">assert</span><span class="p">(</span><span class="n">err</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">CUDA_SUCCESS</span><span class="p">);</span>
+<span class="p">}</span>
+<span class="p">...</span>
+<span class="n">CUtensorMap</span><span class="w"> </span><span class="n">tmap_a</span><span class="p">{},</span><span class="w"> </span><span class="n">tmap_b</span><span class="p">{};</span>
+<span class="n">init_tensormap_3d</span><span class="p">(</span><span class="o">&amp;</span><span class="n">tmap_a</span><span class="p">,</span><span class="w"> </span><span class="k">static_cast</span><span class="o">&lt;</span><span class="k">const</span><span class="w"> </span><span class="n">nv_bfloat16</span><span class="w"> </span><span class="o">*&gt;</span><span class="p">(</span><span class="n">a</span><span class="p">.</span><span class="n">data_ptr</span><span class="p">()),</span><span class="w"> </span><span class="n">M</span><span class="p">,</span>
+<span class="w">				</span><span class="n">K</span><span class="p">,</span><span class="w"> </span><span class="n">SWIZZLE_HEIGHT_M</span><span class="p">,</span><span class="w"> </span><span class="n">SWIZZLE_WIDTH_M</span><span class="p">);</span>
+<span class="n">init_tensormap_3d</span><span class="p">(</span><span class="o">&amp;</span><span class="n">tmap_b</span><span class="p">,</span><span class="w"> </span><span class="k">static_cast</span><span class="o">&lt;</span><span class="k">const</span><span class="w"> </span><span class="n">nv_bfloat16</span><span class="w"> </span><span class="o">*&gt;</span><span class="p">(</span><span class="n">b</span><span class="p">.</span><span class="n">data_ptr</span><span class="p">()),</span><span class="w"> </span><span class="n">N</span><span class="p">,</span>
+<span class="w">				</span><span class="n">K</span><span class="p">,</span><span class="w"> </span><span class="n">SWIZZLE_HEIGHT_N</span><span class="p">,</span><span class="w"> </span><span class="n">SWIZZLE_WIDTH_N</span><span class="p">);</span>
+</pre></div>
+<p>Note that this can be visually interpreted such that we stack the above planes in a 3D cube:</p>
+<p><img src="https://bear-images.sfo2.cdn.digitaloceanspaces.com/veitner/35-1.webp" alt="Screenshot 2026-04-18 at 09" /></p>
+<h2 id=m-major>M-Major</h2><p>For M-Major the situation can be little bit more confusing because LBO and SBO mean visually different things for Swizzle vs no Swizzle case.</p>
+<p>No Swizzle:</p>
+<p><img src="https://bear-images.sfo2.cdn.digitaloceanspaces.com/veitner/19-1.webp" alt="Screenshot 2026-04-18 at 08" /></p>
+<p>We can translate this into:</p>
+<ul>
+<li>LBO = Jump one Atom into the direction of the major mode</li>
+<li>SBO = Jump one Atom into the direction of the minor mode</li>
+</ul>
+<p>i.e.</p>
+<div class="highlight"><pre><span></span><span class="k">constexpr</span><span class="w"> </span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">SWIZZLE_HEIGHT_M</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">BLOCK_K</span><span class="p">;</span>
+<span class="k">constexpr</span><span class="w"> </span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">SWIZZLE_WIDTH_M</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">16U</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="k">sizeof</span><span class="p">(</span><span class="n">nv_bfloat16</span><span class="p">);</span>
+<span class="k">constexpr</span><span class="w"> </span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">SWIZZLE_HEIGHT_N</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">BLOCK_K</span><span class="p">;</span>
+<span class="k">constexpr</span><span class="w"> </span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">SWIZZLE_WIDTH_N</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">16U</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="k">sizeof</span><span class="p">(</span><span class="n">nv_bfloat16</span><span class="p">);</span>
+<span class="k">constexpr</span><span class="w"> </span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">LBO_M</span><span class="w"> </span><span class="o">=</span>
+<span class="w">    </span><span class="n">SWIZZLE_WIDTH_M</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="mi">8U</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="k">sizeof</span><span class="p">(</span><span class="n">nv_bfloat16</span><span class="p">);</span>
+<span class="k">constexpr</span><span class="w"> </span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">SBO_M</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="n">SWIZZLE_HEIGHT_M</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="mi">8U</span><span class="p">)</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">LBO_M</span><span class="p">;</span>
+<span class="k">constexpr</span><span class="w"> </span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">LBO_N</span><span class="w"> </span><span class="o">=</span>
+<span class="w">    </span><span class="n">SWIZZLE_WIDTH_N</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="mi">8U</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="k">sizeof</span><span class="p">(</span><span class="n">nv_bfloat16</span><span class="p">);</span>
+<span class="k">constexpr</span><span class="w"> </span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">SBO_N</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="n">SWIZZLE_HEIGHT_N</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="mi">8U</span><span class="p">)</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">LBO_N</span><span class="p">;</span>
+</pre></div>
+<div class="highlight"><pre><span></span><span class="c1">//// Tensormap</span>
+<span class="kr">inline</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="nf">init_tensormap</span><span class="p">(</span><span class="n">CUtensorMap</span><span class="w"> </span><span class="o">*</span><span class="n">tmap</span><span class="p">,</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="n">nv_bfloat16</span><span class="w"> </span><span class="o">*</span><span class="n">ptr</span><span class="p">,</span>
+<span class="w">                           </span><span class="kt">uint64_t</span><span class="w"> </span><span class="n">gmem_height</span><span class="p">,</span><span class="w"> </span><span class="kt">uint64_t</span><span class="w"> </span><span class="n">gmem_width</span><span class="p">,</span>
+<span class="w">                           </span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">smem_height</span><span class="p">,</span><span class="w"> </span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">smem_width</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="k">constexpr</span><span class="w"> </span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">rank</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">2</span><span class="p">;</span>
+<span class="w">  </span><span class="kt">uint64_t</span><span class="w"> </span><span class="n">globalDim</span><span class="p">[</span><span class="n">rank</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span><span class="n">gmem_width</span><span class="p">,</span><span class="w"> </span><span class="n">gmem_height</span><span class="p">};</span>
+<span class="w">  </span><span class="kt">uint64_t</span><span class="w"> </span><span class="n">globalStrides</span><span class="p">[</span><span class="n">rank</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="mi">1</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span><span class="n">gmem_width</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="k">sizeof</span><span class="p">(</span><span class="n">nv_bfloat16</span><span class="p">)};</span>
+<span class="w">  </span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">boxDim</span><span class="p">[</span><span class="n">rank</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span><span class="n">smem_width</span><span class="p">,</span><span class="w"> </span><span class="n">smem_height</span><span class="p">};</span>
+<span class="w">  </span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">elementStrides</span><span class="p">[</span><span class="n">rank</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">};</span>
+
+<span class="w">  </span><span class="n">CUresult</span><span class="w"> </span><span class="n">err</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">cuTensorMapEncodeTiled</span><span class="p">(</span>
+<span class="w">      </span><span class="n">tmap</span><span class="p">,</span><span class="w"> </span><span class="n">CUtensorMapDataType</span><span class="o">::</span><span class="n">CU_TENSOR_MAP_DATA_TYPE_BFLOAT16</span><span class="p">,</span><span class="w"> </span><span class="n">rank</span><span class="p">,</span>
+<span class="w">      </span><span class="p">(</span><span class="kt">void</span><span class="w"> </span><span class="o">*</span><span class="p">)</span><span class="n">ptr</span><span class="p">,</span><span class="w"> </span><span class="n">globalDim</span><span class="p">,</span><span class="w"> </span><span class="n">globalStrides</span><span class="p">,</span><span class="w"> </span><span class="n">boxDim</span><span class="p">,</span><span class="w"> </span><span class="n">elementStrides</span><span class="p">,</span>
+<span class="w">      </span><span class="n">CUtensorMapInterleave</span><span class="o">::</span><span class="n">CU_TENSOR_MAP_INTERLEAVE_NONE</span><span class="p">,</span>
+<span class="w">      </span><span class="n">CUtensorMapSwizzle</span><span class="o">::</span><span class="n">CU_TENSOR_MAP_SWIZZLE_NONE</span><span class="p">,</span>
+<span class="w">      </span><span class="n">CUtensorMapL2promotion</span><span class="o">::</span><span class="n">CU_TENSOR_MAP_L2_PROMOTION_NONE</span><span class="p">,</span>
+<span class="w">      </span><span class="n">CUtensorMapFloatOOBfill</span><span class="o">::</span><span class="n">CU_TENSOR_MAP_FLOAT_OOB_FILL_NONE</span><span class="p">);</span>
+<span class="w">  </span><span class="n">assert</span><span class="p">(</span><span class="n">err</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">CUDA_SUCCESS</span><span class="p">);</span>
+<span class="p">}</span>
+<span class="p">...</span>
+<span class="n">CUtensorMap</span><span class="w"> </span><span class="n">tmap_a</span><span class="p">{},</span><span class="w"> </span><span class="n">tmap_b</span><span class="p">{};</span>
+<span class="n">init_tensormap</span><span class="p">(</span><span class="o">&amp;</span><span class="n">tmap_a</span><span class="p">,</span><span class="w"> </span><span class="k">static_cast</span><span class="o">&lt;</span><span class="k">const</span><span class="w"> </span><span class="n">nv_bfloat16</span><span class="w"> </span><span class="o">*&gt;</span><span class="p">(</span><span class="n">a</span><span class="p">.</span><span class="n">data_ptr</span><span class="p">()),</span><span class="w"> </span><span class="n">K</span><span class="p">,</span><span class="w"> </span><span class="n">M</span><span class="p">,</span>
+<span class="w">			 </span><span class="n">SWIZZLE_HEIGHT_M</span><span class="p">,</span><span class="w"> </span><span class="n">SWIZZLE_WIDTH_M</span><span class="p">);</span>
+<span class="n">init_tensormap</span><span class="p">(</span><span class="o">&amp;</span><span class="n">tmap_b</span><span class="p">,</span><span class="w"> </span><span class="k">static_cast</span><span class="o">&lt;</span><span class="k">const</span><span class="w"> </span><span class="n">nv_bfloat16</span><span class="w"> </span><span class="o">*&gt;</span><span class="p">(</span><span class="n">b</span><span class="p">.</span><span class="n">data_ptr</span><span class="p">()),</span><span class="w"> </span><span class="n">K</span><span class="p">,</span><span class="w"> </span><span class="n">N</span><span class="p">,</span>
+<span class="w">			 </span><span class="n">SWIZZLE_HEIGHT_N</span><span class="p">,</span><span class="w"> </span><span class="n">SWIZZLE_WIDTH_N</span><span class="p">);</span>
+</pre></div>
+<p>Equivalently in 3D:</p>
+<div class="highlight"><pre><span></span><span class="c1">//// Tensormap</span>
+<span class="kr">inline</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="nf">init_tensormap_3d</span><span class="p">(</span><span class="n">CUtensorMap</span><span class="w"> </span><span class="o">*</span><span class="n">tmap</span><span class="p">,</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="n">nv_bfloat16</span><span class="w"> </span><span class="o">*</span><span class="n">ptr</span><span class="p">,</span>
+<span class="w">                              </span><span class="kt">uint64_t</span><span class="w"> </span><span class="n">gmem_height</span><span class="p">,</span><span class="w"> </span><span class="kt">uint64_t</span><span class="w"> </span><span class="n">gmem_width</span><span class="p">,</span>
+<span class="w">                              </span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">smem_height</span><span class="p">,</span><span class="w"> </span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">plane_width</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="k">constexpr</span><span class="w"> </span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">rank</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">3</span><span class="p">;</span>
+<span class="w">  </span><span class="n">TVM_FFI_CHECK</span><span class="p">(</span><span class="n">gmem_width</span><span class="w"> </span><span class="o">%</span><span class="w"> </span><span class="n">plane_width</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="n">ValueError</span><span class="p">)</span>
+<span class="w">      </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;K dimension must be divisible by the 3D TMA plane width&quot;</span><span class="p">;</span>
+<span class="w">  </span><span class="n">TVM_FFI_CHECK</span><span class="p">(</span><span class="n">BLOCK_K</span><span class="w"> </span><span class="o">%</span><span class="w"> </span><span class="n">plane_width</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="n">ValueError</span><span class="p">)</span>
+<span class="w">      </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;BLOCK_K must be divisible by the 3D TMA plane width&quot;</span><span class="p">;</span>
+<span class="w">  </span><span class="kt">uint32_t</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="n">smem_planes</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">BLOCK_K</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">plane_width</span><span class="p">;</span>
+
+<span class="w">  </span><span class="kt">uint64_t</span><span class="w"> </span><span class="n">globalDim</span><span class="p">[</span><span class="n">rank</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span><span class="n">plane_width</span><span class="p">,</span><span class="w"> </span><span class="n">gmem_height</span><span class="p">,</span><span class="w"> </span><span class="n">gmem_width</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">plane_width</span><span class="p">};</span>
+<span class="w">  </span><span class="kt">uint64_t</span><span class="w"> </span><span class="n">globalStrides</span><span class="p">[</span><span class="n">rank</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="mi">1</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="n">gmem_width</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="k">sizeof</span><span class="p">(</span><span class="n">nv_bfloat16</span><span class="p">),</span><span class="w"> </span><span class="n">plane_width</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="k">sizeof</span><span class="p">(</span><span class="n">nv_bfloat16</span><span class="p">)};</span>
+<span class="w">  </span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">boxDim</span><span class="p">[</span><span class="n">rank</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span><span class="n">plane_width</span><span class="p">,</span><span class="w"> </span><span class="n">smem_height</span><span class="p">,</span><span class="w"> </span><span class="n">smem_planes</span><span class="p">};</span>
+<span class="w">  </span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">elementStrides</span><span class="p">[</span><span class="n">rank</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">};</span>
+
+<span class="w">  </span><span class="n">CUresult</span><span class="w"> </span><span class="n">err</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">cuTensorMapEncodeTiled</span><span class="p">(</span>
+<span class="w">      </span><span class="n">tmap</span><span class="p">,</span><span class="w"> </span><span class="n">CUtensorMapDataType</span><span class="o">::</span><span class="n">CU_TENSOR_MAP_DATA_TYPE_BFLOAT16</span><span class="p">,</span><span class="w"> </span><span class="n">rank</span><span class="p">,</span>
+<span class="w">      </span><span class="p">(</span><span class="kt">void</span><span class="w"> </span><span class="o">*</span><span class="p">)</span><span class="n">ptr</span><span class="p">,</span><span class="w"> </span><span class="n">globalDim</span><span class="p">,</span><span class="w"> </span><span class="n">globalStrides</span><span class="p">,</span><span class="w"> </span><span class="n">boxDim</span><span class="p">,</span><span class="w"> </span><span class="n">elementStrides</span><span class="p">,</span>
+<span class="w">      </span><span class="n">CUtensorMapInterleave</span><span class="o">::</span><span class="n">CU_TENSOR_MAP_INTERLEAVE_NONE</span><span class="p">,</span>
+<span class="w">      </span><span class="n">CUtensorMapSwizzle</span><span class="o">::</span><span class="n">CU_TENSOR_MAP_SWIZZLE_NONE</span><span class="p">,</span>
+<span class="w">      </span><span class="n">CUtensorMapL2promotion</span><span class="o">::</span><span class="n">CU_TENSOR_MAP_L2_PROMOTION_NONE</span><span class="p">,</span>
+<span class="w">      </span><span class="n">CUtensorMapFloatOOBfill</span><span class="o">::</span><span class="n">CU_TENSOR_MAP_FLOAT_OOB_FILL_NONE</span><span class="p">);</span>
+<span class="w">  </span><span class="n">assert</span><span class="p">(</span><span class="n">err</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">CUDA_SUCCESS</span><span class="p">);</span>
+<span class="p">}</span>
+<span class="p">...</span>
+<span class="n">CUtensorMap</span><span class="w"> </span><span class="n">tmap_a</span><span class="p">{},</span><span class="w"> </span><span class="n">tmap_b</span><span class="p">{};</span>
+<span class="n">init_tensormap_3d</span><span class="p">(</span><span class="o">&amp;</span><span class="n">tmap_a</span><span class="p">,</span><span class="w"> </span><span class="k">static_cast</span><span class="o">&lt;</span><span class="k">const</span><span class="w"> </span><span class="n">nv_bfloat16</span><span class="w"> </span><span class="o">*&gt;</span><span class="p">(</span><span class="n">a</span><span class="p">.</span><span class="n">data_ptr</span><span class="p">()),</span><span class="w"> </span><span class="n">M</span><span class="p">,</span>
+<span class="w">				</span><span class="n">K</span><span class="p">,</span><span class="w"> </span><span class="n">SWIZZLE_HEIGHT_M</span><span class="p">,</span><span class="w"> </span><span class="n">SWIZZLE_WIDTH_M</span><span class="p">);</span>
+<span class="n">init_tensormap_3d</span><span class="p">(</span><span class="o">&amp;</span><span class="n">tmap_b</span><span class="p">,</span><span class="w"> </span><span class="k">static_cast</span><span class="o">&lt;</span><span class="k">const</span><span class="w"> </span><span class="n">nv_bfloat16</span><span class="w"> </span><span class="o">*&gt;</span><span class="p">(</span><span class="n">b</span><span class="p">.</span><span class="n">data_ptr</span><span class="p">()),</span><span class="w"> </span><span class="n">N</span><span class="p">,</span>
+<span class="w">				</span><span class="n">K</span><span class="p">,</span><span class="w"> </span><span class="n">SWIZZLE_HEIGHT_N</span><span class="p">,</span><span class="w"> </span><span class="n">SWIZZLE_WIDTH_N</span><span class="p">);</span>
+</pre></div>
+<p>For Swizzle 128B the above table already hints that the two definitions are exact opposite. Compare:</p>
+<ul>
+<li>No Swizzle LBO: <em>Offset from the first to the next 8 columns</em></li>
+<li>Swizzle LBO: <em>Offset = (swizzle-byte-size / 16) rows</em></li>
+<li>No Swizzle SBO: <em>Offset from the first row to the next row</em></li>
+<li>Swizzle SBO: <em>Offset from the first 8 columns to the next 8 columns</em></li>
+</ul>
+<p>So in our picture:</p>
+<p><img src="https://bear-images.sfo2.cdn.digitaloceanspaces.com/veitner/58-2.webp" alt="Screenshot 2026-04-18 at 08" /></p>
+<p>We can translate this into:</p>
+<ul>
+<li>LBO = Jump one Atom into the direction of the minor mode</li>
+<li>SBO = Jump one Atom into the direction of the major mode</li>
+</ul>
+<p>In code:</p>
+<div class="highlight"><pre><span></span><span class="c1">//// Swizzle 128B -&gt; stride-1 row slabs in MN-major order</span>
+<span class="k">constexpr</span><span class="w"> </span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">SWIZZLE_HEIGHT_M</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">BLOCK_K</span><span class="p">;</span>
+<span class="k">constexpr</span><span class="w"> </span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">SWIZZLE_WIDTH_M</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">128U</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="k">sizeof</span><span class="p">(</span><span class="n">nv_bfloat16</span><span class="p">);</span>
+<span class="k">constexpr</span><span class="w"> </span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">SWIZZLE_HEIGHT_N</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">BLOCK_K</span><span class="p">;</span>
+<span class="k">constexpr</span><span class="w"> </span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">SWIZZLE_WIDTH_N</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">128U</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="k">sizeof</span><span class="p">(</span><span class="n">nv_bfloat16</span><span class="p">);</span>
+<span class="k">constexpr</span><span class="w"> </span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">SBO_M</span><span class="w"> </span><span class="o">=</span>
+<span class="w">    </span><span class="n">SWIZZLE_WIDTH_M</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="mi">8U</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="k">sizeof</span><span class="p">(</span><span class="n">nv_bfloat16</span><span class="p">);</span>
+<span class="k">constexpr</span><span class="w"> </span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">LBO_M</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="n">SWIZZLE_HEIGHT_M</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="mi">8U</span><span class="p">)</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">SBO_M</span><span class="p">;</span>
+<span class="k">constexpr</span><span class="w"> </span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">SBO_N</span><span class="w"> </span><span class="o">=</span>
+<span class="w">    </span><span class="n">SWIZZLE_WIDTH_N</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="mi">8U</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="k">sizeof</span><span class="p">(</span><span class="n">nv_bfloat16</span><span class="p">);</span>
+<span class="k">constexpr</span><span class="w"> </span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">LBO_N</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="n">SWIZZLE_HEIGHT_N</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="mi">8U</span><span class="p">)</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">SBO_N</span><span class="p">;</span>
+</pre></div>
+<div class="highlight"><pre><span></span><span class="c1">//// Tensormap</span>
+<span class="kr">inline</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="nf">init_tensormap</span><span class="p">(</span><span class="n">CUtensorMap</span><span class="w"> </span><span class="o">*</span><span class="n">tmap</span><span class="p">,</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="n">nv_bfloat16</span><span class="w"> </span><span class="o">*</span><span class="n">ptr</span><span class="p">,</span>
+<span class="w">                           </span><span class="kt">uint64_t</span><span class="w"> </span><span class="n">gmem_height</span><span class="p">,</span><span class="w"> </span><span class="kt">uint64_t</span><span class="w"> </span><span class="n">gmem_width</span><span class="p">,</span>
+<span class="w">                           </span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">smem_height</span><span class="p">,</span><span class="w"> </span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">smem_width</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="k">constexpr</span><span class="w"> </span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">rank</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">2</span><span class="p">;</span>
+<span class="w">  </span><span class="kt">uint64_t</span><span class="w"> </span><span class="n">globalDim</span><span class="p">[</span><span class="n">rank</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span><span class="n">gmem_width</span><span class="p">,</span><span class="w"> </span><span class="n">gmem_height</span><span class="p">};</span>
+<span class="w">  </span><span class="kt">uint64_t</span><span class="w"> </span><span class="n">globalStrides</span><span class="p">[</span><span class="n">rank</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="mi">1</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span><span class="n">gmem_width</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="k">sizeof</span><span class="p">(</span><span class="n">nv_bfloat16</span><span class="p">)};</span>
+<span class="w">  </span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">boxDim</span><span class="p">[</span><span class="n">rank</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span><span class="n">smem_width</span><span class="p">,</span><span class="w"> </span><span class="n">smem_height</span><span class="p">};</span>
+<span class="w">  </span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">elementStrides</span><span class="p">[</span><span class="n">rank</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">};</span>
+
+<span class="w">  </span><span class="n">CUresult</span><span class="w"> </span><span class="n">err</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">cuTensorMapEncodeTiled</span><span class="p">(</span>
+<span class="w">      </span><span class="n">tmap</span><span class="p">,</span><span class="w"> </span><span class="n">CUtensorMapDataType</span><span class="o">::</span><span class="n">CU_TENSOR_MAP_DATA_TYPE_BFLOAT16</span><span class="p">,</span><span class="w"> </span><span class="n">rank</span><span class="p">,</span>
+<span class="w">      </span><span class="p">(</span><span class="kt">void</span><span class="w"> </span><span class="o">*</span><span class="p">)</span><span class="n">ptr</span><span class="p">,</span><span class="w"> </span><span class="n">globalDim</span><span class="p">,</span><span class="w"> </span><span class="n">globalStrides</span><span class="p">,</span><span class="w"> </span><span class="n">boxDim</span><span class="p">,</span><span class="w"> </span><span class="n">elementStrides</span><span class="p">,</span>
+<span class="w">      </span><span class="n">CUtensorMapInterleave</span><span class="o">::</span><span class="n">CU_TENSOR_MAP_INTERLEAVE_NONE</span><span class="p">,</span>
+<span class="w">      </span><span class="n">CUtensorMapSwizzle</span><span class="o">::</span><span class="n">CU_TENSOR_MAP_SWIZZLE_128B</span><span class="p">,</span>
+<span class="w">      </span><span class="n">CUtensorMapL2promotion</span><span class="o">::</span><span class="n">CU_TENSOR_MAP_L2_PROMOTION_NONE</span><span class="p">,</span>
+<span class="w">      </span><span class="n">CUtensorMapFloatOOBfill</span><span class="o">::</span><span class="n">CU_TENSOR_MAP_FLOAT_OOB_FILL_NONE</span><span class="p">);</span>
+<span class="w">  </span><span class="n">assert</span><span class="p">(</span><span class="n">err</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">CUDA_SUCCESS</span><span class="p">);</span>
+<span class="p">}</span>
+<span class="p">...</span>
+<span class="n">CUtensorMap</span><span class="w"> </span><span class="n">tmap_a</span><span class="p">{},</span><span class="w"> </span><span class="n">tmap_b</span><span class="p">{};</span>
+<span class="n">init_tensormap</span><span class="p">(</span><span class="o">&amp;</span><span class="n">tmap_a</span><span class="p">,</span><span class="w"> </span><span class="k">static_cast</span><span class="o">&lt;</span><span class="k">const</span><span class="w"> </span><span class="n">nv_bfloat16</span><span class="w"> </span><span class="o">*&gt;</span><span class="p">(</span><span class="n">a</span><span class="p">.</span><span class="n">data_ptr</span><span class="p">()),</span><span class="w"> </span><span class="n">K</span><span class="p">,</span><span class="w"> </span><span class="n">M</span><span class="p">,</span>
+<span class="w">			 </span><span class="n">SWIZZLE_HEIGHT_M</span><span class="p">,</span><span class="w"> </span><span class="n">SWIZZLE_WIDTH_M</span><span class="p">);</span>
+<span class="n">init_tensormap</span><span class="p">(</span><span class="o">&amp;</span><span class="n">tmap_b</span><span class="p">,</span><span class="w"> </span><span class="k">static_cast</span><span class="o">&lt;</span><span class="k">const</span><span class="w"> </span><span class="n">nv_bfloat16</span><span class="w"> </span><span class="o">*&gt;</span><span class="p">(</span><span class="n">b</span><span class="p">.</span><span class="n">data_ptr</span><span class="p">()),</span><span class="w"> </span><span class="n">K</span><span class="p">,</span><span class="w"> </span><span class="n">N</span><span class="p">,</span>
+<span class="w">			 </span><span class="n">SWIZZLE_HEIGHT_N</span><span class="p">,</span><span class="w"> </span><span class="n">SWIZZLE_WIDTH_N</span><span class="p">);</span>
+</pre></div>
+<p>We can of course equivalently treat the arrangement of 2D planes in 3D by stacking them into an equivalent cube to avoid the loop when scheduling TMA:</p>
+<div class="highlight"><pre><span></span><span class="c1">//// Tensormap</span>
+<span class="kr">inline</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="nf">init_tensormap_3d</span><span class="p">(</span><span class="n">CUtensorMap</span><span class="w"> </span><span class="o">*</span><span class="n">tmap</span><span class="p">,</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="n">nv_bfloat16</span><span class="w"> </span><span class="o">*</span><span class="n">ptr</span><span class="p">,</span>
+<span class="w">                              </span><span class="kt">uint64_t</span><span class="w"> </span><span class="n">gmem_height</span><span class="p">,</span><span class="w"> </span><span class="kt">uint64_t</span><span class="w"> </span><span class="n">gmem_width</span><span class="p">,</span>
+<span class="w">                              </span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">smem_height</span><span class="p">,</span><span class="w"> </span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">smem_width</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="k">constexpr</span><span class="w"> </span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">rank</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">3</span><span class="p">;</span>
+<span class="w">  </span><span class="n">TVM_FFI_CHECK</span><span class="p">(</span><span class="n">gmem_width</span><span class="w"> </span><span class="o">%</span><span class="w"> </span><span class="n">SWIZZLE_WIDTH_M</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="n">ValueError</span><span class="p">)</span>
+<span class="w">      </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;tensor-map width must be divisible by the MN-major plane width&quot;</span><span class="p">;</span>
+<span class="w">  </span><span class="n">TVM_FFI_CHECK</span><span class="p">(</span><span class="n">smem_width</span><span class="w"> </span><span class="o">%</span><span class="w"> </span><span class="n">SWIZZLE_WIDTH_M</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="n">ValueError</span><span class="p">)</span>
+<span class="w">      </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;shared-memory width must be divisible by the MN-major plane width&quot;</span><span class="p">;</span>
+<span class="w">  </span><span class="kt">uint32_t</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="n">smem_planes</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">smem_width</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">SWIZZLE_WIDTH_M</span><span class="p">;</span>
+
+<span class="w">  </span><span class="kt">uint64_t</span><span class="w"> </span><span class="n">globalDim</span><span class="p">[</span><span class="n">rank</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span><span class="n">SWIZZLE_WIDTH_M</span><span class="p">,</span><span class="w"> </span><span class="n">gmem_height</span><span class="p">,</span>
+<span class="w">                              </span><span class="n">gmem_width</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">SWIZZLE_WIDTH_M</span><span class="p">};</span>
+<span class="w">  </span><span class="kt">uint64_t</span><span class="w"> </span><span class="n">globalStrides</span><span class="p">[</span><span class="n">rank</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="mi">1</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="n">gmem_width</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="k">sizeof</span><span class="p">(</span><span class="n">nv_bfloat16</span><span class="p">),</span>
+<span class="w">      </span><span class="n">SWIZZLE_WIDTH_M</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="k">sizeof</span><span class="p">(</span><span class="n">nv_bfloat16</span><span class="p">)};</span>
+<span class="w">  </span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">boxDim</span><span class="p">[</span><span class="n">rank</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span><span class="n">SWIZZLE_WIDTH_M</span><span class="p">,</span><span class="w"> </span><span class="n">smem_height</span><span class="p">,</span><span class="w"> </span><span class="n">smem_planes</span><span class="p">};</span>
+<span class="w">  </span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">elementStrides</span><span class="p">[</span><span class="n">rank</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">};</span>
+
+<span class="w">  </span><span class="n">CUresult</span><span class="w"> </span><span class="n">err</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">cuTensorMapEncodeTiled</span><span class="p">(</span>
+<span class="w">      </span><span class="n">tmap</span><span class="p">,</span><span class="w"> </span><span class="n">CUtensorMapDataType</span><span class="o">::</span><span class="n">CU_TENSOR_MAP_DATA_TYPE_BFLOAT16</span><span class="p">,</span><span class="w"> </span><span class="n">rank</span><span class="p">,</span>
+<span class="w">      </span><span class="p">(</span><span class="kt">void</span><span class="w"> </span><span class="o">*</span><span class="p">)</span><span class="n">ptr</span><span class="p">,</span><span class="w"> </span><span class="n">globalDim</span><span class="p">,</span><span class="w"> </span><span class="n">globalStrides</span><span class="p">,</span><span class="w"> </span><span class="n">boxDim</span><span class="p">,</span><span class="w"> </span><span class="n">elementStrides</span><span class="p">,</span>
+<span class="w">      </span><span class="n">CUtensorMapInterleave</span><span class="o">::</span><span class="n">CU_TENSOR_MAP_INTERLEAVE_NONE</span><span class="p">,</span>
+<span class="w">      </span><span class="n">CUtensorMapSwizzle</span><span class="o">::</span><span class="n">CU_TENSOR_MAP_SWIZZLE_128B</span><span class="p">,</span>
+<span class="w">      </span><span class="n">CUtensorMapL2promotion</span><span class="o">::</span><span class="n">CU_TENSOR_MAP_L2_PROMOTION_NONE</span><span class="p">,</span>
+<span class="w">      </span><span class="n">CUtensorMapFloatOOBfill</span><span class="o">::</span><span class="n">CU_TENSOR_MAP_FLOAT_OOB_FILL_NONE</span><span class="p">);</span>
+<span class="w">  </span><span class="n">assert</span><span class="p">(</span><span class="n">err</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">CUDA_SUCCESS</span><span class="p">);</span>
+<span class="p">}</span>
+<span class="p">...</span>
+<span class="n">CUtensorMap</span><span class="w"> </span><span class="n">tmap_a</span><span class="p">{},</span><span class="w"> </span><span class="n">tmap_b</span><span class="p">{};</span>
+<span class="n">init_tensormap_3d</span><span class="p">(</span><span class="o">&amp;</span><span class="n">tmap_a</span><span class="p">,</span><span class="w"> </span><span class="k">static_cast</span><span class="o">&lt;</span><span class="k">const</span><span class="w"> </span><span class="n">nv_bfloat16</span><span class="w"> </span><span class="o">*&gt;</span><span class="p">(</span><span class="n">a</span><span class="p">.</span><span class="n">data_ptr</span><span class="p">()),</span><span class="w"> </span><span class="n">K</span><span class="p">,</span>
+<span class="w">				</span><span class="n">M</span><span class="p">,</span><span class="w"> </span><span class="n">SWIZZLE_HEIGHT_M</span><span class="p">,</span><span class="w"> </span><span class="n">BLOCK_M</span><span class="p">);</span>
+<span class="n">init_tensormap_3d</span><span class="p">(</span><span class="o">&amp;</span><span class="n">tmap_b</span><span class="p">,</span><span class="w"> </span><span class="k">static_cast</span><span class="o">&lt;</span><span class="k">const</span><span class="w"> </span><span class="n">nv_bfloat16</span><span class="w"> </span><span class="o">*&gt;</span><span class="p">(</span><span class="n">b</span><span class="p">.</span><span class="n">data_ptr</span><span class="p">()),</span><span class="w"> </span><span class="n">K</span><span class="p">,</span>
+<span class="w">				</span><span class="n">N</span><span class="p">,</span><span class="w"> </span><span class="n">SWIZZLE_HEIGHT_N</span><span class="p">,</span><span class="w"> </span><span class="n">BLOCK_N</span><span class="p">);</span>
+</pre></div>
+<h2 id=conclusion>Conclusion</h2><p>I hope this blogpost made it easier how to calculate SBO and LBO for various configurations. Please see as a complement the blogpost I <a href='https://gau-nernst.github.io/tcgen05/'>mentioned above</a>  or <a href='https://github.com/KnowingNothing/MatmulTutorial/tree/main/examples/matmul/this-sm100'>this excellent tutorial</a> for how to use this knowledge to write performant Blackwell Kernels. If you want to program B200 GPUs I recommend <a href='https://verda.com/'>Verda</a> they have very good offers for GPUs and generously provided me with compute to perform the experiments.</p>
+
+
+    
+
+    
+        
+
+        
+            <form id="upvote-form" action="/upvote/" method="post" style="display: inline">
+    <small>
+        <input hidden name="uid" value="CpbnSKLTMEwmavRXaLVU" style="display:none">
+        <input hidden name="title" value="SBO and LBO explained visually" style="display:none">
+
+        <button
+            class="upvote-button"
+            aria-label="Toast this post"
+            title="Toast this post"
+        >
+            <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" class="css-i6dzq1">
+                <polyline points="17 11 12 6 7 11"></polyline>
+                <polyline points="17 18 12 13 7 18"></polyline>
+            </svg>
+            <small class="upvote-count" aria-hidden="true">&nbsp;</small>
+        </button>
+    </small>        
+</form>
+
+<script>
+    const $upvoteButton = document.querySelector('.upvote-button');
+    const $upvoteCount =  document.querySelector('.upvote-count')
+
+    fetch('/upvote-info/CpbnSKLTMEwmavRXaLVU/').then(response => response.json()).then(data => {
+        $upvoteCount.innerText = data.upvote_count;
+        if (data.upvoted) {
+            $upvoteButton.disabled = true
+            $upvoteButton.style.color = "salmon"
+            $upvoteButton.ariaLabel = "Toasted"
+            $upvoteButton.title = "Toasted"
+        }
+        $upvoteButton.ariaLabel += ` (${data.upvote_count})`
+    });
+
+    let moved = false;
+    let pageLoaded = Date.now();
+
+    document.addEventListener('touchmove', () => moved = true);
+    document.addEventListener('mousemove', () => moved = true);
+
+    document.querySelector('#upvote-form').addEventListener('submit', (e) => {
+        e.preventDefault();
+
+        if (moved) {
+            document.querySelector('input[name="title"]').value = "";
+        }
+        if (Date.now() - pageLoaded < 2000 || !moved) {
+            return;
+        }
+
+        fetch(e.target.action, {
+            method: 'post',
+            body: new FormData(e.target),
+        });
+        
+        $upvoteButton.disabled = true
+        $upvoteButton.style.color = "salmon"
+        $upvoteButton.ariaLabel = "Toasted"
+        $upvoteButton.title = "Toasted"
+        const newUpvoteCount = `${(parseInt($upvoteCount.innerHTML.split(" ")[0]) + 1)}`
+        $upvoteCount.innerHTML = newUpvoteCount
+        $upvoteButton.ariaLabel += ` (${newUpvoteCount})`
+    });
+</script>
+        
+
+        
+            <script>
+            window.addEventListener("load", () => {
+                if (navigator.webdriver !== true) {
+                    const sendHit = score => {
+                        const params = new URLSearchParams({
+                            blog: "veitner",
+                            token: "CpbnSKLTMEwmavRXaLVU",
+                            referrer: document.referrer.includes("veitner.bearblog.dev") ? "" : document.referrer,
+                            title: "",
+                            score: score
+                        });
+                        new Image().src = `/hit/?${params.toString()}`;
+                    };
+
+                    document.addEventListener('touchmove', () => sendHit(100), { once: true });
+                    document.addEventListener('mousemove', () => sendHit(100), { once: true });
+                }
+            });
+            </script>
+        
+    
+
+
+  </main>
+  <footer>
+    
+    
+    <span>
+        Powered by <a href="https://bearblog.dev">Bear <span role="img" class="bear" aria-label="ASCII bear logo">ʕ•ᴥ•ʔ</span></a>
+    </span>
+
+  </footer>
+
+  
+  <script>
+        (() => {
+          "use strict";
+          const times = document.querySelectorAll('time');
+          const format_string = "d M, Y" || "d M, Y"
+
+          times.forEach(time => {
+              time.innerText = formatDate(time.dateTime, format_string)
+          });
+
+          function formatDate(dateStr, formatStr) {
+            const date = new Date(dateStr);
+            const day = date.getDate();
+            const month = date.getMonth();
+            const year = date.getFullYear();
+            const weekday = date.getDay();
+            const hours = date.getHours();
+            const minutes = date.getMinutes();
+            const monthsFull = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+            const monthsShort = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+            const daysFull = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+            const daysShort = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+            
+            function getOrdinal(n) {
+                const s = ['th', 'st', 'nd', 'rd'];
+                const v = n % 100;
+                return s[(v - 20) % 10] || s[v] || s[0];
+            }
+            
+            const map = {
+                'd': () => day.toString().padStart(2, '0'),
+                'm': () => (month + 1).toString().padStart(2, '0'),
+                'Y': () => year.toString(),
+                'y': () => year.toString().slice(-2),
+                'F': () => monthsFull[month],
+                'j': () => day.toString(),
+                'D': () => daysShort[weekday],
+                'l': () => daysFull[weekday],
+                'S': () => getOrdinal(day),
+                'M': () => monthsShort[month],
+                'H': () => hours.toString().padStart(2, '0'),
+                'h': () => {
+                    let h = hours % 12;
+                    h = h === 0 ? 12 : h;
+                    return h.toString().padStart(2, '0');
+                },
+                'g': () => {
+                    let h = hours % 12;
+                    return h === 0 ? '12' : h.toString();
+                },
+                'i': () => minutes.toString().padStart(2, '0'),
+                'a': () => hours < 12 ? 'am' : 'pm',
+                'A': () => hours < 12 ? 'AM' : 'PM',
+            };
+            
+            let result = '';
+            for (let char of formatStr) {
+                result += map[char] ? map[char]() : char;
+            }
+            return result;
+        }
+        })();
+    </script>
+    
+</body>
+<!-- ID: veitner -->
+<!-- 🐻 -->
+</html>

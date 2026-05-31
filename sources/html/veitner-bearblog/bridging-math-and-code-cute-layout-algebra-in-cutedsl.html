@@ -1,0 +1,763 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!-- Powered by Bear Blog -->
+
+<head>
+  
+  
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5">
+  
+  <title>Bridging Math and Code: CuTe Layout Algebra in CuTeDSL | simons blog</title>
+  <link rel="canonical" href="https://veitner.bearblog.dev/bridging-math-and-code-cute-layout-algebra-in-cutedsl/">
+  
+    
+
+    <meta name="veitner" content="look-for-the-bear-necessities">
+    <meta name="token" content="pqcxWdAyNiLXfeBLYGDH">
+
+    
+<!-- Primary Meta Tags -->
+<meta name="title" content="Bridging Math and Code: CuTe Layout Algebra in CuTeDSL">
+<meta name="description" content="Complementation
+Introduction
+
+This week the CUTLASS team released a new version of CUTLASS which introduces CuTeDSL a python interface which gives the use...">
+
+<!-- Open Graph / Facebook -->
+<meta property="og:site_name" content="simons blog">
+<meta property="og:title" content="Bridging Math and Code: CuTe Layout Algebra in CuTeDSL">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://veitner.bearblog.dev/bridging-math-and-code-cute-layout-algebra-in-cutedsl/">
+<meta property="og:description" content="Complementation
+Introduction
+
+This week the CUTLASS team released a new version of CUTLASS which introduces CuTeDSL a python interface which gives the use...">
+<meta property="og:image" content="/static/og-image.png">
+
+
+<!-- Twitter -->
+<meta property="twitter:card" content="summary">
+<meta property="twitter:url" content="https://veitner.bearblog.dev/bridging-math-and-code-cute-layout-algebra-in-cutedsl/">
+<meta property="twitter:title" content="Bridging Math and Code: CuTe Layout Algebra in CuTeDSL">
+<meta property="twitter:description" content="Complementation
+Introduction
+
+This week the CUTLASS team released a new version of CUTLASS which introduces CuTeDSL a python interface which gives the use...">
+<meta property="twitter:image" content="/static/og-image.png">
+
+
+
+<!-- Microdata -->
+<script type="application/ld+json">
+  {
+    "@context": "http://schema.org",
+    "@type": "article",
+    "name": "Bridging Math and Code: CuTe Layout Algebra in CuTeDSL",
+    "headline": "Bridging Math and Code: CuTe Layout Algebra in CuTeDSL",
+    "url": "https://veitner.bearblog.dev/bridging-math-and-code-cute-layout-algebra-in-cutedsl/",
+    "description": "Complementation
+Introduction
+
+This week the CUTLASS team released a new version of CUTLASS which introduces CuTeDSL a python interface which gives the use...",
+    "image": "/static/og-image.png"
+  }
+</script>
+    <link rel="alternate" type="application/atom+xml" href="/feed/" title="simons blog">
+    <link rel="alternate" type="application/rss+xml" href="/feed/?type=rss" title="simons blog">
+
+  
+    
+
+    
+    <style>pre { line-height: 125%; }
+td.linenos .normal { color: #666666; background-color: transparent; padding-left: 5px; padding-right: 5px; }
+span.linenos { color: #666666; background-color: transparent; padding-left: 5px; padding-right: 5px; }
+td.linenos .special { color: #000000; background-color: #ffffc0; padding-left: 5px; padding-right: 5px; }
+span.linenos.special { color: #000000; background-color: #ffffc0; padding-left: 5px; padding-right: 5px; }
+.highlight .hll { background-color: #ffffcc }
+.highlight { background: #f0f0f0; }
+.highlight .c { color: #60A0B0; font-style: italic } /* Comment */
+.highlight .err { border: 1px solid #F00 } /* Error */
+.highlight .k { color: #007020; font-weight: bold } /* Keyword */
+.highlight .o { color: #666 } /* Operator */
+.highlight .ch { color: #60A0B0; font-style: italic } /* Comment.Hashbang */
+.highlight .cm { color: #60A0B0; font-style: italic } /* Comment.Multiline */
+.highlight .cp { color: #007020 } /* Comment.Preproc */
+.highlight .cpf { color: #60A0B0; font-style: italic } /* Comment.PreprocFile */
+.highlight .c1 { color: #60A0B0; font-style: italic } /* Comment.Single */
+.highlight .cs { color: #60A0B0; background-color: #FFF0F0 } /* Comment.Special */
+.highlight .gd { color: #A00000 } /* Generic.Deleted */
+.highlight .ge { font-style: italic } /* Generic.Emph */
+.highlight .ges { font-weight: bold; font-style: italic } /* Generic.EmphStrong */
+.highlight .gr { color: #F00 } /* Generic.Error */
+.highlight .gh { color: #000080; font-weight: bold } /* Generic.Heading */
+.highlight .gi { color: #00A000 } /* Generic.Inserted */
+.highlight .go { color: #888 } /* Generic.Output */
+.highlight .gp { color: #C65D09; font-weight: bold } /* Generic.Prompt */
+.highlight .gs { font-weight: bold } /* Generic.Strong */
+.highlight .gu { color: #800080; font-weight: bold } /* Generic.Subheading */
+.highlight .gt { color: #04D } /* Generic.Traceback */
+.highlight .kc { color: #007020; font-weight: bold } /* Keyword.Constant */
+.highlight .kd { color: #007020; font-weight: bold } /* Keyword.Declaration */
+.highlight .kn { color: #007020; font-weight: bold } /* Keyword.Namespace */
+.highlight .kp { color: #007020 } /* Keyword.Pseudo */
+.highlight .kr { color: #007020; font-weight: bold } /* Keyword.Reserved */
+.highlight .kt { color: #902000 } /* Keyword.Type */
+.highlight .m { color: #40A070 } /* Literal.Number */
+.highlight .s { color: #4070A0 } /* Literal.String */
+.highlight .na { color: #4070A0 } /* Name.Attribute */
+.highlight .nb { color: #007020 } /* Name.Builtin */
+.highlight .nc { color: #0E84B5; font-weight: bold } /* Name.Class */
+.highlight .no { color: #60ADD5 } /* Name.Constant */
+.highlight .nd { color: #555; font-weight: bold } /* Name.Decorator */
+.highlight .ni { color: #D55537; font-weight: bold } /* Name.Entity */
+.highlight .ne { color: #007020 } /* Name.Exception */
+.highlight .nf { color: #06287E } /* Name.Function */
+.highlight .nl { color: #002070; font-weight: bold } /* Name.Label */
+.highlight .nn { color: #0E84B5; font-weight: bold } /* Name.Namespace */
+.highlight .nt { color: #062873; font-weight: bold } /* Name.Tag */
+.highlight .nv { color: #BB60D5 } /* Name.Variable */
+.highlight .ow { color: #007020; font-weight: bold } /* Operator.Word */
+.highlight .w { color: #BBB } /* Text.Whitespace */
+.highlight .mb { color: #40A070 } /* Literal.Number.Bin */
+.highlight .mf { color: #40A070 } /* Literal.Number.Float */
+.highlight .mh { color: #40A070 } /* Literal.Number.Hex */
+.highlight .mi { color: #40A070 } /* Literal.Number.Integer */
+.highlight .mo { color: #40A070 } /* Literal.Number.Oct */
+.highlight .sa { color: #4070A0 } /* Literal.String.Affix */
+.highlight .sb { color: #4070A0 } /* Literal.String.Backtick */
+.highlight .sc { color: #4070A0 } /* Literal.String.Char */
+.highlight .dl { color: #4070A0 } /* Literal.String.Delimiter */
+.highlight .sd { color: #4070A0; font-style: italic } /* Literal.String.Doc */
+.highlight .s2 { color: #4070A0 } /* Literal.String.Double */
+.highlight .se { color: #4070A0; font-weight: bold } /* Literal.String.Escape */
+.highlight .sh { color: #4070A0 } /* Literal.String.Heredoc */
+.highlight .si { color: #70A0D0; font-style: italic } /* Literal.String.Interpol */
+.highlight .sx { color: #C65D09 } /* Literal.String.Other */
+.highlight .sr { color: #235388 } /* Literal.String.Regex */
+.highlight .s1 { color: #4070A0 } /* Literal.String.Single */
+.highlight .ss { color: #517918 } /* Literal.String.Symbol */
+.highlight .bp { color: #007020 } /* Name.Builtin.Pseudo */
+.highlight .fm { color: #06287E } /* Name.Function.Magic */
+.highlight .vc { color: #BB60D5 } /* Name.Variable.Class */
+.highlight .vg { color: #BB60D5 } /* Name.Variable.Global */
+.highlight .vi { color: #BB60D5 } /* Name.Variable.Instance */
+.highlight .vm { color: #BB60D5 } /* Name.Variable.Magic */
+.highlight .il { color: #40A070 } /* Literal.Number.Integer.Long */
+</style>
+  
+  
+  
+    
+        <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20100%20100'%3E%3Ctext%20y='.9em'%20font-size='90'%3E🐼%3C/text%3E%3C/svg%3E">
+    
+
+
+
+  <style>
+      
+      
+    
+:root {
+    --width: 720px;
+    --font-main: Verdana, sans-serif;
+    --font-secondary: Verdana, sans-serif;
+    --font-scale: 1em;
+    --background-color: #fff;
+    --heading-color: #222;
+    --text-color: #444;
+    --link-color: #3273dc;
+    --visited-color:  #8b6fcb;
+    --code-background-color: #f2f2f2;
+    --code-color: #222;
+    --blockquote-color: #222;
+}
+
+@media (prefers-color-scheme: dark) {
+    :root {
+        --background-color: #01242e;
+        --heading-color: #eee;
+        --text-color: #ddd;
+        --link-color: #8cc2dd;
+        --visited-color:  #8b6fcb;
+        --code-background-color: #000;
+        --code-color: #ddd;
+        --blockquote-color: #ccc;
+    }
+}
+
+body {
+    font-family: var(--font-secondary);
+    font-size: var(--font-scale);
+    margin: auto;
+    padding: 20px;
+    max-width: var(--width);
+    text-align: left;
+    background-color: var(--background-color);
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    line-height: 1.5;
+    color: var(--text-color);
+}
+
+h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-main);
+    color: var(--heading-color);
+}
+
+a {
+    color: var(--link-color);
+    cursor: pointer;
+    text-decoration: none;
+}
+
+a:hover {
+    text-decoration: underline; 
+}
+
+nav a {
+    margin-right: 8px;
+}
+
+strong, b {
+    color: var(--heading-color);
+}
+
+button {
+    margin: 0;
+    cursor: pointer;
+}
+
+time {
+ 	font-family: monospace;
+  	font-style: normal;
+  	font-size: 15px;
+}
+
+main {
+    line-height: 1.6;
+}
+
+table {
+    width: 100%;
+}
+
+hr {
+    border: 0;
+    border-top: 1px dashed;
+}
+
+img {
+    max-width: 100%;
+}
+
+code {
+    font-family: monospace;
+    padding: 2px;
+    background-color: var(--code-background-color);
+    color: var(--code-color);
+    border-radius: 3px;
+}
+
+blockquote {
+    border-left: 1px solid #999;
+    color: var(--code-color);
+    padding-left: 20px;
+    font-style: italic;
+}
+
+footer {
+    padding: 25px 0;
+    text-align: center;
+}
+
+.title:hover {
+    text-decoration: none;
+}
+
+.title h1 {
+    font-size: 1.5em;
+}
+
+.inline {
+    width: auto !important;
+}
+
+.highlight, .code {
+    padding: 1px 15px;
+    background-color: var(--code-background-color);
+    color: var(--code-color);
+    border-radius: 3px;
+    margin-block-start: 1em;
+    margin-block-end: 1em;
+    overflow-x: auto;
+}
+
+/* blog post list */
+ul.blog-posts {
+    list-style-type: none;
+    padding: unset;
+}
+
+ul.blog-posts li {
+    display: flex;
+}
+
+ul.blog-posts li span {
+    flex: 0 0 130px;
+}
+
+ul.blog-posts li a:visited {
+    color: var(--visited-color);
+}
+    .upvote-button {
+        padding: 0;
+        margin: 0;
+        border: 0;
+        background-color: inherit;
+        color: inherit;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+    .upvote-button.upvoted {
+        color: salmon;
+    }
+    .upvote-count {
+        margin-top: -3px;
+    }
+
+      
+  </style>
+</head>
+
+<body class="post " onload="(function() { document.cookie = `timezone=${Intl.DateTimeFormat().resolvedOptions().timeZone};path=/`; })()">
+  
+  <header>
+    <a class="title" href="/">
+      <h1>
+        simons blog
+      </h1>
+    </a>
+    <nav>
+      <p><a href='/'>Home</a> <a href='/blog/'>Blog</a></p>
+
+    </nav>
+  </header>
+  <main>
+    
+
+    
+
+    
+        <h1>Bridging Math and Code: CuTe Layout Algebra in CuTeDSL</h1>
+
+        <p>
+            <i>
+                <time datetime="2025-05-18T19:13Z">
+    18 May, 2025
+</time>
+            </i>
+        </p>
+    
+
+    <h1 id=complementation>Complementation</h1><h2 id=introduction>Introduction</h2><p>This week the <code>CUTLASS</code> team released a new version of <code>CUTLASS</code> which introduces <code>CuTeDSL</code> a python interface which gives the user access to * core concepts such as layouts, tensors, hardware atoms, and full control over the hardware thread and data hierarchy* as can be read in their dedicated <a href='https://docs.nvidia.com/cutlass/media/docs/pythonDSL/overview.html'>documentation</a>.</p>
+<p>In this blogpost we aim to give a basic understanding of some principles of <code>CuTe</code> layout algebra.
+We will explain some basic concepts like the layout function, coalescing and complementation. This can be helpful for a deeper understanding of the <code>CuTeDSL</code>.</p>
+<h2 id=layout>Layout</h2><p>We define a Layout as</p>
+<math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><mrow><mi>L</mi><mo>&#x0003D;</mo><mo stretchy="false">&#x00028;</mo><msub><mi>M</mi><mn>0</mn></msub><mo>&#x0002C;</mo><msub><mi>M</mi><mn>1</mn></msub><mo>&#x0002C;</mo><mo>&#x0002E;</mo><mo>&#x0002E;</mo><mo>&#x0002E;</mo><mo>&#x0002C;</mo><msub><mi>M</mi><mi>n</mi></msub><mo stretchy="false">&#x00029;</mo><mi>:</mi><mo stretchy="false">&#x00028;</mo><msub><mi>d</mi><mn>0</mn></msub><mo>&#x0002C;</mo><msub><mi>d</mi><mn>1</mn></msub><mo>&#x0002C;</mo><mo>&#x0002E;</mo><mo>&#x0002E;</mo><mo>&#x0002E;</mo><mo>&#x0002C;</mo><msub><mi>d</mi><mi>n</mi></msub><mo stretchy="false">&#x00029;</mo></mrow></math><p>here</p>
+<p><math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>S</mi><mo>&#x0003D;</mo><mo stretchy="false">&#x00028;</mo><msub><mi>M</mi><mn>0</mn></msub><mo>&#x0002C;</mo><msub><mi>M</mi><mn>1</mn></msub><mo>&#x0002C;</mo><mo>&#x0002E;</mo><mo>&#x0002E;</mo><mo>&#x0002E;</mo><mo>&#x0002C;</mo><msub><mi>M</mi><mi>n</mi></msub><mo stretchy="false">&#x00029;</mo></mrow></math> is the shape where <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>M</mi><mo>&#x0003D;</mo><msub><mi>M</mi><mn>0</mn></msub><mi>&#x000B7;</mi><mo>&#x0002E;</mo><mo>&#x0002E;</mo><mo>&#x0002E;</mo><mi>&#x000B7;</mi><msub><mi>M</mi><mi>n</mi></msub></mrow></math> is the size of the layout.</p>
+<p><math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>D</mi><mo>&#x0003D;</mo><mo stretchy="false">&#x00028;</mo><msub><mi>d</mi><mn>0</mn></msub><mo>&#x0002C;</mo><msub><mi>d</mi><mn>1</mn></msub><mo>&#x0002C;</mo><mo>&#x0002E;</mo><mo>&#x0002E;</mo><mo>&#x0002E;</mo><mo>&#x0002C;</mo><msub><mi>d</mi><mi>n</mi></msub><mo stretchy="false">&#x00029;</mo></mrow></math> is the stride.</p>
+<p>The pairs</p>
+<p><math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mo stretchy="false">&#x00028;</mo><msub><mi>M</mi><mi>i</mi></msub><mo stretchy="false">&#x00029;</mo><mi>:</mi><mo stretchy="false">&#x00028;</mo><msub><mi>d</mi><mi>i</mi></msub><mo stretchy="false">&#x00029;</mo></mrow></math> are called modes and can be considered layouts of length 1.
+In general we define the length to be the number <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>n</mi><mo>&#x0002B;</mo><mn>1</mn></mrow></math> above.</p>
+<h2 id=layout-function>Layout function</h2><p>Let</p>
+<math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><mrow><mi>&#x003B9;</mi><mo stretchy="false">&#x00028;</mo><mi>x</mi><mo stretchy="false">&#x00029;</mo><mo>&#x0003D;</mo><mo stretchy="false">&#x00028;</mo><mi>x</mi><mspace width="1em" /><mi>mod</mi><mspace width="0.333em" /><mrow><msub><mi>M</mi><mn>0</mn></msub></mrow><mo>&#x0002C;</mo><mi>&#x0230A;</mi><mfrac><mrow><mi>x</mi></mrow><mrow><msub><mi>M</mi><mn>0</mn></msub></mrow></mfrac><mi>&#x0230B;</mi><mspace width="1em" /><mi>mod</mi><mspace width="0.333em" /><mrow><msub><mi>M</mi><mn>1</mn></msub></mrow><mo>&#x0002C;</mo><mo>&#x0002E;</mo><mo>&#x0002E;</mo><mo>&#x0002E;</mo><mo>&#x0002C;</mo><mi>&#x0230A;</mi><mfrac><mrow><mi>x</mi></mrow><mrow><msub><mi>M</mi><mn>0</mn></msub><mi>&#x000B7;</mi><mo>&#x0002E;</mo><mo>&#x0002E;</mo><mo>&#x0002E;</mo><mi>&#x000B7;</mi><msub><mi>M</mi><mrow><mi>n</mi><mo>&#x02212;</mo><mn>1</mn></mrow></msub></mrow></mfrac><mi>&#x0230B;</mi><mspace width="1em" /><mi>mod</mi><mspace width="0.333em" /><mrow><msub><mi>M</mi><mi>n</mi></msub></mrow><mo stretchy="false">&#x00029;</mo><mo>&#x0003D;</mo><mo stretchy="false">&#x00028;</mo><msub><mi>&#x003B9;</mi><mn>0</mn></msub><mo>&#x0002C;</mo><msub><mi>&#x003B9;</mi><mn>1</mn></msub><mo>&#x0002C;</mo><mo>&#x0002E;</mo><mo>&#x0002E;</mo><mo>&#x0002E;</mo><mo>&#x0002C;</mo><msub><mi>&#x003B9;</mi><mi>n</mi></msub><mo stretchy="false">&#x00029;</mo></mrow></math><p>which is an isomorphism <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mo stretchy="false">[</mo><mn>0</mn><mo>&#x0002C;</mo><mi>M</mi><mo stretchy="false">&#x00029;</mo><mo>&#x02245;</mo><mo stretchy="false">[</mo><mn>0</mn><mo>&#x0002C;</mo><msub><mi>M</mi><mn>0</mn></msub><mo stretchy="false">&#x00029;</mo><mi>&#x000D7;</mi><mo>&#x0002E;</mo><mo>&#x0002E;</mo><mo>&#x0002E;</mo><mi>&#x000D7;</mi><mo stretchy="false">[</mo><mn>0</mn><mo>&#x0002C;</mo><msub><mi>M</mi><mi>n</mi></msub><mo stretchy="false">&#x00029;</mo></mrow></math>. It maps a 1d index to a multidimensional index.</p>
+<p>The layout function is than given as the mapping which applies the isomorphism to a number <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>x</mi></mrow></math> (if needed), multiplies each vector entry with the corresponding stride entry and sums these up, i.e.</p>
+<p><math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msub><mi>f</mi><mi>L</mi></msub><mo stretchy="false">&#x00028;</mo><mi>x</mi><mo stretchy="false">&#x00029;</mo><mo>&#x0003D;</mo><msub><mi>&#x003B9;</mi><mn>0</mn></msub><msub><mi>d</mi><mn>0</mn></msub><mo>&#x0002B;</mo><msub><mi>&#x003B9;</mi><mn>1</mn></msub><msub><mi>d</mi><mn>1</mn></msub><mo>&#x0002B;</mo><mo>&#x0002E;</mo><mo>&#x0002E;</mo><mo>&#x0002E;</mo><mo>&#x0002B;</mo><msub><mi>&#x003B9;</mi><mi>n</mi></msub><msub><mi>d</mi><mi>n</mi></msub></mrow></math></p>
+<p>Let's consider as an example the layout <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mo stretchy="false">&#x00028;</mo><mn>2</mn><mo>&#x0002C;</mo><mn>4</mn><mo stretchy="false">&#x00029;</mo><mi>:</mi><mo stretchy="false">&#x00028;</mo><mn>2</mn><mo>&#x0002C;</mo><mn>2</mn><mo stretchy="false">&#x00029;</mo></mrow></math>.</p>
+<p>Let's calculate <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msub><mi>f</mi><mi>L</mi></msub><mo stretchy="false">&#x00028;</mo><mn>3</mn><mo stretchy="false">&#x00029;</mo></mrow></math>.</p>
+<math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><mrow><mi>&#x003B9;</mi><mo stretchy="false">&#x00028;</mo><mi>x</mi><mo stretchy="false">&#x00029;</mo><mo>&#x0003D;</mo><mo stretchy="false">&#x00028;</mo><mn>3</mn><mspace width="1em" /><mi>mod</mi><mspace width="0.333em" /><mn>2</mn><mo>&#x0002C;</mo><mi>&#x0230A;</mi><mfrac><mrow><mn>3</mn></mrow><mrow><mn>2</mn></mrow></mfrac><mi>&#x0230B;</mi><mspace width="1em" /><mi>mod</mi><mspace width="0.333em" /><mn>4</mn><mo stretchy="false">&#x00029;</mo><mo>&#x0003D;</mo><mo stretchy="false">&#x00028;</mo><mn>1</mn><mo>&#x0002C;</mo><mn>1</mn><mo stretchy="false">&#x00029;</mo></mrow></math><p>from here we get</p>
+<math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><mrow><msub><mi>f</mi><mi>L</mi></msub><mo stretchy="false">&#x00028;</mo><mn>3</mn><mo stretchy="false">&#x00029;</mo><mo>&#x0003D;</mo><mn>1</mn><mi>&#x000B7;</mi><mn>2</mn><mo>&#x0002B;</mo><mn>1</mn><mi>&#x000B7;</mi><mn>2</mn><mo>&#x0003D;</mo><mn>2</mn><mo>&#x0002B;</mo><mn>2</mn><mo>&#x0003D;</mo><mn>4</mn></mrow></math><p>We can calculate this in <code>CuTeDSL</code>:</p>
+<div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">cutlass</span>               
+<span class="kn">import</span><span class="w"> </span><span class="nn">cutlass.cute</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">cute</span>  
+
+<span class="nd">@cute</span><span class="o">.</span><span class="n">jit</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">layout_function_example</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Layout function in cutlass</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">S</span> <span class="o">=</span> <span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">4</span><span class="p">)</span>
+    <span class="n">D</span> <span class="o">=</span> <span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+    <span class="n">L</span> <span class="o">=</span> <span class="n">cute</span><span class="o">.</span><span class="n">make_layout</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="n">S</span><span class="p">,</span> <span class="n">stride</span><span class="o">=</span><span class="n">D</span><span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">cutlass</span><span class="o">.</span><span class="n">range_constexpr</span><span class="p">(</span><span class="n">cute</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="n">S</span><span class="p">)):</span>
+        <span class="n">cute</span><span class="o">.</span><span class="n">printf</span><span class="p">(</span><span class="s2">&quot;fL(</span><span class="si">{}</span><span class="s2">) = </span><span class="si">{}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="n">L</span><span class="p">(</span><span class="n">i</span><span class="p">))</span>
+
+<span class="n">layout_function_example</span><span class="p">()</span>
+</pre></div>
+<p>This will print:</p>
+<div class="highlight"><pre><span></span>fL(0) = 0
+fL(1) = 2
+fL(2) = 2
+fL(3) = 4
+fL(4) = 4
+fL(5) = 6
+fL(6) = 6
+fL(7) = 8
+</pre></div>
+<h2 id=sorted-layouts>Sorted layouts</h2><p>We define a sorted layout such that all the strides are increasing, i.e. <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msub><mi>d</mi><mrow><mi>i</mi><mo>&#x02212;</mo><mn>1</mn></mrow></msub><mo>&#x02264;</mo><msub><mi>d</mi><mi>i</mi></msub></mrow></math>.</p>
+<p>Sorting doesn't leave a layout invariant. Cosider the following representations:</p>
+<math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><mrow><msub><mi>L</mi><mn>1</mn></msub><mo>&#x0003D;</mo><mo stretchy="false">&#x00028;</mo><mn>2</mn><mo>&#x0002C;</mo><mn>2</mn><mo stretchy="false">&#x00029;</mo><mi>:</mi><mo stretchy="false">&#x00028;</mo><mn>3</mn><mo>&#x0002C;</mo><mn>1</mn><mo stretchy="false">&#x00029;</mo></mrow></math><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><mrow><msub><mi>L</mi><mn>2</mn></msub><mo>&#x0003D;</mo><mtext>sorted</mtext><mo stretchy="false">&#x00028;</mo><msub><mi>L</mi><mn>1</mn></msub><mo stretchy="false">&#x00029;</mo><mo>&#x0003D;</mo><mo stretchy="false">&#x00028;</mo><mn>2</mn><mo>&#x0002C;</mo><mn>2</mn><mo stretchy="false">&#x00029;</mo><mi>:</mi><mo stretchy="false">&#x00028;</mo><mn>1</mn><mo>&#x0002C;</mo><mn>3</mn><mo stretchy="false">&#x00029;</mo></mrow></math><p>the corresponding layout functions don't coincide, which we can easily verify with <code>CuTeDSL</code>:</p>
+<div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">cutlass</span>               
+<span class="kn">import</span><span class="w"> </span><span class="nn">cutlass.cute</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">cute</span>  
+
+<span class="nd">@cute</span><span class="o">.</span><span class="n">jit</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">sorted_example</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Sorting in cutlass</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">S1</span> <span class="o">=</span> <span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+    <span class="n">D1</span> <span class="o">=</span> <span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="n">L1</span> <span class="o">=</span> <span class="n">cute</span><span class="o">.</span><span class="n">make_layout</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="n">S1</span><span class="p">,</span> <span class="n">stride</span><span class="o">=</span><span class="n">D1</span><span class="p">)</span>
+    <span class="n">S2</span> <span class="o">=</span> <span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+    <span class="n">D2</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
+    <span class="n">L2</span> <span class="o">=</span> <span class="n">cute</span><span class="o">.</span><span class="n">make_layout</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="n">S2</span><span class="p">,</span> <span class="n">stride</span><span class="o">=</span><span class="n">D2</span><span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">cutlass</span><span class="o">.</span><span class="n">range_constexpr</span><span class="p">(</span><span class="n">cute</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="n">S1</span><span class="p">)):</span>
+        <span class="n">cute</span><span class="o">.</span><span class="n">printf</span><span class="p">(</span><span class="s2">&quot;fL1(</span><span class="si">{}</span><span class="s2">) = </span><span class="si">{}</span><span class="s2">, fL2(</span><span class="si">{}</span><span class="s2">) = </span><span class="si">{}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="n">L1</span><span class="p">(</span><span class="n">i</span><span class="p">),</span> <span class="n">i</span><span class="p">,</span> <span class="n">L2</span><span class="p">(</span><span class="n">i</span><span class="p">))</span>
+
+<span class="n">sorted_example</span><span class="p">()</span>
+</pre></div>
+<p>which will print:</p>
+<div class="highlight"><pre><span></span>fL1(0) = 0, fL2(0) = 0
+fL1(1) = 3, fL2(1) = 1
+fL1(2) = 1, fL2(2) = 3
+fL1(3) = 4, fL2(3) = 4
+</pre></div>
+<p>which we could have of course also verified by hand for this simple example.
+We may also understand that by looking at the above example and seeing that <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msub><mi>L</mi><mn>1</mn></msub></mrow></math> is row major while <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msub><mi>L</mi><mn>2</mn></msub></mrow></math> is column major.</p>
+<h2 id=coalescing>Coalescing</h2><p>Coalescing is an operation that</p>
+<ul>
+<li>Preserves the size of the layout</li>
+<li>Preserves the associated layout function.</li>
+</ul>
+<p>Let's take a simple example:</p>
+<math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><mrow><mi>L</mi><mo>&#x0003D;</mo><mo stretchy="false">&#x00028;</mo><mn>2</mn><mo>&#x0002C;</mo><mn>1</mn><mo stretchy="false">&#x00029;</mo><mi>:</mi><mo stretchy="false">&#x00028;</mo><mn>3</mn><mo>&#x0002C;</mo><mn>1</mn><mo stretchy="false">&#x00029;</mo></mrow></math><p>By looking at the above definition of <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>&#x003B9;</mi></mrow></math> we can recognize that <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msub><mi>&#x003B9;</mi><mn>2</mn></msub></mrow></math> will always be <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mn>0</mn></mrow></math>, i.e. it won't contribute to the layout function for any value <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>x</mi></mrow></math>, i.e.</p>
+<math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><mrow><mtext>coalesce</mtext><mo stretchy="false">&#x00028;</mo><mi>L</mi><mo stretchy="false">&#x00029;</mo><mo>&#x0003D;</mo><mn>2</mn><mi>:</mi><mn>3</mn></mrow></math><p>We can verify this:</p>
+<div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">cutlass</span>               
+<span class="kn">import</span><span class="w"> </span><span class="nn">cutlass.cute</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">cute</span>  
+
+<span class="nd">@cute</span><span class="o">.</span><span class="n">jit</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">coalesce_example</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Coalesce in cutlass</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">S</span> <span class="o">=</span> <span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="n">D</span> <span class="o">=</span> <span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="n">L</span> <span class="o">=</span> <span class="n">cute</span><span class="o">.</span><span class="n">make_layout</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="n">S</span><span class="p">,</span> <span class="n">stride</span><span class="o">=</span><span class="n">D</span><span class="p">)</span>
+    <span class="n">cL</span> <span class="o">=</span> <span class="n">cute</span><span class="o">.</span><span class="n">coalesce</span><span class="p">(</span><span class="n">L</span><span class="p">)</span>
+
+    <span class="n">cute</span><span class="o">.</span><span class="n">printf</span><span class="p">(</span><span class="s2">&quot;L = </span><span class="si">{}</span><span class="s2">, cL = </span><span class="si">{}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">L</span><span class="p">,</span> <span class="n">cL</span><span class="p">)</span>
+
+<span class="n">coalesce_example</span><span class="p">()</span>
+</pre></div>
+<p>which will print</p>
+<div class="highlight"><pre><span></span>L = (2,1):(3,1), cL = 2:3
+</pre></div>
+<h2 id=complementation-1>Complementation</h2><h3 id=admissability>Admissability</h3><p>Let <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>L</mi></mrow></math> be a layout and <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>K</mi></mrow></math> be a positive integer.
+<math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mo stretchy="false">&#x00028;</mo><mi>L</mi><mo>&#x0002C;</mo><mi>K</mi><mo stretchy="false">&#x00029;</mo></mrow></math> is admissable for complementation if the following conditions are satisfied:</p>
+<ul>
+<li><math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msub><mi>M</mi><mrow><mi>i</mi><mo>&#x02212;</mo><mn>1</mn></mrow></msub><msub><mi>d</mi><mrow><mi>i</mi><mo>&#x02212;</mo><mn>1</mn></mrow></msub></mrow></math> divides <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msub><mi>d</mi><mi>i</mi></msub></mrow></math></li>
+<li><math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msub><mi>M</mi><mi>n</mi></msub><msub><mi>d</mi><mi>n</mi></msub></mrow></math> divides <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>K</mi></mrow></math></li>
+</ul>
+<h3 id=complement>Complement</h3><p>If <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mo stretchy="false">&#x00028;</mo><mi>L</mi><mo>&#x0002C;</mo><mi>K</mi><mo stretchy="false">&#x00029;</mo></mrow></math> is admissable we define the complement operation as follows:</p>
+<math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><mrow><mtext>complement</mtext><mo stretchy="false">&#x00028;</mo><mi>L</mi><mo>&#x0002C;</mo><mi>K</mi><mo stretchy="false">&#x00029;</mo><mo>&#x0003D;</mo><mo stretchy="false">&#x00028;</mo><msub><mi>d</mi><mn>0</mn></msub><mo>&#x0002C;</mo><mfrac><mrow><msub><mi>d</mi><mn>1</mn></msub></mrow><mrow><msub><mi>M</mi><mn>0</mn></msub><msub><mi>d</mi><mn>0</mn></msub></mrow></mfrac><mo>&#x0002C;</mo><mo>&#x0002E;</mo><mo>&#x0002E;</mo><mo>&#x0002E;</mo><mo>&#x0002C;</mo><mfrac><mrow><msub><mi>d</mi><mi>n</mi></msub></mrow><mrow><msub><mi>M</mi><mrow><mi>n</mi><mo>&#x02212;</mo><mn>1</mn></mrow></msub><msub><mi>d</mi><mrow><mi>n</mi><mo>&#x02212;</mo><mn>1</mn></mrow></msub></mrow></mfrac><mo>&#x0002C;</mo><mfrac><mrow><mi>K</mi></mrow><mrow><msub><mi>M</mi><mi>n</mi></msub><msub><mi>d</mi><mi>n</mi></msub></mrow></mfrac><mo stretchy="false">&#x00029;</mo><mi>:</mi><mo stretchy="false">&#x00028;</mo><mn>1</mn><mo>&#x0002C;</mo><msub><mi>M</mi><mn>0</mn></msub><msub><mi>d</mi><mn>0</mn></msub><mo>&#x0002C;</mo><mo>&#x0002E;</mo><mo>&#x0002E;</mo><mo>&#x0002E;</mo><mo>&#x0002C;</mo><msub><mi>M</mi><mi>n</mi></msub><msub><mi>d</mi><mi>n</mi></msub><mo stretchy="false">&#x00029;</mo></mrow></math><p>Let's take simple example:</p>
+<p><math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>L</mi><mo>&#x0003D;</mo><mo stretchy="false">&#x00028;</mo><mn>2</mn><mo>&#x0002C;</mo><mn>4</mn><mo stretchy="false">&#x00029;</mo><mi>:</mi><mo stretchy="false">&#x00028;</mo><mn>1</mn><mo>&#x0002C;</mo><mn>2</mn><mo stretchy="false">&#x00029;</mo></mrow></math>, <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>K</mi><mo>&#x0003D;</mo><mn>16</mn></mrow></math>.</p>
+<p><math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mo stretchy="false">&#x00028;</mo><mi>L</mi><mo>&#x0002C;</mo><mi>K</mi><mo stretchy="false">&#x00029;</mo></mrow></math> is admissable.</p>
+<p>We can calculate the complement:</p>
+<math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><mrow><mtext>complement</mtext><mo stretchy="false">&#x00028;</mo><mi>L</mi><mo>&#x0002C;</mo><mi>K</mi><mo stretchy="false">&#x00029;</mo><mo>&#x0003D;</mo><mo stretchy="false">&#x00028;</mo><mn>1</mn><mo>&#x0002C;</mo><mn>1</mn><mo>&#x0002C;</mo><mn>2</mn><mo stretchy="false">&#x00029;</mo><mi>:</mi><mo stretchy="false">&#x00028;</mo><mn>1</mn><mo>&#x0002C;</mo><mn>2</mn><mo>&#x0002C;</mo><mn>8</mn><mo stretchy="false">&#x00029;</mo></mrow></math><p>using same argument as above we can coalesce this to</p>
+<math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><mrow><mi>A</mi><mo>&#x0003D;</mo><mn>2</mn><mi>:</mi><mn>8</mn></mrow></math><p>We can calculate this as follows:</p>
+<div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">cutlass</span>               
+<span class="kn">import</span><span class="w"> </span><span class="nn">cutlass.cute</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">cute</span>  
+
+<span class="nd">@cute</span><span class="o">.</span><span class="n">jit</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">complement_example</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Complement in cutlass</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">S</span> <span class="o">=</span> <span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">4</span><span class="p">)</span>
+    <span class="n">D</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+    <span class="n">L</span> <span class="o">=</span> <span class="n">cute</span><span class="o">.</span><span class="n">make_layout</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="n">S</span><span class="p">,</span> <span class="n">stride</span><span class="o">=</span><span class="n">D</span><span class="p">)</span>
+    <span class="n">K</span> <span class="o">=</span> <span class="mi">16</span>
+
+    <span class="n">cL</span> <span class="o">=</span> <span class="n">cute</span><span class="o">.</span><span class="n">complement</span><span class="p">(</span><span class="n">L</span><span class="p">,</span> <span class="n">K</span><span class="p">)</span>
+
+    <span class="n">cute</span><span class="o">.</span><span class="n">printf</span><span class="p">(</span><span class="s2">&quot;L = </span><span class="si">{}</span><span class="s2">, cL = </span><span class="si">{}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">L</span><span class="p">,</span> <span class="n">cL</span><span class="p">)</span>
+
+<span class="n">complement_example</span><span class="p">()</span>
+</pre></div>
+<p>which will give the same result as above:</p>
+<div class="highlight"><pre><span></span>L = (2,4):(1,2), cL = 2:8
+</pre></div>
+<p>We can interpret the complement as follows:</p>
+<p>Let <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>A</mi></mrow></math> be the concatenation of the layout and it's complement.
+The concatenation can be simply formed by combining all the modes into one layout.
+For the above example that is:</p>
+<math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><mrow><mi>A</mi><mo>&#x0003D;</mo><mo stretchy="false">&#x00028;</mo><mn>2</mn><mo>&#x0002C;</mo><mn>4</mn><mo>&#x0002C;</mo><mn>2</mn><mo stretchy="false">&#x00029;</mo><mi>:</mi><mo stretchy="false">&#x00028;</mo><mn>1</mn><mo>&#x0002C;</mo><mn>2</mn><mo>&#x0002C;</mo><mn>8</mn><mo stretchy="false">&#x00029;</mo></mrow></math><p>we can proove that this gives us a bijection <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msub><mi>f</mi><mi>A</mi></msub><mi>:</mi><mo stretchy="false">[</mo><mn>0</mn><mo>&#x0002C;</mo><mi>M</mi><mo stretchy="false">&#x00029;</mo><mo>&#x02192;</mo><mo stretchy="false">[</mo><mn>0</mn><mo>&#x0002C;</mo><mi>M</mi><mo stretchy="false">&#x00029;</mo></mrow></math>. Please see <a href='https://leimao.github.io/article/CuTe-Layout-Algebra/'>proposition 2.7</a> of this blogpost.</p>
+<p>We can verify this using <code>CuTeDSL</code>:</p>
+<div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">cutlass</span>               
+<span class="kn">import</span><span class="w"> </span><span class="nn">cutlass.cute</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">cute</span>  
+
+<span class="nd">@cute</span><span class="o">.</span><span class="n">jit</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">complement_example2</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Complement in cutlass</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">S</span> <span class="o">=</span> <span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+    <span class="n">D</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">8</span><span class="p">)</span>
+    <span class="n">L</span> <span class="o">=</span> <span class="n">cute</span><span class="o">.</span><span class="n">make_layout</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="n">S</span><span class="p">,</span> <span class="n">stride</span><span class="o">=</span><span class="n">D</span><span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">cutlass</span><span class="o">.</span><span class="n">range_constexpr</span><span class="p">(</span><span class="n">cute</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="n">L</span><span class="p">)):</span>
+        <span class="n">cute</span><span class="o">.</span><span class="n">printf</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">{}</span><span class="s2"> -&gt; </span><span class="si">{}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="n">L</span><span class="p">(</span><span class="n">i</span><span class="p">))</span>
+    
+<span class="n">complement_example2</span><span class="p">()</span>
+</pre></div>
+<div class="highlight"><pre><span></span>0 -&gt; 0
+1 -&gt; 1
+2 -&gt; 2
+3 -&gt; 3
+4 -&gt; 4
+5 -&gt; 5
+6 -&gt; 6
+7 -&gt; 7
+8 -&gt; 8
+9 -&gt; 9
+10 -&gt; 10
+11 -&gt; 11
+12 -&gt; 12
+13 -&gt; 13
+14 -&gt; 14
+15 -&gt; 15
+</pre></div>
+<p>Note that the bijection not necessarily is the identity.</p>
+<p>For example take</p>
+<p><math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>B</mi><mo>&#x0003D;</mo><mn>8</mn><mi>:</mi><mn>2</mn></mrow></math> and <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>K</mi><mo>&#x0003D;</mo><mn>32</mn></mrow></math>.</p>
+<p><math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mo stretchy="false">&#x00028;</mo><mi>B</mi><mo>&#x0002C;</mo><mi>K</mi><mo stretchy="false">&#x00029;</mo></mrow></math> is admissable because <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mn>8</mn><mi>&#x000B7;</mi><mn>2</mn><mo>&#x0003D;</mo><mn>16</mn></mrow></math> divides 32.</p>
+<math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><mrow><mtext>complement</mtext><mo stretchy="false">&#x00028;</mo><mi>B</mi><mo>&#x0002C;</mo><mi>K</mi><mo stretchy="false">&#x00029;</mo><mo>&#x0003D;</mo><mo stretchy="false">&#x00028;</mo><mn>2</mn><mo>&#x0002C;</mo><mn>2</mn><mo stretchy="false">&#x00029;</mo><mi>:</mi><mo stretchy="false">&#x00028;</mo><mn>1</mn><mo>&#x0002C;</mo><mn>16</mn><mo stretchy="false">&#x00029;</mo></mrow></math><p>The concatenated layout is</p>
+<math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><mrow><mi>A</mi><mo>&#x0003D;</mo><mo stretchy="false">&#x00028;</mo><mn>8</mn><mo>&#x0002C;</mo><mn>2</mn><mo>&#x0002C;</mo><mn>2</mn><mo stretchy="false">&#x00029;</mo><mi>:</mi><mo stretchy="false">&#x00028;</mo><mn>2</mn><mo>&#x0002C;</mo><mn>1</mn><mo>&#x0002C;</mo><mn>16</mn><mo stretchy="false">&#x00029;</mo></mrow></math><p>and printing out the values of the layout function will give us a bijection unequal to the identity:</p>
+<div class="highlight"><pre><span></span>0 -&gt; 0
+1 -&gt; 2
+2 -&gt; 4
+3 -&gt; 6
+4 -&gt; 8
+5 -&gt; 10
+6 -&gt; 12
+7 -&gt; 14
+8 -&gt; 1
+9 -&gt; 3
+10 -&gt; 5
+11 -&gt; 7
+12 -&gt; 9
+13 -&gt; 11
+14 -&gt; 13
+15 -&gt; 15
+16 -&gt; 16
+17 -&gt; 18
+18 -&gt; 20
+19 -&gt; 22
+20 -&gt; 24
+21 -&gt; 26
+22 -&gt; 28
+23 -&gt; 30
+24 -&gt; 17
+25 -&gt; 19
+26 -&gt; 21
+27 -&gt; 23
+28 -&gt; 25
+29 -&gt; 27
+30 -&gt; 29
+31 -&gt; 31
+</pre></div>
+<h2 id=conclusion>Conclusion</h2><p>I hope this blogpost can serve as an easy intro to the <code>CuTeDSL</code> by connecting mathematical concepts with programming.
+For a deeper mathematical explanation of the concepts see <a href='https://leimao.github.io/article/CuTe-Layout-Algebra/'>Lei Maos</a> blogposts and <a href='https://leimao.github.io/downloads/article/2024-10-20-CuTe-Layout-Algebra/layout_algebra.pdf'>Jay Shahs</a> note on CuTe layout algebra.</p>
+<p>For further examples of <code>CuTeDSL</code> see the <a href='https://github.com/NVIDIA/cutlass/tree/main/examples/python/CuTeDSL'>CUTLASS repo</a>.</p>
+
+
+    
+
+    
+        
+
+        
+            <form id="upvote-form" action="/upvote/" method="post" style="display: inline">
+    <small>
+        <input hidden name="uid" value="pqcxWdAyNiLXfeBLYGDH" style="display:none">
+        <input hidden name="title" value="Bridging Math and Code: CuTe Layout Algebra in CuTeDSL" style="display:none">
+
+        <button
+            class="upvote-button"
+            aria-label="Toast this post"
+            title="Toast this post"
+        >
+            <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" class="css-i6dzq1">
+                <polyline points="17 11 12 6 7 11"></polyline>
+                <polyline points="17 18 12 13 7 18"></polyline>
+            </svg>
+            <small class="upvote-count" aria-hidden="true">&nbsp;</small>
+        </button>
+    </small>        
+</form>
+
+<script>
+    const $upvoteButton = document.querySelector('.upvote-button');
+    const $upvoteCount =  document.querySelector('.upvote-count')
+
+    fetch('/upvote-info/pqcxWdAyNiLXfeBLYGDH/').then(response => response.json()).then(data => {
+        $upvoteCount.innerText = data.upvote_count;
+        if (data.upvoted) {
+            $upvoteButton.disabled = true
+            $upvoteButton.style.color = "salmon"
+            $upvoteButton.ariaLabel = "Toasted"
+            $upvoteButton.title = "Toasted"
+        }
+        $upvoteButton.ariaLabel += ` (${data.upvote_count})`
+    });
+
+    let moved = false;
+    let pageLoaded = Date.now();
+
+    document.addEventListener('touchmove', () => moved = true);
+    document.addEventListener('mousemove', () => moved = true);
+
+    document.querySelector('#upvote-form').addEventListener('submit', (e) => {
+        e.preventDefault();
+
+        if (moved) {
+            document.querySelector('input[name="title"]').value = "";
+        }
+        if (Date.now() - pageLoaded < 2000 || !moved) {
+            return;
+        }
+
+        fetch(e.target.action, {
+            method: 'post',
+            body: new FormData(e.target),
+        });
+        
+        $upvoteButton.disabled = true
+        $upvoteButton.style.color = "salmon"
+        $upvoteButton.ariaLabel = "Toasted"
+        $upvoteButton.title = "Toasted"
+        const newUpvoteCount = `${(parseInt($upvoteCount.innerHTML.split(" ")[0]) + 1)}`
+        $upvoteCount.innerHTML = newUpvoteCount
+        $upvoteButton.ariaLabel += ` (${newUpvoteCount})`
+    });
+</script>
+        
+
+        
+            <script>
+            window.addEventListener("load", () => {
+                if (navigator.webdriver !== true) {
+                    const sendHit = score => {
+                        const params = new URLSearchParams({
+                            blog: "veitner",
+                            token: "pqcxWdAyNiLXfeBLYGDH",
+                            referrer: document.referrer.includes("veitner.bearblog.dev") ? "" : document.referrer,
+                            title: "",
+                            score: score
+                        });
+                        new Image().src = `/hit/?${params.toString()}`;
+                    };
+
+                    document.addEventListener('touchmove', () => sendHit(100), { once: true });
+                    document.addEventListener('mousemove', () => sendHit(100), { once: true });
+                }
+            });
+            </script>
+        
+    
+
+
+  </main>
+  <footer>
+    
+    
+    <span>
+        Powered by <a href="https://bearblog.dev">Bear <span role="img" class="bear" aria-label="ASCII bear logo">ʕ•ᴥ•ʔ</span></a>
+    </span>
+
+  </footer>
+
+  
+  <script>
+        (() => {
+          "use strict";
+          const times = document.querySelectorAll('time');
+          const format_string = "d M, Y" || "d M, Y"
+
+          times.forEach(time => {
+              time.innerText = formatDate(time.dateTime, format_string)
+          });
+
+          function formatDate(dateStr, formatStr) {
+            const date = new Date(dateStr);
+            const day = date.getDate();
+            const month = date.getMonth();
+            const year = date.getFullYear();
+            const weekday = date.getDay();
+            const hours = date.getHours();
+            const minutes = date.getMinutes();
+            const monthsFull = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+            const monthsShort = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+            const daysFull = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+            const daysShort = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+            
+            function getOrdinal(n) {
+                const s = ['th', 'st', 'nd', 'rd'];
+                const v = n % 100;
+                return s[(v - 20) % 10] || s[v] || s[0];
+            }
+            
+            const map = {
+                'd': () => day.toString().padStart(2, '0'),
+                'm': () => (month + 1).toString().padStart(2, '0'),
+                'Y': () => year.toString(),
+                'y': () => year.toString().slice(-2),
+                'F': () => monthsFull[month],
+                'j': () => day.toString(),
+                'D': () => daysShort[weekday],
+                'l': () => daysFull[weekday],
+                'S': () => getOrdinal(day),
+                'M': () => monthsShort[month],
+                'H': () => hours.toString().padStart(2, '0'),
+                'h': () => {
+                    let h = hours % 12;
+                    h = h === 0 ? 12 : h;
+                    return h.toString().padStart(2, '0');
+                },
+                'g': () => {
+                    let h = hours % 12;
+                    return h === 0 ? '12' : h.toString();
+                },
+                'i': () => minutes.toString().padStart(2, '0'),
+                'a': () => hours < 12 ? 'am' : 'pm',
+                'A': () => hours < 12 ? 'AM' : 'PM',
+            };
+            
+            let result = '';
+            for (let char of formatStr) {
+                result += map[char] ? map[char]() : char;
+            }
+            return result;
+        }
+        })();
+    </script>
+    
+</body>
+<!-- ID: veitner -->
+<!-- 🐻 -->
+</html>

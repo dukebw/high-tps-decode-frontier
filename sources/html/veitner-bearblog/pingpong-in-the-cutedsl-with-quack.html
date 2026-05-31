@@ -1,0 +1,923 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!-- Powered by Bear Blog -->
+
+<head>
+  
+  
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5">
+  
+  <title>PingPong 🏓 in the CuTeDSL with QuACK 🦆 | simons blog</title>
+  <link rel="canonical" href="https://veitner.bearblog.dev/pingpong-in-the-cutedsl-with-quack/">
+  
+    
+
+    <meta name="veitner" content="look-for-the-bear-necessities">
+    <meta name="token" content="qszJGLktvovGugqdzdNy">
+
+    
+<!-- Primary Meta Tags -->
+<meta name="title" content="PingPong 🏓 in the CuTeDSL with QuACK 🦆">
+<meta name="description" content="Introduction
+
+PingPong is an important pattern in GEMM design we didn&#x27;t cover so far. The idea is that we have a persistent kernel but differing from the a...">
+
+<!-- Open Graph / Facebook -->
+<meta property="og:site_name" content="simons blog">
+<meta property="og:title" content="PingPong 🏓 in the CuTeDSL with QuACK 🦆">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://veitner.bearblog.dev/pingpong-in-the-cutedsl-with-quack/">
+<meta property="og:description" content="Introduction
+
+PingPong is an important pattern in GEMM design we didn&#x27;t cover so far. The idea is that we have a persistent kernel but differing from the a...">
+<meta property="og:image" content="/static/og-image.png">
+
+
+<!-- Twitter -->
+<meta property="twitter:card" content="summary">
+<meta property="twitter:url" content="https://veitner.bearblog.dev/pingpong-in-the-cutedsl-with-quack/">
+<meta property="twitter:title" content="PingPong 🏓 in the CuTeDSL with QuACK 🦆">
+<meta property="twitter:description" content="Introduction
+
+PingPong is an important pattern in GEMM design we didn&#x27;t cover so far. The idea is that we have a persistent kernel but differing from the a...">
+<meta property="twitter:image" content="/static/og-image.png">
+
+
+
+<!-- Microdata -->
+<script type="application/ld+json">
+  {
+    "@context": "http://schema.org",
+    "@type": "article",
+    "name": "PingPong 🏓 in the CuTeDSL with QuACK 🦆",
+    "headline": "PingPong 🏓 in the CuTeDSL with QuACK 🦆",
+    "url": "https://veitner.bearblog.dev/pingpong-in-the-cutedsl-with-quack/",
+    "description": "Introduction
+
+PingPong is an important pattern in GEMM design we didn&#x27;t cover so far. The idea is that we have a persistent kernel but differing from the a...",
+    "image": "/static/og-image.png"
+  }
+</script>
+    <link rel="alternate" type="application/atom+xml" href="/feed/" title="simons blog">
+    <link rel="alternate" type="application/rss+xml" href="/feed/?type=rss" title="simons blog">
+
+  
+    
+
+    
+    <style>pre { line-height: 125%; }
+td.linenos .normal { color: #666666; background-color: transparent; padding-left: 5px; padding-right: 5px; }
+span.linenos { color: #666666; background-color: transparent; padding-left: 5px; padding-right: 5px; }
+td.linenos .special { color: #000000; background-color: #ffffc0; padding-left: 5px; padding-right: 5px; }
+span.linenos.special { color: #000000; background-color: #ffffc0; padding-left: 5px; padding-right: 5px; }
+.highlight .hll { background-color: #ffffcc }
+.highlight { background: #f0f0f0; }
+.highlight .c { color: #60A0B0; font-style: italic } /* Comment */
+.highlight .err { border: 1px solid #F00 } /* Error */
+.highlight .k { color: #007020; font-weight: bold } /* Keyword */
+.highlight .o { color: #666 } /* Operator */
+.highlight .ch { color: #60A0B0; font-style: italic } /* Comment.Hashbang */
+.highlight .cm { color: #60A0B0; font-style: italic } /* Comment.Multiline */
+.highlight .cp { color: #007020 } /* Comment.Preproc */
+.highlight .cpf { color: #60A0B0; font-style: italic } /* Comment.PreprocFile */
+.highlight .c1 { color: #60A0B0; font-style: italic } /* Comment.Single */
+.highlight .cs { color: #60A0B0; background-color: #FFF0F0 } /* Comment.Special */
+.highlight .gd { color: #A00000 } /* Generic.Deleted */
+.highlight .ge { font-style: italic } /* Generic.Emph */
+.highlight .ges { font-weight: bold; font-style: italic } /* Generic.EmphStrong */
+.highlight .gr { color: #F00 } /* Generic.Error */
+.highlight .gh { color: #000080; font-weight: bold } /* Generic.Heading */
+.highlight .gi { color: #00A000 } /* Generic.Inserted */
+.highlight .go { color: #888 } /* Generic.Output */
+.highlight .gp { color: #C65D09; font-weight: bold } /* Generic.Prompt */
+.highlight .gs { font-weight: bold } /* Generic.Strong */
+.highlight .gu { color: #800080; font-weight: bold } /* Generic.Subheading */
+.highlight .gt { color: #04D } /* Generic.Traceback */
+.highlight .kc { color: #007020; font-weight: bold } /* Keyword.Constant */
+.highlight .kd { color: #007020; font-weight: bold } /* Keyword.Declaration */
+.highlight .kn { color: #007020; font-weight: bold } /* Keyword.Namespace */
+.highlight .kp { color: #007020 } /* Keyword.Pseudo */
+.highlight .kr { color: #007020; font-weight: bold } /* Keyword.Reserved */
+.highlight .kt { color: #902000 } /* Keyword.Type */
+.highlight .m { color: #40A070 } /* Literal.Number */
+.highlight .s { color: #4070A0 } /* Literal.String */
+.highlight .na { color: #4070A0 } /* Name.Attribute */
+.highlight .nb { color: #007020 } /* Name.Builtin */
+.highlight .nc { color: #0E84B5; font-weight: bold } /* Name.Class */
+.highlight .no { color: #60ADD5 } /* Name.Constant */
+.highlight .nd { color: #555; font-weight: bold } /* Name.Decorator */
+.highlight .ni { color: #D55537; font-weight: bold } /* Name.Entity */
+.highlight .ne { color: #007020 } /* Name.Exception */
+.highlight .nf { color: #06287E } /* Name.Function */
+.highlight .nl { color: #002070; font-weight: bold } /* Name.Label */
+.highlight .nn { color: #0E84B5; font-weight: bold } /* Name.Namespace */
+.highlight .nt { color: #062873; font-weight: bold } /* Name.Tag */
+.highlight .nv { color: #BB60D5 } /* Name.Variable */
+.highlight .ow { color: #007020; font-weight: bold } /* Operator.Word */
+.highlight .w { color: #BBB } /* Text.Whitespace */
+.highlight .mb { color: #40A070 } /* Literal.Number.Bin */
+.highlight .mf { color: #40A070 } /* Literal.Number.Float */
+.highlight .mh { color: #40A070 } /* Literal.Number.Hex */
+.highlight .mi { color: #40A070 } /* Literal.Number.Integer */
+.highlight .mo { color: #40A070 } /* Literal.Number.Oct */
+.highlight .sa { color: #4070A0 } /* Literal.String.Affix */
+.highlight .sb { color: #4070A0 } /* Literal.String.Backtick */
+.highlight .sc { color: #4070A0 } /* Literal.String.Char */
+.highlight .dl { color: #4070A0 } /* Literal.String.Delimiter */
+.highlight .sd { color: #4070A0; font-style: italic } /* Literal.String.Doc */
+.highlight .s2 { color: #4070A0 } /* Literal.String.Double */
+.highlight .se { color: #4070A0; font-weight: bold } /* Literal.String.Escape */
+.highlight .sh { color: #4070A0 } /* Literal.String.Heredoc */
+.highlight .si { color: #70A0D0; font-style: italic } /* Literal.String.Interpol */
+.highlight .sx { color: #C65D09 } /* Literal.String.Other */
+.highlight .sr { color: #235388 } /* Literal.String.Regex */
+.highlight .s1 { color: #4070A0 } /* Literal.String.Single */
+.highlight .ss { color: #517918 } /* Literal.String.Symbol */
+.highlight .bp { color: #007020 } /* Name.Builtin.Pseudo */
+.highlight .fm { color: #06287E } /* Name.Function.Magic */
+.highlight .vc { color: #BB60D5 } /* Name.Variable.Class */
+.highlight .vg { color: #BB60D5 } /* Name.Variable.Global */
+.highlight .vi { color: #BB60D5 } /* Name.Variable.Instance */
+.highlight .vm { color: #BB60D5 } /* Name.Variable.Magic */
+.highlight .il { color: #40A070 } /* Literal.Number.Integer.Long */
+</style>
+  
+  
+  
+    
+        <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20100%20100'%3E%3Ctext%20y='.9em'%20font-size='90'%3E🐼%3C/text%3E%3C/svg%3E">
+    
+
+
+
+  <style>
+      
+      
+    
+:root {
+    --width: 720px;
+    --font-main: Verdana, sans-serif;
+    --font-secondary: Verdana, sans-serif;
+    --font-scale: 1em;
+    --background-color: #fff;
+    --heading-color: #222;
+    --text-color: #444;
+    --link-color: #3273dc;
+    --visited-color:  #8b6fcb;
+    --code-background-color: #f2f2f2;
+    --code-color: #222;
+    --blockquote-color: #222;
+}
+
+@media (prefers-color-scheme: dark) {
+    :root {
+        --background-color: #01242e;
+        --heading-color: #eee;
+        --text-color: #ddd;
+        --link-color: #8cc2dd;
+        --visited-color:  #8b6fcb;
+        --code-background-color: #000;
+        --code-color: #ddd;
+        --blockquote-color: #ccc;
+    }
+}
+
+body {
+    font-family: var(--font-secondary);
+    font-size: var(--font-scale);
+    margin: auto;
+    padding: 20px;
+    max-width: var(--width);
+    text-align: left;
+    background-color: var(--background-color);
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    line-height: 1.5;
+    color: var(--text-color);
+}
+
+h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-main);
+    color: var(--heading-color);
+}
+
+a {
+    color: var(--link-color);
+    cursor: pointer;
+    text-decoration: none;
+}
+
+a:hover {
+    text-decoration: underline; 
+}
+
+nav a {
+    margin-right: 8px;
+}
+
+strong, b {
+    color: var(--heading-color);
+}
+
+button {
+    margin: 0;
+    cursor: pointer;
+}
+
+time {
+ 	font-family: monospace;
+  	font-style: normal;
+  	font-size: 15px;
+}
+
+main {
+    line-height: 1.6;
+}
+
+table {
+    width: 100%;
+}
+
+hr {
+    border: 0;
+    border-top: 1px dashed;
+}
+
+img {
+    max-width: 100%;
+}
+
+code {
+    font-family: monospace;
+    padding: 2px;
+    background-color: var(--code-background-color);
+    color: var(--code-color);
+    border-radius: 3px;
+}
+
+blockquote {
+    border-left: 1px solid #999;
+    color: var(--code-color);
+    padding-left: 20px;
+    font-style: italic;
+}
+
+footer {
+    padding: 25px 0;
+    text-align: center;
+}
+
+.title:hover {
+    text-decoration: none;
+}
+
+.title h1 {
+    font-size: 1.5em;
+}
+
+.inline {
+    width: auto !important;
+}
+
+.highlight, .code {
+    padding: 1px 15px;
+    background-color: var(--code-background-color);
+    color: var(--code-color);
+    border-radius: 3px;
+    margin-block-start: 1em;
+    margin-block-end: 1em;
+    overflow-x: auto;
+}
+
+/* blog post list */
+ul.blog-posts {
+    list-style-type: none;
+    padding: unset;
+}
+
+ul.blog-posts li {
+    display: flex;
+}
+
+ul.blog-posts li span {
+    flex: 0 0 130px;
+}
+
+ul.blog-posts li a:visited {
+    color: var(--visited-color);
+}
+    .upvote-button {
+        padding: 0;
+        margin: 0;
+        border: 0;
+        background-color: inherit;
+        color: inherit;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+    .upvote-button.upvoted {
+        color: salmon;
+    }
+    .upvote-count {
+        margin-top: -3px;
+    }
+
+      
+  </style>
+</head>
+
+<body class="post " onload="(function() { document.cookie = `timezone=${Intl.DateTimeFormat().resolvedOptions().timeZone};path=/`; })()">
+  
+  <header>
+    <a class="title" href="/">
+      <h1>
+        simons blog
+      </h1>
+    </a>
+    <nav>
+      <p><a href='/'>Home</a> <a href='/blog/'>Blog</a></p>
+
+    </nav>
+  </header>
+  <main>
+    
+
+    
+
+    
+        <h1>PingPong 🏓 in the CuTeDSL with QuACK 🦆</h1>
+
+        <p>
+            <i>
+                <time datetime="2025-08-23T17:39Z">
+    23 Aug, 2025
+</time>
+            </i>
+        </p>
+    
+
+    <h2 id=introduction>Introduction</h2><p><code>PingPong</code> is an important pattern in <code>GEMM</code> design we didn't cover so far. The idea is that we have a persistent kernel but differing from the approach we employed before the two Consumer warp groups will perform their <code>MMA</code> calculation as well as the epilogue separately and in an overlapping manner. This pattern is different from the simple persistent implementation because we need intra-consumer communication  so only consumer warpgroup performs MMA/Epilogue respectively. The <a href='https://github.com/Dao-AILab/quack/tree/main'>QuACK</a> library implements a variation of PingPong and we will analyse it here.</p>
+<p>To reproduce the setup we took launch the kernel like this.</p>
+<div class="highlight"><pre><span></span>CUDA_VISIBLE_DEVICES=0 uv run dense_gemm_sm90.py                                   \
+      --mnkl 4096,4096,4096,1 --tile_shape_mnk 128,208,64                  \
+      --cluster_shape_mn 1,1 --a_dtype BFloat16 --b_dtype BFloat16           \
+      --d_dtype BFloat16 --acc_dtype Float32                                \
+      --a_major k --b_major k --d_major n \
+      --warmup_iterations 100 --iterations 1000 \
+      --persistent --pingpong
+</pre></div>
+<h2 id=code__init__code><code>__init__</code></h2><p>We set the layout as follows:</p>
+<div class="highlight"><pre><span></span><span class="n">atom_layout_m</span><span class="p">,</span> <span class="n">atom_layout_n</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span>
+<span class="bp">self</span><span class="o">.</span><span class="n">atom_layout_mnk</span> <span class="o">=</span> <span class="p">(</span><span class="n">atom_layout_m</span><span class="p">,</span> <span class="n">atom_layout_n</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+</pre></div>
+<p>Set the number of warp groups of <code>MMA</code>. Note that for <code>PingPong</code> we have a total of <code>2</code> warpgroups, each of them operating on a <code>(1,1,1)</code> atom.</p>
+<div class="highlight"><pre><span></span><span class="bp">self</span><span class="o">.</span><span class="n">mma_warp_groups</span> <span class="o">=</span> <span class="n">math</span><span class="o">.</span><span class="n">prod</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">atom_layout_mnk</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="mi">1</span> <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">pingpong</span> <span class="k">else</span> <span class="mi">2</span><span class="p">)</span>
+</pre></div>
+<p>For <code>PingPong</code> we will have each <code>MMA</code> warp group separated, thats why we don't multiply by <code>self.mma_warp_groups</code> which we would do for an ordinary persistent kernel where the consumers cooperate.</p>
+<div class="highlight"><pre><span></span><span class="bp">self</span><span class="o">.</span><span class="n">num_mma_threads</span> <span class="o">=</span> <span class="p">(</span>
+	<span class="bp">self</span><span class="o">.</span><span class="n">mma_warp_groups</span> <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">pingpong</span> <span class="k">else</span> <span class="mi">1</span>
+<span class="p">)</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_threads_per_warp_group</span>
+<span class="bp">self</span><span class="o">.</span><span class="n">num_epi_threads</span> <span class="o">=</span> <span class="p">(</span>
+	<span class="bp">self</span><span class="o">.</span><span class="n">mma_warp_groups</span> <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">pingpong</span> <span class="k">else</span> <span class="mi">1</span>
+<span class="p">)</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_threads_per_warp_group</span>
+</pre></div>
+<p>By default we don't use <code>load_A_cpasync</code>, so for the pingpong kernel we have one warp loading <code>A</code> and <code>B</code>. We use one further warp for the epilogue load. We assign the warps</p>
+<div class="highlight"><pre><span></span>0-8 -&gt; MMA
+9 -&gt; LOAD A/B
+10 -&gt; LOAD EPI
+</pre></div>
+<div class="highlight"><pre><span></span><span class="bp">self</span><span class="o">.</span><span class="n">num_ab_load_warps</span> <span class="o">=</span> <span class="mi">1</span> <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">load_A_cpasync</span> <span class="k">else</span> <span class="mi">2</span>
+<span class="bp">self</span><span class="o">.</span><span class="n">num_ab_load_threads</span> <span class="o">=</span> <span class="n">cute</span><span class="o">.</span><span class="n">arch</span><span class="o">.</span><span class="n">WARP_SIZE</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_ab_load_warps</span>
+<span class="bp">self</span><span class="o">.</span><span class="n">num_epi_load_threads</span> <span class="o">=</span> <span class="n">cute</span><span class="o">.</span><span class="n">arch</span><span class="o">.</span><span class="n">WARP_SIZE</span> <span class="o">*</span> <span class="mi">1</span>
+<span class="bp">self</span><span class="o">.</span><span class="n">ab_load_warp_id</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">mma_warp_groups</span> <span class="o">*</span> <span class="mi">4</span>
+<span class="bp">self</span><span class="o">.</span><span class="n">epi_load_warp_id</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ab_load_warp_id</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_ab_load_warps</span>
+</pre></div>
+<div class="highlight"><pre><span></span><span class="n">regs_per_thread</span> <span class="o">=</span> <span class="n">math</span><span class="o">.</span><span class="n">prod</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">tile_shape_mnk</span><span class="p">[:</span><span class="mi">2</span><span class="p">])</span> <span class="o">//</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_mma_threads</span>
+<span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">fp8_slow_accum</span><span class="p">:</span>
+	<span class="n">regs_per_thread</span> <span class="o">*=</span> <span class="mi">2</span>
+<span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">mma_warp_groups</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
+	<span class="bp">self</span><span class="o">.</span><span class="n">num_regs_load</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_regs_mma</span> <span class="o">=</span> <span class="mi">32</span><span class="p">,</span> <span class="mi">160</span>
+<span class="k">else</span><span class="p">:</span>
+	<span class="n">heavy_register_pressure</span> <span class="o">=</span> <span class="n">regs_per_thread</span> <span class="o">&gt;=</span> <span class="mi">208</span>
+	<span class="bp">self</span><span class="o">.</span><span class="n">num_regs_load</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_regs_mma</span> <span class="o">=</span> <span class="p">(</span>
+		<span class="p">(</span><span class="mi">40</span><span class="p">,</span> <span class="mi">232</span><span class="p">)</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">heavy_register_pressure</span> <span class="k">else</span> <span class="p">(</span><span class="mi">24</span><span class="p">,</span> <span class="mi">240</span><span class="p">)</span>
+	<span class="p">)</span>
+</pre></div>
+<p>Note that we have</p>
+<div class="highlight"><pre><span></span>tile_shape_mnk =  (128, 208)
+num_mma_threads =  128
+regs_per_thread =  208
+</pre></div>
+<p>i.e. we put heavy pressure on the registers belonging to the <code>MMA</code> part. Note that we can find in the <a href='https://docs.nvidia.com/cuda/parallel-thread-execution/#miscellaneous-instructions-setmaxnreg'>PTX docs</a> that we the restriction is that <code>self.num_regs_load</code> and <code>self.num_regs_mma</code> must be in the range 24 to 256 (both inclusive) and must be a multiple of 8. The setting of <code>(24, 240)</code> is common to archive good performance.</p>
+<h2 id=code_setup_attributescode><code>_setup_attributes</code></h2><p>A</p>
+<div class="highlight"><pre><span></span><span class="bp">self</span><span class="o">.</span><span class="n">ab_stage</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">epi_stage</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">epi_c_stage</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_compute_stages</span><span class="p">(</span>
+	<span class="bp">self</span><span class="o">.</span><span class="n">tile_shape_mnk</span><span class="p">,</span>
+	<span class="bp">self</span><span class="o">.</span><span class="n">epi_tile</span><span class="p">,</span>
+	<span class="bp">self</span><span class="o">.</span><span class="n">a_dtype</span><span class="p">,</span>
+	<span class="bp">self</span><span class="o">.</span><span class="n">b_dtype</span><span class="p">,</span>
+	<span class="bp">self</span><span class="o">.</span><span class="n">d_dtype</span><span class="p">,</span>
+	<span class="bp">self</span><span class="o">.</span><span class="n">c_dtype</span><span class="p">,</span>
+	<span class="bp">self</span><span class="o">.</span><span class="n">smem_capacity</span><span class="p">,</span>
+	<span class="bp">self</span><span class="o">.</span><span class="n">occupancy</span><span class="p">,</span>
+	<span class="c1"># epi_smem will reuse smem ab if not persistent.</span>
+	<span class="n">overlap_sD_sA</span><span class="o">=</span><span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_persistent</span><span class="p">,</span>
+<span class="p">)</span>
+</pre></div>
+<p>A <code>PingPong</code> kernel is persistent and hence we <code>don't</code> overlap <code>sD_sA</code>. Let's see in <code>_compute_stages</code> what that means:</p>
+<div class="highlight"><pre><span></span><span class="nd">@staticmethod</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_compute_stages</span><span class="p">(</span>
+	<span class="o">...</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]:</span>
+
+	<span class="n">epi_stage</span> <span class="o">=</span> <span class="mi">2</span>
+	<span class="k">if</span> <span class="n">overlap_sD_sA</span><span class="p">:</span>
+		<span class="n">epi_bytes</span> <span class="o">=</span> <span class="mi">0</span>
+	<span class="k">else</span><span class="p">:</span>
+		<span class="n">d_bytes_per_stage</span> <span class="o">=</span> <span class="n">cute</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="n">epi_tile</span><span class="p">)</span> <span class="o">*</span> <span class="n">d_dtype</span><span class="o">.</span><span class="n">width</span> <span class="o">//</span> <span class="mi">8</span>
+		<span class="n">epi_bytes</span> <span class="o">=</span> <span class="n">d_bytes_per_stage</span> <span class="o">*</span> <span class="n">epi_stage</span>
+	<span class="o">...</span>
+	<span class="c1"># Refine epilogue stages:</span>
+	<span class="c1"># Calculate remaining smem after allocating for A/B stages and reserved bytes</span>
+	<span class="c1"># Add remaining unused smem to epilogue</span>
+	<span class="k">if</span> <span class="ow">not</span> <span class="n">overlap_sD_sA</span><span class="p">:</span>
+		<span class="n">epi_stage</span> <span class="o">+=</span> <span class="p">(</span><span class="n">remaining_bytes</span> <span class="o">-</span> <span class="n">ab_bytes_per_stage</span> <span class="o">*</span> <span class="n">ab_stage</span><span class="p">)</span> <span class="o">//</span> <span class="n">d_bytes_per_stage</span>
+	<span class="k">return</span> <span class="n">ab_stage</span><span class="p">,</span> <span class="n">epi_stage</span><span class="p">,</span> <span class="n">epi_c_stage</span>
+</pre></div>
+<p>Note that the approach taken in the <code>dense_gemm.py</code> example from the <code>CUTLASS</code> repo (which is not persistent) is to reuse the <code>SMEM</code> allocated to <code>A</code> for the <code>Epilogue</code>.  From the code above it's obvious that for the epilogue we allocate now it's on part of the <code>SMEM</code>. Additionally we don't hardcode the number of stages taken in the epilogue but adjust them dynamically based on the number of <code>bytes</code> we need for one <code>Tile</code> of the epilogue.</p>
+<h2 id=code__call__code><code>__call__</code></h2><p>As always this function will be responsible for preparing the inputs and everything else that is used in the kernel. We will focus here on the explanation of differences to the previous <code>GEMM</code> kernels we've seen in the <code>CuTeDSL</code>.</p>
+<p>The <code>QuACK</code> library implements its own <code>TileScheduler</code>. I will probably explain it in more detail in a later blogpost. Here we note that we provide it with <code>is_persistent</code> for persistent tile scheduling.</p>
+<div class="highlight"><pre><span></span><span class="n">problem_shape_ntile_mnl</span> <span class="o">=</span> <span class="n">cute</span><span class="o">.</span><span class="n">ceil_div</span><span class="p">(</span><span class="n">mD</span><span class="o">.</span><span class="n">shape</span><span class="p">[:</span><span class="mi">2</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">tile_shape_mnk</span><span class="p">[:</span><span class="mi">2</span><span class="p">])</span> <span class="o">+</span> <span class="p">(</span>
+	<span class="n">mD</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span>
+<span class="p">)</span>
+<span class="n">TileScheduler</span> <span class="o">=</span> <span class="n">StaticTileScheduler</span>
+<span class="n">tile_sched_args</span> <span class="o">=</span> <span class="n">TileSchedulerArguments</span><span class="p">(</span>
+	<span class="n">problem_shape_ntile_mnl</span><span class="o">=</span><span class="n">problem_shape_ntile_mnl</span><span class="p">,</span>
+	<span class="n">raster_order</span><span class="o">=</span><span class="n">RasterOrderOption</span><span class="o">.</span><span class="n">Heuristic</span><span class="p">,</span>
+	<span class="n">group_size</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span>
+	<span class="n">cluster_shape_mnk</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">cluster_shape_mnk</span><span class="p">,</span>
+	<span class="n">is_persistent</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">is_persistent</span><span class="p">,</span>
+<span class="p">)</span>
+</pre></div>
+<p>Note that we allocate space for <code>sD</code>. This is a difference to the previous examples where we reused the <code>SMEM</code> from <code>A</code> for the epilogue as explained above.</p>
+<div class="highlight"><pre><span></span><span class="nd">@cute</span><span class="o">.</span><span class="n">struct</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">SharedStorage</span><span class="p">:</span>
+	<span class="n">ab_pipeline_array_ptr</span><span class="p">:</span> <span class="n">cute</span><span class="o">.</span><span class="n">struct</span><span class="o">.</span><span class="n">MemRange</span><span class="p">[</span><span class="n">cutlass</span><span class="o">.</span><span class="n">Int64</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">ab_stage</span> <span class="o">*</span> <span class="mi">2</span><span class="p">]</span>
+	<span class="n">epi_pipeline_array_ptr</span><span class="p">:</span> <span class="n">cute</span><span class="o">.</span><span class="n">struct</span><span class="o">.</span><span class="n">MemRange</span><span class="p">[</span><span class="n">cutlass</span><span class="o">.</span><span class="n">Int64</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">epi_c_stage</span> <span class="o">*</span> <span class="mi">2</span><span class="p">]</span>
+	<span class="n">sD</span><span class="p">:</span> <span class="n">cute</span><span class="o">.</span><span class="n">struct</span><span class="o">.</span><span class="n">Align</span><span class="p">[</span>
+		<span class="n">cute</span><span class="o">.</span><span class="n">struct</span><span class="o">.</span><span class="n">MemRange</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">d_dtype</span><span class="p">,</span> <span class="n">epi_smem_size</span><span class="p">],</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">buffer_align_bytes</span><span class="p">,</span>
+	<span class="p">]</span>
+	<span class="n">sC</span><span class="p">:</span> <span class="n">cute</span><span class="o">.</span><span class="n">struct</span><span class="o">.</span><span class="n">Align</span><span class="p">[</span>
+		<span class="n">cute</span><span class="o">.</span><span class="n">struct</span><span class="o">.</span><span class="n">MemRange</span><span class="p">[</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">c_dtype</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">c_dtype</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">Int32</span><span class="p">,</span> <span class="n">epi_c_smem_size</span>
+		<span class="p">],</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">buffer_align_bytes</span><span class="p">,</span>
+	<span class="p">]</span>
+	<span class="n">sA</span><span class="p">:</span> <span class="n">cute</span><span class="o">.</span><span class="n">struct</span><span class="o">.</span><span class="n">Align</span><span class="p">[</span>
+		<span class="n">cute</span><span class="o">.</span><span class="n">struct</span><span class="o">.</span><span class="n">MemRange</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">a_dtype</span><span class="p">,</span> <span class="n">cute</span><span class="o">.</span><span class="n">cosize</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">a_smem_layout_staged</span><span class="p">)],</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">buffer_align_bytes</span><span class="p">,</span>
+	<span class="p">]</span>
+	<span class="n">sB</span><span class="p">:</span> <span class="n">cute</span><span class="o">.</span><span class="n">struct</span><span class="o">.</span><span class="n">Align</span><span class="p">[</span>
+		<span class="n">cute</span><span class="o">.</span><span class="n">struct</span><span class="o">.</span><span class="n">MemRange</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">b_dtype</span><span class="p">,</span> <span class="n">cute</span><span class="o">.</span><span class="n">cosize</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">b_smem_layout_staged</span><span class="p">)],</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">buffer_align_bytes</span><span class="p">,</span>
+	<span class="p">]</span>
+
+<span class="bp">self</span><span class="o">.</span><span class="n">shared_storage</span> <span class="o">=</span> <span class="n">SharedStorage</span>
+</pre></div>
+<h2 id=codekernelcode><code>kernel</code></h2><p>We do the main setup logic as usual. I will not go into each piece specifically as I covered these parts (or slight variations of it) in past blogposts.</p>
+<p>As mentioned above we don't reuse <code>A</code> for the persistent <code>PingPong</code> schedule.</p>
+<div class="highlight"><pre><span></span><span class="n">sA</span> <span class="o">=</span> <span class="n">storage</span><span class="o">.</span><span class="n">sA</span><span class="o">.</span><span class="n">get_tensor</span><span class="p">(</span><span class="n">a_smem_layout_staged</span><span class="o">.</span><span class="n">outer</span><span class="p">,</span> <span class="n">swizzle</span><span class="o">=</span><span class="n">a_smem_layout_staged</span><span class="o">.</span><span class="n">inner</span><span class="p">)</span>
+<span class="n">sB</span> <span class="o">=</span> <span class="n">storage</span><span class="o">.</span><span class="n">sB</span><span class="o">.</span><span class="n">get_tensor</span><span class="p">(</span><span class="n">b_smem_layout_staged</span><span class="o">.</span><span class="n">outer</span><span class="p">,</span> <span class="n">swizzle</span><span class="o">=</span><span class="n">b_smem_layout_staged</span><span class="o">.</span><span class="n">inner</span><span class="p">)</span>
+<span class="k">if</span> <span class="n">const_expr</span><span class="p">(</span><span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_persistent</span><span class="p">):</span>
+	<span class="n">sD_ptr</span> <span class="o">=</span> <span class="n">cute</span><span class="o">.</span><span class="n">recast_ptr</span><span class="p">(</span><span class="n">sA</span><span class="o">.</span><span class="n">iterator</span><span class="p">,</span> <span class="n">epi_smem_layout_staged</span><span class="o">.</span><span class="n">inner</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">d_dtype</span><span class="p">)</span>
+	<span class="n">sD</span> <span class="o">=</span> <span class="n">cute</span><span class="o">.</span><span class="n">make_tensor</span><span class="p">(</span><span class="n">sD_ptr</span><span class="p">,</span> <span class="n">epi_smem_layout_staged</span><span class="o">.</span><span class="n">outer</span><span class="p">)</span>
+<span class="k">else</span><span class="p">:</span>
+	<span class="n">sD</span> <span class="o">=</span> <span class="n">storage</span><span class="o">.</span><span class="n">sD</span><span class="o">.</span><span class="n">get_tensor</span><span class="p">(</span>
+		<span class="n">epi_smem_layout_staged</span><span class="o">.</span><span class="n">outer</span><span class="p">,</span> <span class="n">swizzle</span><span class="o">=</span><span class="n">epi_smem_layout_staged</span><span class="o">.</span><span class="n">inner</span>
+	<span class="p">)</span>
+</pre></div>
+<p>Here we select the correct warps for our load stage. Note <code>warpgroup_reg_dealloc</code> which will restrict our registers for the load warps. <code>TMA</code> doesn't need heavy register usage.</p>
+<div class="highlight"><pre><span></span><span class="k">if</span> <span class="n">warp_idx</span> <span class="o">&gt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ab_load_warp_id</span><span class="p">:</span>
+	<span class="n">cute</span><span class="o">.</span><span class="n">arch</span><span class="o">.</span><span class="n">warpgroup_reg_dealloc</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">num_regs_load</span><span class="p">)</span>
+	<span class="k">if</span> <span class="n">const_expr</span><span class="p">(</span><span class="n">mC_mnl</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">):</span>
+		<span class="n">epi_load_barrier</span> <span class="o">=</span> <span class="n">pipeline</span><span class="o">.</span><span class="n">NamedBarrier</span><span class="p">(</span>
+			<span class="n">barrier_id</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="n">NamedBarrierGemm</span><span class="o">.</span><span class="n">EpilogueLoad</span><span class="p">),</span>
+			<span class="n">num_threads</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">num_ab_load_threads</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_epi_load_threads</span><span class="p">,</span>
+		<span class="p">)</span>
+	<span class="k">else</span><span class="p">:</span>
+		<span class="n">epi_load_barrier</span> <span class="o">=</span> <span class="kc">None</span>
+	<span class="k">if</span> <span class="p">(</span>
+		<span class="n">warp_idx</span> <span class="o">&gt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ab_load_warp_id</span>
+		<span class="ow">and</span> <span class="n">warp_idx</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">ab_load_warp_id</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_ab_load_warps</span>
+	<span class="p">):</span>
+</pre></div>
+<p>Here is the producer logic (which is similar to what we know already). The tile scheduler is responsible for scheduling the <code>coordinates</code> to our tile.</p>
+<div class="highlight"><pre><span></span><span class="k">while</span> <span class="n">work_tile</span><span class="o">.</span><span class="n">is_valid_tile</span><span class="p">:</span>
+	<span class="n">tile_coord_mnkl</span> <span class="o">=</span> <span class="n">work_tile</span><span class="o">.</span><span class="n">tile_idx</span>
+	<span class="n">batch_idx</span> <span class="o">=</span> <span class="n">tile_coord_mnkl</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span>
+	<span class="o">...</span>
+	<span class="n">tile_scheduler</span><span class="o">.</span><span class="n">prefetch_next_work</span><span class="p">()</span>
+	<span class="n">tile_scheduler</span><span class="o">.</span><span class="n">advance_to_next_work</span><span class="p">()</span>
+	<span class="n">work_tile</span> <span class="o">=</span> <span class="n">tile_scheduler</span><span class="o">.</span><span class="n">get_current_work</span><span class="p">()</span>
+	<span class="c1"># End of persistent scheduler loop</span>
+<span class="n">ab_pipeline</span><span class="o">.</span><span class="n">producer_tail</span><span class="p">(</span><span class="n">ab_producer_state</span><span class="p">)</span>
+</pre></div>
+<p>This if clause selects the two warpgroups responsible for the <code>MMA</code>. We will now analyse this part in depth.</p>
+<div class="highlight"><pre><span></span><span class="k">if</span> <span class="n">warp_idx</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">ab_load_warp_id</span><span class="p">:</span>
+</pre></div>
+<p>Similar to above we adjust the register count. Note that here of course we <code>increase</code> register count instead of <code>decreasing</code> it. For the <code>pingpong</code> schedule both the first and second consumer warpgroups get one warp marked as <code>tma_warp</code>.</p>
+<div class="highlight"><pre><span></span><span class="n">cute</span><span class="o">.</span><span class="n">arch</span><span class="o">.</span><span class="n">warpgroup_reg_alloc</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">num_regs_mma</span><span class="p">)</span>
+<span class="n">is_tma_warp</span> <span class="o">=</span> <span class="n">cutlass</span><span class="o">.</span><span class="n">Boolean</span><span class="p">(</span>
+	<span class="p">(</span><span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">pingpong</span> <span class="ow">and</span> <span class="n">warp_idx</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span>
+	<span class="ow">or</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pingpong</span> <span class="ow">and</span> <span class="p">(</span><span class="n">warp_idx</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">or</span> <span class="n">warp_idx</span> <span class="o">==</span> <span class="mi">4</span><span class="p">))</span>
+<span class="p">)</span>
+</pre></div>
+<p>We'll setup our <code>warpgroup layout</code>.</p>
+<div class="highlight"><pre><span></span><span class="n">tidx</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">cute</span><span class="o">.</span><span class="n">arch</span><span class="o">.</span><span class="n">thread_idx</span><span class="p">()</span>
+<span class="n">warp_group_idx</span> <span class="o">=</span> <span class="n">cute</span><span class="o">.</span><span class="n">arch</span><span class="o">.</span><span class="n">make_warp_uniform</span><span class="p">(</span><span class="n">tidx</span> <span class="o">//</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_threads_per_warp_group</span><span class="p">)</span>
+<span class="k">if</span> <span class="n">const_expr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pingpong</span><span class="p">):</span>
+	<span class="n">tidx</span> <span class="o">=</span> <span class="n">tidx</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_threads_per_warp_group</span>
+<span class="n">warp_group_thread_layout</span> <span class="o">=</span> <span class="n">cute</span><span class="o">.</span><span class="n">make_layout</span><span class="p">(</span>
+	<span class="bp">self</span><span class="o">.</span><span class="n">mma_warp_groups</span> <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">pingpong</span> <span class="k">else</span> <span class="mi">1</span><span class="p">,</span>
+	<span class="n">stride</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">num_threads_per_warp_group</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">thr_mma</span> <span class="o">=</span> <span class="n">tiled_mma</span><span class="o">.</span><span class="n">get_slice</span><span class="p">(</span>
+	<span class="n">warp_group_thread_layout</span><span class="p">(</span><span class="n">warp_group_idx</span> <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">pingpong</span> <span class="k">else</span> <span class="mi">0</span><span class="p">)</span>
+<span class="p">)</span>
+</pre></div>
+<p>Note that for the pingpong we have</p>
+<div class="highlight"><pre><span></span>tidx -&gt; tidx % 128
+warp_group_thread_layout = 1 : 128
+</pre></div>
+<p>which emphasis that we thread each warp group separately from the other one.</p>
+<div class="highlight"><pre><span></span><span class="n">tCrA</span> <span class="o">=</span> <span class="n">tiled_mma</span><span class="o">.</span><span class="n">make_fragment_A</span><span class="p">(</span><span class="n">thr_mma</span><span class="o">.</span><span class="n">partition_A</span><span class="p">(</span><span class="n">sA</span><span class="p">))</span>
+<span class="n">tCrB</span> <span class="o">=</span> <span class="n">tiled_mma</span><span class="o">.</span><span class="n">make_fragment_B</span><span class="p">(</span><span class="n">thr_mma</span><span class="o">.</span><span class="n">partition_B</span><span class="p">(</span><span class="n">sB</span><span class="p">))</span>
+
+<span class="n">acc_shape</span> <span class="o">=</span> <span class="n">tiled_mma</span><span class="o">.</span><span class="n">partition_shape_C</span><span class="p">(</span><span class="n">cute</span><span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">tile_shape_mnk</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">]))</span>
+<span class="n">acc</span> <span class="o">=</span> <span class="n">cute</span><span class="o">.</span><span class="n">make_fragment</span><span class="p">(</span><span class="n">acc_shape</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">acc_dtype</span><span class="p">)</span>
+<span class="k">if</span> <span class="n">const_expr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">fp8_slow_accum</span><span class="p">):</span>
+	<span class="n">acc_slow</span> <span class="o">=</span> <span class="n">cute</span><span class="o">.</span><span class="n">make_fragment</span><span class="p">(</span><span class="n">acc_shape</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">acc_dtype</span><span class="p">)</span>
+<span class="k">else</span><span class="p">:</span>
+	<span class="n">acc_slow</span> <span class="o">=</span> <span class="kc">None</span>
+
+<span class="k">if</span> <span class="n">const_expr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pingpong</span><span class="p">):</span>
+	<span class="k">if</span> <span class="n">warp_group_idx</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+		<span class="c1"># WG0 needs a start signal at the very beginning</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">pingpong_barrier_arrive</span><span class="p">(</span><span class="n">warp_group_idx</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">stage</span><span class="o">=</span><span class="s2">&quot;mma&quot;</span><span class="p">)</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">pingpong_barrier_arrive</span><span class="p">(</span><span class="n">warp_group_idx</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">stage</span><span class="o">=</span><span class="s2">&quot;epi&quot;</span><span class="p">)</span>
+</pre></div>
+<p>Let's take a look a <code>pingpong_barrier_arrive</code>:</p>
+<div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">pingpong_barrier_arrive</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">warp_group_idx</span><span class="p">:</span> <span class="n">Int32</span><span class="p">,</span> <span class="n">stage</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+	<span class="k">assert</span> <span class="n">stage</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;mma&quot;</span><span class="p">,</span> <span class="s2">&quot;epi&quot;</span><span class="p">]</span>
+	<span class="n">barrier</span> <span class="o">=</span> <span class="n">NamedBarrierGemm</span><span class="o">.</span><span class="n">MmaWG0</span> <span class="k">if</span> <span class="n">stage</span> <span class="o">==</span> <span class="s2">&quot;mma&quot;</span> <span class="k">else</span> <span class="n">NamedBarrierGemm</span><span class="o">.</span><span class="n">EpiWG0</span>
+	<span class="n">cute</span><span class="o">.</span><span class="n">arch</span><span class="o">.</span><span class="n">barrier_arrive</span><span class="p">(</span>
+		<span class="n">barrier_id</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="n">barrier</span><span class="p">)</span> <span class="o">+</span> <span class="n">warp_group_idx</span><span class="p">,</span>
+		<span class="n">number_of_threads</span><span class="o">=</span><span class="mi">2</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_threads_per_warp_group</span><span class="p">,</span>
+	<span class="p">)</span>
+	<span class="bp">self</span><span class="o">.</span><span class="n">pingpong_barrier_arrive</span><span class="p">(</span><span class="n">warp_group_idx</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">stage</span><span class="o">=</span><span class="s2">&quot;epi&quot;</span><span class="p">)</span>
+</pre></div>
+<p>We use a simple <code>Enumeration</code> here to obtain the appropriate barrier id</p>
+<div class="highlight"><pre><span></span><span class="k">class</span><span class="w"> </span><span class="nc">NamedBarrierGemm</span><span class="p">(</span><span class="n">enum</span><span class="o">.</span><span class="n">IntEnum</span><span class="p">):</span>
+    <span class="n">Epilogue</span> <span class="o">=</span> <span class="n">enum</span><span class="o">.</span><span class="n">auto</span><span class="p">()</span>  <span class="c1"># starts from 1 as barrier 0 is reserved for sync_threads()</span>
+    <span class="c1"># For mainloop load warps to signal that the epilogue load warp can start.</span>
+    <span class="c1"># This is to avoid loading C too early, interfering with loading A and B.</span>
+    <span class="n">EpilogueLoad</span> <span class="o">=</span> <span class="n">enum</span><span class="o">.</span><span class="n">auto</span><span class="p">()</span>
+    <span class="n">MmaWG0</span> <span class="o">=</span> <span class="n">enum</span><span class="o">.</span><span class="n">auto</span><span class="p">()</span>
+    <span class="n">MmaWG1</span> <span class="o">=</span> <span class="n">enum</span><span class="o">.</span><span class="n">auto</span><span class="p">()</span>
+    <span class="n">EpiWG0</span> <span class="o">=</span> <span class="n">enum</span><span class="o">.</span><span class="n">auto</span><span class="p">()</span>
+    <span class="n">EpiWG1</span> <span class="o">=</span> <span class="n">enum</span><span class="o">.</span><span class="n">auto</span><span class="p">()</span>
+</pre></div>
+<p>We need the <code>barrier_arrive</code> for synchronisation between the two warp groups, i.e. we <em>signal the arrival of the executing thread</em> to quote the PTX docs.</p>
+<p>Note that the first warp group will operate on a different tile than the second. That's why we initially set off by calling <code>advance_to_next_work</code> to get the next tile for this warp group and additionally advance the <code>ab_read_state</code> by <code>k_tile_cnt</code> (i.e. the number of <code>k_tiles</code> a full tile is consumed by the <code>WGMMA</code> instruction which can handle only up to <code>16</code> for the <code>K</code> dimension).</p>
+<div class="highlight"><pre><span></span><span class="n">ab_read_state</span> <span class="o">=</span> <span class="n">make_pipeline_state</span><span class="p">(</span><span class="n">pipeline</span><span class="o">.</span><span class="n">PipelineUserType</span><span class="o">.</span><span class="n">Consumer</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">ab_stage</span><span class="p">)</span>
+
+<span class="n">tile_scheduler</span> <span class="o">=</span> <span class="n">TileSchedulerCls</span><span class="p">()</span>
+<span class="k">if</span> <span class="n">const_expr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pingpong</span><span class="p">):</span>
+	<span class="k">if</span> <span class="n">warp_idx</span> <span class="o">&gt;=</span> <span class="mi">4</span><span class="p">:</span>
+		<span class="c1"># Advance 2nd Math WG to the next work tile for the startup</span>
+		<span class="n">tile_scheduler</span><span class="o">.</span><span class="n">advance_to_next_work</span><span class="p">()</span>
+		<span class="c1"># Advance 2nd Math WG pipeline states to the end of 1st Math WG</span>
+		<span class="n">ab_read_state</span><span class="o">.</span><span class="n">advance_iters</span><span class="p">(</span><span class="n">k_tile_cnt</span><span class="p">)</span>
+<span class="n">work_tile</span> <span class="o">=</span> <span class="n">tile_scheduler</span><span class="o">.</span><span class="n">initial_work_tile_info</span><span class="p">()</span>
+</pre></div>
+<p>Similar to above we schedule our tiles with the tile scheduler.</p>
+<div class="highlight"><pre><span></span><span class="k">while</span> <span class="n">work_tile</span><span class="o">.</span><span class="n">is_valid_tile</span><span class="p">:</span>
+</pre></div>
+<p>We'll than execute the <code>mma</code>.</p>
+<div class="highlight"><pre><span></span><span class="n">ab_read_state</span><span class="p">,</span> <span class="n">tiled_mma</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">mma</span><span class="p">(</span>
+	<span class="n">ab_pipeline</span><span class="p">,</span>
+	<span class="n">ab_read_state</span><span class="p">,</span>
+	<span class="n">tiled_mma</span><span class="p">,</span>
+	<span class="n">tCrA</span><span class="p">,</span>
+	<span class="n">tCrB</span><span class="p">,</span>
+	<span class="n">acc</span><span class="p">,</span>
+	<span class="n">acc_slow</span><span class="p">,</span>
+	<span class="n">k_tile_cnt</span><span class="p">,</span>
+	<span class="n">warp_group_idx</span><span class="p">,</span>
+<span class="p">)</span>
+</pre></div>
+<p>Let's take a closer look at the underlying logic:</p>
+<div class="highlight"><pre><span></span><span class="nd">@cute</span><span class="o">.</span><span class="n">jit</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">mma</span><span class="p">(</span>
+	<span class="o">...</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">cutlass</span><span class="o">.</span><span class="n">pipeline</span><span class="o">.</span><span class="n">PipelineState</span><span class="p">,</span> <span class="n">cute</span><span class="o">.</span><span class="n">TiledMma</span><span class="p">]:</span>
+	<span class="c1"># /////////////////////////////////////////////////////////////////////////////</span>
+	<span class="c1">#  Prologue MMAs</span>
+	<span class="c1"># /////////////////////////////////////////////////////////////////////////////</span>
+	<span class="n">k_pipe_mmas</span> <span class="o">=</span> <span class="mi">1</span>
+	<span class="n">ab_release_state</span> <span class="o">=</span> <span class="n">ab_read_state</span><span class="o">.</span><span class="n">clone</span><span class="p">()</span>
+	<span class="n">num_prologue_mma</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">k_pipe_mmas</span><span class="p">,</span> <span class="n">k_tile_cnt</span><span class="p">)</span>
+	<span class="k">if</span> <span class="n">const_expr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pingpong</span><span class="p">):</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">pingpong_barrier_sync</span><span class="p">(</span><span class="n">warp_group_idx</span><span class="p">,</span> <span class="n">stage</span><span class="o">=</span><span class="s2">&quot;mma&quot;</span><span class="p">)</span>
+	<span class="n">peek_ab_full_status</span> <span class="o">=</span> <span class="n">cutlass</span><span class="o">.</span><span class="n">Boolean</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+	<span class="k">if</span> <span class="mi">0</span> <span class="o">&lt;</span> <span class="n">k_tile_cnt</span><span class="p">:</span>
+		<span class="n">peek_ab_full_status</span> <span class="o">=</span> <span class="n">ab_pipeline</span><span class="o">.</span><span class="n">consumer_try_wait</span><span class="p">(</span><span class="n">ab_read_state</span><span class="p">)</span>
+	<span class="n">tiled_mma</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">warpgroup</span><span class="o">.</span><span class="n">Field</span><span class="o">.</span><span class="n">ACCUMULATE</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
+	<span class="n">num_k_blocks</span> <span class="o">=</span> <span class="n">cute</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="n">tCrA</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
+	<span class="c1"># TODO: this is probably not correct if k_tile_cnt == 0</span>
+	<span class="k">for</span> <span class="n">k_tile</span> <span class="ow">in</span> <span class="n">cutlass</span><span class="o">.</span><span class="n">range</span><span class="p">(</span><span class="n">num_prologue_mma</span><span class="p">):</span>
+		<span class="c1"># Wait for A/B buffer to be ready</span>
+		<span class="n">ab_pipeline</span><span class="o">.</span><span class="n">consumer_wait</span><span class="p">(</span><span class="n">ab_read_state</span><span class="p">,</span> <span class="n">peek_ab_full_status</span><span class="p">)</span>
+		<span class="n">warpgroup</span><span class="o">.</span><span class="n">fence</span><span class="p">()</span>
+		<span class="k">for</span> <span class="n">k_blk_idx</span> <span class="ow">in</span> <span class="n">cutlass</span><span class="o">.</span><span class="n">range</span><span class="p">(</span><span class="n">num_k_blocks</span><span class="p">,</span> <span class="n">unroll_full</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+			<span class="n">k_blk_coord</span> <span class="o">=</span> <span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="n">k_blk_idx</span><span class="p">,</span> <span class="n">ab_read_state</span><span class="o">.</span><span class="n">index</span><span class="p">)</span>
+			<span class="n">cute</span><span class="o">.</span><span class="n">gemm</span><span class="p">(</span><span class="n">tiled_mma</span><span class="p">,</span> <span class="n">acc</span><span class="p">,</span> <span class="n">tCrA</span><span class="p">[</span><span class="n">k_blk_coord</span><span class="p">],</span> <span class="n">tCrB</span><span class="p">[</span><span class="n">k_blk_coord</span><span class="p">],</span> <span class="n">acc</span><span class="p">)</span>
+			<span class="n">tiled_mma</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">warpgroup</span><span class="o">.</span><span class="n">Field</span><span class="o">.</span><span class="n">ACCUMULATE</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
+		<span class="n">warpgroup</span><span class="o">.</span><span class="n">commit_group</span><span class="p">()</span>
+		<span class="n">ab_read_state</span><span class="o">.</span><span class="n">advance</span><span class="p">()</span>
+		<span class="n">peek_ab_full_status</span> <span class="o">=</span> <span class="n">cutlass</span><span class="o">.</span><span class="n">Boolean</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+		<span class="k">if</span> <span class="n">k_tile</span> <span class="o">+</span> <span class="mi">1</span> <span class="o">&lt;</span> <span class="n">k_tile_cnt</span><span class="p">:</span>
+			<span class="n">peek_ab_full_status</span> <span class="o">=</span> <span class="n">ab_pipeline</span><span class="o">.</span><span class="n">consumer_try_wait</span><span class="p">(</span><span class="n">ab_read_state</span><span class="p">)</span>
+	<span class="k">if</span> <span class="n">const_expr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">fp8_slow_accum</span><span class="p">):</span>
+		<span class="n">warpgroup</span><span class="o">.</span><span class="n">wait_group</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+		<span class="n">acc_slow</span><span class="o">.</span><span class="n">store</span><span class="p">(</span><span class="n">acc</span><span class="o">.</span><span class="n">load</span><span class="p">())</span>
+
+	<span class="c1"># /////////////////////////////////////////////////////////////////////////////</span>
+	<span class="c1">#  MAINLOOP</span>
+	<span class="c1"># /////////////////////////////////////////////////////////////////////////////</span>
+	<span class="k">for</span> <span class="n">k_tile</span> <span class="ow">in</span> <span class="n">cutlass</span><span class="o">.</span><span class="n">range</span><span class="p">(</span><span class="n">num_prologue_mma</span><span class="p">,</span> <span class="n">k_tile_cnt</span><span class="p">,</span> <span class="n">unroll</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+		<span class="c1"># Wait for TMA copies to complete</span>
+		<span class="n">ab_pipeline</span><span class="o">.</span><span class="n">consumer_wait</span><span class="p">(</span><span class="n">ab_read_state</span><span class="p">,</span> <span class="n">peek_ab_full_status</span><span class="p">)</span>
+		<span class="c1"># WGMMA</span>
+		<span class="n">warpgroup</span><span class="o">.</span><span class="n">fence</span><span class="p">()</span>
+		<span class="k">if</span> <span class="n">const_expr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">fp8_slow_accum</span><span class="p">):</span>
+			<span class="n">tiled_mma</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">warpgroup</span><span class="o">.</span><span class="n">Field</span><span class="o">.</span><span class="n">ACCUMULATE</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
+		<span class="k">for</span> <span class="n">k_blk_idx</span> <span class="ow">in</span> <span class="n">cutlass</span><span class="o">.</span><span class="n">range</span><span class="p">(</span><span class="n">num_k_blocks</span><span class="p">,</span> <span class="n">unroll_full</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+			<span class="n">k_blk_coord</span> <span class="o">=</span> <span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="n">k_blk_idx</span><span class="p">,</span> <span class="n">ab_read_state</span><span class="o">.</span><span class="n">index</span><span class="p">)</span>
+			<span class="n">cute</span><span class="o">.</span><span class="n">gemm</span><span class="p">(</span><span class="n">tiled_mma</span><span class="p">,</span> <span class="n">acc</span><span class="p">,</span> <span class="n">tCrA</span><span class="p">[</span><span class="n">k_blk_coord</span><span class="p">],</span> <span class="n">tCrB</span><span class="p">[</span><span class="n">k_blk_coord</span><span class="p">],</span> <span class="n">acc</span><span class="p">)</span>
+			<span class="n">tiled_mma</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">warpgroup</span><span class="o">.</span><span class="n">Field</span><span class="o">.</span><span class="n">ACCUMULATE</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
+		<span class="n">warpgroup</span><span class="o">.</span><span class="n">commit_group</span><span class="p">()</span>
+		<span class="c1"># Wait on the wgmma barrier for previous k_pipe_mmas wgmmas to complete</span>
+		<span class="k">if</span> <span class="n">const_expr</span><span class="p">(</span><span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">fp8_slow_accum</span><span class="p">):</span>
+			<span class="n">warpgroup</span><span class="o">.</span><span class="n">wait_group</span><span class="p">(</span><span class="n">k_pipe_mmas</span><span class="p">)</span>
+		<span class="k">else</span><span class="p">:</span>
+			<span class="n">warpgroup</span><span class="o">.</span><span class="n">wait_group</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+			<span class="n">acc_slow</span><span class="o">.</span><span class="n">store</span><span class="p">(</span><span class="n">acc_slow</span><span class="o">.</span><span class="n">load</span><span class="p">()</span> <span class="o">+</span> <span class="n">acc</span><span class="o">.</span><span class="n">load</span><span class="p">())</span>
+		<span class="n">ab_pipeline</span><span class="o">.</span><span class="n">consumer_release</span><span class="p">(</span><span class="n">ab_release_state</span><span class="p">)</span>
+		<span class="n">ab_read_state</span><span class="o">.</span><span class="n">advance</span><span class="p">()</span>
+		<span class="n">ab_release_state</span><span class="o">.</span><span class="n">advance</span><span class="p">()</span>
+		<span class="n">peek_ab_full_status</span> <span class="o">=</span> <span class="n">cutlass</span><span class="o">.</span><span class="n">Boolean</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+		<span class="k">if</span> <span class="n">k_tile</span> <span class="o">+</span> <span class="mi">1</span> <span class="o">&lt;</span> <span class="n">k_tile_cnt</span><span class="p">:</span>
+			<span class="n">peek_ab_full_status</span> <span class="o">=</span> <span class="n">ab_pipeline</span><span class="o">.</span><span class="n">consumer_try_wait</span><span class="p">(</span><span class="n">ab_read_state</span><span class="p">)</span>
+	<span class="k">if</span> <span class="n">const_expr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pingpong</span><span class="p">):</span>
+		<span class="c1"># Cue for next WG&#39;s MMA to start</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">pingpong_barrier_arrive</span><span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">warp_group_idx</span><span class="p">,</span> <span class="n">stage</span><span class="o">=</span><span class="s2">&quot;mma&quot;</span><span class="p">)</span>
+	<span class="k">if</span> <span class="n">const_expr</span><span class="p">(</span><span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">fp8_slow_accum</span><span class="p">):</span>
+		<span class="c1"># fp8_slow_accum would already called wait_group(0) inside the loop</span>
+		<span class="n">warpgroup</span><span class="o">.</span><span class="n">wait_group</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+	<span class="k">for</span> <span class="n">k_tile</span> <span class="ow">in</span> <span class="n">cutlass</span><span class="o">.</span><span class="n">range</span><span class="p">(</span><span class="n">k_pipe_mmas</span><span class="p">,</span> <span class="n">unroll</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+		<span class="n">ab_pipeline</span><span class="o">.</span><span class="n">consumer_release</span><span class="p">(</span><span class="n">ab_release_state</span><span class="p">)</span>
+		<span class="n">ab_release_state</span><span class="o">.</span><span class="n">advance</span><span class="p">()</span>
+	<span class="k">if</span> <span class="n">const_expr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">fp8_slow_accum</span><span class="p">):</span>
+		<span class="n">acc</span><span class="o">.</span><span class="n">store</span><span class="p">(</span><span class="n">acc_slow</span><span class="o">.</span><span class="n">load</span><span class="p">())</span>
+	<span class="c1"># If we don&#39;t return the tiled_mma, we get compiler error</span>
+	<span class="c1"># &quot;operand #0 does not dominate this use&quot;</span>
+	<span class="k">return</span> <span class="n">ab_read_state</span><span class="p">,</span> <span class="n">tiled_mma</span>
+</pre></div>
+<p>Note that the above is highly similar to the logic we normally employ. The difference for the ping pong is that we need to take care of the synchronisation. This is quiet similar to the usual <code>Producer/Consumer</code> pattern we also employ in "normal" persistent kernels.</p>
+<p>In persistent kernels we use <code>wait</code> and <code>arrive</code> on <code>full</code> and <code>empty</code> barriers to synchronise work between consumer and producer.</p>
+<p>Here, we first create a barrier. The barrier id will be <code>0</code> for <code>WG1</code> and <code>1</code> for <code>WG2</code>.</p>
+<div class="highlight"><pre><span></span><span class="bp">self</span><span class="o">.</span><span class="n">pingpong_barrier_sync</span><span class="p">(</span><span class="n">warp_group_idx</span><span class="p">,</span> <span class="n">stage</span><span class="o">=</span><span class="s2">&quot;mma&quot;</span><span class="p">)</span>
+</pre></div>
+<p>After performing the <code>MMA</code> we signal via</p>
+<div class="highlight"><pre><span></span><span class="bp">self</span><span class="o">.</span><span class="n">pingpong_barrier_arrive</span><span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">warp_group_idx</span><span class="p">,</span> <span class="n">stage</span><span class="o">=</span><span class="s2">&quot;mma&quot;</span><span class="p">)</span>
+</pre></div>
+<p>that we are done with the calculation. For <code>WG1</code> we signal to barrier <code>1</code> and for <code>WG2</code> we signal to barrier <code>0</code>. This ensures there are not multiple <code>MMAs</code> going on at the same time. Only one of the two warpgroups will be busy calculating at any point in time.</p>
+<p>Note that one might argue that to be precise</p>
+<div class="highlight"><pre><span></span><span class="n">warpgroup</span><span class="o">.</span><span class="n">wait_group</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+</pre></div>
+<p>should be executed before the <code>arrive</code> to be sure we don't have any idle <code>WGMMAs</code> when arriving on the barrier of the other warpgroup.</p>
+<p>After executing the mainloop we perform</p>
+<div class="highlight"><pre><span></span><span class="k">if</span> <span class="n">const_expr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pingpong</span><span class="p">):</span>
+	<span class="c1"># Update starting mainloop pipeline state for the next tile</span>
+	<span class="n">ab_read_state</span><span class="o">.</span><span class="n">advance_iters</span><span class="p">(</span><span class="n">k_tile_cnt</span><span class="p">)</span>
+</pre></div>
+<p>That reflects the nature of pingpong where we have a pattern of <code>WG1 -&gt; WG1 -&gt; WG0 -&gt; ...</code> for the calculation. One warp group executes <code>MMA</code> on <code>k_tile_cnt</code> <code>K</code> tiles and so we update the <code>ab_read_state</code> as above.</p>
+<p>After the mainloop comes the epilogue.
+Once done with the <code>MMA</code> for a certain warp group we will perform the epilogue (i.e. transfer from <code>RMEM</code> to <code>GMEM</code> via <code>SMEM</code> using <code>TMA</code>) while the other warp group is busy computing <code>MMA</code>.</p>
+<p>We initially create the appropriate barrier.</p>
+<div class="highlight"><pre><span></span><span class="c1"># /////////////////////////////////////////////////////////////////////////////</span>
+<span class="c1">#  EPILOGUE</span>
+<span class="c1"># /////////////////////////////////////////////////////////////////////////////</span>
+<span class="k">if</span> <span class="n">const_expr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pingpong</span><span class="p">):</span>
+	<span class="bp">self</span><span class="o">.</span><span class="n">pingpong_barrier_sync</span><span class="p">(</span><span class="n">warp_group_idx</span><span class="p">,</span> <span class="s2">&quot;epi&quot;</span><span class="p">)</span>
+</pre></div>
+<p>What comes than is very similar to the usual epilogue for Hopper so I will not go over it line by line.</p>
+<p>However for <code>PingPong</code> it is important that we do the following.</p>
+<div class="highlight"><pre><span></span><span class="k">if</span> <span class="n">const_expr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pingpong</span><span class="p">):</span>
+	<span class="c1"># Update starting load/store pipeline states for the next tile</span>
+	<span class="n">epi_read_state</span><span class="o">.</span><span class="n">advance_iters</span><span class="p">(</span><span class="n">c_tile_cnt</span><span class="p">)</span>
+	<span class="c1"># With pingpong, 2 WGs write two different output tiles to the same smem,</span>
+	<span class="c1"># so we have to make sure the smem content is done reading before signalling</span>
+	<span class="c1"># the next WG&#39;s epilogue.</span>
+	<span class="k">if</span> <span class="n">warp_idx</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">or</span> <span class="n">warp_idx</span> <span class="o">==</span> <span class="mi">4</span><span class="p">:</span>
+		<span class="n">cute</span><span class="o">.</span><span class="n">arch</span><span class="o">.</span><span class="n">cp_async_bulk_wait_group</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">read</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+	<span class="bp">self</span><span class="o">.</span><span class="n">pingpong_barrier_arrive</span><span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">warp_group_idx</span><span class="p">,</span> <span class="n">stage</span><span class="o">=</span><span class="s2">&quot;epi&quot;</span><span class="p">)</span>
+</pre></div>
+<ul>
+<li>We need to update the <code>epi_read_state</code> by the tiles we execute in one epilogue.</li>
+<li>We have either <code>warp_idx == 0</code> or <code>warp_idx == 4</code> for <code>cp_async_bulk_wait_group</code> (i.e. <code>TMA sync</code>).</li>
+<li>Finally we arrive on the epilogue barrier to let the other warp group know that it can start with it's epilogue.</li>
+</ul>
+<p>That concludes the analysis of the <code>PingPong</code> kernel.</p>
+<h2 id=conclusion>Conclusion</h2><p>I hope this blogpost helped to demystify <code>PingPong</code> scheduling in the <code>CuTeDSL</code>. If you like to exchange ideas I would be happy to connect on <a href='https://www.linkedin.com/in/simon-veitner-174a681b6/'>Linkedin</a>. The kernel I analysed here can be found in the <code>QuACK</code> repo <a href='https://github.com/Dao-AILab/quack/blob/main/quack/dense_gemm_sm90.py'>here</a>.</p>
+
+
+    
+
+    
+        
+
+        
+            <form id="upvote-form" action="/upvote/" method="post" style="display: inline">
+    <small>
+        <input hidden name="uid" value="qszJGLktvovGugqdzdNy" style="display:none">
+        <input hidden name="title" value="PingPong 🏓 in the CuTeDSL with QuACK 🦆" style="display:none">
+
+        <button
+            class="upvote-button"
+            aria-label="Toast this post"
+            title="Toast this post"
+        >
+            <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" class="css-i6dzq1">
+                <polyline points="17 11 12 6 7 11"></polyline>
+                <polyline points="17 18 12 13 7 18"></polyline>
+            </svg>
+            <small class="upvote-count" aria-hidden="true">&nbsp;</small>
+        </button>
+    </small>        
+</form>
+
+<script>
+    const $upvoteButton = document.querySelector('.upvote-button');
+    const $upvoteCount =  document.querySelector('.upvote-count')
+
+    fetch('/upvote-info/qszJGLktvovGugqdzdNy/').then(response => response.json()).then(data => {
+        $upvoteCount.innerText = data.upvote_count;
+        if (data.upvoted) {
+            $upvoteButton.disabled = true
+            $upvoteButton.style.color = "salmon"
+            $upvoteButton.ariaLabel = "Toasted"
+            $upvoteButton.title = "Toasted"
+        }
+        $upvoteButton.ariaLabel += ` (${data.upvote_count})`
+    });
+
+    let moved = false;
+    let pageLoaded = Date.now();
+
+    document.addEventListener('touchmove', () => moved = true);
+    document.addEventListener('mousemove', () => moved = true);
+
+    document.querySelector('#upvote-form').addEventListener('submit', (e) => {
+        e.preventDefault();
+
+        if (moved) {
+            document.querySelector('input[name="title"]').value = "";
+        }
+        if (Date.now() - pageLoaded < 2000 || !moved) {
+            return;
+        }
+
+        fetch(e.target.action, {
+            method: 'post',
+            body: new FormData(e.target),
+        });
+        
+        $upvoteButton.disabled = true
+        $upvoteButton.style.color = "salmon"
+        $upvoteButton.ariaLabel = "Toasted"
+        $upvoteButton.title = "Toasted"
+        const newUpvoteCount = `${(parseInt($upvoteCount.innerHTML.split(" ")[0]) + 1)}`
+        $upvoteCount.innerHTML = newUpvoteCount
+        $upvoteButton.ariaLabel += ` (${newUpvoteCount})`
+    });
+</script>
+        
+
+        
+            <script>
+            window.addEventListener("load", () => {
+                if (navigator.webdriver !== true) {
+                    const sendHit = score => {
+                        const params = new URLSearchParams({
+                            blog: "veitner",
+                            token: "qszJGLktvovGugqdzdNy",
+                            referrer: document.referrer.includes("veitner.bearblog.dev") ? "" : document.referrer,
+                            title: "",
+                            score: score
+                        });
+                        new Image().src = `/hit/?${params.toString()}`;
+                    };
+
+                    document.addEventListener('touchmove', () => sendHit(100), { once: true });
+                    document.addEventListener('mousemove', () => sendHit(100), { once: true });
+                }
+            });
+            </script>
+        
+    
+
+
+  </main>
+  <footer>
+    
+    
+    <span>
+        Powered by <a href="https://bearblog.dev">Bear <span role="img" class="bear" aria-label="ASCII bear logo">ʕ•ᴥ•ʔ</span></a>
+    </span>
+
+  </footer>
+
+  
+  <script>
+        (() => {
+          "use strict";
+          const times = document.querySelectorAll('time');
+          const format_string = "d M, Y" || "d M, Y"
+
+          times.forEach(time => {
+              time.innerText = formatDate(time.dateTime, format_string)
+          });
+
+          function formatDate(dateStr, formatStr) {
+            const date = new Date(dateStr);
+            const day = date.getDate();
+            const month = date.getMonth();
+            const year = date.getFullYear();
+            const weekday = date.getDay();
+            const hours = date.getHours();
+            const minutes = date.getMinutes();
+            const monthsFull = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+            const monthsShort = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+            const daysFull = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+            const daysShort = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+            
+            function getOrdinal(n) {
+                const s = ['th', 'st', 'nd', 'rd'];
+                const v = n % 100;
+                return s[(v - 20) % 10] || s[v] || s[0];
+            }
+            
+            const map = {
+                'd': () => day.toString().padStart(2, '0'),
+                'm': () => (month + 1).toString().padStart(2, '0'),
+                'Y': () => year.toString(),
+                'y': () => year.toString().slice(-2),
+                'F': () => monthsFull[month],
+                'j': () => day.toString(),
+                'D': () => daysShort[weekday],
+                'l': () => daysFull[weekday],
+                'S': () => getOrdinal(day),
+                'M': () => monthsShort[month],
+                'H': () => hours.toString().padStart(2, '0'),
+                'h': () => {
+                    let h = hours % 12;
+                    h = h === 0 ? 12 : h;
+                    return h.toString().padStart(2, '0');
+                },
+                'g': () => {
+                    let h = hours % 12;
+                    return h === 0 ? '12' : h.toString();
+                },
+                'i': () => minutes.toString().padStart(2, '0'),
+                'a': () => hours < 12 ? 'am' : 'pm',
+                'A': () => hours < 12 ? 'AM' : 'PM',
+            };
+            
+            let result = '';
+            for (let char of formatStr) {
+                result += map[char] ? map[char]() : char;
+            }
+            return result;
+        }
+        })();
+    </script>
+    
+</body>
+<!-- ID: veitner -->
+<!-- 🐻 -->
+</html>

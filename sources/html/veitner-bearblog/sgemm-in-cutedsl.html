@@ -1,0 +1,1208 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!-- Powered by Bear Blog -->
+
+<head>
+  
+  
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5">
+  
+  <title>SGEMM in CuTeDSL | simons blog</title>
+  <link rel="canonical" href="https://veitner.bearblog.dev/sgemm-in-cutedsl/">
+  
+    
+
+    <meta name="veitner" content="look-for-the-bear-necessities">
+    <meta name="token" content="nGDQKieLitzezNUpMtDu">
+
+    
+<!-- Primary Meta Tags -->
+<meta name="title" content="SGEMM in CuTeDSL">
+<meta name="description" content="SGEMM is one of the fundamental operations we aim to optimise on GPUs.
+In this blogpost I will explain the corresponding example from the CUTLASS repo.
+I c...">
+
+<!-- Open Graph / Facebook -->
+<meta property="og:site_name" content="simons blog">
+<meta property="og:title" content="SGEMM in CuTeDSL">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://veitner.bearblog.dev/sgemm-in-cutedsl/">
+<meta property="og:description" content="SGEMM is one of the fundamental operations we aim to optimise on GPUs.
+In this blogpost I will explain the corresponding example from the CUTLASS repo.
+I c...">
+<meta property="og:image" content="/static/og-image.png">
+
+
+<!-- Twitter -->
+<meta property="twitter:card" content="summary">
+<meta property="twitter:url" content="https://veitner.bearblog.dev/sgemm-in-cutedsl/">
+<meta property="twitter:title" content="SGEMM in CuTeDSL">
+<meta property="twitter:description" content="SGEMM is one of the fundamental operations we aim to optimise on GPUs.
+In this blogpost I will explain the corresponding example from the CUTLASS repo.
+I c...">
+<meta property="twitter:image" content="/static/og-image.png">
+
+
+
+<!-- Microdata -->
+<script type="application/ld+json">
+  {
+    "@context": "http://schema.org",
+    "@type": "article",
+    "name": "SGEMM in CuTeDSL",
+    "headline": "SGEMM in CuTeDSL",
+    "url": "https://veitner.bearblog.dev/sgemm-in-cutedsl/",
+    "description": "SGEMM is one of the fundamental operations we aim to optimise on GPUs.
+In this blogpost I will explain the corresponding example from the CUTLASS repo.
+I c...",
+    "image": "/static/og-image.png"
+  }
+</script>
+    <link rel="alternate" type="application/atom+xml" href="/feed/" title="simons blog">
+    <link rel="alternate" type="application/rss+xml" href="/feed/?type=rss" title="simons blog">
+
+  
+    
+
+    
+    <style>pre { line-height: 125%; }
+td.linenos .normal { color: #666666; background-color: transparent; padding-left: 5px; padding-right: 5px; }
+span.linenos { color: #666666; background-color: transparent; padding-left: 5px; padding-right: 5px; }
+td.linenos .special { color: #000000; background-color: #ffffc0; padding-left: 5px; padding-right: 5px; }
+span.linenos.special { color: #000000; background-color: #ffffc0; padding-left: 5px; padding-right: 5px; }
+.highlight .hll { background-color: #ffffcc }
+.highlight { background: #f0f0f0; }
+.highlight .c { color: #60A0B0; font-style: italic } /* Comment */
+.highlight .err { border: 1px solid #F00 } /* Error */
+.highlight .k { color: #007020; font-weight: bold } /* Keyword */
+.highlight .o { color: #666 } /* Operator */
+.highlight .ch { color: #60A0B0; font-style: italic } /* Comment.Hashbang */
+.highlight .cm { color: #60A0B0; font-style: italic } /* Comment.Multiline */
+.highlight .cp { color: #007020 } /* Comment.Preproc */
+.highlight .cpf { color: #60A0B0; font-style: italic } /* Comment.PreprocFile */
+.highlight .c1 { color: #60A0B0; font-style: italic } /* Comment.Single */
+.highlight .cs { color: #60A0B0; background-color: #FFF0F0 } /* Comment.Special */
+.highlight .gd { color: #A00000 } /* Generic.Deleted */
+.highlight .ge { font-style: italic } /* Generic.Emph */
+.highlight .ges { font-weight: bold; font-style: italic } /* Generic.EmphStrong */
+.highlight .gr { color: #F00 } /* Generic.Error */
+.highlight .gh { color: #000080; font-weight: bold } /* Generic.Heading */
+.highlight .gi { color: #00A000 } /* Generic.Inserted */
+.highlight .go { color: #888 } /* Generic.Output */
+.highlight .gp { color: #C65D09; font-weight: bold } /* Generic.Prompt */
+.highlight .gs { font-weight: bold } /* Generic.Strong */
+.highlight .gu { color: #800080; font-weight: bold } /* Generic.Subheading */
+.highlight .gt { color: #04D } /* Generic.Traceback */
+.highlight .kc { color: #007020; font-weight: bold } /* Keyword.Constant */
+.highlight .kd { color: #007020; font-weight: bold } /* Keyword.Declaration */
+.highlight .kn { color: #007020; font-weight: bold } /* Keyword.Namespace */
+.highlight .kp { color: #007020 } /* Keyword.Pseudo */
+.highlight .kr { color: #007020; font-weight: bold } /* Keyword.Reserved */
+.highlight .kt { color: #902000 } /* Keyword.Type */
+.highlight .m { color: #40A070 } /* Literal.Number */
+.highlight .s { color: #4070A0 } /* Literal.String */
+.highlight .na { color: #4070A0 } /* Name.Attribute */
+.highlight .nb { color: #007020 } /* Name.Builtin */
+.highlight .nc { color: #0E84B5; font-weight: bold } /* Name.Class */
+.highlight .no { color: #60ADD5 } /* Name.Constant */
+.highlight .nd { color: #555; font-weight: bold } /* Name.Decorator */
+.highlight .ni { color: #D55537; font-weight: bold } /* Name.Entity */
+.highlight .ne { color: #007020 } /* Name.Exception */
+.highlight .nf { color: #06287E } /* Name.Function */
+.highlight .nl { color: #002070; font-weight: bold } /* Name.Label */
+.highlight .nn { color: #0E84B5; font-weight: bold } /* Name.Namespace */
+.highlight .nt { color: #062873; font-weight: bold } /* Name.Tag */
+.highlight .nv { color: #BB60D5 } /* Name.Variable */
+.highlight .ow { color: #007020; font-weight: bold } /* Operator.Word */
+.highlight .w { color: #BBB } /* Text.Whitespace */
+.highlight .mb { color: #40A070 } /* Literal.Number.Bin */
+.highlight .mf { color: #40A070 } /* Literal.Number.Float */
+.highlight .mh { color: #40A070 } /* Literal.Number.Hex */
+.highlight .mi { color: #40A070 } /* Literal.Number.Integer */
+.highlight .mo { color: #40A070 } /* Literal.Number.Oct */
+.highlight .sa { color: #4070A0 } /* Literal.String.Affix */
+.highlight .sb { color: #4070A0 } /* Literal.String.Backtick */
+.highlight .sc { color: #4070A0 } /* Literal.String.Char */
+.highlight .dl { color: #4070A0 } /* Literal.String.Delimiter */
+.highlight .sd { color: #4070A0; font-style: italic } /* Literal.String.Doc */
+.highlight .s2 { color: #4070A0 } /* Literal.String.Double */
+.highlight .se { color: #4070A0; font-weight: bold } /* Literal.String.Escape */
+.highlight .sh { color: #4070A0 } /* Literal.String.Heredoc */
+.highlight .si { color: #70A0D0; font-style: italic } /* Literal.String.Interpol */
+.highlight .sx { color: #C65D09 } /* Literal.String.Other */
+.highlight .sr { color: #235388 } /* Literal.String.Regex */
+.highlight .s1 { color: #4070A0 } /* Literal.String.Single */
+.highlight .ss { color: #517918 } /* Literal.String.Symbol */
+.highlight .bp { color: #007020 } /* Name.Builtin.Pseudo */
+.highlight .fm { color: #06287E } /* Name.Function.Magic */
+.highlight .vc { color: #BB60D5 } /* Name.Variable.Class */
+.highlight .vg { color: #BB60D5 } /* Name.Variable.Global */
+.highlight .vi { color: #BB60D5 } /* Name.Variable.Instance */
+.highlight .vm { color: #BB60D5 } /* Name.Variable.Magic */
+.highlight .il { color: #40A070 } /* Literal.Number.Integer.Long */
+</style>
+  
+  
+  
+    
+        <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20100%20100'%3E%3Ctext%20y='.9em'%20font-size='90'%3E🐼%3C/text%3E%3C/svg%3E">
+    
+
+
+
+  <style>
+      
+      
+    
+:root {
+    --width: 720px;
+    --font-main: Verdana, sans-serif;
+    --font-secondary: Verdana, sans-serif;
+    --font-scale: 1em;
+    --background-color: #fff;
+    --heading-color: #222;
+    --text-color: #444;
+    --link-color: #3273dc;
+    --visited-color:  #8b6fcb;
+    --code-background-color: #f2f2f2;
+    --code-color: #222;
+    --blockquote-color: #222;
+}
+
+@media (prefers-color-scheme: dark) {
+    :root {
+        --background-color: #01242e;
+        --heading-color: #eee;
+        --text-color: #ddd;
+        --link-color: #8cc2dd;
+        --visited-color:  #8b6fcb;
+        --code-background-color: #000;
+        --code-color: #ddd;
+        --blockquote-color: #ccc;
+    }
+}
+
+body {
+    font-family: var(--font-secondary);
+    font-size: var(--font-scale);
+    margin: auto;
+    padding: 20px;
+    max-width: var(--width);
+    text-align: left;
+    background-color: var(--background-color);
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    line-height: 1.5;
+    color: var(--text-color);
+}
+
+h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-main);
+    color: var(--heading-color);
+}
+
+a {
+    color: var(--link-color);
+    cursor: pointer;
+    text-decoration: none;
+}
+
+a:hover {
+    text-decoration: underline; 
+}
+
+nav a {
+    margin-right: 8px;
+}
+
+strong, b {
+    color: var(--heading-color);
+}
+
+button {
+    margin: 0;
+    cursor: pointer;
+}
+
+time {
+ 	font-family: monospace;
+  	font-style: normal;
+  	font-size: 15px;
+}
+
+main {
+    line-height: 1.6;
+}
+
+table {
+    width: 100%;
+}
+
+hr {
+    border: 0;
+    border-top: 1px dashed;
+}
+
+img {
+    max-width: 100%;
+}
+
+code {
+    font-family: monospace;
+    padding: 2px;
+    background-color: var(--code-background-color);
+    color: var(--code-color);
+    border-radius: 3px;
+}
+
+blockquote {
+    border-left: 1px solid #999;
+    color: var(--code-color);
+    padding-left: 20px;
+    font-style: italic;
+}
+
+footer {
+    padding: 25px 0;
+    text-align: center;
+}
+
+.title:hover {
+    text-decoration: none;
+}
+
+.title h1 {
+    font-size: 1.5em;
+}
+
+.inline {
+    width: auto !important;
+}
+
+.highlight, .code {
+    padding: 1px 15px;
+    background-color: var(--code-background-color);
+    color: var(--code-color);
+    border-radius: 3px;
+    margin-block-start: 1em;
+    margin-block-end: 1em;
+    overflow-x: auto;
+}
+
+/* blog post list */
+ul.blog-posts {
+    list-style-type: none;
+    padding: unset;
+}
+
+ul.blog-posts li {
+    display: flex;
+}
+
+ul.blog-posts li span {
+    flex: 0 0 130px;
+}
+
+ul.blog-posts li a:visited {
+    color: var(--visited-color);
+}
+    .upvote-button {
+        padding: 0;
+        margin: 0;
+        border: 0;
+        background-color: inherit;
+        color: inherit;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+    .upvote-button.upvoted {
+        color: salmon;
+    }
+    .upvote-count {
+        margin-top: -3px;
+    }
+
+      
+  </style>
+</head>
+
+<body class="post " onload="(function() { document.cookie = `timezone=${Intl.DateTimeFormat().resolvedOptions().timeZone};path=/`; })()">
+  
+  <header>
+    <a class="title" href="/">
+      <h1>
+        simons blog
+      </h1>
+    </a>
+    <nav>
+      <p><a href='/'>Home</a> <a href='/blog/'>Blog</a></p>
+
+    </nav>
+  </header>
+  <main>
+    
+
+    
+
+    
+        <h1>SGEMM in CuTeDSL</h1>
+
+        <p>
+            <i>
+                <time datetime="2025-06-26T17:52Z">
+    26 Jun, 2025
+</time>
+            </i>
+        </p>
+    
+
+    <p>SGEMM is one of the fundamental operations we aim to optimise on GPUs.
+In this blogpost I will explain the corresponding <a href='https://github.com/NVIDIA/cutlass/blob/main/examples/python/CuTeDSL/ampere/sgemm.py'>example</a> from the <code>CUTLASS</code> repo.
+I chose SGEMM because it is the most simple non trivial example given in the <code>examples</code> and therefore a good starting point to learn about <code>CuTeDSL</code>.</p>
+<p>We will analyse the code in a Top Down approach, i.e. work gradually down in complexity.</p>
+<p>The whole blogpost explains the case that we obtain when executing the program with the following arguments that I explain below.:</p>
+<div class="highlight"><pre><span></span>--mnk 256,128,64 --a_major m --b_major n --c_major m
+</pre></div>
+<h2 id=codemaincode-function><code>main</code> function</h2><p>This is where the problem is set up.</p>
+<p>The <code>main</code> function has following signature</p>
+<div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">main</span><span class="p">(</span>
+    <span class="n">a_major</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">b_major</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">c_major</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">problem_shape</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">],</span>
+    <span class="n">warmup_iterations</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">2</span><span class="p">,</span>
+    <span class="n">iterations</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">100</span><span class="p">,</span>
+    <span class="n">skip_ref_check</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+<span class="p">):</span>
+</pre></div>
+<p>By command like we passed the majorness for the three matrices of interest.</p>
+<p>We will consider the case</p>
+<div class="highlight"><pre><span></span>A - M-Major
+B - N-Major
+C - M-Major
+</pre></div>
+<p>That simply means that the stride along <code>M</code> mode for <code>A</code> and <code>C</code> and <code>N</code> mode for <code>B</code> is considered to be <code>1</code>.</p>
+<p>The <code>problem_shape</code> is passed as <code>(M, N, K) = (256, 128, 64)</code>.</p>
+<p>This defines the layouts of <code>A</code>, <code>B</code> and <code>C</code> as follows.</p>
+<math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><mrow><mi>A</mi><mi>:</mi><mo stretchy="false">&#x00028;</mo><mi>M</mi><mo>&#x0002C;</mo><mi>K</mi><mo stretchy="false">&#x00029;</mo><mi>:</mi><mo stretchy="false">&#x00028;</mo><mn>1</mn><mo>&#x0002C;</mo><mi>M</mi><mo stretchy="false">&#x00029;</mo></mrow></math><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><mrow><mi>B</mi><mi>:</mi><mo stretchy="false">&#x00028;</mo><mi>N</mi><mo>&#x0002C;</mo><mi>K</mi><mo stretchy="false">&#x00029;</mo><mi>:</mi><mo stretchy="false">&#x00028;</mo><mn>1</mn><mo>&#x0002C;</mo><mi>N</mi><mo stretchy="false">&#x00029;</mo></mrow></math><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><mrow><mi>C</mi><mi>:</mi><mo stretchy="false">&#x00028;</mo><mi>M</mi><mo>&#x0002C;</mo><mi>N</mi><mo stretchy="false">&#x00029;</mo><mi>:</mi><mo stretchy="false">&#x00028;</mo><mn>1</mn><mo>&#x0002C;</mo><mi>M</mi><mo stretchy="false">&#x00029;</mo></mrow></math><p>The layouts in <code>CuTe</code> define the way our matrix elements are layed out in memory.</p>
+<p>To understand this concept deeper let's consider <code>M = 2, K = 3</code>.</p>
+<p>For example we see for <code>M-Major</code> that the matrix coordinate <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mo stretchy="false">&#x00028;</mo><mn>0</mn><mo>&#x0002C;</mo><mn>2</mn><mo stretchy="false">&#x00029;</mo></mrow></math> mapped to the physical coordinate <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mn>4</mn></mrow></math>. Physical coordinates are 1 dimensional because memory is a one dimensional concept.</p>
+<div class="highlight"><pre><span></span>M-Major
+(2,3):(1,2)
+ 0 2 4
+ 1 3 5
+K-Major
+(2,3):(3,1)
+ 0 1 2
+ 3 4 5
+</pre></div>
+<p>The below code simply initialises the tensors with appropriate <code>shape</code> and <code>stride</code>.</p>
+<div class="highlight"><pre><span></span>    <span class="n">torch</span><span class="o">.</span><span class="n">manual_seed</span><span class="p">(</span><span class="mi">1024</span><span class="p">)</span>
+    <span class="n">M</span><span class="p">,</span> <span class="n">N</span><span class="p">,</span> <span class="n">K</span> <span class="o">=</span> <span class="n">problem_shape</span>
+
+    <span class="c1"># Create and permute tensor A/B/C</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">create_and_permute_tensor</span><span class="p">(</span><span class="n">mode0</span><span class="p">,</span> <span class="n">mode1</span><span class="p">,</span> <span class="n">is_mode0_major</span><span class="p">,</span> <span class="n">dtype</span><span class="p">):</span>
+        <span class="c1"># is_mode0_major: (mode1, mode0) -&gt; (mode0, mode1)</span>
+        <span class="c1"># else: (mode0, mode1) -&gt; (mode0, mode1)</span>
+        <span class="n">shape</span> <span class="o">=</span> <span class="p">(</span><span class="n">mode1</span><span class="p">,</span> <span class="n">mode0</span><span class="p">)</span> <span class="k">if</span> <span class="n">is_mode0_major</span> <span class="k">else</span> <span class="p">(</span><span class="n">mode0</span><span class="p">,</span> <span class="n">mode1</span><span class="p">)</span>
+        <span class="n">permute_order</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span> <span class="k">if</span> <span class="n">is_mode0_major</span> <span class="k">else</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="p">(</span>
+            <span class="n">torch</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="o">*</span><span class="n">shape</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">int32</span><span class="p">)</span>
+            <span class="o">.</span><span class="n">random_</span><span class="p">(</span><span class="o">-</span><span class="mi">5</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span>
+            <span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">dtype</span><span class="o">=</span><span class="n">dtype</span><span class="p">)</span>
+            <span class="o">.</span><span class="n">permute</span><span class="p">(</span><span class="n">permute_order</span><span class="p">)</span>
+            <span class="o">.</span><span class="n">cuda</span><span class="p">()</span>
+        <span class="p">)</span>
+
+    <span class="n">a</span> <span class="o">=</span> <span class="n">create_and_permute_tensor</span><span class="p">(</span><span class="n">M</span><span class="p">,</span> <span class="n">K</span><span class="p">,</span> <span class="n">a_major</span> <span class="o">==</span> <span class="s2">&quot;m&quot;</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+    <span class="n">b</span> <span class="o">=</span> <span class="n">create_and_permute_tensor</span><span class="p">(</span><span class="n">N</span><span class="p">,</span> <span class="n">K</span><span class="p">,</span> <span class="n">b_major</span> <span class="o">==</span> <span class="s2">&quot;n&quot;</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+    <span class="n">c</span> <span class="o">=</span> <span class="n">create_and_permute_tensor</span><span class="p">(</span><span class="n">M</span><span class="p">,</span> <span class="n">N</span><span class="p">,</span> <span class="n">c_major</span> <span class="o">==</span> <span class="s2">&quot;m&quot;</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+
+    <span class="n">divisibility_a</span> <span class="o">=</span> <span class="n">a</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="k">if</span> <span class="n">a_major</span> <span class="o">==</span> <span class="s2">&quot;k&quot;</span> <span class="k">else</span> <span class="n">a</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">divisibility_b</span> <span class="o">=</span> <span class="n">b</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="k">if</span> <span class="n">b_major</span> <span class="o">==</span> <span class="s2">&quot;k&quot;</span> <span class="k">else</span> <span class="n">b</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">divisibility_c</span> <span class="o">=</span> <span class="n">c</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="k">if</span> <span class="n">c_major</span> <span class="o">==</span> <span class="s2">&quot;n&quot;</span> <span class="k">else</span> <span class="n">c</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+    <span class="n">a_tensor</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">from_dlpack</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">assumed_align</span><span class="o">=</span><span class="mi">16</span><span class="p">)</span>
+        <span class="o">.</span><span class="n">mark_layout_dynamic</span><span class="p">(</span><span class="n">leading_dim</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span> <span class="k">if</span> <span class="n">a_major</span> <span class="o">==</span> <span class="s2">&quot;k&quot;</span> <span class="k">else</span> <span class="mi">0</span><span class="p">))</span>
+        <span class="o">.</span><span class="n">mark_compact_shape_dynamic</span><span class="p">(</span>
+            <span class="n">mode</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span> <span class="k">if</span> <span class="n">a_major</span> <span class="o">==</span> <span class="s2">&quot;k&quot;</span> <span class="k">else</span> <span class="mi">0</span><span class="p">),</span>
+            <span class="n">divisibility</span><span class="o">=</span><span class="n">divisibility_a</span><span class="p">,</span>
+        <span class="p">)</span>
+    <span class="p">)</span>
+
+    <span class="n">b_tensor</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">from_dlpack</span><span class="p">(</span><span class="n">b</span><span class="p">,</span> <span class="n">assumed_align</span><span class="o">=</span><span class="mi">16</span><span class="p">)</span>
+        <span class="o">.</span><span class="n">mark_layout_dynamic</span><span class="p">(</span><span class="n">leading_dim</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span> <span class="k">if</span> <span class="n">b_major</span> <span class="o">==</span> <span class="s2">&quot;k&quot;</span> <span class="k">else</span> <span class="mi">0</span><span class="p">))</span>
+        <span class="o">.</span><span class="n">mark_compact_shape_dynamic</span><span class="p">(</span>
+            <span class="n">mode</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span> <span class="k">if</span> <span class="n">b_major</span> <span class="o">==</span> <span class="s2">&quot;k&quot;</span> <span class="k">else</span> <span class="mi">0</span><span class="p">),</span>
+            <span class="n">divisibility</span><span class="o">=</span><span class="n">divisibility_b</span><span class="p">,</span>
+        <span class="p">)</span>
+    <span class="p">)</span>
+
+    <span class="n">c_tensor</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">from_dlpack</span><span class="p">(</span><span class="n">c</span><span class="p">,</span> <span class="n">assumed_align</span><span class="o">=</span><span class="mi">16</span><span class="p">)</span>
+        <span class="o">.</span><span class="n">mark_layout_dynamic</span><span class="p">(</span><span class="n">leading_dim</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span> <span class="k">if</span> <span class="n">c_major</span> <span class="o">==</span> <span class="s2">&quot;n&quot;</span> <span class="k">else</span> <span class="mi">0</span><span class="p">))</span>
+        <span class="o">.</span><span class="n">mark_compact_shape_dynamic</span><span class="p">(</span>
+            <span class="n">mode</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span> <span class="k">if</span> <span class="n">c_major</span> <span class="o">==</span> <span class="s2">&quot;n&quot;</span> <span class="k">else</span> <span class="mi">0</span><span class="p">),</span>
+            <span class="n">divisibility</span><span class="o">=</span><span class="n">divisibility_c</span><span class="p">,</span>
+        <span class="p">)</span>
+    <span class="p">)</span>
+</pre></div>
+<p>In our case that means</p>
+<div class="highlight"><pre><span></span>mA Layout: (256,64):(1,256)
+mB Layout: (256,64):(1,256)
+mC Layout: (256,64):(1,256)
+</pre></div>
+<p>After that we simply compile our kernel:</p>
+<div class="highlight"><pre><span></span>    <span class="n">sgemm</span> <span class="o">=</span> <span class="n">SGemm</span><span class="p">()</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Compiling kernel with cute.compile ...&quot;</span><span class="p">)</span>
+    <span class="n">start_time</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+    <span class="n">gemm</span> <span class="o">=</span> <span class="n">cute</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="n">sgemm</span><span class="p">,</span> <span class="n">a_tensor</span><span class="p">,</span> <span class="n">b_tensor</span><span class="p">,</span> <span class="n">c_tensor</span><span class="p">)</span>
+    <span class="n">compilation_time</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span> <span class="o">-</span> <span class="n">start_time</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Compilation time: </span><span class="si">{</span><span class="n">compilation_time</span><span class="si">:</span><span class="s2">.4f</span><span class="si">}</span><span class="s2"> seconds&quot;</span><span class="p">)</span>
+</pre></div>
+<p>The kernel can than be called like so:</p>
+<div class="highlight"><pre><span></span>gemm(a_tensor, b_tensor, c_tensor)
+</pre></div>
+<h2 id=codesgemmcode-class><code>SGemm</code> class</h2><p>The <code>SGemm</code> class has three methods: <code>init</code>, <code>call</code> and <code>kernel</code>.</p>
+<h3 id=codeinitcode-method><code>init</code> method</h3><p>The below code initialises</p>
+<ul>
+<li><code>cta_tiler</code>: Consists of <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>b</mi><mi>M</mi></mrow></math>, <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>b</mi><mi>N</mi></mrow></math> and <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>b</mi><mi>K</mi></mrow></math> each of these is used to tile along the corresponding dimension.</li>
+<li>We use multiple stages to overlap memory transfer and compute. <code>GPUs</code> are fundamentally memory bound so we want to keep the tensor cores busy while transferring memory from <code>GMEM -&gt; SMEM</code> or <code>GMEM -&gt; RMEM</code> or <code>SMEM -&gt; RMEM</code>. <code>num_stages</code> defines the number of these stages.</li>
+<li><code>num_threads</code> is clear.</li>
+</ul>
+<div class="highlight"><pre><span></span><span class="k">class</span><span class="w"> </span><span class="nc">SGemm</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">cta_tiler</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="mi">128</span><span class="p">,</span> <span class="mi">128</span><span class="p">,</span> <span class="mi">8</span><span class="p">),</span>
+        <span class="n">num_stages</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">3</span><span class="p">,</span>
+        <span class="n">num_threads</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">256</span><span class="p">,</span>
+    <span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_cta_tiler</span> <span class="o">=</span> <span class="n">cta_tiler</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_num_stages</span> <span class="o">=</span> <span class="n">num_stages</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_num_threads</span> <span class="o">=</span> <span class="n">num_threads</span>
+        <span class="k">assert</span> <span class="n">num_threads</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;needs at least one thread&quot;</span>
+        <span class="k">assert</span> <span class="n">num_threads</span> <span class="o">%</span> <span class="mi">16</span> <span class="o">==</span> <span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;multiples of 16 required for MMA thread layout&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_bM</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_bN</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_bK</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cta_tiler</span>
+        <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">_bM</span> <span class="o">%</span> <span class="mi">16</span> <span class="o">==</span> <span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;multiple of 16 required for tile dimension M&quot;</span>
+        <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">_bN</span> <span class="o">%</span> <span class="mi">16</span> <span class="o">==</span> <span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;multiple of 16 required for tile dimension N&quot;</span>
+        <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">_num_stages</span> <span class="o">&gt;=</span> <span class="mi">3</span><span class="p">,</span> <span class="s2">&quot;num_stages must be greater than or equal to 3&quot;</span>
+</pre></div>
+<h3 id=codecallcode-method><code>call</code> method</h3><p>The <code>call</code> method is the analog to the host code in a <code>CUDA</code> program. Here we will prepare all the parameters which will be later on handed down to the kernel.</p>
+<p>Note that the <code>__call__</code> method is jitted. It takes the tensors we prepared above as well as an <code>epilogue_op</code>. The <code>epilogue_op</code> is the identity by default and can be used to modify our result after the main computation is over. For example we could set <code>lambda x: 2 * x</code> to multiply the elements of the matrix multiplication by <code>2</code> after computing the <code>GEMM</code>.</p>
+<div class="highlight"><pre><span></span>    <span class="nd">@cute</span><span class="o">.</span><span class="n">jit</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__call__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">mA</span><span class="p">:</span> <span class="n">cute</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span>
+        <span class="n">mB</span><span class="p">:</span> <span class="n">cute</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span>
+        <span class="n">mC</span><span class="p">:</span> <span class="n">cute</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span>
+        <span class="n">epilogue_op</span><span class="p">:</span> <span class="n">cutlass</span><span class="o">.</span><span class="n">Constexpr</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="p">,</span>
+    <span class="p">):</span>
+</pre></div>
+<p>We determine the <code>major</code> modes. <code>utils.LayoutEnum.from_tensor</code> will return <code>utils.LayoutEnum.ROW_MAJOR</code> or <code>utils.LayoutEnum.COL_MAJOR</code> major. <code>ROW_MAJOR</code> would mean that the stride along the second dimension is <code>1</code> and vice versa.</p>
+<p>We'll than initialise the <code>SMEM</code> layouts. If we deal with row major tensors in <code>A</code> or <code>B</code> we perform <code>padding</code> a common technique (alternative to swizzling) to reduce memory bank conflicts. The concept of memory bank conflicts is explained <a href='https://leimao.github.io/blog/CUDA-Shared-Memory-Bank/'>here</a>.</p>
+<p>We furthermore determine the <code>size</code> of <code>SMEM</code> we need to allocate. The maximum size is determined by the physical properties by the chip we deal with.</p>
+<div class="highlight"><pre><span></span>        <span class="bp">self</span><span class="o">.</span><span class="n">a_major_mode</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">LayoutEnum</span><span class="o">.</span><span class="n">from_tensor</span><span class="p">(</span><span class="n">mA</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">b_major_mode</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">LayoutEnum</span><span class="o">.</span><span class="n">from_tensor</span><span class="p">(</span><span class="n">mB</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">c_major_mode</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">LayoutEnum</span><span class="o">.</span><span class="n">from_tensor</span><span class="p">(</span><span class="n">mC</span><span class="p">)</span>
+
+        <span class="n">padding_a</span> <span class="o">=</span> <span class="mi">4</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">a_major_mode</span> <span class="o">==</span> <span class="n">utils</span><span class="o">.</span><span class="n">LayoutEnum</span><span class="o">.</span><span class="n">ROW_MAJOR</span> <span class="k">else</span> <span class="mi">0</span>
+        <span class="n">padding_b</span> <span class="o">=</span> <span class="mi">4</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">b_major_mode</span> <span class="o">==</span> <span class="n">utils</span><span class="o">.</span><span class="n">LayoutEnum</span><span class="o">.</span><span class="n">ROW_MAJOR</span> <span class="k">else</span> <span class="mi">0</span>
+        <span class="n">sA_layout</span> <span class="o">=</span> <span class="n">cute</span><span class="o">.</span><span class="n">make_layout</span><span class="p">(</span>
+            <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_bM</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_bK</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_num_stages</span><span class="p">),</span>
+            <span class="n">stride</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_bM</span> <span class="o">+</span> <span class="n">padding_a</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">_bK</span> <span class="o">*</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_bM</span> <span class="o">+</span> <span class="n">padding_a</span><span class="p">)),</span>
+        <span class="p">)</span>
+        <span class="n">sB_layout</span> <span class="o">=</span> <span class="n">cute</span><span class="o">.</span><span class="n">make_layout</span><span class="p">(</span>
+            <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_bN</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_bK</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_num_stages</span><span class="p">),</span>
+            <span class="n">stride</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_bN</span> <span class="o">+</span> <span class="n">padding_b</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">_bK</span> <span class="o">*</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_bN</span> <span class="o">+</span> <span class="n">padding_b</span><span class="p">)),</span>
+        <span class="p">)</span>
+
+        <span class="n">smem_size</span> <span class="o">=</span> <span class="n">cute</span><span class="o">.</span><span class="n">size_in_bytes</span><span class="p">(</span><span class="n">mA</span><span class="o">.</span><span class="n">element_type</span><span class="p">,</span> <span class="n">sA_layout</span><span class="p">)</span> <span class="o">+</span> <span class="n">cute</span><span class="o">.</span><span class="n">size_in_bytes</span><span class="p">(</span>
+            <span class="n">mB</span><span class="o">.</span><span class="n">element_type</span><span class="p">,</span> <span class="n">sB_layout</span>
+        <span class="p">)</span>
+</pre></div>
+<p>We furthermore initialise layout <code>tA</code> and <code>tB</code> which will be used for the <code>Thread</code> layout. We can see easily that both of them have a size of <code>num_threads</code> and therefore define a map with domain <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mo stretchy="false">[</mo><mn>0</mn><mo>&#x0002C;</mo><msub><mi>N</mi><mrow><mi>t</mi><mi>h</mi><mi>r</mi><mi>e</mi><mi>a</mi><mi>d</mi><mi>s</mi></mrow></msub><mo stretchy="false">&#x00029;</mo></mrow></math>. We see that they are both major in the first dimension. We scale <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>b</mi><msup><mi>M</mi><mi>&#x02032;</mi></msup><mo>&#x0003D;</mo><mfrac><mrow><mi>b</mi><mi>M</mi></mrow><mrow><mn>4</mn></mrow></mfrac></mrow></math> to accommodate for vectorisation in case of <code>16 byte</code> alignment. In what follows we assume alignment.</p>
+<p>The vectorisation is also reflected in the <code>Value</code> layouts. By default a <code>Layout</code> is major in first dimension if no stride is provided, i.e. we have <code>(4, 1) : (1, 0)</code> as a layout for the values.</p>
+<p>The copy atoms are needed for copy operation from <code>GMEM</code> to <code>SMEM</code> and are self explanatory in their arguments.</p>
+<div class="highlight"><pre><span></span>        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">a_major_mode</span> <span class="o">==</span> <span class="n">utils</span><span class="o">.</span><span class="n">LayoutEnum</span><span class="o">.</span><span class="n">COL_MAJOR</span><span class="p">:</span>
+            <span class="n">num_vectorized</span> <span class="o">=</span> <span class="mi">4</span> <span class="k">if</span> <span class="p">(</span><span class="n">mA</span><span class="o">.</span><span class="n">layout</span><span class="o">.</span><span class="n">max_alignment</span> <span class="o">%</span> <span class="mi">16</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span> <span class="k">else</span> <span class="mi">1</span>
+            <span class="n">atom_async_copy_A</span> <span class="o">=</span> <span class="n">cute</span><span class="o">.</span><span class="n">make_copy_atom</span><span class="p">(</span>
+                <span class="n">cute</span><span class="o">.</span><span class="n">nvgpu</span><span class="o">.</span><span class="n">cpasync</span><span class="o">.</span><span class="n">CopyG2SOp</span><span class="p">(),</span>
+                <span class="n">mA</span><span class="o">.</span><span class="n">element_type</span><span class="p">,</span>
+                <span class="n">num_bits_per_copy</span><span class="o">=</span><span class="n">mA</span><span class="o">.</span><span class="n">element_type</span><span class="o">.</span><span class="n">width</span> <span class="o">*</span> <span class="n">num_vectorized</span><span class="p">,</span>
+            <span class="p">)</span>
+            <span class="n">major_mode_size</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_bM</span> <span class="o">//</span> <span class="n">num_vectorized</span>
+            <span class="n">tA</span> <span class="o">=</span> <span class="n">cute</span><span class="o">.</span><span class="n">make_layout</span><span class="p">(</span>
+                <span class="p">(</span><span class="n">major_mode_size</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_num_threads</span> <span class="o">//</span> <span class="n">major_mode_size</span><span class="p">),</span>
+                <span class="n">stride</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">major_mode_size</span><span class="p">),</span>
+            <span class="p">)</span>
+            <span class="n">vA</span> <span class="o">=</span> <span class="n">cute</span><span class="o">.</span><span class="n">make_layout</span><span class="p">((</span><span class="n">num_vectorized</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">b_major_mode</span> <span class="o">==</span> <span class="n">utils</span><span class="o">.</span><span class="n">LayoutEnum</span><span class="o">.</span><span class="n">COL_MAJOR</span><span class="p">:</span>
+            <span class="n">num_vectorized</span> <span class="o">=</span> <span class="mi">4</span> <span class="k">if</span> <span class="p">(</span><span class="n">mB</span><span class="o">.</span><span class="n">layout</span><span class="o">.</span><span class="n">max_alignment</span> <span class="o">%</span> <span class="mi">16</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span> <span class="k">else</span> <span class="mi">1</span>
+            <span class="n">atom_async_copy_B</span> <span class="o">=</span> <span class="n">cute</span><span class="o">.</span><span class="n">make_copy_atom</span><span class="p">(</span>
+                <span class="n">cute</span><span class="o">.</span><span class="n">nvgpu</span><span class="o">.</span><span class="n">cpasync</span><span class="o">.</span><span class="n">CopyG2SOp</span><span class="p">(),</span>
+                <span class="n">mA</span><span class="o">.</span><span class="n">element_type</span><span class="p">,</span>
+                <span class="n">num_bits_per_copy</span><span class="o">=</span><span class="n">mB</span><span class="o">.</span><span class="n">element_type</span><span class="o">.</span><span class="n">width</span> <span class="o">*</span> <span class="n">num_vectorized</span><span class="p">,</span>
+            <span class="p">)</span>
+            <span class="n">major_mode_size</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_bN</span> <span class="o">//</span> <span class="n">num_vectorized</span>
+            <span class="n">tB</span> <span class="o">=</span> <span class="n">cute</span><span class="o">.</span><span class="n">make_layout</span><span class="p">(</span>
+                <span class="p">(</span><span class="n">major_mode_size</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_num_threads</span> <span class="o">//</span> <span class="n">major_mode_size</span><span class="p">),</span>
+                <span class="n">stride</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">major_mode_size</span><span class="p">),</span>
+            <span class="p">)</span>
+            <span class="n">vB</span> <span class="o">=</span> <span class="n">cute</span><span class="o">.</span><span class="n">make_layout</span><span class="p">((</span><span class="n">num_vectorized</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
+</pre></div>
+<p><code>make_tiled_copy_tv</code> is a convenience wrapper.</p>
+<div class="highlight"><pre><span></span>        <span class="n">tiled_copy_A</span> <span class="o">=</span> <span class="n">cute</span><span class="o">.</span><span class="n">make_tiled_copy_tv</span><span class="p">(</span><span class="n">atom_async_copy_A</span><span class="p">,</span> <span class="n">tA</span><span class="p">,</span> <span class="n">vA</span><span class="p">)</span>
+        <span class="n">tiled_copy_B</span> <span class="o">=</span> <span class="n">cute</span><span class="o">.</span><span class="n">make_tiled_copy_tv</span><span class="p">(</span><span class="n">atom_async_copy_B</span><span class="p">,</span> <span class="n">tB</span><span class="p">,</span> <span class="n">vB</span><span class="p">)</span>
+</pre></div>
+<p>We can get a better understanding of it by printing out its content. We do that for <code>tiled_copy_A</code>. We see that it holds the the Tiler, TV Layout and Copy Atom. We will later use it for slicing our tensors for each thread and copying.</p>
+<div class="highlight"><pre><span></span>Tiled Copy
+  Tiler MN:        (128:1,8:1)
+  TV Layout tiled: (256,4):(4,1)
+Copy Atom
+  ThrID:           1:0
+  TV Layout Src:   (1,4):(0,1)
+  TV Layout Dst:   (1,4):(0,1)
+  Value type:      f32
+</pre></div>
+<p>As we can read in the <a href='https://docs.nvidia.com/cuda/parallel-thread-execution/'>PTX docs</a> <code>MMA</code> operation expects a specific layout. We obtain it here.</p>
+<div class="highlight"><pre><span></span>        <span class="n">atoms_layout</span> <span class="o">=</span> <span class="n">cute</span><span class="o">.</span><span class="n">make_layout</span><span class="p">(</span>
+            <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_num_threads</span> <span class="o">//</span> <span class="mi">16</span><span class="p">,</span> <span class="mi">16</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="n">stride</span><span class="o">=</span><span class="p">(</span><span class="mi">16</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">c_major_mode</span> <span class="o">==</span> <span class="n">utils</span><span class="o">.</span><span class="n">LayoutEnum</span><span class="o">.</span><span class="n">COL_MAJOR</span><span class="p">:</span>
+            <span class="n">atoms_layout</span> <span class="o">=</span> <span class="n">cute</span><span class="o">.</span><span class="n">make_layout</span><span class="p">(</span>
+                <span class="p">(</span><span class="mi">16</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_num_threads</span> <span class="o">//</span> <span class="mi">16</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="n">stride</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">16</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+            <span class="p">)</span>
+        <span class="n">op</span> <span class="o">=</span> <span class="n">cute</span><span class="o">.</span><span class="n">nvgpu</span><span class="o">.</span><span class="n">MmaUniversalOp</span><span class="p">(</span><span class="n">cutlass</span><span class="o">.</span><span class="n">Float32</span><span class="p">)</span>
+        <span class="n">permutation_tiler_M</span> <span class="o">=</span> <span class="n">cute</span><span class="o">.</span><span class="n">make_layout</span><span class="p">(</span>
+            <span class="p">(</span><span class="n">atoms_layout</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="mi">4</span><span class="p">),</span> <span class="n">stride</span><span class="o">=</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="p">)</span>
+        <span class="n">permutation_tiler_N</span> <span class="o">=</span> <span class="n">cute</span><span class="o">.</span><span class="n">make_layout</span><span class="p">(</span>
+            <span class="p">(</span><span class="n">atoms_layout</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="mi">4</span><span class="p">),</span> <span class="n">stride</span><span class="o">=</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="p">)</span>
+        <span class="n">tiled_mma</span> <span class="o">=</span> <span class="n">cute</span><span class="o">.</span><span class="n">make_tiled_mma</span><span class="p">(</span>
+            <span class="n">op</span><span class="p">,</span>
+            <span class="n">atoms_layout</span><span class="p">,</span>
+            <span class="n">permutation_mnk</span><span class="o">=</span><span class="p">(</span><span class="n">permutation_tiler_M</span><span class="p">,</span> <span class="n">permutation_tiler_N</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span>
+        <span class="p">)</span>
+</pre></div>
+<p>We'll than are ready to launch our <code>kernel</code>. Note that from above we can immediately see that the size <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>S</mi><mo>&#x0003D;</mo><msub><mi>N</mi><mrow><mi>t</mi><mi>h</mi><mi>r</mi><mi>e</mi><mi>a</mi><mi>d</mi><mi>s</mi></mrow></msub></mrow></math> for our <code>atoms_layout</code>. We furthermore tile the <code>C</code> matrix using <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>b</mi><mi>M</mi></mrow></math> and <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>b</mi><mi>N</mi></mrow></math> along the corresponding dimensions to calculate the number of blocks in each dimension. Note that we ceil up, i.e. if <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>b</mi><mi>M</mi></mrow></math> doesn't divide <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>M</mi></mrow></math> evenly we will round up.</p>
+<div class="highlight"><pre><span></span>        <span class="c1"># grid_dim: ((m + BLK_M - 1) // BLK_M, (n + BLK_N - 1) // BLK_N, 1)</span>
+        <span class="n">grid_dim</span> <span class="o">=</span> <span class="o">*</span><span class="n">cute</span><span class="o">.</span><span class="n">ceil_div</span><span class="p">(</span><span class="n">mC</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_bM</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_bN</span><span class="p">)),</span> <span class="mi">1</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">kernel</span><span class="p">(</span>
+            <span class="n">mA</span><span class="p">,</span>
+            <span class="n">mB</span><span class="p">,</span>
+            <span class="n">mC</span><span class="p">,</span>
+            <span class="n">sA_layout</span><span class="p">,</span>
+            <span class="n">sB_layout</span><span class="p">,</span>
+            <span class="n">tiled_copy_A</span><span class="p">,</span>
+            <span class="n">tiled_copy_B</span><span class="p">,</span>
+            <span class="n">tiled_mma</span><span class="p">,</span>
+            <span class="n">epilogue_op</span><span class="p">,</span>
+        <span class="p">)</span><span class="o">.</span><span class="n">launch</span><span class="p">(</span>
+            <span class="n">grid</span><span class="o">=</span><span class="n">grid_dim</span><span class="p">,</span>
+            <span class="n">block</span><span class="o">=</span><span class="p">[</span><span class="n">cute</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="n">atoms_layout</span><span class="p">),</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span>
+            <span class="n">smem</span><span class="o">=</span><span class="n">smem_size</span><span class="p">,</span>
+        <span class="p">)</span>
+</pre></div>
+<h3 id=codekernelcode-method><code>kernel</code> method</h3><p>Here is where our main logic resides.</p>
+<p>We annotate the kernel with <code>cute.kernel</code>. The arguments where explained above.</p>
+<div class="highlight"><pre><span></span>    <span class="nd">@cute</span><span class="o">.</span><span class="n">kernel</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">kernel</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">mA</span><span class="p">:</span> <span class="n">cute</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span>
+        <span class="n">mB</span><span class="p">:</span> <span class="n">cute</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span>
+        <span class="n">mC</span><span class="p">:</span> <span class="n">cute</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span>
+        <span class="n">sA_layout</span><span class="p">:</span> <span class="n">cute</span><span class="o">.</span><span class="n">Layout</span><span class="p">,</span>
+        <span class="n">sB_layout</span><span class="p">:</span> <span class="n">cute</span><span class="o">.</span><span class="n">Layout</span><span class="p">,</span>
+        <span class="n">tiled_copy_A</span><span class="p">:</span> <span class="n">cute</span><span class="o">.</span><span class="n">TiledCopy</span><span class="p">,</span>
+        <span class="n">tiled_copy_B</span><span class="p">:</span> <span class="n">cute</span><span class="o">.</span><span class="n">TiledCopy</span><span class="p">,</span>
+        <span class="n">tiled_mma</span><span class="p">:</span> <span class="n">cute</span><span class="o">.</span><span class="n">TiledMma</span><span class="p">,</span>
+        <span class="n">epilogue_op</span><span class="p">:</span> <span class="n">cutlass</span><span class="o">.</span><span class="n">Constexpr</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="p">,</span>
+    <span class="p">):</span>
+</pre></div>
+<p>This is usual <code>CUDA</code> stuff. <code>thr_mma</code> slices obtains the correct thread slice of the tiled MMA.</p>
+<div class="highlight"><pre><span></span>        <span class="n">tidx</span><span class="p">,</span> <span class="n">tidy</span><span class="p">,</span> <span class="n">tidz</span> <span class="o">=</span> <span class="n">cute</span><span class="o">.</span><span class="n">arch</span><span class="o">.</span><span class="n">thread_idx</span><span class="p">()</span>
+        <span class="n">bidx</span><span class="p">,</span> <span class="n">bidy</span><span class="p">,</span> <span class="n">bidz</span> <span class="o">=</span> <span class="n">cute</span><span class="o">.</span><span class="n">arch</span><span class="o">.</span><span class="n">block_idx</span><span class="p">()</span>
+        <span class="n">tiler_coord</span> <span class="o">=</span> <span class="p">(</span><span class="n">bidx</span><span class="p">,</span> <span class="n">bidy</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="n">thr_mma</span> <span class="o">=</span> <span class="n">tiled_mma</span><span class="o">.</span><span class="n">get_slice</span><span class="p">(</span><span class="n">tidx</span><span class="p">)</span>
+</pre></div>
+<p>Note the <code>g</code> in front of the variables below. This indicates we are dealing with tensors residing in <code>GMEM</code>. Each pair of <code>(bidx, bidy)</code> will process a tile.</p>
+<div class="highlight"><pre><span></span>        <span class="n">gA</span> <span class="o">=</span> <span class="n">cute</span><span class="o">.</span><span class="n">local_tile</span><span class="p">(</span>
+            <span class="n">mA</span><span class="p">,</span> <span class="n">tiler</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_cta_tiler</span><span class="p">,</span> <span class="n">coord</span><span class="o">=</span><span class="n">tiler_coord</span><span class="p">,</span> <span class="n">proj</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="p">)</span>
+        <span class="n">gB</span> <span class="o">=</span> <span class="n">cute</span><span class="o">.</span><span class="n">local_tile</span><span class="p">(</span>
+            <span class="n">mB</span><span class="p">,</span> <span class="n">tiler</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_cta_tiler</span><span class="p">,</span> <span class="n">coord</span><span class="o">=</span><span class="n">tiler_coord</span><span class="p">,</span> <span class="n">proj</span><span class="o">=</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="p">)</span>
+        <span class="n">gC</span> <span class="o">=</span> <span class="n">cute</span><span class="o">.</span><span class="n">local_tile</span><span class="p">(</span>
+            <span class="n">mC</span><span class="p">,</span> <span class="n">tiler</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_cta_tiler</span><span class="p">,</span> <span class="n">coord</span><span class="o">=</span><span class="n">tiler_coord</span><span class="p">,</span> <span class="n">proj</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="p">)</span>
+</pre></div>
+<p>We can print the layouts out:</p>
+<div class="highlight"><pre><span></span>gA Layout: (128,8,8):(1,256,2048)
+gB Layout: (128,8,8):(1,128,1024)
+gC Layout: (128,128):(1,256)
+</pre></div>
+<p>We see that the shapes are <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mo stretchy="false">&#x00028;</mo><mi>b</mi><mi>M</mi><mo>&#x0002C;</mo><mi>b</mi><mi>K</mi><mo>&#x0002C;</mo><mi>k</mi><mo stretchy="false">&#x00029;</mo></mrow></math>, <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mo stretchy="false">&#x00028;</mo><mi>b</mi><mi>N</mi><mo>&#x0002C;</mo><mi>b</mi><mi>K</mi><mo>&#x0002C;</mo><mi>k</mi><mo stretchy="false">&#x00029;</mo></mrow></math> and <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mo stretchy="false">&#x00028;</mo><mi>b</mi><mi>M</mi><mo>&#x0002C;</mo><mi>b</mi><mi>N</mi><mo stretchy="false">&#x00029;</mo></mrow></math>. Here <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>k</mi><mo>&#x0003D;</mo><mi>&#x02308;</mi><mfrac><mrow><mi>K</mi></mrow><mrow><mi>b</mi><mi>K</mi></mrow></mfrac><mi>&#x02309;</mi></mrow></math>.</p>
+<p>This code offsets the tensors. This is needed for the case that <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>b</mi><mi>K</mi></mrow></math> doesn't evenly divide <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>K</mi></mrow></math>. Note that in the case that <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>K</mi></mrow></math> divides <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>b</mi><mi>K</mi></mrow></math> the residue is simply <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mn>0</mn></mrow></math>.</p>
+<div class="highlight"><pre><span></span>        <span class="n">residue_k</span> <span class="o">=</span> <span class="n">mA</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">cutlass</span><span class="o">.</span><span class="n">Int32</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_bK</span><span class="p">)</span> <span class="o">*</span> <span class="n">gA</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+        <span class="n">gA</span> <span class="o">=</span> <span class="n">cute</span><span class="o">.</span><span class="n">domain_offset</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span> <span class="n">residue_k</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="n">gA</span><span class="p">)</span>
+        <span class="n">gB</span> <span class="o">=</span> <span class="n">cute</span><span class="o">.</span><span class="n">domain_offset</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span> <span class="n">residue_k</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="n">gB</span><span class="p">)</span>
+</pre></div>
+<p>We allocate the shared memory. We'll than get the slice for the current thread. We'll get</p>
+<div class="highlight"><pre><span></span>        <span class="n">smem</span> <span class="o">=</span> <span class="n">cutlass</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">SmemAllocator</span><span class="p">()</span>
+        <span class="n">sA</span> <span class="o">=</span> <span class="n">smem</span><span class="o">.</span><span class="n">allocate_tensor</span><span class="p">(</span><span class="n">mA</span><span class="o">.</span><span class="n">element_type</span><span class="p">,</span> <span class="n">sA_layout</span><span class="p">,</span> <span class="mi">16</span><span class="p">)</span>
+        <span class="n">sB</span> <span class="o">=</span> <span class="n">smem</span><span class="o">.</span><span class="n">allocate_tensor</span><span class="p">(</span><span class="n">mB</span><span class="o">.</span><span class="n">element_type</span><span class="p">,</span> <span class="n">sB_layout</span><span class="p">,</span> <span class="mi">16</span><span class="p">)</span>
+        <span class="n">thr_copy_A</span> <span class="o">=</span> <span class="n">tiled_copy_A</span><span class="o">.</span><span class="n">get_slice</span><span class="p">(</span><span class="n">tidx</span><span class="p">)</span>
+        <span class="n">thr_copy_B</span> <span class="o">=</span> <span class="n">tiled_copy_B</span><span class="o">.</span><span class="n">get_slice</span><span class="p">(</span><span class="n">tidx</span><span class="p">)</span>
+        <span class="n">tAgA</span> <span class="o">=</span> <span class="n">thr_copy_A</span><span class="o">.</span><span class="n">partition_S</span><span class="p">(</span><span class="n">gA</span><span class="p">)</span>
+        <span class="n">tAsA</span> <span class="o">=</span> <span class="n">thr_copy_A</span><span class="o">.</span><span class="n">partition_D</span><span class="p">(</span><span class="n">sA</span><span class="p">)</span>
+        <span class="n">tBgB</span> <span class="o">=</span> <span class="n">thr_copy_B</span><span class="o">.</span><span class="n">partition_S</span><span class="p">(</span><span class="n">gB</span><span class="p">)</span>
+        <span class="n">tBsB</span> <span class="o">=</span> <span class="n">thr_copy_B</span><span class="o">.</span><span class="n">partition_D</span><span class="p">(</span><span class="n">sB</span><span class="p">)</span>
+</pre></div>
+<p>We can print out the shapes to understand better:</p>
+<div class="highlight"><pre><span></span>tAgA Shape: ((4,1),1,1,8)
+tAsA Shape: ((4,1),1,1,3)
+tBgB Shape: ((4,1),1,1,8)
+tBsB Shape: ((4,1),1,1,3)
+</pre></div>
+<p>We see here that we have <code>(4, 1)</code> in the first mode because of the vectorisation. The last mode corresponds to <code>k</code> and <code>num_stages</code> from above.</p>
+<p>Note the <code>CuTe</code> notation: We have a <code>g</code> to indicate <code>GMEM</code> and <code>s</code> to indicate <code>SMEM</code>. We have <code>_S</code> to indicate Source and <code>_D</code> to indicate Destination.</p>
+<p>Predication is needed to handle the case where the tiles don't evenly divide the corresponding dimension.</p>
+<p>We can handle predication with the use of <code>identity_tensor</code>. An identity tensor in <code>CuTe</code> simply maps <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mo stretchy="false">&#x00028;</mo><mi>x</mi><mo>&#x0002C;</mo><mi>y</mi><mo stretchy="false">&#x00029;</mo><mo>&#x02192;</mo><mo stretchy="false">&#x00028;</mo><mi>x</mi><mo>&#x0002C;</mo><mi>y</mi><mo stretchy="false">&#x00029;</mo></mrow></math>. We'll than replicate the tiling and <code>GMEM</code> partitioning from above.</p>
+<div class="highlight"><pre><span></span>        <span class="n">mcA</span> <span class="o">=</span> <span class="n">cute</span><span class="o">.</span><span class="n">make_identity_tensor</span><span class="p">(</span><span class="n">mA</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+        <span class="n">mcB</span> <span class="o">=</span> <span class="n">cute</span><span class="o">.</span><span class="n">make_identity_tensor</span><span class="p">(</span><span class="n">mB</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+        <span class="n">cA</span> <span class="o">=</span> <span class="n">cute</span><span class="o">.</span><span class="n">local_tile</span><span class="p">(</span>
+            <span class="n">mcA</span><span class="p">,</span> <span class="n">tiler</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_cta_tiler</span><span class="p">,</span> <span class="n">coord</span><span class="o">=</span><span class="n">tiler_coord</span><span class="p">,</span> <span class="n">proj</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="p">)</span>
+        <span class="n">cB</span> <span class="o">=</span> <span class="n">cute</span><span class="o">.</span><span class="n">local_tile</span><span class="p">(</span>
+            <span class="n">mcB</span><span class="p">,</span> <span class="n">tiler</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_cta_tiler</span><span class="p">,</span> <span class="n">coord</span><span class="o">=</span><span class="n">tiler_coord</span><span class="p">,</span> <span class="n">proj</span><span class="o">=</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="p">)</span>
+        <span class="n">cA</span> <span class="o">=</span> <span class="n">cute</span><span class="o">.</span><span class="n">domain_offset</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span> <span class="n">residue_k</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="n">cA</span><span class="p">)</span>
+        <span class="n">cB</span> <span class="o">=</span> <span class="n">cute</span><span class="o">.</span><span class="n">domain_offset</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span> <span class="n">residue_k</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="n">cB</span><span class="p">)</span>
+        <span class="c1"># Repeat the partitioning with identity layouts</span>
+        <span class="n">tAcA</span> <span class="o">=</span> <span class="n">thr_copy_A</span><span class="o">.</span><span class="n">partition_S</span><span class="p">(</span><span class="n">cA</span><span class="p">)</span>
+        <span class="n">tBcB</span> <span class="o">=</span> <span class="n">thr_copy_B</span><span class="o">.</span><span class="n">partition_S</span><span class="p">(</span><span class="n">cB</span><span class="p">)</span>
+</pre></div>
+<p>The below tensors will be the storage for our predication result. They will contain a <code>1</code> if the corresponding element should be copied and a <code>0</code> otherwise. I will not go too deeply into predication to keep the blog concise but maybe this can be handled in another blogpost.</p>
+<div class="highlight"><pre><span></span>        <span class="c1"># Allocate predicate tensors for m and n</span>
+        <span class="n">tApA</span> <span class="o">=</span> <span class="n">cute</span><span class="o">.</span><span class="n">make_fragment</span><span class="p">(</span>
+            <span class="n">cute</span><span class="o">.</span><span class="n">make_layout</span><span class="p">(</span>
+                <span class="p">(</span>
+                    <span class="n">tAsA</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">],</span>
+                    <span class="n">cute</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="n">tAsA</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">]),</span>
+                    <span class="n">cute</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="n">tAsA</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="p">[</span><span class="mi">2</span><span class="p">]),</span>
+                <span class="p">),</span>
+                <span class="n">stride</span><span class="o">=</span><span class="p">(</span><span class="n">cute</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="n">tAsA</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">]),</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span>
+            <span class="p">),</span>
+            <span class="n">cutlass</span><span class="o">.</span><span class="n">Boolean</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="n">tBpB</span> <span class="o">=</span> <span class="n">cute</span><span class="o">.</span><span class="n">make_fragment</span><span class="p">(</span>
+            <span class="n">cute</span><span class="o">.</span><span class="n">make_layout</span><span class="p">(</span>
+                <span class="p">(</span>
+                    <span class="n">tBsB</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">],</span>
+                    <span class="n">cute</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="n">tBsB</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">]),</span>
+                    <span class="n">cute</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="n">tBsB</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="p">[</span><span class="mi">2</span><span class="p">]),</span>
+                <span class="p">),</span>
+                <span class="n">stride</span><span class="o">=</span><span class="p">(</span><span class="n">cute</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="n">tBsB</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">]),</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span>
+            <span class="p">),</span>
+            <span class="n">cutlass</span><span class="o">.</span><span class="n">Boolean</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="c1"># Allocate predicate tensors for m, n and k for residue k-tile</span>
+        <span class="n">tApA_residue_k</span> <span class="o">=</span> <span class="n">cute</span><span class="o">.</span><span class="n">make_fragment</span><span class="p">(</span>
+            <span class="n">cute</span><span class="o">.</span><span class="n">make_layout</span><span class="p">(</span>
+                <span class="p">(</span>
+                    <span class="n">tAsA</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">],</span>
+                    <span class="n">cute</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="n">tAsA</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">]),</span>
+                    <span class="n">cute</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="n">tAsA</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="p">[</span><span class="mi">2</span><span class="p">]),</span>
+                <span class="p">),</span>
+                <span class="n">stride</span><span class="o">=</span><span class="p">(</span>
+                    <span class="n">cute</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="n">tAsA</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span> <span class="o">*</span> <span class="n">cute</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="n">tAsA</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="p">[</span><span class="mi">2</span><span class="p">]),</span>
+                    <span class="n">cute</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="n">tAsA</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="p">[</span><span class="mi">2</span><span class="p">]),</span>
+                    <span class="mi">1</span><span class="p">,</span>
+                <span class="p">),</span>
+            <span class="p">),</span>
+            <span class="n">cutlass</span><span class="o">.</span><span class="n">Boolean</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="n">tBpB_residue_k</span> <span class="o">=</span> <span class="n">cute</span><span class="o">.</span><span class="n">make_fragment</span><span class="p">(</span>
+            <span class="n">cute</span><span class="o">.</span><span class="n">make_layout</span><span class="p">(</span>
+                <span class="p">(</span>
+                    <span class="n">tBsB</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">],</span>
+                    <span class="n">cute</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="n">tBsB</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">]),</span>
+                    <span class="n">cute</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="n">tBsB</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="p">[</span><span class="mi">2</span><span class="p">]),</span>
+                <span class="p">),</span>
+                <span class="n">stride</span><span class="o">=</span><span class="p">(</span>
+                    <span class="n">cute</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="n">tBsB</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span> <span class="o">*</span> <span class="n">cute</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="n">tBsB</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="p">[</span><span class="mi">2</span><span class="p">]),</span>
+                    <span class="n">cute</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="n">tBsB</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="p">[</span><span class="mi">2</span><span class="p">]),</span>
+                    <span class="mi">1</span><span class="p">,</span>
+                <span class="p">),</span>
+            <span class="p">),</span>
+            <span class="n">cutlass</span><span class="o">.</span><span class="n">Boolean</span><span class="p">,</span>
+        <span class="p">)</span>
+</pre></div>
+<p>We perform predication here. From <code>CUDA</code> we know that not every thread should participate in a copy if the blocksize does not evenly divide the dimension of the problem and that is what is reflected here.</p>
+<div class="highlight"><pre><span></span>        <span class="c1"># Set predicates for m/n bounds for mainloop</span>
+        <span class="k">for</span> <span class="n">rest_v</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">tApA</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]):</span>
+            <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">tApA</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]):</span>
+                <span class="n">tApA</span><span class="p">[</span><span class="n">rest_v</span><span class="p">,</span> <span class="n">m</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">cute</span><span class="o">.</span><span class="n">elem_less</span><span class="p">(</span>
+                    <span class="n">tAcA</span><span class="p">[(</span><span class="mi">0</span><span class="p">,</span> <span class="n">rest_v</span><span class="p">),</span> <span class="n">m</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span> <span class="n">mA</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+                <span class="p">)</span>
+        <span class="k">for</span> <span class="n">rest_v</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">tBpB</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]):</span>
+            <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">tBpB</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]):</span>
+                <span class="n">tBpB</span><span class="p">[</span><span class="n">rest_v</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">cute</span><span class="o">.</span><span class="n">elem_less</span><span class="p">(</span>
+                    <span class="n">tBcB</span><span class="p">[(</span><span class="mi">0</span><span class="p">,</span> <span class="n">rest_v</span><span class="p">),</span> <span class="n">n</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span> <span class="n">mB</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+                <span class="p">)</span>
+
+        <span class="c1"># Set predicates for m/n/k bounds for residue k tile</span>
+        <span class="k">for</span> <span class="n">rest_v</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">tApA_residue_k</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]):</span>
+            <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">tApA_residue_k</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]):</span>
+                <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">tApA_residue_k</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">2</span><span class="p">]):</span>
+                    <span class="n">coord_A</span> <span class="o">=</span> <span class="n">tAcA</span><span class="p">[(</span><span class="mi">0</span><span class="p">,</span> <span class="n">rest_v</span><span class="p">),</span> <span class="n">m</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span>
+                    <span class="n">tApA_residue_k</span><span class="p">[</span><span class="n">rest_v</span><span class="p">,</span> <span class="n">m</span><span class="p">,</span> <span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="n">cute</span><span class="o">.</span><span class="n">elem_less</span><span class="p">(</span>
+                        <span class="p">(</span><span class="n">coord_A</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">cutlass</span><span class="o">.</span><span class="n">Int32</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)),</span> <span class="p">(</span><span class="n">mA</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">coord_A</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+                    <span class="p">)</span>
+        <span class="k">for</span> <span class="n">rest_v</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">tBpB_residue_k</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]):</span>
+            <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">tBpB_residue_k</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]):</span>
+                <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">tBpB_residue_k</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">2</span><span class="p">]):</span>
+                    <span class="n">coord_B</span> <span class="o">=</span> <span class="n">tBcB</span><span class="p">[(</span><span class="mi">0</span><span class="p">,</span> <span class="n">rest_v</span><span class="p">),</span> <span class="n">n</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span>
+                    <span class="n">tBpB_residue_k</span><span class="p">[</span><span class="n">rest_v</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="n">cute</span><span class="o">.</span><span class="n">elem_less</span><span class="p">(</span>
+                        <span class="p">(</span><span class="n">coord_B</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">cutlass</span><span class="o">.</span><span class="n">Int32</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)),</span> <span class="p">(</span><span class="n">mB</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">coord_B</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+                    <span class="p">)</span>
+</pre></div>
+<p>We issue the first asynchronous copy operation. We commit it. Note that this is done for the zeroth state because the last mode of <code>tAsA</code> and <code>tBsB</code> corresponds to the stages. After done we increase <code>gmem_pipe_read</code> which corresponds to the last mode of <code>tAgA</code> and <code>tBgB</code> which in return correspond to the number of tiles we divide the <code>K</code> dimension into by <code>bK</code>. Note that we use the predicators defined above to copy only the relevant elements if necessary.</p>
+<div class="highlight"><pre><span></span>        <span class="n">k_pipe_max</span> <span class="o">=</span> <span class="n">cute</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="n">tAsA</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="p">[</span><span class="mi">3</span><span class="p">])</span>
+        <span class="n">k_tile_count</span> <span class="o">=</span> <span class="n">cute</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="n">tAgA</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="p">[</span><span class="mi">3</span><span class="p">])</span>
+        <span class="n">gmem_pipe_read</span> <span class="o">=</span> <span class="n">cutlass</span><span class="o">.</span><span class="n">Int32</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+        <span class="n">cute</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span>
+            <span class="n">tiled_copy_A</span><span class="p">,</span>
+            <span class="n">tAgA</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="n">gmem_pipe_read</span><span class="p">],</span>
+            <span class="n">tAsA</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span>
+            <span class="n">pred</span><span class="o">=</span><span class="n">tApA_residue_k</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="n">cute</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span>
+            <span class="n">tiled_copy_B</span><span class="p">,</span>
+            <span class="n">tBgB</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="n">gmem_pipe_read</span><span class="p">],</span>
+            <span class="n">tBsB</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span>
+            <span class="n">pred</span><span class="o">=</span><span class="n">tBpB_residue_k</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="n">cute</span><span class="o">.</span><span class="n">arch</span><span class="o">.</span><span class="n">cp_async_commit_group</span><span class="p">()</span>
+        <span class="n">gmem_pipe_read</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">gmem_pipe_read</span> <span class="o">+</span> <span class="mi">1</span>
+            <span class="k">if</span> <span class="n">gmem_pipe_read</span> <span class="o">+</span> <span class="mi">1</span> <span class="o">&lt;</span> <span class="n">k_tile_count</span>
+            <span class="k">else</span> <span class="n">cutlass</span><span class="o">.</span><span class="n">Int32</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+        <span class="p">)</span>
+</pre></div>
+<p>In what follows we copy the remaining tiles from <code>GMEM</code> to <code>SMEM</code>.</p>
+<div class="highlight"><pre><span></span>        <span class="c1"># Start async loads for 1st k-tile onwards, no k-residue handling needed</span>
+        <span class="k">for</span> <span class="n">k_tile</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">k_pipe_max</span> <span class="o">-</span> <span class="mi">1</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">k_tile</span> <span class="o">&lt;</span> <span class="n">k_tile_count</span><span class="p">:</span>
+                <span class="n">cute</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span>
+                    <span class="n">tiled_copy_A</span><span class="p">,</span>
+                    <span class="n">tAgA</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="n">gmem_pipe_read</span><span class="p">],</span>
+                    <span class="n">tAsA</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="n">k_tile</span><span class="p">],</span>
+                    <span class="n">pred</span><span class="o">=</span><span class="n">tApA</span><span class="p">,</span>
+                <span class="p">)</span>
+                <span class="n">cute</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span>
+                    <span class="n">tiled_copy_B</span><span class="p">,</span>
+                    <span class="n">tBgB</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="n">gmem_pipe_read</span><span class="p">],</span>
+                    <span class="n">tBsB</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="n">k_tile</span><span class="p">],</span>
+                    <span class="n">pred</span><span class="o">=</span><span class="n">tBpB</span><span class="p">,</span>
+                <span class="p">)</span>
+
+            <span class="n">gmem_pipe_read</span> <span class="o">=</span> <span class="p">(</span>
+                <span class="n">gmem_pipe_read</span> <span class="o">+</span> <span class="mi">1</span>
+                <span class="k">if</span> <span class="n">gmem_pipe_read</span> <span class="o">+</span> <span class="mi">1</span> <span class="o">&lt;</span> <span class="n">k_tile_count</span>
+                <span class="k">else</span> <span class="n">cutlass</span><span class="o">.</span><span class="n">Int32</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+            <span class="p">)</span>
+            <span class="n">cute</span><span class="o">.</span><span class="n">arch</span><span class="o">.</span><span class="n">cp_async_commit_group</span><span class="p">()</span>
+
+        <span class="c1"># all tiles have been copied from global memory, so clear the</span>
+        <span class="c1"># predicate tensor</span>
+        <span class="k">if</span> <span class="n">k_tile_count</span> <span class="o">&lt;</span> <span class="n">k_pipe_max</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">rest_v</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">tApA</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]):</span>
+                <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">tApA</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]):</span>
+                    <span class="n">tApA</span><span class="p">[</span><span class="n">rest_v</span><span class="p">,</span> <span class="n">m</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">cutlass</span><span class="o">.</span><span class="n">Boolean</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">rest_v</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">tBpB</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]):</span>
+                <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">tBpB</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]):</span>
+                    <span class="n">tBpB</span><span class="p">[</span><span class="n">rest_v</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">cutlass</span><span class="o">.</span><span class="n">Boolean</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+</pre></div>
+<p>We'll define the partitioning for <code>A</code>, <code>B</code> and <code>C</code> needed for the <code>MMA</code> operation. We allocate the fragments for the first stage because the <code>MMA</code> operation expects it arguments to live in <code>RMEM</code>.</p>
+<div class="highlight"><pre><span></span>        <span class="c1"># ///////////////////////////////////////////////////////////////////////////////</span>
+        <span class="c1"># Define A/B partitioning and C accumulators.</span>
+        <span class="c1"># ///////////////////////////////////////////////////////////////////////////////</span>
+        <span class="n">tCsA</span> <span class="o">=</span> <span class="n">thr_mma</span><span class="o">.</span><span class="n">partition_A</span><span class="p">(</span><span class="n">sA</span><span class="p">)</span>
+        <span class="n">tCsB</span> <span class="o">=</span> <span class="n">thr_mma</span><span class="o">.</span><span class="n">partition_B</span><span class="p">(</span><span class="n">sB</span><span class="p">)</span>
+        <span class="n">tCgC</span> <span class="o">=</span> <span class="n">thr_mma</span><span class="o">.</span><span class="n">partition_C</span><span class="p">(</span><span class="n">gC</span><span class="p">)</span>
+        <span class="n">tCrA</span> <span class="o">=</span> <span class="n">tiled_mma</span><span class="o">.</span><span class="n">make_fragment_A</span><span class="p">(</span><span class="n">tCsA</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="mi">0</span><span class="p">])</span>
+        <span class="n">tCrB</span> <span class="o">=</span> <span class="n">tiled_mma</span><span class="o">.</span><span class="n">make_fragment_B</span><span class="p">(</span><span class="n">tCsB</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="mi">0</span><span class="p">])</span>
+        <span class="n">tCrC</span> <span class="o">=</span> <span class="n">tiled_mma</span><span class="o">.</span><span class="n">make_fragment_C</span><span class="p">(</span><span class="n">tCgC</span><span class="p">)</span>
+        <span class="c1"># Clear the accumulator</span>
+        <span class="n">tCrC</span><span class="o">.</span><span class="n">fill</span><span class="p">(</span><span class="mf">0.0</span><span class="p">)</span>
+
+        <span class="c1"># Current pipe index in smem to read from / write to</span>
+        <span class="n">smem_pipe_read</span> <span class="o">=</span> <span class="n">cutlass</span><span class="o">.</span><span class="n">Int32</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+        <span class="n">smem_pipe_write</span> <span class="o">=</span> <span class="n">cutlass</span><span class="o">.</span><span class="n">Int32</span><span class="p">(</span><span class="n">k_pipe_max</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+
+        <span class="n">tCsA_p</span> <span class="o">=</span> <span class="n">tCsA</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="n">smem_pipe_read</span><span class="p">]</span>
+        <span class="n">tCsB_p</span> <span class="o">=</span> <span class="n">tCsB</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="n">smem_pipe_read</span><span class="p">]</span>
+</pre></div>
+<p><code>cp_async_wait_group</code>waits until <code>k_pipe_max - 2</code> copy operations are pending. If this barrier is reached we continue.</p>
+<div class="highlight"><pre><span></span>        <span class="n">k_block_max</span> <span class="o">=</span> <span class="n">cute</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="n">tCrA</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
+
+        <span class="k">if</span> <span class="n">k_block_max</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="c1"># Wait until our first prefetched tile is loaded in</span>
+            <span class="n">cute</span><span class="o">.</span><span class="n">arch</span><span class="o">.</span><span class="n">cp_async_wait_group</span><span class="p">(</span><span class="n">k_pipe_max</span> <span class="o">-</span> <span class="mi">2</span><span class="p">)</span>
+            <span class="n">cute</span><span class="o">.</span><span class="n">arch</span><span class="o">.</span><span class="n">barrier</span><span class="p">()</span>
+            <span class="c1"># Prefetch the first rmem from the first k-tile</span>
+            <span class="n">cute</span><span class="o">.</span><span class="n">autovec_copy</span><span class="p">(</span><span class="n">tCsA_p</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">tCrA</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="mi">0</span><span class="p">])</span>
+            <span class="n">cute</span><span class="o">.</span><span class="n">autovec_copy</span><span class="p">(</span><span class="n">tCsB_p</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">tCrB</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="mi">0</span><span class="p">])</span>
+</pre></div>
+<p>Note that by the docs:</p>
+<div class="highlight"><pre><span></span><span class="nd">@dsl_user_op</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">autovec_copy</span><span class="p">(</span><span class="n">src</span><span class="p">:</span> <span class="n">Tensor</span><span class="p">,</span> <span class="n">dst</span><span class="p">:</span> <span class="n">Tensor</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">loc</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ip</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Auto-vectorizing SIMT copy policy.</span>
+
+<span class="sd">    Given a source and destination tensors that are statically shaped, this policy figures out the</span>
+<span class="sd">    largest safe vector width that the copy instruction can take and performs the copy.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+</pre></div>
+<p>Now comes our main loop.</p>
+<div class="highlight"><pre><span></span>        <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">cutlass</span><span class="o">.</span><span class="n">range_dynamic</span><span class="p">(</span><span class="n">k_tile_count</span><span class="p">,</span> <span class="n">unroll</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">k_block</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">k_block_max</span><span class="p">):</span>
+                <span class="k">if</span> <span class="n">k_block</span> <span class="o">==</span> <span class="n">k_block_max</span> <span class="o">-</span> <span class="mi">1</span><span class="p">:</span>
+                    <span class="n">tCsA_p</span> <span class="o">=</span> <span class="n">tCsA</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="n">smem_pipe_read</span><span class="p">]</span>
+                    <span class="n">tCsB_p</span> <span class="o">=</span> <span class="n">tCsB</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="n">smem_pipe_read</span><span class="p">]</span>
+                    <span class="n">cute</span><span class="o">.</span><span class="n">arch</span><span class="o">.</span><span class="n">cp_async_wait_group</span><span class="p">(</span><span class="n">k_pipe_max</span> <span class="o">-</span> <span class="mi">2</span><span class="p">)</span>
+                    <span class="n">cute</span><span class="o">.</span><span class="n">arch</span><span class="o">.</span><span class="n">barrier</span><span class="p">()</span>
+
+                <span class="c1"># Load A, B from shared memory to registers for k_block + 1</span>
+                <span class="n">k_block_next</span> <span class="o">=</span> <span class="p">(</span><span class="n">k_block</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">%</span> <span class="n">k_block_max</span>  <span class="c1"># static</span>
+                <span class="n">cute</span><span class="o">.</span><span class="n">autovec_copy</span><span class="p">(</span>
+                    <span class="n">tCsA_p</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="n">k_block_next</span><span class="p">],</span>
+                    <span class="n">tCrA</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="n">k_block_next</span><span class="p">],</span>
+                <span class="p">)</span>
+                <span class="n">cute</span><span class="o">.</span><span class="n">autovec_copy</span><span class="p">(</span>
+                    <span class="n">tCsB_p</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="n">k_block_next</span><span class="p">],</span>
+                    <span class="n">tCrB</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="n">k_block_next</span><span class="p">],</span>
+                <span class="p">)</span>
+
+                <span class="c1"># Fetch next A: To better interleave global memory access and</span>
+                <span class="c1"># compute instructions, we intentionally use the sequence:</span>
+                <span class="c1"># copy A, perform GEMM, then copy B.</span>
+                <span class="k">if</span> <span class="n">k_block</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="n">cute</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span>
+                        <span class="n">tiled_copy_A</span><span class="p">,</span>
+                        <span class="n">tAgA</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="n">gmem_pipe_read</span><span class="p">],</span>
+                        <span class="n">tAsA</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="n">smem_pipe_write</span><span class="p">],</span>
+                        <span class="c1"># Use predicates because the m-mode may be irregular</span>
+                        <span class="n">pred</span><span class="o">=</span><span class="n">tApA</span><span class="p">,</span>
+                    <span class="p">)</span>
+
+                <span class="c1"># Thread-level register gemm for k_block</span>
+                <span class="n">cute</span><span class="o">.</span><span class="n">gemm</span><span class="p">(</span>
+                    <span class="n">tiled_mma</span><span class="p">,</span>
+                    <span class="n">tCrC</span><span class="p">,</span>
+                    <span class="n">tCrA</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="n">k_block</span><span class="p">],</span>
+                    <span class="n">tCrB</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="n">k_block</span><span class="p">],</span>
+                    <span class="n">tCrC</span><span class="p">,</span>
+                <span class="p">)</span>
+
+                <span class="c1"># Fetch next B and update smem pipeline read/write</span>
+                <span class="k">if</span> <span class="n">k_block</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="n">cute</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span>
+                        <span class="n">tiled_copy_B</span><span class="p">,</span>
+                        <span class="n">tBgB</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="n">gmem_pipe_read</span><span class="p">],</span>
+                        <span class="n">tBsB</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="n">smem_pipe_write</span><span class="p">],</span>
+                        <span class="c1"># Use predicates because the n-mode may be irregular</span>
+                        <span class="n">pred</span><span class="o">=</span><span class="n">tBpB</span><span class="p">,</span>
+                    <span class="p">)</span>
+                    <span class="n">cute</span><span class="o">.</span><span class="n">arch</span><span class="o">.</span><span class="n">cp_async_commit_group</span><span class="p">()</span>
+                    <span class="n">smem_pipe_write</span> <span class="o">=</span> <span class="n">smem_pipe_read</span>
+                    <span class="n">smem_pipe_read</span> <span class="o">=</span> <span class="n">smem_pipe_read</span> <span class="o">+</span> <span class="mi">1</span>
+                    <span class="k">if</span> <span class="n">smem_pipe_read</span> <span class="o">==</span> <span class="n">k_pipe_max</span><span class="p">:</span>
+                        <span class="n">smem_pipe_read</span> <span class="o">=</span> <span class="n">cutlass</span><span class="o">.</span><span class="n">Int32</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+                    <span class="c1"># After copying all tiles, we avoid clearing the predicate</span>
+                    <span class="c1"># tensor in the `mainloop` to prevent increasing its</span>
+                    <span class="c1"># instruction count. Instead, we continue copying the</span>
+                    <span class="c1"># first tile, though it won&#39;t be used. The 0-th tile is not</span>
+                    <span class="c1"># copied due to its irregular shape, which could lead to</span>
+                    <span class="c1"># illegal memory accesses.</span>
+                    <span class="n">gmem_pipe_read</span> <span class="o">=</span> <span class="p">(</span>
+                        <span class="n">gmem_pipe_read</span> <span class="o">+</span> <span class="mi">1</span>
+                        <span class="k">if</span> <span class="n">gmem_pipe_read</span> <span class="o">+</span> <span class="mi">1</span> <span class="o">&lt;</span> <span class="n">k_tile_count</span>
+                        <span class="k">else</span> <span class="n">cutlass</span><span class="o">.</span><span class="n">Int32</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+                    <span class="p">)</span>
+</pre></div>
+<p>Note that we process all tiles in stages.</p>
+<p>If necessary we prefetch the next tile (i.e. at the end of current stage). We load the</p>
+<div class="highlight"><pre><span></span>                <span class="k">if</span> <span class="n">k_block</span> <span class="o">==</span> <span class="n">k_block_max</span> <span class="o">-</span> <span class="mi">1</span><span class="p">:</span>
+                    <span class="n">tCsA_p</span> <span class="o">=</span> <span class="n">tCsA</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="n">smem_pipe_read</span><span class="p">]</span>
+                    <span class="n">tCsB_p</span> <span class="o">=</span> <span class="n">tCsB</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="n">smem_pipe_read</span><span class="p">]</span>
+                    <span class="n">cute</span><span class="o">.</span><span class="n">arch</span><span class="o">.</span><span class="n">cp_async_wait_group</span><span class="p">(</span><span class="n">k_pipe_max</span> <span class="o">-</span> <span class="mi">2</span><span class="p">)</span>
+                    <span class="n">cute</span><span class="o">.</span><span class="n">arch</span><span class="o">.</span><span class="n">barrier</span><span class="p">()</span>
+
+                <span class="c1"># Load A, B from shared memory to registers for k_block + 1</span>
+                <span class="n">k_block_next</span> <span class="o">=</span> <span class="p">(</span><span class="n">k_block</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">%</span> <span class="n">k_block_max</span>  <span class="c1"># static</span>
+                <span class="n">cute</span><span class="o">.</span><span class="n">autovec_copy</span><span class="p">(</span>
+                    <span class="n">tCsA_p</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="n">k_block_next</span><span class="p">],</span>
+                    <span class="n">tCrA</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="n">k_block_next</span><span class="p">],</span>
+                <span class="p">)</span>
+                <span class="n">cute</span><span class="o">.</span><span class="n">autovec_copy</span><span class="p">(</span>
+                    <span class="n">tCsB_p</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="n">k_block_next</span><span class="p">],</span>
+                    <span class="n">tCrB</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="n">k_block_next</span><span class="p">],</span>
+                <span class="p">)</span>
+</pre></div>
+<p>Here we perform a <code>copy</code> from <code>GMEM</code> to <code>SMEM</code> under predication. Remember that the last mode of <code>tAgA</code> corresponds to the current Tile and the last mode of <code>tAsA</code> corresponds to the current stage.</p>
+<div class="highlight"><pre><span></span>                <span class="k">if</span> <span class="n">k_block</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="n">cute</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span>
+                        <span class="n">tiled_copy_A</span><span class="p">,</span>
+                        <span class="n">tAgA</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="n">gmem_pipe_read</span><span class="p">],</span>
+                        <span class="n">tAsA</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="n">smem_pipe_write</span><span class="p">],</span>
+                        <span class="c1"># Use predicates because the m-mode may be irregular</span>
+                        <span class="n">pred</span><span class="o">=</span><span class="n">tApA</span><span class="p">,</span>
+                    <span class="p">)</span>
+</pre></div>
+<p>The <code>gemm</code> we want to compute is computed blockwise and accumulated into the dedicated register <code>tCrC</code>.</p>
+<div class="highlight"><pre><span></span>                <span class="c1"># Thread-level register gemm for k_block</span>
+                <span class="n">cute</span><span class="o">.</span><span class="n">gemm</span><span class="p">(</span>
+                    <span class="n">tiled_mma</span><span class="p">,</span>
+                    <span class="n">tCrC</span><span class="p">,</span>
+                    <span class="n">tCrA</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="n">k_block</span><span class="p">],</span>
+                    <span class="n">tCrB</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="n">k_block</span><span class="p">],</span>
+                    <span class="n">tCrC</span><span class="p">,</span>
+                <span class="p">)</span>
+</pre></div>
+<p>We fetch next <code>B</code>. We than update the <code>smem_pipe_read</code> and <code>gmem_pipe_read</code> parameters.</p>
+<div class="highlight"><pre><span></span>                <span class="c1"># Fetch next B and update smem pipeline read/write</span>
+                <span class="k">if</span> <span class="n">k_block</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="n">cute</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span>
+                        <span class="n">tiled_copy_B</span><span class="p">,</span>
+                        <span class="n">tBgB</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="n">gmem_pipe_read</span><span class="p">],</span>
+                        <span class="n">tBsB</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="n">smem_pipe_write</span><span class="p">],</span>
+                        <span class="c1"># Use predicates because the n-mode may be irregular</span>
+                        <span class="n">pred</span><span class="o">=</span><span class="n">tBpB</span><span class="p">,</span>
+                    <span class="p">)</span>
+                    <span class="n">cute</span><span class="o">.</span><span class="n">arch</span><span class="o">.</span><span class="n">cp_async_commit_group</span><span class="p">()</span>
+                    <span class="n">smem_pipe_write</span> <span class="o">=</span> <span class="n">smem_pipe_read</span>
+                    <span class="n">smem_pipe_read</span> <span class="o">=</span> <span class="n">smem_pipe_read</span> <span class="o">+</span> <span class="mi">1</span>
+                    <span class="k">if</span> <span class="n">smem_pipe_read</span> <span class="o">==</span> <span class="n">k_pipe_max</span><span class="p">:</span>
+                        <span class="n">smem_pipe_read</span> <span class="o">=</span> <span class="n">cutlass</span><span class="o">.</span><span class="n">Int32</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+                    <span class="c1"># After copying all tiles, we avoid clearing the predicate</span>
+                    <span class="c1"># tensor in the `mainloop` to prevent increasing its</span>
+                    <span class="c1"># instruction count. Instead, we continue copying the</span>
+                    <span class="c1"># first tile, though it won&#39;t be used. The 0-th tile is not</span>
+                    <span class="c1"># copied due to its irregular shape, which could lead to</span>
+                    <span class="c1"># illegal memory accesses.</span>
+                    <span class="n">gmem_pipe_read</span> <span class="o">=</span> <span class="p">(</span>
+                        <span class="n">gmem_pipe_read</span> <span class="o">+</span> <span class="mi">1</span>
+                        <span class="k">if</span> <span class="n">gmem_pipe_read</span> <span class="o">+</span> <span class="mi">1</span> <span class="o">&lt;</span> <span class="n">k_tile_count</span>
+                        <span class="k">else</span> <span class="n">cutlass</span><span class="o">.</span><span class="n">Int32</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+                    <span class="p">)</span>
+</pre></div>
+<p>We make sure nothing is pending and than store the result to <code>tCrC</code>. We copy from <code>GMEM</code> to <code>RMEM</code> under predication.</p>
+<div class="highlight"><pre><span></span>        <span class="n">cute</span><span class="o">.</span><span class="n">arch</span><span class="o">.</span><span class="n">cp_async_wait_group</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+        <span class="n">cute</span><span class="o">.</span><span class="n">arch</span><span class="o">.</span><span class="n">barrier</span><span class="p">()</span>
+        <span class="n">tCrC</span><span class="o">.</span><span class="n">store</span><span class="p">(</span><span class="n">epilogue_op</span><span class="p">(</span><span class="n">tCrC</span><span class="o">.</span><span class="n">load</span><span class="p">()))</span>
+
+        <span class="c1"># predicate</span>
+        <span class="n">cC</span> <span class="o">=</span> <span class="n">cute</span><span class="o">.</span><span class="n">make_identity_tensor</span><span class="p">(</span><span class="n">gC</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+        <span class="n">tCpC</span> <span class="o">=</span> <span class="n">thr_mma</span><span class="o">.</span><span class="n">partition_C</span><span class="p">(</span><span class="n">cC</span><span class="p">)</span>
+        <span class="n">predC</span> <span class="o">=</span> <span class="n">cute</span><span class="o">.</span><span class="n">make_fragment</span><span class="p">(</span><span class="n">tCrC</span><span class="o">.</span><span class="n">layout</span><span class="p">,</span> <span class="n">cutlass</span><span class="o">.</span><span class="n">Boolean</span><span class="p">)</span>
+        <span class="n">residue_m</span> <span class="o">=</span> <span class="n">mC</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">cutlass</span><span class="o">.</span><span class="n">Int32</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_bM</span><span class="p">)</span> <span class="o">*</span> <span class="n">bidx</span>
+        <span class="n">residue_n</span> <span class="o">=</span> <span class="n">mC</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">cutlass</span><span class="o">.</span><span class="n">Int32</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_bN</span><span class="p">)</span> <span class="o">*</span> <span class="n">bidy</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">cute</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="n">tCrC</span><span class="o">.</span><span class="n">shape</span><span class="p">)):</span>
+            <span class="n">predC</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">cute</span><span class="o">.</span><span class="n">elem_less</span><span class="p">(</span><span class="n">tCpC</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="p">(</span><span class="n">residue_m</span><span class="p">,</span> <span class="n">residue_n</span><span class="p">))</span>
+        <span class="n">numIterM</span> <span class="o">=</span> <span class="n">cute</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="n">tCrC</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+        <span class="n">numIterN</span> <span class="o">=</span> <span class="n">cute</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="n">tCrC</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
+        <span class="n">atom</span> <span class="o">=</span> <span class="n">cute</span><span class="o">.</span><span class="n">make_copy_atom</span><span class="p">(</span><span class="n">cute</span><span class="o">.</span><span class="n">nvgpu</span><span class="o">.</span><span class="n">CopyUniversalOp</span><span class="p">(),</span> <span class="n">mC</span><span class="o">.</span><span class="n">element_type</span><span class="p">)</span>
+        <span class="n">cute</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">atom</span><span class="p">,</span> <span class="n">tCrC</span><span class="p">,</span> <span class="n">tCgC</span><span class="p">,</span> <span class="n">pred</span><span class="o">=</span><span class="n">predC</span><span class="p">)</span>
+        <span class="k">return</span>
+</pre></div>
+<h2 id=conclusion>Conclusion</h2><p><code>CuTeDSL</code> is very performant but not easy to understand. I hope this blogpost could shed some light on the <code>SGemm</code> example. Potentially this equips us to understand and design more difficult kernels in the future.</p>
+
+
+    
+
+    
+        
+
+        
+            <form id="upvote-form" action="/upvote/" method="post" style="display: inline">
+    <small>
+        <input hidden name="uid" value="nGDQKieLitzezNUpMtDu" style="display:none">
+        <input hidden name="title" value="SGEMM in CuTeDSL" style="display:none">
+
+        <button
+            class="upvote-button"
+            aria-label="Toast this post"
+            title="Toast this post"
+        >
+            <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" class="css-i6dzq1">
+                <polyline points="17 11 12 6 7 11"></polyline>
+                <polyline points="17 18 12 13 7 18"></polyline>
+            </svg>
+            <small class="upvote-count" aria-hidden="true">&nbsp;</small>
+        </button>
+    </small>        
+</form>
+
+<script>
+    const $upvoteButton = document.querySelector('.upvote-button');
+    const $upvoteCount =  document.querySelector('.upvote-count')
+
+    fetch('/upvote-info/nGDQKieLitzezNUpMtDu/').then(response => response.json()).then(data => {
+        $upvoteCount.innerText = data.upvote_count;
+        if (data.upvoted) {
+            $upvoteButton.disabled = true
+            $upvoteButton.style.color = "salmon"
+            $upvoteButton.ariaLabel = "Toasted"
+            $upvoteButton.title = "Toasted"
+        }
+        $upvoteButton.ariaLabel += ` (${data.upvote_count})`
+    });
+
+    let moved = false;
+    let pageLoaded = Date.now();
+
+    document.addEventListener('touchmove', () => moved = true);
+    document.addEventListener('mousemove', () => moved = true);
+
+    document.querySelector('#upvote-form').addEventListener('submit', (e) => {
+        e.preventDefault();
+
+        if (moved) {
+            document.querySelector('input[name="title"]').value = "";
+        }
+        if (Date.now() - pageLoaded < 2000 || !moved) {
+            return;
+        }
+
+        fetch(e.target.action, {
+            method: 'post',
+            body: new FormData(e.target),
+        });
+        
+        $upvoteButton.disabled = true
+        $upvoteButton.style.color = "salmon"
+        $upvoteButton.ariaLabel = "Toasted"
+        $upvoteButton.title = "Toasted"
+        const newUpvoteCount = `${(parseInt($upvoteCount.innerHTML.split(" ")[0]) + 1)}`
+        $upvoteCount.innerHTML = newUpvoteCount
+        $upvoteButton.ariaLabel += ` (${newUpvoteCount})`
+    });
+</script>
+        
+
+        
+            <script>
+            window.addEventListener("load", () => {
+                if (navigator.webdriver !== true) {
+                    const sendHit = score => {
+                        const params = new URLSearchParams({
+                            blog: "veitner",
+                            token: "nGDQKieLitzezNUpMtDu",
+                            referrer: document.referrer.includes("veitner.bearblog.dev") ? "" : document.referrer,
+                            title: "",
+                            score: score
+                        });
+                        new Image().src = `/hit/?${params.toString()}`;
+                    };
+
+                    document.addEventListener('touchmove', () => sendHit(100), { once: true });
+                    document.addEventListener('mousemove', () => sendHit(100), { once: true });
+                }
+            });
+            </script>
+        
+    
+
+
+  </main>
+  <footer>
+    
+    
+    <span>
+        Powered by <a href="https://bearblog.dev">Bear <span role="img" class="bear" aria-label="ASCII bear logo">ʕ•ᴥ•ʔ</span></a>
+    </span>
+
+  </footer>
+
+  
+  <script>
+        (() => {
+          "use strict";
+          const times = document.querySelectorAll('time');
+          const format_string = "d M, Y" || "d M, Y"
+
+          times.forEach(time => {
+              time.innerText = formatDate(time.dateTime, format_string)
+          });
+
+          function formatDate(dateStr, formatStr) {
+            const date = new Date(dateStr);
+            const day = date.getDate();
+            const month = date.getMonth();
+            const year = date.getFullYear();
+            const weekday = date.getDay();
+            const hours = date.getHours();
+            const minutes = date.getMinutes();
+            const monthsFull = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+            const monthsShort = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+            const daysFull = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+            const daysShort = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+            
+            function getOrdinal(n) {
+                const s = ['th', 'st', 'nd', 'rd'];
+                const v = n % 100;
+                return s[(v - 20) % 10] || s[v] || s[0];
+            }
+            
+            const map = {
+                'd': () => day.toString().padStart(2, '0'),
+                'm': () => (month + 1).toString().padStart(2, '0'),
+                'Y': () => year.toString(),
+                'y': () => year.toString().slice(-2),
+                'F': () => monthsFull[month],
+                'j': () => day.toString(),
+                'D': () => daysShort[weekday],
+                'l': () => daysFull[weekday],
+                'S': () => getOrdinal(day),
+                'M': () => monthsShort[month],
+                'H': () => hours.toString().padStart(2, '0'),
+                'h': () => {
+                    let h = hours % 12;
+                    h = h === 0 ? 12 : h;
+                    return h.toString().padStart(2, '0');
+                },
+                'g': () => {
+                    let h = hours % 12;
+                    return h === 0 ? '12' : h.toString();
+                },
+                'i': () => minutes.toString().padStart(2, '0'),
+                'a': () => hours < 12 ? 'am' : 'pm',
+                'A': () => hours < 12 ? 'AM' : 'PM',
+            };
+            
+            let result = '';
+            for (let char of formatStr) {
+                result += map[char] ? map[char]() : char;
+            }
+            return result;
+        }
+        })();
+    </script>
+    
+</body>
+<!-- ID: veitner -->
+<!-- 🐻 -->
+</html>

@@ -1,0 +1,665 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!-- Powered by Bear Blog -->
+
+<head>
+  
+  
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5">
+  
+  <title>Scale Tensor construction in CuTeDSL | simons blog</title>
+  <link rel="canonical" href="https://veitner.bearblog.dev/scale-tensor-construction-in-cutedsl/">
+  
+    
+
+    <meta name="veitner" content="look-for-the-bear-necessities">
+    <meta name="token" content="BHLEytmAGIAaFVtHjUKW">
+
+    
+<!-- Primary Meta Tags -->
+<meta name="title" content="Scale Tensor construction in CuTeDSL">
+<meta name="description" content="In Blackwell kernels for NVFP4 we need to associate the 8bit scale tensors with the correct layout. In this blogpost I give a brief analysis of the mathemati...">
+
+<!-- Open Graph / Facebook -->
+<meta property="og:site_name" content="simons blog">
+<meta property="og:title" content="Scale Tensor construction in CuTeDSL">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://veitner.bearblog.dev/scale-tensor-construction-in-cutedsl/">
+<meta property="og:description" content="In Blackwell kernels for NVFP4 we need to associate the 8bit scale tensors with the correct layout. In this blogpost I give a brief analysis of the mathemati...">
+<meta property="og:image" content="/static/og-image.png">
+
+
+<!-- Twitter -->
+<meta property="twitter:card" content="summary">
+<meta property="twitter:url" content="https://veitner.bearblog.dev/scale-tensor-construction-in-cutedsl/">
+<meta property="twitter:title" content="Scale Tensor construction in CuTeDSL">
+<meta property="twitter:description" content="In Blackwell kernels for NVFP4 we need to associate the 8bit scale tensors with the correct layout. In this blogpost I give a brief analysis of the mathemati...">
+<meta property="twitter:image" content="/static/og-image.png">
+
+
+
+<!-- Microdata -->
+<script type="application/ld+json">
+  {
+    "@context": "http://schema.org",
+    "@type": "article",
+    "name": "Scale Tensor construction in CuTeDSL",
+    "headline": "Scale Tensor construction in CuTeDSL",
+    "url": "https://veitner.bearblog.dev/scale-tensor-construction-in-cutedsl/",
+    "description": "In Blackwell kernels for NVFP4 we need to associate the 8bit scale tensors with the correct layout. In this blogpost I give a brief analysis of the mathemati...",
+    "image": "/static/og-image.png"
+  }
+</script>
+    <link rel="alternate" type="application/atom+xml" href="/feed/" title="simons blog">
+    <link rel="alternate" type="application/rss+xml" href="/feed/?type=rss" title="simons blog">
+
+  
+    
+
+    
+    <style>pre { line-height: 125%; }
+td.linenos .normal { color: #666666; background-color: transparent; padding-left: 5px; padding-right: 5px; }
+span.linenos { color: #666666; background-color: transparent; padding-left: 5px; padding-right: 5px; }
+td.linenos .special { color: #000000; background-color: #ffffc0; padding-left: 5px; padding-right: 5px; }
+span.linenos.special { color: #000000; background-color: #ffffc0; padding-left: 5px; padding-right: 5px; }
+.highlight .hll { background-color: #ffffcc }
+.highlight { background: #f0f0f0; }
+.highlight .c { color: #60A0B0; font-style: italic } /* Comment */
+.highlight .err { border: 1px solid #F00 } /* Error */
+.highlight .k { color: #007020; font-weight: bold } /* Keyword */
+.highlight .o { color: #666 } /* Operator */
+.highlight .ch { color: #60A0B0; font-style: italic } /* Comment.Hashbang */
+.highlight .cm { color: #60A0B0; font-style: italic } /* Comment.Multiline */
+.highlight .cp { color: #007020 } /* Comment.Preproc */
+.highlight .cpf { color: #60A0B0; font-style: italic } /* Comment.PreprocFile */
+.highlight .c1 { color: #60A0B0; font-style: italic } /* Comment.Single */
+.highlight .cs { color: #60A0B0; background-color: #FFF0F0 } /* Comment.Special */
+.highlight .gd { color: #A00000 } /* Generic.Deleted */
+.highlight .ge { font-style: italic } /* Generic.Emph */
+.highlight .ges { font-weight: bold; font-style: italic } /* Generic.EmphStrong */
+.highlight .gr { color: #F00 } /* Generic.Error */
+.highlight .gh { color: #000080; font-weight: bold } /* Generic.Heading */
+.highlight .gi { color: #00A000 } /* Generic.Inserted */
+.highlight .go { color: #888 } /* Generic.Output */
+.highlight .gp { color: #C65D09; font-weight: bold } /* Generic.Prompt */
+.highlight .gs { font-weight: bold } /* Generic.Strong */
+.highlight .gu { color: #800080; font-weight: bold } /* Generic.Subheading */
+.highlight .gt { color: #04D } /* Generic.Traceback */
+.highlight .kc { color: #007020; font-weight: bold } /* Keyword.Constant */
+.highlight .kd { color: #007020; font-weight: bold } /* Keyword.Declaration */
+.highlight .kn { color: #007020; font-weight: bold } /* Keyword.Namespace */
+.highlight .kp { color: #007020 } /* Keyword.Pseudo */
+.highlight .kr { color: #007020; font-weight: bold } /* Keyword.Reserved */
+.highlight .kt { color: #902000 } /* Keyword.Type */
+.highlight .m { color: #40A070 } /* Literal.Number */
+.highlight .s { color: #4070A0 } /* Literal.String */
+.highlight .na { color: #4070A0 } /* Name.Attribute */
+.highlight .nb { color: #007020 } /* Name.Builtin */
+.highlight .nc { color: #0E84B5; font-weight: bold } /* Name.Class */
+.highlight .no { color: #60ADD5 } /* Name.Constant */
+.highlight .nd { color: #555; font-weight: bold } /* Name.Decorator */
+.highlight .ni { color: #D55537; font-weight: bold } /* Name.Entity */
+.highlight .ne { color: #007020 } /* Name.Exception */
+.highlight .nf { color: #06287E } /* Name.Function */
+.highlight .nl { color: #002070; font-weight: bold } /* Name.Label */
+.highlight .nn { color: #0E84B5; font-weight: bold } /* Name.Namespace */
+.highlight .nt { color: #062873; font-weight: bold } /* Name.Tag */
+.highlight .nv { color: #BB60D5 } /* Name.Variable */
+.highlight .ow { color: #007020; font-weight: bold } /* Operator.Word */
+.highlight .w { color: #BBB } /* Text.Whitespace */
+.highlight .mb { color: #40A070 } /* Literal.Number.Bin */
+.highlight .mf { color: #40A070 } /* Literal.Number.Float */
+.highlight .mh { color: #40A070 } /* Literal.Number.Hex */
+.highlight .mi { color: #40A070 } /* Literal.Number.Integer */
+.highlight .mo { color: #40A070 } /* Literal.Number.Oct */
+.highlight .sa { color: #4070A0 } /* Literal.String.Affix */
+.highlight .sb { color: #4070A0 } /* Literal.String.Backtick */
+.highlight .sc { color: #4070A0 } /* Literal.String.Char */
+.highlight .dl { color: #4070A0 } /* Literal.String.Delimiter */
+.highlight .sd { color: #4070A0; font-style: italic } /* Literal.String.Doc */
+.highlight .s2 { color: #4070A0 } /* Literal.String.Double */
+.highlight .se { color: #4070A0; font-weight: bold } /* Literal.String.Escape */
+.highlight .sh { color: #4070A0 } /* Literal.String.Heredoc */
+.highlight .si { color: #70A0D0; font-style: italic } /* Literal.String.Interpol */
+.highlight .sx { color: #C65D09 } /* Literal.String.Other */
+.highlight .sr { color: #235388 } /* Literal.String.Regex */
+.highlight .s1 { color: #4070A0 } /* Literal.String.Single */
+.highlight .ss { color: #517918 } /* Literal.String.Symbol */
+.highlight .bp { color: #007020 } /* Name.Builtin.Pseudo */
+.highlight .fm { color: #06287E } /* Name.Function.Magic */
+.highlight .vc { color: #BB60D5 } /* Name.Variable.Class */
+.highlight .vg { color: #BB60D5 } /* Name.Variable.Global */
+.highlight .vi { color: #BB60D5 } /* Name.Variable.Instance */
+.highlight .vm { color: #BB60D5 } /* Name.Variable.Magic */
+.highlight .il { color: #40A070 } /* Literal.Number.Integer.Long */
+</style>
+  
+  
+  
+    
+        <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20100%20100'%3E%3Ctext%20y='.9em'%20font-size='90'%3E🐼%3C/text%3E%3C/svg%3E">
+    
+
+
+
+  <style>
+      
+      
+    
+:root {
+    --width: 720px;
+    --font-main: Verdana, sans-serif;
+    --font-secondary: Verdana, sans-serif;
+    --font-scale: 1em;
+    --background-color: #fff;
+    --heading-color: #222;
+    --text-color: #444;
+    --link-color: #3273dc;
+    --visited-color:  #8b6fcb;
+    --code-background-color: #f2f2f2;
+    --code-color: #222;
+    --blockquote-color: #222;
+}
+
+@media (prefers-color-scheme: dark) {
+    :root {
+        --background-color: #01242e;
+        --heading-color: #eee;
+        --text-color: #ddd;
+        --link-color: #8cc2dd;
+        --visited-color:  #8b6fcb;
+        --code-background-color: #000;
+        --code-color: #ddd;
+        --blockquote-color: #ccc;
+    }
+}
+
+body {
+    font-family: var(--font-secondary);
+    font-size: var(--font-scale);
+    margin: auto;
+    padding: 20px;
+    max-width: var(--width);
+    text-align: left;
+    background-color: var(--background-color);
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    line-height: 1.5;
+    color: var(--text-color);
+}
+
+h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-main);
+    color: var(--heading-color);
+}
+
+a {
+    color: var(--link-color);
+    cursor: pointer;
+    text-decoration: none;
+}
+
+a:hover {
+    text-decoration: underline; 
+}
+
+nav a {
+    margin-right: 8px;
+}
+
+strong, b {
+    color: var(--heading-color);
+}
+
+button {
+    margin: 0;
+    cursor: pointer;
+}
+
+time {
+ 	font-family: monospace;
+  	font-style: normal;
+  	font-size: 15px;
+}
+
+main {
+    line-height: 1.6;
+}
+
+table {
+    width: 100%;
+}
+
+hr {
+    border: 0;
+    border-top: 1px dashed;
+}
+
+img {
+    max-width: 100%;
+}
+
+code {
+    font-family: monospace;
+    padding: 2px;
+    background-color: var(--code-background-color);
+    color: var(--code-color);
+    border-radius: 3px;
+}
+
+blockquote {
+    border-left: 1px solid #999;
+    color: var(--code-color);
+    padding-left: 20px;
+    font-style: italic;
+}
+
+footer {
+    padding: 25px 0;
+    text-align: center;
+}
+
+.title:hover {
+    text-decoration: none;
+}
+
+.title h1 {
+    font-size: 1.5em;
+}
+
+.inline {
+    width: auto !important;
+}
+
+.highlight, .code {
+    padding: 1px 15px;
+    background-color: var(--code-background-color);
+    color: var(--code-color);
+    border-radius: 3px;
+    margin-block-start: 1em;
+    margin-block-end: 1em;
+    overflow-x: auto;
+}
+
+/* blog post list */
+ul.blog-posts {
+    list-style-type: none;
+    padding: unset;
+}
+
+ul.blog-posts li {
+    display: flex;
+}
+
+ul.blog-posts li span {
+    flex: 0 0 130px;
+}
+
+ul.blog-posts li a:visited {
+    color: var(--visited-color);
+}
+    .upvote-button {
+        padding: 0;
+        margin: 0;
+        border: 0;
+        background-color: inherit;
+        color: inherit;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+    .upvote-button.upvoted {
+        color: salmon;
+    }
+    .upvote-count {
+        margin-top: -3px;
+    }
+
+      
+  </style>
+</head>
+
+<body class="post " onload="(function() { document.cookie = `timezone=${Intl.DateTimeFormat().resolvedOptions().timeZone};path=/`; })()">
+  
+  <header>
+    <a class="title" href="/">
+      <h1>
+        simons blog
+      </h1>
+    </a>
+    <nav>
+      <p><a href='/'>Home</a> <a href='/blog/'>Blog</a></p>
+
+    </nav>
+  </header>
+  <main>
+    
+
+    
+
+    
+        <h1>Scale Tensor construction in CuTeDSL</h1>
+
+        <p>
+            <i>
+                <time datetime="2025-12-03T18:00Z">
+    03 Dec, 2025
+</time>
+            </i>
+        </p>
+    
+
+    <p>In Blackwell kernels for NVFP4 we need to associate the 8bit scale tensors with the correct layout. In this blogpost I give a brief analysis of the mathematical interpretation of these scale factors in an easy to follow way. An interesting side fact that I noticed when analyzing the construction was the similarity to Swizzling where we obtain a larger Layout by covering it with small Swizzle atoms. This shows the generality of the CuTe Layout algebra!</p>
+<h2 id=the-code>The code</h2><p>The signature of the <a href='https://github.com/NVIDIA/cutlass/blob/main/examples/python/CuTeDSL/blackwell/dense_blockscaled_gemm_persistent.py'>blockscaled GEMM kernel</a> looks as follows:</p>
+<div class="highlight"><pre><span></span>    <span class="nd">@cute</span><span class="o">.</span><span class="n">jit</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__call__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">a_tensor</span><span class="p">:</span> <span class="n">cute</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span>
+        <span class="n">b_tensor</span><span class="p">:</span> <span class="n">cute</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span>
+        <span class="n">sfa_tensor</span><span class="p">:</span> <span class="n">cute</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span>
+        <span class="n">sfb_tensor</span><span class="p">:</span> <span class="n">cute</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span>
+        <span class="n">c_tensor</span><span class="p">:</span> <span class="n">cute</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span>
+        <span class="n">max_active_clusters</span><span class="p">:</span> <span class="n">cutlass</span><span class="o">.</span><span class="n">Constexpr</span><span class="p">,</span>
+        <span class="n">stream</span><span class="p">:</span> <span class="n">cuda</span><span class="o">.</span><span class="n">CUstream</span><span class="p">,</span>
+        <span class="n">epilogue_op</span><span class="p">:</span> <span class="n">cutlass</span><span class="o">.</span><span class="n">Constexpr</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="p">,</span>
+    <span class="p">):</span>
+</pre></div>
+<p>Block scaled layout needs some extra attention to be brought into right format:</p>
+<div class="highlight"><pre><span></span><span class="n">sfa_layout</span> <span class="o">=</span> <span class="n">blockscaled_utils</span><span class="o">.</span><span class="n">tile_atom_to_shape_SF</span><span class="p">(</span>
+	<span class="n">a_tensor</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">sf_vec_size</span>
+<span class="p">)</span>
+<span class="n">sfa_tensor</span> <span class="o">=</span> <span class="n">cute</span><span class="o">.</span><span class="n">make_tensor</span><span class="p">(</span><span class="n">sfa_tensor</span><span class="o">.</span><span class="n">iterator</span><span class="p">,</span> <span class="n">sfa_layout</span><span class="p">)</span>
+
+<span class="c1"># ((Atom_N, Rest_N),(Atom_K, Rest_K),RestL)</span>
+<span class="n">sfb_layout</span> <span class="o">=</span> <span class="n">blockscaled_utils</span><span class="o">.</span><span class="n">tile_atom_to_shape_SF</span><span class="p">(</span>
+	<span class="n">b_tensor</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">sf_vec_size</span>
+<span class="p">)</span>
+<span class="n">sfb_tensor</span> <span class="o">=</span> <span class="n">cute</span><span class="o">.</span><span class="n">make_tensor</span><span class="p">(</span><span class="n">sfb_tensor</span><span class="o">.</span><span class="n">iterator</span><span class="p">,</span> <span class="n">sfb_layout</span><span class="p">)</span>
+</pre></div>
+<p>Let us understand what happens here:</p>
+<div class="highlight"><pre><span></span><span class="nd">@dsl_user_op</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">tile_atom_to_shape_SF</span><span class="p">(</span>
+    <span class="n">Shape</span><span class="p">:</span> <span class="n">cute</span><span class="o">.</span><span class="n">Shape</span><span class="p">,</span>
+    <span class="n">sf_vec_size</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">loc</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">ip</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">cute</span><span class="o">.</span><span class="n">Layout</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    A helper function to get dynamic SFA/SFB layout by filling dynamic A/B shape to the scale factor atom layout.</span>
+
+<span class="sd">    :param Shape: The shape of the A/B tensor</span>
+<span class="sd">    :param sf_vec_size: Scale factor vector size</span>
+
+<span class="sd">    :return: The layout of the SFA/SFB tensor</span>
+<span class="sd">    :rtype: cute.Layout</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># ((Atom_MN, Rest_MN),(Atom_K, Rest_K),RestL)</span>
+    <span class="n">sf_layout</span> <span class="o">=</span> <span class="n">cute</span><span class="o">.</span><span class="n">tile_to_shape</span><span class="p">(</span>
+        <span class="n">BlockScaledBasicChunk</span><span class="p">(</span><span class="n">sf_vec_size</span><span class="p">)</span><span class="o">.</span><span class="n">layout</span><span class="p">,</span> <span class="n">Shape</span><span class="p">,</span> <span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
+    <span class="p">)</span>
+    <span class="k">return</span> <span class="n">sf_layout</span>
+</pre></div>
+<p>Where the <code>BlockScaledBasicChunk</code> is:</p>
+<div class="highlight"><pre><span></span><span class="nd">@dataclass</span><span class="p">(</span><span class="n">frozen</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">BlockScaledBasicChunk</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    The basic scale factor atom layout decided by tcgen05 BlockScaled MMA Ops.</span>
+
+<span class="sd">    This class represents the fixed layout pattern for scale factors used in</span>
+<span class="sd">    tcgen05 BlockScaled MMA Ops. The layout is determined by the</span>
+<span class="sd">    instruction specification and cannot be modified.</span>
+<span class="sd">    See `PTX documentation &lt;https://docs.nvidia.com/cuda/parallel-thread-execution/#tcgen05-mma-scale-factor-a-layout-1x&gt;`.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">sf_vec_size</span><span class="p">:</span> <span class="nb">int</span>
+    <span class="n">major_mode</span><span class="p">:</span> <span class="n">OperandMajorMode</span> <span class="o">=</span> <span class="n">OperandMajorMode</span><span class="o">.</span><span class="n">K</span>
+    <span class="n">_layout</span><span class="p">:</span> <span class="n">cute</span><span class="o">.</span><span class="n">Layout</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">init</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="nb">repr</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">__post_init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">major_mode</span> <span class="o">==</span> <span class="n">OperandMajorMode</span><span class="o">.</span><span class="n">K</span><span class="p">:</span>
+            <span class="c1"># K-major layout: (AtomMN, AtomK)</span>
+            <span class="n">atom_shape</span> <span class="o">=</span> <span class="p">((</span><span class="mi">32</span><span class="p">,</span> <span class="mi">4</span><span class="p">),</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">sf_vec_size</span><span class="p">,</span> <span class="mi">4</span><span class="p">))</span>
+            <span class="n">atom_stride</span> <span class="o">=</span> <span class="p">((</span><span class="mi">16</span><span class="p">,</span> <span class="mi">4</span><span class="p">),</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># MN-major layout: (AtomK, AtomMN)</span>
+            <span class="n">atom_shape</span> <span class="o">=</span> <span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">sf_vec_size</span><span class="p">,</span> <span class="mi">4</span><span class="p">),</span> <span class="p">(</span><span class="mi">32</span><span class="p">,</span> <span class="mi">4</span><span class="p">))</span>
+            <span class="n">atom_stride</span> <span class="o">=</span> <span class="p">((</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="mi">16</span><span class="p">,</span> <span class="mi">4</span><span class="p">))</span>
+
+        <span class="nb">object</span><span class="o">.</span><span class="fm">__setattr__</span><span class="p">(</span>
+            <span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;_layout&quot;</span><span class="p">,</span> <span class="n">cute</span><span class="o">.</span><span class="n">make_layout</span><span class="p">(</span><span class="n">atom_shape</span><span class="p">,</span> <span class="n">stride</span><span class="o">=</span><span class="n">atom_stride</span><span class="p">)</span>
+        <span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">layout</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">cute</span><span class="o">.</span><span class="n">Layout</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get the layout for this block scaled chunk.</span>
+
+<span class="sd">        :return: The layout representing the scale factor atom</span>
+<span class="sd">        :rtype: cute.Layout</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_layout</span>
+</pre></div>
+<h2 id=the-math>The math</h2><p>For example for <code>NVFP4</code> we will have <code>sf_vec_size = 16</code> and we will always have <code>K-Major</code> Layout. This will result in Layout</p>
+<p><math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mo stretchy="false">&#x00028;</mo><mo stretchy="false">&#x00028;</mo><mn>32</mn><mo>&#x0002C;</mo><mn>4</mn><mo stretchy="false">&#x00029;</mo><mo>&#x0002C;</mo><mo stretchy="false">&#x00028;</mo><mn>16</mn><mo>&#x0002C;</mo><mn>4</mn><mo stretchy="false">&#x00029;</mo><mo stretchy="false">&#x00029;</mo><mi>:</mi><mo stretchy="false">&#x00028;</mo><mo stretchy="false">&#x00028;</mo><mn>16</mn><mo>&#x0002C;</mo><mn>4</mn><mo stretchy="false">&#x00029;</mo><mo>&#x0002C;</mo><mo stretchy="false">&#x00028;</mo><mn>0</mn><mo>&#x0002C;</mo><mn>1</mn><mo stretchy="false">&#x00029;</mo><mo stretchy="false">&#x00029;</mo></mrow></math> for the Atom.</p>
+<p>We can interpret this Atom as follows:</p>
+<ul>
+<li>Take a fixed row. For this row we will have the Layout <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mo stretchy="false">&#x00028;</mo><mn>16</mn><mo>&#x0002C;</mo><mn>4</mn><mo stretchy="false">&#x00029;</mo><mi>:</mi><mo stretchy="false">&#x00028;</mo><mn>0</mn><mo>&#x0002C;</mo><mn>1</mn><mo stretchy="false">&#x00029;</mo></mrow></math>. We have <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mn>16</mn></mrow></math> times the same value, than increase by <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mn>1</mn></mrow></math> and have another value. So we have 4 unique values per row.</li>
+<li>The stride for the first mode is <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mo stretchy="false">&#x00028;</mo><mn>16</mn><mo>&#x0002C;</mo><mn>4</mn><mo stretchy="false">&#x00029;</mo></mrow></math> which is equal to the shape for the second mode. We therefore move in a K-Major fashion through the matrix.</li>
+</ul>
+<p>To summarize we have 4 unique scaling vectors per row in the atom and the elements are layed out such that we have the scaling vectors for the first row consecutive, than for the second row etc.</p>
+<p>If you like visuals you could draw the matrix in this way</p>
+<p><img src="https://bear-images.sfo2.cdn.digitaloceanspaces.com/veitner/pasted-image-20251203183004-3.webp" alt="Pasted image 20251203183004" /></p>
+<p>and continue the pattern until you reach <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mn>32</mn><mo>&#x0002A;</mo><mn>4</mn><mo>&#x0002A;</mo><mn>16</mn><mo>&#x0002A;</mo><mn>4</mn><mo>&#x02212;</mo><mn>1</mn><mo>&#x0003D;</mo><mn>8191</mn></mrow></math>.</p>
+<p>We'll than use</p>
+<div class="highlight"><pre><span></span><span class="c1"># ((Atom_MN, Rest_MN),(Atom_K, Rest_K),RestL)</span>
+<span class="n">sf_layout</span> <span class="o">=</span> <span class="n">cute</span><span class="o">.</span><span class="n">tile_to_shape</span><span class="p">(</span>
+	<span class="n">BlockScaledBasicChunk</span><span class="p">(</span><span class="n">sf_vec_size</span><span class="p">)</span><span class="o">.</span><span class="n">layout</span><span class="p">,</span> <span class="n">Shape</span><span class="p">,</span> <span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
+<span class="p">)</span>
+</pre></div>
+<p>to obtain our final layout. For <code>NVFP4</code> we have <code>Atom_MN = (32,2)</code> and <code>Atom_K = (16,4)</code>. The last argument is the order in which we lay out the atom across the target, i.e. we first repeat the atom until we reach the end into the K mode, than we will repeat this process for the M mode and finally we cover the L mode with the Atom.</p>
+<p>Note that this process is somehow conceptually similar to what we do in swizzling. You may look my <a href='https://veitner.bearblog.dev/swizzles-and-their-usage-in-cutedsl-kernels/'>blogpost</a> on swizzle to see the connection yourself.</p>
+<h2 id=the-examples>The examples</h2><p>Let us look at some examples of scale factors for for given A tensor:</p>
+<div class="highlight"><pre><span></span>a_tensor = (128,64,1):(64,1,8192)
+size(a_tensor) = 8192
+sfa_tensor = (((32,4),1),((16,4),1),(1,1)):(((16,4),512),((0,1),512),(0,512))
+size(sfa_tensor) = 8192
+---
+a_tensor = (128,128,1):(128,1,16384)
+size(a_tensor) = 16384
+sfa_tensor = (((32,4),1),((16,4),2),(1,1)):(((16,4),1024),((0,1),512),(0,1024))
+size(sfa_tensor) = 16384
+---
+a_tensor = (256,64,1):(64,1,16384)
+size(a_tensor) = 16384
+sfa_tensor = (((32,4),2),((16,4),1),(1,1)):(((16,4),512),((0,1),512),(0,1024))
+size(sfa_tensor) = 16384
+---
+a_tensor = (256,128,1):(128,1,32768)
+size(a_tensor) = 32768
+sfa_tensor = (((32,4),2),((16,4),2),(1,1)):(((16,4),1024),((0,1),512),(0,2048))
+size(sfa_tensor) = 32768
+</pre></div>
+<p>The first thing we notice is that we have the <code>size(a_tensor) = size(sfa_tensor)</code>. That is because we used <code>tile_to_shape</code> which takes care the entire target shape is covered with atoms in the order we specify in its argument.</p>
+<p>We can also deduce that the shape of the tensor is <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mo stretchy="false">&#x00028;</mo><mo stretchy="false">&#x00028;</mo><mo stretchy="false">&#x00028;</mo><mn>32</mn><mo>&#x0002C;</mo><mn>4</mn><mo stretchy="false">&#x00029;</mo><mo>&#x0002C;</mo><mfrac><mrow><mi>M</mi></mrow><mrow><mn>32</mn><mi>&#x000B7;</mi><mn>4</mn></mrow></mfrac><mo stretchy="false">&#x00029;</mo><mo>&#x0002C;</mo><mo stretchy="false">&#x00028;</mo><mo stretchy="false">&#x00028;</mo><mn>16</mn><mo>&#x0002C;</mo><mn>4</mn><mo stretchy="false">&#x00029;</mo><mo>&#x0002C;</mo><mfrac><mrow><mi>K</mi></mrow><mrow><mn>16</mn><mi>&#x000B7;</mi><mn>4</mn></mrow></mfrac><mo stretchy="false">&#x00029;</mo><mo>&#x0002C;</mo><mo stretchy="false">&#x00028;</mo><mo stretchy="false">&#x00028;</mo><mn>1</mn><mo>&#x0002C;</mo><mn>1</mn><mo stretchy="false">&#x00029;</mo><mo>&#x0002C;</mo><mfrac><mrow><mi>L</mi></mrow><mrow><mn>1</mn><mi>&#x000B7;</mi><mn>1</mn></mrow></mfrac><mo stretchy="false">&#x00029;</mo></mrow></math>, which is closely connected to the above fact because it ensures that the size along each mode is the same as for the target shape and from here of course the above fact follows immediately.</p>
+<p>The beauty of <code>tile_to_shape</code> is that it automatically calculates the correct strides for the tile covering of atoms we desire.</p>
+<h2 id=conclusion>Conclusion</h2><p>I hope this blogpost helps readers to understand better how the blockscaled layouts are constructed. Feel free to connect with me on <a href='https://www.linkedin.com/in/simon-veitner-174a681b6/'>Linkedin</a>. If you like to try out Blackwell programming yourself you may checkout <a href='https://verda.com/'>Verda</a> which provides convenient developer experience for Blackwell kernels.</p>
+
+
+    
+
+    
+        
+
+        
+            <form id="upvote-form" action="/upvote/" method="post" style="display: inline">
+    <small>
+        <input hidden name="uid" value="BHLEytmAGIAaFVtHjUKW" style="display:none">
+        <input hidden name="title" value="Scale Tensor construction in CuTeDSL" style="display:none">
+
+        <button
+            class="upvote-button"
+            aria-label="Toast this post"
+            title="Toast this post"
+        >
+            <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" class="css-i6dzq1">
+                <polyline points="17 11 12 6 7 11"></polyline>
+                <polyline points="17 18 12 13 7 18"></polyline>
+            </svg>
+            <small class="upvote-count" aria-hidden="true">&nbsp;</small>
+        </button>
+    </small>        
+</form>
+
+<script>
+    const $upvoteButton = document.querySelector('.upvote-button');
+    const $upvoteCount =  document.querySelector('.upvote-count')
+
+    fetch('/upvote-info/BHLEytmAGIAaFVtHjUKW/').then(response => response.json()).then(data => {
+        $upvoteCount.innerText = data.upvote_count;
+        if (data.upvoted) {
+            $upvoteButton.disabled = true
+            $upvoteButton.style.color = "salmon"
+            $upvoteButton.ariaLabel = "Toasted"
+            $upvoteButton.title = "Toasted"
+        }
+        $upvoteButton.ariaLabel += ` (${data.upvote_count})`
+    });
+
+    let moved = false;
+    let pageLoaded = Date.now();
+
+    document.addEventListener('touchmove', () => moved = true);
+    document.addEventListener('mousemove', () => moved = true);
+
+    document.querySelector('#upvote-form').addEventListener('submit', (e) => {
+        e.preventDefault();
+
+        if (moved) {
+            document.querySelector('input[name="title"]').value = "";
+        }
+        if (Date.now() - pageLoaded < 2000 || !moved) {
+            return;
+        }
+
+        fetch(e.target.action, {
+            method: 'post',
+            body: new FormData(e.target),
+        });
+        
+        $upvoteButton.disabled = true
+        $upvoteButton.style.color = "salmon"
+        $upvoteButton.ariaLabel = "Toasted"
+        $upvoteButton.title = "Toasted"
+        const newUpvoteCount = `${(parseInt($upvoteCount.innerHTML.split(" ")[0]) + 1)}`
+        $upvoteCount.innerHTML = newUpvoteCount
+        $upvoteButton.ariaLabel += ` (${newUpvoteCount})`
+    });
+</script>
+        
+
+        
+            <script>
+            window.addEventListener("load", () => {
+                if (navigator.webdriver !== true) {
+                    const sendHit = score => {
+                        const params = new URLSearchParams({
+                            blog: "veitner",
+                            token: "BHLEytmAGIAaFVtHjUKW",
+                            referrer: document.referrer.includes("veitner.bearblog.dev") ? "" : document.referrer,
+                            title: "",
+                            score: score
+                        });
+                        new Image().src = `/hit/?${params.toString()}`;
+                    };
+
+                    document.addEventListener('touchmove', () => sendHit(100), { once: true });
+                    document.addEventListener('mousemove', () => sendHit(100), { once: true });
+                }
+            });
+            </script>
+        
+    
+
+
+  </main>
+  <footer>
+    
+    
+    <span>
+        Powered by <a href="https://bearblog.dev">Bear <span role="img" class="bear" aria-label="ASCII bear logo">ʕ•ᴥ•ʔ</span></a>
+    </span>
+
+  </footer>
+
+  
+  <script>
+        (() => {
+          "use strict";
+          const times = document.querySelectorAll('time');
+          const format_string = "d M, Y" || "d M, Y"
+
+          times.forEach(time => {
+              time.innerText = formatDate(time.dateTime, format_string)
+          });
+
+          function formatDate(dateStr, formatStr) {
+            const date = new Date(dateStr);
+            const day = date.getDate();
+            const month = date.getMonth();
+            const year = date.getFullYear();
+            const weekday = date.getDay();
+            const hours = date.getHours();
+            const minutes = date.getMinutes();
+            const monthsFull = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+            const monthsShort = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+            const daysFull = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+            const daysShort = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+            
+            function getOrdinal(n) {
+                const s = ['th', 'st', 'nd', 'rd'];
+                const v = n % 100;
+                return s[(v - 20) % 10] || s[v] || s[0];
+            }
+            
+            const map = {
+                'd': () => day.toString().padStart(2, '0'),
+                'm': () => (month + 1).toString().padStart(2, '0'),
+                'Y': () => year.toString(),
+                'y': () => year.toString().slice(-2),
+                'F': () => monthsFull[month],
+                'j': () => day.toString(),
+                'D': () => daysShort[weekday],
+                'l': () => daysFull[weekday],
+                'S': () => getOrdinal(day),
+                'M': () => monthsShort[month],
+                'H': () => hours.toString().padStart(2, '0'),
+                'h': () => {
+                    let h = hours % 12;
+                    h = h === 0 ? 12 : h;
+                    return h.toString().padStart(2, '0');
+                },
+                'g': () => {
+                    let h = hours % 12;
+                    return h === 0 ? '12' : h.toString();
+                },
+                'i': () => minutes.toString().padStart(2, '0'),
+                'a': () => hours < 12 ? 'am' : 'pm',
+                'A': () => hours < 12 ? 'AM' : 'PM',
+            };
+            
+            let result = '';
+            for (let char of formatStr) {
+                result += map[char] ? map[char]() : char;
+            }
+            return result;
+        }
+        })();
+    </script>
+    
+</body>
+<!-- ID: veitner -->
+<!-- 🐻 -->
+</html>

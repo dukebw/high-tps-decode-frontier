@@ -1,5 +1,13 @@
 # Wiki Log
 
+## [2026-05-31] ingest | Simon Veitner BearBlog CUDA/CuTeDSL posts
+
+- Imported the complete post set exposed by `https://veitner.bearblog.dev/blog/` as raw HTML snapshots: 65 post pages plus the blog index under `sources/html/veitner-bearblog/`.
+- Checked the blog index against the upstream sitemap before import; both exposed the same 65 post URLs.
+- Added a collection source note covering the CUDA, CUTLASS/CuTe, CuTeDSL, QuACK, Hopper, Blackwell/B200, NVFP4, block-scaled GEMM, and Gated Delta Net themes.
+- Reviewed all 65 imported post snapshots against the collection source note and added a post-level one-sentence summary table so every ingested post is substantively represented, not only listed in the manifest.
+- Scanned the imported HTML snapshots for obvious private-key, cloud/API-token, and credential-marker patterns; the only credential-like matches were public SGLang example snippets using `openai_api_key = "EMPTY"`.
+
 ## [2026-05-28] ingest | Dao-AILab QuACK CuTe kernels
 
 - Imported the `Dao-AILab/quack` README as a GitHub snapshot, pinned to main commit `34cfe42fe994dd961e42bbf179539b16d896aab4` and README blob `764f136b01f16d4ea469ea57db13be7550bc739e` (Apache-2.0).

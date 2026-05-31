@@ -1,0 +1,834 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!-- Powered by Bear Blog -->
+
+<head>
+  
+  
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5">
+  
+  <title>Applied introduction to Categorical treatment of CuTe | simons blog</title>
+  <link rel="canonical" href="https://veitner.bearblog.dev/applied-introduction-to-categorical-treatment-of-cute/">
+  
+    
+
+    <meta name="veitner" content="look-for-the-bear-necessities">
+    <meta name="token" content="itnnFWzCztyaUtKCTHmR">
+
+    
+<!-- Primary Meta Tags -->
+<meta name="title" content="Applied introduction to Categorical treatment of CuTe">
+<meta name="description" content="Introduction
+
+Colfax recently released an excellent paper on the categorical foundations of CuTe. In a previous blog post, I calculated many of the example...">
+
+<!-- Open Graph / Facebook -->
+<meta property="og:site_name" content="simons blog">
+<meta property="og:title" content="Applied introduction to Categorical treatment of CuTe">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://veitner.bearblog.dev/applied-introduction-to-categorical-treatment-of-cute/">
+<meta property="og:description" content="Introduction
+
+Colfax recently released an excellent paper on the categorical foundations of CuTe. In a previous blog post, I calculated many of the example...">
+<meta property="og:image" content="/static/og-image.png">
+
+
+<!-- Twitter -->
+<meta property="twitter:card" content="summary">
+<meta property="twitter:url" content="https://veitner.bearblog.dev/applied-introduction-to-categorical-treatment-of-cute/">
+<meta property="twitter:title" content="Applied introduction to Categorical treatment of CuTe">
+<meta property="twitter:description" content="Introduction
+
+Colfax recently released an excellent paper on the categorical foundations of CuTe. In a previous blog post, I calculated many of the example...">
+<meta property="twitter:image" content="/static/og-image.png">
+
+
+
+<!-- Microdata -->
+<script type="application/ld+json">
+  {
+    "@context": "http://schema.org",
+    "@type": "article",
+    "name": "Applied introduction to Categorical treatment of CuTe",
+    "headline": "Applied introduction to Categorical treatment of CuTe",
+    "url": "https://veitner.bearblog.dev/applied-introduction-to-categorical-treatment-of-cute/",
+    "description": "Introduction
+
+Colfax recently released an excellent paper on the categorical foundations of CuTe. In a previous blog post, I calculated many of the example...",
+    "image": "/static/og-image.png"
+  }
+</script>
+    <link rel="alternate" type="application/atom+xml" href="/feed/" title="simons blog">
+    <link rel="alternate" type="application/rss+xml" href="/feed/?type=rss" title="simons blog">
+
+  
+    
+
+    
+    <style>pre { line-height: 125%; }
+td.linenos .normal { color: #666666; background-color: transparent; padding-left: 5px; padding-right: 5px; }
+span.linenos { color: #666666; background-color: transparent; padding-left: 5px; padding-right: 5px; }
+td.linenos .special { color: #000000; background-color: #ffffc0; padding-left: 5px; padding-right: 5px; }
+span.linenos.special { color: #000000; background-color: #ffffc0; padding-left: 5px; padding-right: 5px; }
+.highlight .hll { background-color: #ffffcc }
+.highlight { background: #f0f0f0; }
+.highlight .c { color: #60A0B0; font-style: italic } /* Comment */
+.highlight .err { border: 1px solid #F00 } /* Error */
+.highlight .k { color: #007020; font-weight: bold } /* Keyword */
+.highlight .o { color: #666 } /* Operator */
+.highlight .ch { color: #60A0B0; font-style: italic } /* Comment.Hashbang */
+.highlight .cm { color: #60A0B0; font-style: italic } /* Comment.Multiline */
+.highlight .cp { color: #007020 } /* Comment.Preproc */
+.highlight .cpf { color: #60A0B0; font-style: italic } /* Comment.PreprocFile */
+.highlight .c1 { color: #60A0B0; font-style: italic } /* Comment.Single */
+.highlight .cs { color: #60A0B0; background-color: #FFF0F0 } /* Comment.Special */
+.highlight .gd { color: #A00000 } /* Generic.Deleted */
+.highlight .ge { font-style: italic } /* Generic.Emph */
+.highlight .ges { font-weight: bold; font-style: italic } /* Generic.EmphStrong */
+.highlight .gr { color: #F00 } /* Generic.Error */
+.highlight .gh { color: #000080; font-weight: bold } /* Generic.Heading */
+.highlight .gi { color: #00A000 } /* Generic.Inserted */
+.highlight .go { color: #888 } /* Generic.Output */
+.highlight .gp { color: #C65D09; font-weight: bold } /* Generic.Prompt */
+.highlight .gs { font-weight: bold } /* Generic.Strong */
+.highlight .gu { color: #800080; font-weight: bold } /* Generic.Subheading */
+.highlight .gt { color: #04D } /* Generic.Traceback */
+.highlight .kc { color: #007020; font-weight: bold } /* Keyword.Constant */
+.highlight .kd { color: #007020; font-weight: bold } /* Keyword.Declaration */
+.highlight .kn { color: #007020; font-weight: bold } /* Keyword.Namespace */
+.highlight .kp { color: #007020 } /* Keyword.Pseudo */
+.highlight .kr { color: #007020; font-weight: bold } /* Keyword.Reserved */
+.highlight .kt { color: #902000 } /* Keyword.Type */
+.highlight .m { color: #40A070 } /* Literal.Number */
+.highlight .s { color: #4070A0 } /* Literal.String */
+.highlight .na { color: #4070A0 } /* Name.Attribute */
+.highlight .nb { color: #007020 } /* Name.Builtin */
+.highlight .nc { color: #0E84B5; font-weight: bold } /* Name.Class */
+.highlight .no { color: #60ADD5 } /* Name.Constant */
+.highlight .nd { color: #555; font-weight: bold } /* Name.Decorator */
+.highlight .ni { color: #D55537; font-weight: bold } /* Name.Entity */
+.highlight .ne { color: #007020 } /* Name.Exception */
+.highlight .nf { color: #06287E } /* Name.Function */
+.highlight .nl { color: #002070; font-weight: bold } /* Name.Label */
+.highlight .nn { color: #0E84B5; font-weight: bold } /* Name.Namespace */
+.highlight .nt { color: #062873; font-weight: bold } /* Name.Tag */
+.highlight .nv { color: #BB60D5 } /* Name.Variable */
+.highlight .ow { color: #007020; font-weight: bold } /* Operator.Word */
+.highlight .w { color: #BBB } /* Text.Whitespace */
+.highlight .mb { color: #40A070 } /* Literal.Number.Bin */
+.highlight .mf { color: #40A070 } /* Literal.Number.Float */
+.highlight .mh { color: #40A070 } /* Literal.Number.Hex */
+.highlight .mi { color: #40A070 } /* Literal.Number.Integer */
+.highlight .mo { color: #40A070 } /* Literal.Number.Oct */
+.highlight .sa { color: #4070A0 } /* Literal.String.Affix */
+.highlight .sb { color: #4070A0 } /* Literal.String.Backtick */
+.highlight .sc { color: #4070A0 } /* Literal.String.Char */
+.highlight .dl { color: #4070A0 } /* Literal.String.Delimiter */
+.highlight .sd { color: #4070A0; font-style: italic } /* Literal.String.Doc */
+.highlight .s2 { color: #4070A0 } /* Literal.String.Double */
+.highlight .se { color: #4070A0; font-weight: bold } /* Literal.String.Escape */
+.highlight .sh { color: #4070A0 } /* Literal.String.Heredoc */
+.highlight .si { color: #70A0D0; font-style: italic } /* Literal.String.Interpol */
+.highlight .sx { color: #C65D09 } /* Literal.String.Other */
+.highlight .sr { color: #235388 } /* Literal.String.Regex */
+.highlight .s1 { color: #4070A0 } /* Literal.String.Single */
+.highlight .ss { color: #517918 } /* Literal.String.Symbol */
+.highlight .bp { color: #007020 } /* Name.Builtin.Pseudo */
+.highlight .fm { color: #06287E } /* Name.Function.Magic */
+.highlight .vc { color: #BB60D5 } /* Name.Variable.Class */
+.highlight .vg { color: #BB60D5 } /* Name.Variable.Global */
+.highlight .vi { color: #BB60D5 } /* Name.Variable.Instance */
+.highlight .vm { color: #BB60D5 } /* Name.Variable.Magic */
+.highlight .il { color: #40A070 } /* Literal.Number.Integer.Long */
+</style>
+  
+  
+  
+    
+        <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20100%20100'%3E%3Ctext%20y='.9em'%20font-size='90'%3E🐼%3C/text%3E%3C/svg%3E">
+    
+
+
+
+  <style>
+      
+      
+    
+:root {
+    --width: 720px;
+    --font-main: Verdana, sans-serif;
+    --font-secondary: Verdana, sans-serif;
+    --font-scale: 1em;
+    --background-color: #fff;
+    --heading-color: #222;
+    --text-color: #444;
+    --link-color: #3273dc;
+    --visited-color:  #8b6fcb;
+    --code-background-color: #f2f2f2;
+    --code-color: #222;
+    --blockquote-color: #222;
+}
+
+@media (prefers-color-scheme: dark) {
+    :root {
+        --background-color: #01242e;
+        --heading-color: #eee;
+        --text-color: #ddd;
+        --link-color: #8cc2dd;
+        --visited-color:  #8b6fcb;
+        --code-background-color: #000;
+        --code-color: #ddd;
+        --blockquote-color: #ccc;
+    }
+}
+
+body {
+    font-family: var(--font-secondary);
+    font-size: var(--font-scale);
+    margin: auto;
+    padding: 20px;
+    max-width: var(--width);
+    text-align: left;
+    background-color: var(--background-color);
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    line-height: 1.5;
+    color: var(--text-color);
+}
+
+h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-main);
+    color: var(--heading-color);
+}
+
+a {
+    color: var(--link-color);
+    cursor: pointer;
+    text-decoration: none;
+}
+
+a:hover {
+    text-decoration: underline; 
+}
+
+nav a {
+    margin-right: 8px;
+}
+
+strong, b {
+    color: var(--heading-color);
+}
+
+button {
+    margin: 0;
+    cursor: pointer;
+}
+
+time {
+ 	font-family: monospace;
+  	font-style: normal;
+  	font-size: 15px;
+}
+
+main {
+    line-height: 1.6;
+}
+
+table {
+    width: 100%;
+}
+
+hr {
+    border: 0;
+    border-top: 1px dashed;
+}
+
+img {
+    max-width: 100%;
+}
+
+code {
+    font-family: monospace;
+    padding: 2px;
+    background-color: var(--code-background-color);
+    color: var(--code-color);
+    border-radius: 3px;
+}
+
+blockquote {
+    border-left: 1px solid #999;
+    color: var(--code-color);
+    padding-left: 20px;
+    font-style: italic;
+}
+
+footer {
+    padding: 25px 0;
+    text-align: center;
+}
+
+.title:hover {
+    text-decoration: none;
+}
+
+.title h1 {
+    font-size: 1.5em;
+}
+
+.inline {
+    width: auto !important;
+}
+
+.highlight, .code {
+    padding: 1px 15px;
+    background-color: var(--code-background-color);
+    color: var(--code-color);
+    border-radius: 3px;
+    margin-block-start: 1em;
+    margin-block-end: 1em;
+    overflow-x: auto;
+}
+
+/* blog post list */
+ul.blog-posts {
+    list-style-type: none;
+    padding: unset;
+}
+
+ul.blog-posts li {
+    display: flex;
+}
+
+ul.blog-posts li span {
+    flex: 0 0 130px;
+}
+
+ul.blog-posts li a:visited {
+    color: var(--visited-color);
+}
+    .upvote-button {
+        padding: 0;
+        margin: 0;
+        border: 0;
+        background-color: inherit;
+        color: inherit;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+    .upvote-button.upvoted {
+        color: salmon;
+    }
+    .upvote-count {
+        margin-top: -3px;
+    }
+
+      
+  </style>
+</head>
+
+<body class="post " onload="(function() { document.cookie = `timezone=${Intl.DateTimeFormat().resolvedOptions().timeZone};path=/`; })()">
+  
+  <header>
+    <a class="title" href="/">
+      <h1>
+        simons blog
+      </h1>
+    </a>
+    <nav>
+      <p><a href='/'>Home</a> <a href='/blog/'>Blog</a></p>
+
+    </nav>
+  </header>
+  <main>
+    
+
+    
+
+    
+        <h1>Applied introduction to Categorical treatment of CuTe</h1>
+
+        <p>
+            <i>
+                <time datetime="2025-09-27T17:50Z">
+    27 Sep, 2025
+</time>
+            </i>
+        </p>
+    
+
+    <h2 id=introduction>Introduction</h2><p>Colfax recently released an excellent paper on the categorical foundations of CuTe. In a previous blog post, I calculated many of the examples from Chapter 2 by hand. In this blog post, I do the same for Chapter 3.</p>
+<p>Chapter 3 gives readers a new approach to understanding CuTe Layouts by introducing categories and morphisms that operate on them. It shows how to encode these morphisms into the familiar CuTe Layouts, provides a new visual approach, and offers an alternative perspective on Layouts beyond the traditional treatment. In my opinion it is a very elegant approach that delivers a powerful method of calculations related to CuTe Layouts.</p>
+<p>The reasoning behind each example may not be completely straightforward for newcomers, and I hope this small companion guide helps bridge that gap. I focus on building intuition through direct calculation, just as I did for Chapter 2.</p>
+<p>For a complete and rigorous treatment, please refer to the original paper.</p>
+<h2 id=learning-notes>Learning Notes</h2><p><img src="https://bear-images.sfo2.cdn.digitaloceanspaces.com/veitner/intro-1.webp" alt="Intro 1" /></p>
+<p><img src="https://bear-images.sfo2.cdn.digitaloceanspaces.com/veitner/intro-2.webp" alt="Intro 2" /></p>
+<p><img src="https://bear-images.sfo2.cdn.digitaloceanspaces.com/veitner/tractable-1.webp" alt="Tractable 1" /></p>
+<p><img src="https://bear-images.sfo2.cdn.digitaloceanspaces.com/veitner/tractable-2.webp" alt="Tractable 2" /></p>
+<p>These could be also written down in the following fashion:</p>
+<ul>
+<li><math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msub><mi>&#x003B1;</mi><mn>1</mn></msub><mo>&#x0003D;</mo><mo stretchy="false">&#x00028;</mo><mn>1</mn><mo>&#x0002C;</mo><mn>3</mn><mo stretchy="false">&#x00029;</mo></mrow></math></li>
+<li><math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msub><mi>&#x003B1;</mi><mn>2</mn></msub><mo>&#x0003D;</mo><mo stretchy="false">&#x00028;</mo><mo>&#x0002A;</mo><mo>&#x0002C;</mo><mo>&#x0002A;</mo><mo>&#x0002C;</mo><mn>2</mn><mo>&#x0002C;</mo><mn>4</mn><mo>&#x0002C;</mo><mo>&#x0002A;</mo><mo stretchy="false">&#x00029;</mo></mrow></math></li>
+<li><math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msub><mi>&#x003B1;</mi><mn>3</mn></msub><mo>&#x0003D;</mo><mo stretchy="false">&#x00028;</mo><mn>3</mn><mo>&#x0002C;</mo><mn>1</mn><mo>&#x0002C;</mo><mn>2</mn><mo>&#x0002C;</mo><mn>5</mn><mo>&#x0002C;</mo><mn>4</mn><mo stretchy="false">&#x00029;</mo></mrow></math></li>
+<li><math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msub><mi>&#x003B2;</mi><mn>1</mn></msub><mo>&#x0003D;</mo><mo stretchy="false">&#x00028;</mo><mn>1</mn><mo>&#x0002C;</mo><mn>1</mn><mo stretchy="false">&#x00029;</mo></mrow></math></li>
+<li><math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msub><mi>&#x003B2;</mi><mn>2</mn></msub><mo>&#x0003D;</mo><mo stretchy="false">&#x00028;</mo><mn>2</mn><mo>&#x0002C;</mo><mo>&#x0002A;</mo><mo>&#x0002C;</mo><mn>2</mn><mo>&#x0002C;</mo><mn>4</mn><mo>&#x0002C;</mo><mo>&#x0002A;</mo><mo stretchy="false">&#x00029;</mo></mrow></math></li>
+<li><math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msub><mi>&#x003B2;</mi><mn>3</mn></msub><mo>&#x0003D;</mo><mo stretchy="false">&#x00028;</mo><mn>2</mn><mo>&#x0002C;</mo><mn>2</mn><mo>&#x0002C;</mo><mn>2</mn><mo>&#x0002C;</mo><mn>5</mn><mo>&#x0002C;</mo><mn>4</mn><mo stretchy="false">&#x00029;</mo></mrow></math></li>
+</ul>
+<p><img src="https://bear-images.sfo2.cdn.digitaloceanspaces.com/veitner/tuple-morphism.webp" alt="Tuple Morphism" /></p>
+<p>Examples:</p>
+<p><math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>S</mi><mo>&#x0003D;</mo><mo stretchy="false">&#x00028;</mo><mn>3</mn><mo>&#x0002C;</mo><mn>128</mn><mo>&#x0002C;</mo><mn>128</mn><mo stretchy="false">&#x00029;</mo></mrow></math> and <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>T</mi><mo>&#x0003D;</mo><mo stretchy="false">&#x00028;</mo><mn>3</mn><mo>&#x0002C;</mo><mn>2</mn><mo>&#x0002C;</mo><mn>128</mn><mo>&#x0002C;</mo><mn>2</mn><mo>&#x0002C;</mo><mn>128</mn><mo stretchy="false">&#x00029;</mo></mrow></math>, than we can find an <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>&#x003B1;</mi></mrow></math> such that <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>f</mi></mrow></math> is a tuple morphism by seeing</p>
+<ul>
+<li><math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msub><mi>s</mi><mn>1</mn></msub><mo>&#x0003D;</mo><msub><mi>t</mi><mn>1</mn></msub></mrow></math></li>
+<li><math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msub><mi>s</mi><mn>2</mn></msub><mo>&#x0003D;</mo><msub><mi>t</mi><mn>3</mn></msub></mrow></math></li>
+<li><math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msub><mi>s</mi><mn>3</mn></msub><mo>&#x0003D;</mo><msub><mi>t</mi><mn>5</mn></msub></mrow></math>
+So <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>&#x003B1;</mi><mo>&#x0003D;</mo><mo stretchy="false">&#x00028;</mo><mn>1</mn><mo>&#x0002C;</mo><mn>3</mn><mo>&#x0002C;</mo><mn>5</mn><mo stretchy="false">&#x00029;</mo></mrow></math>.</li>
+</ul>
+<p><math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>S</mi><mo>&#x0003D;</mo><mo stretchy="false">&#x00028;</mo><mn>3</mn><mo>&#x0002C;</mo><mn>128</mn><mo>&#x0002C;</mo><mn>128</mn><mo stretchy="false">&#x00029;</mo></mrow></math> and <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>T</mi><mo>&#x0003D;</mo><mo stretchy="false">&#x00028;</mo><mn>128</mn><mo>&#x0002C;</mo><mn>128</mn><mo stretchy="false">&#x00029;</mo></mrow></math>, than we can find an <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>&#x003B1;</mi></mrow></math> such that <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>f</mi></mrow></math> is a tuple morphism by seeing</p>
+<ul>
+<li><math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msub><mi>s</mi><mn>2</mn></msub><mo>&#x0003D;</mo><msub><mi>t</mi><mn>1</mn></msub></mrow></math></li>
+<li><math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msub><mi>s</mi><mn>3</mn></msub><mo>&#x0003D;</mo><msub><mi>t</mi><mn>2</mn></msub></mrow></math>
+So <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>&#x003B1;</mi><mo>&#x0003D;</mo><mo stretchy="false">&#x00028;</mo><mo>&#x0002A;</mo><mo>&#x0002C;</mo><mn>1</mn><mo>&#x0002C;</mo><mn>2</mn><mo stretchy="false">&#x00029;</mo></mrow></math> or we could also choose <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>&#x003B1;</mi><mo>&#x0003D;</mo><mo stretchy="false">&#x00028;</mo><mo>&#x0002A;</mo><mo>&#x0002C;</mo><mn>2</mn><mo>&#x0002C;</mo><mn>1</mn><mo stretchy="false">&#x00029;</mo></mrow></math>. We see that we could call <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mo>&#x0002A;</mo></mrow></math> a "Wildcard" if we wanted to emphasise it's meaning.</li>
+</ul>
+<p><img src="https://bear-images.sfo2.cdn.digitaloceanspaces.com/veitner/layout-encoding-2.webp" alt="Layout Encoding 2" /></p>
+<p>For example <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>L</mi><mo>&#x0003D;</mo><mo stretchy="false">&#x00028;</mo><mn>2</mn><mo>&#x0002C;</mo><mn>2</mn><mo stretchy="false">&#x00029;</mo><mi>:</mi><mo stretchy="false">&#x00028;</mo><mn>1</mn><mo>&#x0002C;</mo><mn>2</mn><mo stretchy="false">&#x00029;</mo></mrow></math> is encoded by <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>S</mi><mo>&#x0003D;</mo><mo stretchy="false">&#x00028;</mo><mn>2</mn><mo>&#x0002C;</mo><mn>2</mn><mo stretchy="false">&#x00029;</mo></mrow></math>, <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>T</mi><mo>&#x0003D;</mo><mo stretchy="false">&#x00028;</mo><mn>2</mn><mo>&#x0002C;</mo><mn>2</mn><mo stretchy="false">&#x00029;</mo></mrow></math>, <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>&#x003B1;</mi><mo>&#x0003D;</mo><mo stretchy="false">&#x00028;</mo><mn>1</mn><mo>&#x0002C;</mo><mn>2</mn><mo stretchy="false">&#x00029;</mo></mrow></math> because <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msub><mi>d</mi><mn>1</mn></msub><mo>&#x0003D;</mo><mn>1</mn></mrow></math>, <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msub><mi>d</mi><mn>2</mn></msub><mo>&#x0003D;</mo><msub><mi>t</mi><mn>1</mn></msub><mo>&#x0003D;</mo><mn>2</mn></mrow></math> where we used that the empty product is <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mn>1</mn></mrow></math>. Note we could equivalently choose any number for <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msub><mi>t</mi><mn>2</mn></msub></mrow></math>.</p>
+<p><img src="https://bear-images.sfo2.cdn.digitaloceanspaces.com/veitner/layout-encoding-1.webp" alt="Layout Encoding 1" /></p>
+<p><img src="https://bear-images.sfo2.cdn.digitaloceanspaces.com/veitner/layout-encoding-3.webp" alt="Layout Encoding 3" /></p>
+<p><img src="https://bear-images.sfo2.cdn.digitaloceanspaces.com/veitner/layout-encoding-compute-1.webp" alt="Layout Encoding Compute 1" /></p>
+<p>Initially visit <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mo stretchy="false">&#x00028;</mo><msub><mi>s</mi><mn>0</mn></msub><mo>&#x0002C;</mo><msub><mi>d</mi><mn>0</mn></msub><mo stretchy="false">&#x00029;</mo><mo>&#x0003D;</mo><mo stretchy="false">&#x00028;</mo><mn>1</mn><mo>&#x0002C;</mo><mn>1</mn><mo stretchy="false">&#x00029;</mo></mrow></math>.
+Start with <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msub><mi>d</mi><mn>1</mn></msub></mrow></math>:</p>
+<ul>
+<li><math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msub><mi>s</mi><mn>0</mn></msub><mi>&#x000B7;</mi><msub><mi>d</mi><mn>0</mn></msub><mo>&#x0003D;</mo><mn>1</mn><mo>&#x0003C;</mo><msub><mi>d</mi><mn>1</mn></msub><mo>&#x0003D;</mo><mn>3</mn></mrow></math>, append <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mo stretchy="false">&#x00028;</mo><mn>3</mn><mo>&#x0002C;</mo><mn>2</mn><mo stretchy="false">&#x00029;</mo></mrow></math>
+Traverse to <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msub><mi>d</mi><mn>2</mn></msub></mrow></math>:</li>
+<li><math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msub><mi>s</mi><mn>1</mn></msub><mi>&#x000B7;</mi><msub><mi>d</mi><mn>1</mn></msub><mo>&#x0003D;</mo><mn>6</mn><mo>&#x0003C;</mo><msub><mi>d</mi><mn>2</mn></msub><mo>&#x0003D;</mo><mn>30</mn></mrow></math>, append <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mo stretchy="false">&#x00028;</mo><mn>5</mn><mo>&#x0002C;</mo><mn>2</mn><mo stretchy="false">&#x00029;</mo></mrow></math></li>
+</ul>
+<p>We have <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>T</mi><mo>&#x0003D;</mo><mo stretchy="false">&#x00028;</mo><mn>3</mn><mo>&#x0002C;</mo><mn>2</mn><mo>&#x0002C;</mo><mn>5</mn><mo>&#x0002C;</mo><mn>2</mn><mo stretchy="false">&#x00029;</mo></mrow></math>.</p>
+<p>Therefore <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>S</mi><mo>&#x0003D;</mo><mo stretchy="false">&#x00028;</mo><mn>2</mn><mo>&#x0002C;</mo><mn>2</mn><mo stretchy="false">&#x00029;</mo></mrow></math>, <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>T</mi><mo>&#x0003D;</mo><mo stretchy="false">&#x00028;</mo><mn>3</mn><mo>&#x0002C;</mo><mn>2</mn><mo>&#x0002C;</mo><mn>5</mn><mo>&#x0002C;</mo><mn>2</mn><mo stretchy="false">&#x00029;</mo></mrow></math> and <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>&#x003B1;</mi><mo>&#x0003D;</mo><mo stretchy="false">&#x00028;</mo><mn>2</mn><mo>&#x0002C;</mo><mn>4</mn><mo stretchy="false">&#x00029;</mo></mrow></math> encode the Layout, as depicted in the picture.</p>
+<p><img src="https://bear-images.sfo2.cdn.digitaloceanspaces.com/veitner/layout-encoding-compute-2.webp" alt="Layout Encoding Compute 2" /></p>
+<p>Initially visit <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mo stretchy="false">&#x00028;</mo><msub><mi>s</mi><mn>0</mn></msub><mo>&#x0002C;</mo><msub><mi>d</mi><mn>0</mn></msub><mo stretchy="false">&#x00029;</mo><mo>&#x0003D;</mo><mo stretchy="false">&#x00028;</mo><mn>1</mn><mo>&#x0002C;</mo><mn>1</mn><mo stretchy="false">&#x00029;</mo></mrow></math>.
+Start with smallest stride, i.e. <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msub><mi>d</mi><mn>2</mn></msub></mrow></math>:</p>
+<ul>
+<li><math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msub><mi>s</mi><mn>0</mn></msub><msub><mi>d</mi><mn>0</mn></msub><mo>&#x0003D;</mo><msub><mi>d</mi><mn>2</mn></msub></mrow></math>, append <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msub><mi>s</mi><mn>2</mn></msub></mrow></math>.
+Continue with next stride <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msub><mi>d</mi><mn>1</mn></msub></mrow></math>:</li>
+<li><math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msub><mi>s</mi><mn>2</mn></msub><msub><mi>d</mi><mn>2</mn></msub><mo>&#x0003D;</mo><mn>128</mn><mo>&#x0003D;</mo><msub><mi>d</mi><mn>1</mn></msub></mrow></math>, append <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msub><mi>s</mi><mn>1</mn></msub></mrow></math>.</li>
+</ul>
+<p>We have <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>T</mi><mo>&#x0003D;</mo><mo stretchy="false">&#x00028;</mo><mn>128</mn><mo>&#x0002C;</mo><mn>128</mn><mo stretchy="false">&#x00029;</mo></mrow></math> where the first entry corresponds to the second shape, i.e. we have <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>&#x003B1;</mi><mo>&#x0003D;</mo><mo stretchy="false">&#x00028;</mo><mn>2</mn><mo>&#x0002C;</mo><mn>1</mn><mo stretchy="false">&#x00029;</mo></mrow></math> and than encodes our Layout as depicted above.</p>
+<p><img src="https://bear-images.sfo2.cdn.digitaloceanspaces.com/veitner/standard-form-1.webp" alt="Standard Form 1" /></p>
+<p>Visually that means, that the upper entry has an arrow pointing to it. For all other entries it means that if an entry does not has an arrow to it than the entry is <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mo>&#x02260;</mo><mn>1</mn></mrow></math> and the next entry will have an arrow to it.</p>
+<p>Using this intuition the below is clear.
+<img src="https://bear-images.sfo2.cdn.digitaloceanspaces.com/veitner/standard-form-2.webp" alt="Standard Form 2" /></p>
+<p><math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msub><mi>g</mi><mn>1</mn></msub></mrow></math> and <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msub><mi>g</mi><mn>2</mn></msub></mrow></math> are not in standard form because they have a one without an arrow to it. <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msub><mi>g</mi><mn>3</mn></msub></mrow></math> is not in standard form because after <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mn>2</mn></mrow></math> which doesn't have an arrow to it there comes <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mn>256</mn></mrow></math> which doesn't have an arrow to it.</p>
+<p><img src="https://bear-images.sfo2.cdn.digitaloceanspaces.com/veitner/degenerate.webp" alt="Degenerate" /></p>
+<p>Note this is necessary to avoid situations like</p>
+<p><math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>S</mi><mo>&#x0003D;</mo><mo stretchy="false">&#x00028;</mo><mn>8</mn><mo>&#x0002C;</mo><mn>1</mn><mo>&#x0002C;</mo><mn>1</mn><mo stretchy="false">&#x00029;</mo></mrow></math>, <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>T</mi><mo>&#x0003D;</mo><mo stretchy="false">&#x00028;</mo><mn>8</mn><mo>&#x0002C;</mo><mn>1</mn><mo>&#x0002C;</mo><mn>1</mn><mo stretchy="false">&#x00029;</mo></mrow></math> where both <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msub><mi>&#x003B1;</mi><mn>1</mn></msub><mo>&#x0003D;</mo><mo stretchy="false">&#x00028;</mo><mn>1</mn><mo>&#x0002C;</mo><mn>2</mn><mo>&#x0002C;</mo><mn>3</mn><mo stretchy="false">&#x00029;</mo></mrow></math> as well as <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msub><mi>&#x003B1;</mi><mn>2</mn></msub><mo>&#x0003D;</mo><mo stretchy="false">&#x00028;</mo><mn>1</mn><mo>&#x0002C;</mo><mn>3</mn><mo>&#x0002C;</mo><mn>2</mn><mo stretchy="false">&#x00029;</mo></mrow></math> would encode <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>L</mi><mo>&#x0003D;</mo><mo stretchy="false">&#x00028;</mo><mn>8</mn><mo>&#x0002C;</mo><mn>1</mn><mo>&#x0002C;</mo><mn>1</mn><mo stretchy="false">&#x00029;</mo><mi>:</mi><mo stretchy="false">&#x00028;</mo><mn>1</mn><mo>&#x0002C;</mo><mn>8</mn><mo>&#x0002C;</mo><mn>8</mn><mo stretchy="false">&#x00029;</mo></mrow></math>.</p>
+<p><img src="https://bear-images.sfo2.cdn.digitaloceanspaces.com/veitner/one-to-one.webp" alt="One To One" /></p>
+<p>That means given a non-degenerate tractable flat layout we can always find a unique encoding for this Layout!</p>
+<p><img src="https://bear-images.sfo2.cdn.digitaloceanspaces.com/veitner/identity-morphism.webp" alt="Identity Morphism" /></p>
+<p>Let's check opposite direction and apply our algorithm from above:</p>
+<p><math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>L</mi><mo>&#x0003D;</mo><mo stretchy="false">&#x00028;</mo><mn>2</mn><mo>&#x0002C;</mo><mn>2</mn><mo>&#x0002C;</mo><mn>2</mn><mo stretchy="false">&#x00029;</mo><mi>:</mi><mo stretchy="false">&#x00028;</mo><mn>1</mn><mo>&#x0002C;</mo><mn>2</mn><mo>&#x0002C;</mo><mn>4</mn><mo stretchy="false">&#x00029;</mo></mrow></math> describes a cube layed out by column first for each plane and each plane is layed out after the previous one.</p>
+<ul>
+<li><math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msub><mi>s</mi><mn>0</mn></msub><msub><mi>d</mi><mn>0</mn></msub><mo>&#x0003D;</mo><msub><mi>d</mi><mn>1</mn></msub></mrow></math>, so we append <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msub><mi>s</mi><mn>1</mn></msub></mrow></math>.</li>
+<li><math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msub><mi>s</mi><mn>1</mn></msub><msub><mi>d</mi><mn>1</mn></msub><mo>&#x0003D;</mo><msub><mi>d</mi><mn>2</mn></msub></mrow></math>, so we append <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msub><mi>s</mi><mn>2</mn></msub></mrow></math></li>
+<li><math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msub><mi>s</mi><mn>2</mn></msub><msub><mi>d</mi><mn>2</mn></msub><mo>&#x0003D;</mo><msub><mi>d</mi><mn>3</mn></msub></mrow></math>, so we append <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msub><mi>s</mi><mn>3</mn></msub></mrow></math></li>
+</ul>
+<p>Therefore we have <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>T</mi><mo>&#x0003D;</mo><mo stretchy="false">&#x00028;</mo><msub><mi>s</mi><mn>1</mn></msub><mo>&#x0002C;</mo><msub><mi>s</mi><mn>2</mn></msub><mo>&#x0002C;</mo><msub><mi>s</mi><mn>3</mn></msub><mo stretchy="false">&#x00029;</mo><mo>&#x0003D;</mo><mo stretchy="false">&#x00028;</mo><mn>2</mn><mo>&#x0002C;</mo><mn>2</mn><mo>&#x0002C;</mo><mn>2</mn><mo stretchy="false">&#x00029;</mo></mrow></math> and <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>&#x003B1;</mi><mo>&#x0003D;</mo><mo stretchy="false">&#x00028;</mo><mn>1</mn><mo>&#x0002C;</mo><mn>2</mn><mo>&#x0002C;</mo><mn>3</mn><mo stretchy="false">&#x00029;</mo></mrow></math>. This shows very clearly why we call this "identity morphism".</p>
+<p>Let's take opposite, i.e. row major</p>
+<p><math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>L</mi><mo>&#x0003D;</mo><mo stretchy="false">&#x00028;</mo><mn>2</mn><mo>&#x0002C;</mo><mn>2</mn><mo>&#x0002C;</mo><mn>2</mn><mo stretchy="false">&#x00029;</mo><mi>:</mi><mo stretchy="false">&#x00028;</mo><mn>4</mn><mo>&#x0002C;</mo><mn>2</mn><mo>&#x0002C;</mo><mn>1</mn><mo stretchy="false">&#x00029;</mo></mrow></math></p>
+<ul>
+<li><math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msub><mi>s</mi><mn>0</mn></msub><msub><mi>d</mi><mn>0</mn></msub><mo>&#x0003D;</mo><msub><mi>d</mi><mn>3</mn></msub></mrow></math>, so we append <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msub><mi>s</mi><mn>3</mn></msub></mrow></math></li>
+<li><math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msub><mi>s</mi><mn>3</mn></msub><msub><mi>d</mi><mn>3</mn></msub><mo>&#x0003D;</mo><msub><mi>d</mi><mn>2</mn></msub></mrow></math>, so we append <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msub><mi>s</mi><mn>2</mn></msub></mrow></math></li>
+<li><math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msub><mi>s</mi><mn>2</mn></msub><msub><mi>d</mi><mn>2</mn></msub><mo>&#x0003D;</mo><msub><mi>d</mi><mn>1</mn></msub></mrow></math>, so we append <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msub><mi>s</mi><mn>1</mn></msub></mrow></math></li>
+</ul>
+<p>This means we obtain <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>T</mi><mo>&#x0003D;</mo><mo stretchy="false">&#x00028;</mo><msub><mi>s</mi><mn>3</mn></msub><mo>&#x0002C;</mo><msub><mi>s</mi><mn>2</mn></msub><mo>&#x0002C;</mo><msub><mi>s</mi><mn>1</mn></msub><mo stretchy="false">&#x00029;</mo></mrow></math> and <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>&#x003B1;</mi><mo>&#x0003D;</mo><mo stretchy="false">&#x00028;</mo><mn>3</mn><mo>&#x0002C;</mo><mn>2</mn><mo>&#x0002C;</mo><mn>1</mn><mo stretchy="false">&#x00029;</mo></mrow></math>.</p>
+<p>More generally an arbitrary row major Layout with  Shape <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>S</mi><mo>&#x0003D;</mo><mo stretchy="false">&#x00028;</mo><msub><mi>s</mi><mn>1</mn></msub><mo>&#x0002C;</mo><mo>&#x0002E;</mo><mo>&#x0002E;</mo><mo>&#x0002E;</mo><mo>&#x0002C;</mo><msub><mi>s</mi><mi>m</mi></msub><mo stretchy="false">&#x00029;</mo></mrow></math> would give rise to <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>T</mi><mo>&#x0003D;</mo><mo stretchy="false">&#x00028;</mo><msub><mi>s</mi><mi>m</mi></msub><mo>&#x0002C;</mo><mo>&#x0002E;</mo><mo>&#x0002E;</mo><mo>&#x0002E;</mo><mo>&#x0002C;</mo><msub><mi>s</mi><mn>1</mn></msub><mo stretchy="false">&#x00029;</mo></mrow></math> and <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>&#x003B1;</mi><mo>&#x0003D;</mo><mo stretchy="false">&#x00028;</mo><mi>m</mi><mo>&#x0002C;</mo><mi>m</mi><mo>&#x02212;</mo><mn>1</mn><mo>&#x0002C;</mo><mo>&#x0002E;</mo><mo>&#x0002E;</mo><mo>&#x0002E;</mo><mo>&#x0002C;</mo><mn>2</mn><mo>&#x0002C;</mo><mn>1</mn><mo stretchy="false">&#x00029;</mo></mrow></math>.</p>
+<p><img src="https://bear-images.sfo2.cdn.digitaloceanspaces.com/veitner/isomorphism.webp" alt="Isomorphism" /></p>
+<p>See below for the trivial construction of <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>g</mi></mrow></math>.</p>
+<p><img src="https://bear-images.sfo2.cdn.digitaloceanspaces.com/veitner/isomorphism-2.webp" alt="Isomorphism 2" /></p>
+<p>We have <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>S</mi><mo>&#x0003D;</mo><mo stretchy="false">&#x00028;</mo><mn>2</mn><mo>&#x0002C;</mo><mn>2</mn><mo>&#x0002C;</mo><mn>2</mn><mo>&#x0002C;</mo><mn>4</mn><mo>&#x0002C;</mo><mn>4</mn><mo stretchy="false">&#x00029;</mo></mrow></math>, <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>T</mi><mo>&#x0003D;</mo><mo stretchy="false">&#x00028;</mo><mn>2</mn><mo>&#x0002C;</mo><mn>2</mn><mo>&#x0002C;</mo><mn>4</mn><mo>&#x0002C;</mo><mn>4</mn><mo>&#x0002C;</mo><mn>2</mn><mo stretchy="false">&#x00029;</mo></mrow></math> with isomorphism <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msub><mi>&#x003B1;</mi><mrow><mi>S</mi><mo>&#x02192;</mo><mi>T</mi></mrow></msub><mo>&#x0003D;</mo><mo stretchy="false">&#x00028;</mo><mn>2</mn><mo>&#x0002C;</mo><mn>1</mn><mo>&#x0002C;</mo><mn>5</mn><mo>&#x0002C;</mo><mn>3</mn><mo>&#x0002C;</mo><mn>4</mn><mo stretchy="false">&#x00029;</mo></mrow></math> leads to <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>L</mi><mo>&#x0003D;</mo><mo stretchy="false">&#x00028;</mo><mn>2</mn><mo>&#x0002C;</mo><mn>2</mn><mo>&#x0002C;</mo><mn>2</mn><mo>&#x0002C;</mo><mn>4</mn><mo>&#x0002C;</mo><mn>4</mn><mo stretchy="false">&#x00029;</mo><mi>:</mi><mo stretchy="false">&#x00028;</mo><mn>2</mn><mo>&#x0002C;</mo><mn>1</mn><mo>&#x0002C;</mo><mn>64</mn><mo>&#x0002C;</mo><mn>4</mn><mo>&#x0002C;</mo><mn>16</mn><mo stretchy="false">&#x00029;</mo></mrow></math> and the inverse <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msub><mi>&#x003B2;</mi><mrow><mi>T</mi><mo>&#x02192;</mo><mi>S</mi></mrow></msub><mo>&#x0003D;</mo><mo stretchy="false">&#x00028;</mo><mn>2</mn><mo>&#x0002C;</mo><mn>1</mn><mo>&#x0002C;</mo><mn>4</mn><mo>&#x0002C;</mo><mn>5</mn><mo>&#x0002C;</mo><mn>3</mn><mo stretchy="false">&#x00029;</mo></mrow></math> which leads to <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msup><mi>L</mi><mi>&#x02032;</mi></msup><mo>&#x0003D;</mo><mo stretchy="false">&#x00028;</mo><mn>2</mn><mo>&#x0002C;</mo><mn>2</mn><mo>&#x0002C;</mo><mn>4</mn><mo>&#x0002C;</mo><mn>4</mn><mo>&#x0002C;</mo><mn>2</mn><mo stretchy="false">&#x00029;</mo><mi>:</mi><mo stretchy="false">&#x00028;</mo><mn>2</mn><mo>&#x0002C;</mo><mn>1</mn><mo>&#x0002C;</mo><mn>8</mn><mo>&#x0002C;</mo><mn>32</mn><mo>&#x0002C;</mo><mn>4</mn><mo stretchy="false">&#x00029;</mo></mrow></math> .</p>
+<p>Let us compose these Layouts in <code>CuTe</code>:</p>
+<div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">cutlass.cute</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">cute</span>
+
+<span class="nd">@cute</span><span class="o">.</span><span class="n">jit</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">inverse</span><span class="p">():</span>
+  <span class="n">L</span> <span class="o">=</span> <span class="n">cute</span><span class="o">.</span><span class="n">make_layout</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">4</span><span class="p">,</span><span class="mi">4</span><span class="p">),</span> <span class="n">stride</span><span class="o">=</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">64</span><span class="p">,</span><span class="mi">4</span><span class="p">,</span><span class="mi">16</span><span class="p">))</span>
+  <span class="n">L_</span> <span class="o">=</span> <span class="n">cute</span><span class="o">.</span><span class="n">make_layout</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">4</span><span class="p">,</span><span class="mi">4</span><span class="p">,</span><span class="mi">2</span><span class="p">),</span> <span class="n">stride</span><span class="o">=</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">8</span><span class="p">,</span><span class="mi">32</span><span class="p">,</span><span class="mi">4</span><span class="p">))</span>
+
+  <span class="n">I</span> <span class="o">=</span> <span class="n">cute</span><span class="o">.</span><span class="n">composition</span><span class="p">(</span><span class="n">L</span><span class="p">,</span> <span class="n">L_</span><span class="p">)</span>
+
+  <span class="n">cute</span><span class="o">.</span><span class="n">printf</span><span class="p">(</span><span class="n">L</span><span class="p">)</span>
+  <span class="n">cute</span><span class="o">.</span><span class="n">printf</span><span class="p">(</span><span class="n">L_</span><span class="p">)</span>
+  <span class="n">cute</span><span class="o">.</span><span class="n">printf</span><span class="p">(</span><span class="n">I</span><span class="p">)</span>
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+  <span class="n">inverse</span><span class="p">()</span>
+</pre></div>
+<p>This will output</p>
+<div class="highlight"><pre><span></span>(2,2,2,4,4):(2,1,64,4,16)
+(2,2,4,4,2):(2,1,8,32,4)
+(2,2,4,4,2):(1,2,4,16,64) # Stride is (1, 2, 2*2, 2*2*4, 2*2*4*4) = (1,2,4,16,64)
+</pre></div>
+<p>We calculate <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>L</mi><mo>&#x02218;</mo><msup><mi>L</mi><mi>&#x02032;</mi></msup></mrow></math> this corresponds to <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>f</mi><mo>&#x02218;</mo><mi>g</mi><mo>&#x0003D;</mo><msub><mrow><mi mathvariant="normal">i</mi><mi mathvariant="normal">d</mi></mrow><mi>T</mi></msub></mrow></math>, which corresponds to the column major Layout on <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>T</mi></mrow></math>. This is exactly what we get in <code>CuTe</code>.</p>
+<p><img src="https://bear-images.sfo2.cdn.digitaloceanspaces.com/veitner/projection.webp" alt="Projection" /></p>
+<p>This is called a projection: <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>S</mi><mo>&#x0003D;</mo><mo stretchy="false">&#x00028;</mo><mn>8</mn><mo>&#x0002C;</mo><mn>3</mn><mo>&#x0002C;</mo><mn>64</mn><mo>&#x0002C;</mo><mn>64</mn><mo stretchy="false">&#x00029;</mo></mrow></math>, <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>T</mi><mo>&#x0003D;</mo><mo stretchy="false">&#x00028;</mo><mn>64</mn><mo>&#x0002C;</mo><mn>3</mn><mo stretchy="false">&#x00029;</mo></mrow></math> and <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>&#x003B1;</mi><mo>&#x0003D;</mo><mo stretchy="false">&#x00028;</mo><mn>1</mn><mo>&#x0002C;</mo><mo>&#x0002A;</mo><mo>&#x0002C;</mo><mn>3</mn><mo>&#x0002C;</mo><mo>&#x0002A;</mo><mo stretchy="false">&#x00029;</mo></mrow></math>. More general we call a projection if we take some indices <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msub><mi>i</mi><mn>1</mn></msub><mo>&#x0002C;</mo><mo>&#x0002E;</mo><mo>&#x0002E;</mo><mo>&#x0002E;</mo><mo>&#x0002C;</mo><msub><mi>i</mi><mi>R</mi></msub></mrow></math> and all of these indices have a counterpart where the value in <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>T</mi></mrow></math> agrees with the value in <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>S</mi></mrow></math>. <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>&#x003B1;</mi></mrow></math> maps these values and all other values get send to <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mo>&#x0002A;</mo></mrow></math>, i.e. the corresponding Layout mode has a stride of <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mn>0</mn></mrow></math>.</p>
+<p><img src="https://bear-images.sfo2.cdn.digitaloceanspaces.com/veitner/expansion.webp" alt="Expansion" /></p>
+<p>This is an expansion. We call an expansion a morphism from <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>S</mi><mo>&#x0003D;</mo><mo stretchy="false">&#x00028;</mo><msub><mi>s</mi><mn>1</mn></msub><mo>&#x0002C;</mo><mo>&#x0002E;</mo><mo>&#x0002E;</mo><mo>&#x0002E;</mo><mo>&#x0002C;</mo><msub><mi>s</mi><mi>m</mi></msub><mo stretchy="false">&#x00029;</mo></mrow></math> to <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>T</mi><mo>&#x0003D;</mo><mo stretchy="false">&#x00028;</mo><msub><mi>s</mi><mn>1</mn></msub><mo>&#x0002C;</mo><mo>&#x0002E;</mo><mo>&#x0002E;</mo><mo>&#x0002E;</mo><mo>&#x0002C;</mo><msub><mi>s</mi><mi>m</mi></msub><mo>&#x0002C;</mo><msub><mi>s</mi><mrow><mi>m</mi><mo>&#x0002B;</mo><mn>1</mn></mrow></msub><mo>&#x0002C;</mo><mo>&#x0002E;</mo><mo>&#x0002E;</mo><mo>&#x0002E;</mo><mo>&#x0002C;</mo><msub><mi>s</mi><mi>n</mi></msub><mo stretchy="false">&#x00029;</mo></mrow></math> with <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>&#x003B1;</mi><mo>&#x0003D;</mo><mo stretchy="false">&#x00028;</mo><mn>1</mn><mo>&#x0002C;</mo><mo>&#x0002E;</mo><mo>&#x0002E;</mo><mo>&#x0002E;</mo><mo>&#x0002C;</mo><mi>m</mi><mo stretchy="false">&#x00029;</mo></mrow></math>.</p>
+<p>They will have Layouts <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>L</mi><mo>&#x0003D;</mo><mo stretchy="false">&#x00028;</mo><msub><mi>s</mi><mn>1</mn></msub><mo>&#x0002C;</mo><mo>&#x0002E;</mo><mo>&#x0002E;</mo><mo>&#x0002E;</mo><mo>&#x0002C;</mo><msub><mi>s</mi><mi>m</mi></msub><mo stretchy="false">&#x00029;</mo><mi>:</mi><mo stretchy="false">&#x00028;</mo><mn>1</mn><mo>&#x0002C;</mo><msub><mi>s</mi><mn>1</mn></msub><mo>&#x0002C;</mo><msub><mi>s</mi><mn>1</mn></msub><mi>&#x000B7;</mi><msub><mi>s</mi><mn>2</mn></msub><mo>&#x0002C;</mo><mo>&#x0002E;</mo><mo>&#x0002E;</mo><mo>&#x0002E;</mo><mo>&#x0002C;</mo><msub><mi>s</mi><mn>1</mn></msub><mi>&#x000B7;</mi><mo>&#x0002E;</mo><mo>&#x0002E;</mo><mo>&#x0002E;</mo><mi>&#x000B7;</mi><msub><mi>s</mi><mrow><mi>m</mi><mo>&#x02212;</mo><mn>1</mn></mrow></msub><mo stretchy="false">&#x00029;</mo></mrow></math>, i.e. be column major. Note that composition will not do anything, because they are the identity if restricted to their domain in the codomain. Visually this should be also clear because if something "flows in" from the left into the expansion it will just flow in a straight line to the projection domain.</p>
+<p><img src="https://bear-images.sfo2.cdn.digitaloceanspaces.com/veitner/functor.webp" alt="Functor" /></p>
+<p><img src="https://bear-images.sfo2.cdn.digitaloceanspaces.com/veitner/functor-2.webp" alt="Functor 2" /></p>
+<p>Recall</p>
+<p><img src="https://bear-images.sfo2.cdn.digitaloceanspaces.com/veitner/colex.webp" alt="Colex" /></p>
+<p>Lets apply that to the isomorphism <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>f</mi><mi>:</mi><mo stretchy="false">&#x00028;</mo><mn>2</mn><mo>&#x0002C;</mo><mn>2</mn><mo stretchy="false">&#x00029;</mo><mo>&#x02192;</mo><mo stretchy="false">&#x00028;</mo><mn>2</mn><mo>&#x0002C;</mo><mn>2</mn><mo stretchy="false">&#x00029;</mo></mrow></math> over <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>&#x003B1;</mi><mo>&#x0003D;</mo><mo stretchy="false">&#x00028;</mo><mn>1</mn><mo>&#x0002C;</mo><mn>2</mn><mo stretchy="false">&#x00029;</mo></mrow></math>.</p>
+<p>We have that <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>F</mi><mi>f</mi><mo stretchy="false">&#x00028;</mo><msub><mi>x</mi><mn>1</mn></msub><mo>&#x0002C;</mo><msub><mi>x</mi><mn>2</mn></msub><mo stretchy="false">&#x00029;</mo><mo>&#x0003D;</mo><mo stretchy="false">&#x00028;</mo><msub><mi>x</mi><mn>1</mn></msub><mo>&#x0002C;</mo><msub><mi>x</mi><mn>2</mn></msub><mo stretchy="false">&#x00029;</mo></mrow></math> and therefore <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mo stretchy="false">&#x0007C;</mo><mi>f</mi><mo stretchy="false">&#x0007C;</mo><mo stretchy="false">&#x00028;</mo><mi>x</mi><mo stretchy="false">&#x00029;</mo><mo>&#x0003D;</mo><msub><mrow><mi mathvariant="normal">c</mi><mi mathvariant="normal">o</mi><mi mathvariant="normal">l</mi><mi mathvariant="normal">e</mi><mi mathvariant="normal">x</mi></mrow><mi>S</mi></msub><mo>&#x02218;</mo><mi>F</mi><mi>f</mi><mo>&#x02218;</mo><msubsup><mrow><mi mathvariant="normal">c</mi><mi mathvariant="normal">o</mi><mi mathvariant="normal">l</mi><mi mathvariant="normal">e</mi><mi mathvariant="normal">x</mi></mrow><mi>S</mi><mrow><mo>&#x02212;</mo><mn>1</mn></mrow></msubsup><mo stretchy="false">&#x00028;</mo><mi>x</mi><mo stretchy="false">&#x00029;</mo><mo>&#x0003D;</mo><msub><mrow><mi mathvariant="normal">c</mi><mi mathvariant="normal">o</mi><mi mathvariant="normal">l</mi><mi mathvariant="normal">e</mi><mi mathvariant="normal">x</mi></mrow><mi>S</mi></msub><mo>&#x02218;</mo><mi>F</mi><mi>f</mi><mo stretchy="false">&#x00028;</mo><mi>x</mi><mspace width="1em" /><mi>mod</mi><mspace width="0.333em" /><mn>2</mn><mo>&#x0002C;</mo><mi>&#x0230A;</mi><mfrac><mrow><mi>x</mi></mrow><mrow><mn>2</mn></mrow></mfrac><mi>&#x0230B;</mi><mspace width="1em" /><mi>mod</mi><mspace width="0.333em" /><mn>2</mn><mo stretchy="false">&#x00029;</mo><mo>&#x0003D;</mo><msub><mrow><mi mathvariant="normal">c</mi><mi mathvariant="normal">o</mi><mi mathvariant="normal">l</mi><mi mathvariant="normal">e</mi><mi mathvariant="normal">x</mi></mrow><mi>S</mi></msub><mo stretchy="false">&#x00028;</mo><mi>x</mi><mspace width="1em" /><mi>mod</mi><mspace width="0.333em" /><mn>2</mn><mo>&#x0002C;</mo><mi>&#x0230A;</mi><mfrac><mrow><mi>x</mi></mrow><mrow><mn>2</mn></mrow></mfrac><mi>&#x0230B;</mi><mspace width="1em" /><mi>mod</mi><mspace width="0.333em" /><mn>2</mn><mo stretchy="false">&#x00029;</mo><mo>&#x0003D;</mo><mi>x</mi><mspace width="1em" /><mi>mod</mi><mspace width="0.333em" /><mn>2</mn><mo>&#x0002B;</mo><mn>2</mn><mo stretchy="false">&#x00028;</mo><mi>&#x0230A;</mi><mfrac><mrow><mi>x</mi></mrow><mrow><mn>2</mn></mrow></mfrac><mi>&#x0230B;</mi><mspace width="1em" /><mi>mod</mi><mspace width="0.333em" /><mn>2</mn><mo stretchy="false">&#x00029;</mo></mrow></math>.
+From here <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mo stretchy="false">&#x0007C;</mo><mi>f</mi><mo stretchy="false">&#x0007C;</mo><mo stretchy="false">&#x00028;</mo><mn>0</mn><mo stretchy="false">&#x00029;</mo><mo>&#x0003D;</mo><mn>0</mn></mrow></math>, <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mo stretchy="false">&#x0007C;</mo><mi>f</mi><mo stretchy="false">&#x0007C;</mo><mo stretchy="false">&#x00028;</mo><mn>1</mn><mo stretchy="false">&#x00029;</mo><mo>&#x0003D;</mo><mn>1</mn></mrow></math>, <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mo stretchy="false">&#x0007C;</mo><mi>f</mi><mo stretchy="false">&#x0007C;</mo><mo stretchy="false">&#x00028;</mo><mn>2</mn><mo stretchy="false">&#x00029;</mo><mo>&#x0003D;</mo><mn>2</mn></mrow></math>, <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mo stretchy="false">&#x0007C;</mo><mi>f</mi><mo stretchy="false">&#x0007C;</mo><mo stretchy="false">&#x00028;</mo><mn>3</mn><mo stretchy="false">&#x00029;</mo><mo>&#x0003D;</mo><mn>3</mn></mrow></math>. The associated Layout is <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>L</mi><mo>&#x0003D;</mo><mo stretchy="false">&#x00028;</mo><mn>2</mn><mo>&#x0002C;</mo><mn>2</mn><mo stretchy="false">&#x00029;</mo><mi>:</mi><mo stretchy="false">&#x00028;</mo><mn>1</mn><mo>&#x0002C;</mo><mn>2</mn><mo stretchy="false">&#x00029;</mo></mrow></math> and <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msub><mi>&#x003A6;</mi><mi>L</mi></msub><mo stretchy="false">&#x00028;</mo><mi>x</mi><mo stretchy="false">&#x00029;</mo></mrow></math> agrees with <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mo stretchy="false">&#x0007C;</mo><mi>f</mi><mo stretchy="false">&#x0007C;</mo><mo stretchy="false">&#x00028;</mo><mi>x</mi><mo stretchy="false">&#x00029;</mo></mrow></math>.</p>
+<p>We can understand the "sandwiching" of <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>F</mi><mi>f</mi></mrow></math> by <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mrow><mi mathvariant="normal">c</mi><mi mathvariant="normal">o</mi><mi mathvariant="normal">l</mi><mi mathvariant="normal">e</mi><mi mathvariant="normal">x</mi></mrow></mrow></math> such that we use it to project into higher dimensional space via the inverse, perform our calculation there and project back.</p>
+<p>We can therefore calculate the Layout function for arbitrary Layouts by identifying them with their morphism and using the above construction.</p>
+<p><img src="https://bear-images.sfo2.cdn.digitaloceanspaces.com/veitner/morphism-sum.webp" alt="Morphism Sum" /></p>
+<p><img src="https://bear-images.sfo2.cdn.digitaloceanspaces.com/veitner/sum-example.webp" alt="Sum Example" /></p>
+<p>Note that the visuals correspond to the formula: Summing morphisms means extending them by "putting <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>g</mi></mrow></math> on top of <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>f</mi></mrow></math>".</p>
+<p>Let us quickly check how the associated Layouts are.</p>
+<p><math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msub><mi>L</mi><mi>f</mi></msub><mo>&#x0003D;</mo><mo stretchy="false">&#x00028;</mo><mn>16</mn><mo>&#x0002C;</mo><mn>32</mn><mo stretchy="false">&#x00029;</mo><mi>:</mi><mo stretchy="false">&#x00028;</mo><mn>1</mn><mo>&#x0002C;</mo><mn>16</mn><mo stretchy="false">&#x00029;</mo></mrow></math>, <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msub><mi>L</mi><mi>g</mi></msub><mo>&#x0003D;</mo><mo stretchy="false">&#x00028;</mo><mn>4</mn><mi>:</mi><mn>4</mn><mo stretchy="false">&#x00029;</mo><mi>:</mi><mo stretchy="false">&#x00028;</mo><mn>2</mn><mo>&#x0002C;</mo><mn>0</mn><mo stretchy="false">&#x00029;</mo></mrow></math>. <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>f</mi><mo>&#x02295;</mo><mi>g</mi></mrow></math> is the morphism <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>S</mi><mo>&#x0003D;</mo><mo stretchy="false">&#x00028;</mo><mn>16</mn><mo>&#x0002C;</mo><mn>32</mn><mo>&#x0002C;</mo><mn>4</mn><mo>&#x0002C;</mo><mn>4</mn><mo stretchy="false">&#x00029;</mo></mrow></math>, <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>T</mi><mo>&#x0003D;</mo><mo stretchy="false">&#x00028;</mo><mn>16</mn><mo>&#x0002C;</mo><mn>32</mn><mo>&#x0002C;</mo><mn>2</mn><mo>&#x0002C;</mo><mn>4</mn><mo stretchy="false">&#x00029;</mo></mrow></math> over <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>&#x003B1;</mi><mo>&#x0003D;</mo><mo stretchy="false">&#x00028;</mo><mn>1</mn><mo>&#x0002C;</mo><mn>2</mn><mo>&#x0002C;</mo><mn>4</mn><mo>&#x0002C;</mo><mo>&#x0002A;</mo><mo stretchy="false">&#x00029;</mo></mrow></math> and the associated Layout is <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msub><mi>L</mi><mrow><mi>f</mi><mo>&#x02295;</mo><mi>g</mi></mrow></msub><mo>&#x0003D;</mo><mo stretchy="false">&#x00028;</mo><mn>16</mn><mo>&#x0002C;</mo><mn>32</mn><mo>&#x0002C;</mo><mn>4</mn><mo>&#x0002C;</mo><mn>4</mn><mo stretchy="false">&#x00029;</mo><mi>:</mi><mo stretchy="false">&#x00028;</mo><mn>1</mn><mo>&#x0002C;</mo><mn>16</mn><mo>&#x0002C;</mo><mn>1024</mn><mo>&#x0002C;</mo><mn>0</mn><mo stretchy="false">&#x00029;</mo></mrow></math>. Note that  we "extend" the layout into the additional dimensions while scaling the stride appropriately.</p>
+<p><img src="https://bear-images.sfo2.cdn.digitaloceanspaces.com/veitner/squeeze.webp" alt="Squeeze" /></p>
+<p>Squeezing a Layout just means to to remove redundant modes, i.e. ones with a mode of form <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mo stretchy="false">&#x00028;</mo><mn>1</mn><mo>&#x0002C;</mo><mi>d</mi><mo stretchy="false">&#x00029;</mo></mrow></math>. On morphisms squeezing will remove the ones from <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>S</mi></mrow></math>, restrict the morphism to the subset of non 1 indices and than factorise, i.e. absorb the ones not in the image of the morphism as described in <strong>3.1.3.10</strong>.</p>
+<p><img src="https://bear-images.sfo2.cdn.digitaloceanspaces.com/veitner/sorting.webp" alt="Sorting" /></p>
+<p><img src="https://bear-images.sfo2.cdn.digitaloceanspaces.com/veitner/sorting-2.webp" alt="Sorting 2" /></p>
+<p>Remember that sorting a Layout will first sort the strides and than within the modes with equal strides by shape. Sorting the morphism means bringing a morphism into arrangement that fulfils above three conditions:</p>
+<ol>
+<li>If <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>i</mi></mrow></math> doesn't have an arrow to the codomain we want it to be before each <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>j</mi></mrow></math> that has one.</li>
+<li>If they both don't have an arrow to the right side we order them by their value <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msub><mi>s</mi><mi>i</mi></msub></mrow></math> and <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msub><mi>s</mi><mi>j</mi></msub></mrow></math></li>
+<li>We don't want any "crosses" between arrows.</li>
+</ol>
+<ul>
+<li><math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msub><mi>g</mi><mn>1</mn></msub></mrow></math> violates 3).</li>
+<li><math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msub><mi>g</mi><mn>2</mn></msub></mrow></math> violates 1)</li>
+<li><math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msub><mi>g</mi><mn>3</mn></msub></mrow></math> violates 2)
+In all cases the sorting operation resolves the issues. The Layout of the resulting <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mrow><mi mathvariant="normal">s</mi><mi mathvariant="normal">o</mi><mi mathvariant="normal">r</mi><mi mathvariant="normal">t</mi></mrow><mo stretchy="false">&#x00028;</mo><mi>g</mi><mo stretchy="false">&#x00029;</mo></mrow></math> will agree with the sorted Layout corresponding to <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>g</mi></mrow></math>. Note that sorting a sorted morphism obviously leaves the morphism invariant.</li>
+</ul>
+<p><img src="https://bear-images.sfo2.cdn.digitaloceanspaces.com/veitner/coalesce-1.webp" alt="Coalesce" /></p>
+<p>Let us summarise the 4 conditions in 2) in words and give their visual interpretation</p>
+<ol>
+<li>If <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>i</mi></mrow></math> doesn't have an arrow to the right, <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>i</mi><mo>&#x0002B;</mo><mn>1</mn></mrow></math> has one</li>
+<li>If <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>i</mi></mrow></math> has an arrow to the right, than <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>i</mi><mo>&#x0002B;</mo><mn>1</mn></mrow></math> has doesn't have one.</li>
+<li><math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>i</mi></mrow></math> "points" to a higher point in <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>T</mi></mrow></math> than <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>i</mi><mo>&#x0002B;</mo><mn>1</mn></mrow></math>. (This implies the arrows cross)</li>
+<li><math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>i</mi><mo>&#x0002B;</mo><mn>1</mn></mrow></math> "points" to a higher point in <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>T</mi></mrow></math> than <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>i</mi></mrow></math>. (This implies the arrows don't cross) Furthermore we have a value larger than one between the two values the two arrows point to.
+We demand S to be squeezed (i.e. all ones removed) and for each entry except the last one one of the above 4 conditions to be true. Than we say a tuple morphism is coalesced.</li>
+</ol>
+<p><img src="https://bear-images.sfo2.cdn.digitaloceanspaces.com/veitner/coalesced-example.webp" alt="Coalesced Example" /></p>
+<p>These are examples of coalesced morphisms. Obviously all <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>S</mi></mrow></math> are squeezed. To determine if the tuple morphisms are coalesced we need to check above four conditions for each entry except the last:</p>
+<p><math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msub><mi>f</mi><mn>1</mn></msub></mrow></math> is coalesced because we have that <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mn>1</mn></mrow></math> has an arrow while <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mn>2</mn></mrow></math> doesn't have one. Furthermore <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mn>2</mn></mrow></math> has not an arrow while <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mn>1</mn></mrow></math> has one.</p>
+<p><math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msub><mi>f</mi><mn>2</mn></msub></mrow></math> is coalesced because we have that condition 4) for <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mn>1</mn></mrow></math> and condition 2) for <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mn>2</mn></mrow></math> and condition 1) for <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mn>3</mn></mrow></math>.</p>
+<p><math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msub><mi>f</mi><mn>3</mn></msub></mrow></math> is coalesced because we have condition 1) for <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mn>1</mn></mrow></math> and condition 3) for <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mn>2</mn></mrow></math>.</p>
+<p><img src="https://bear-images.sfo2.cdn.digitaloceanspaces.com/veitner/coalesced-example-2.webp" alt="Coalesced Example 2" /></p>
+<p><math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msub><mi>g</mi><mn>1</mn></msub></mrow></math> is not coalesced because we have for <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mn>1</mn></mrow></math> that <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mn>2</mn></mrow></math> points to a higher point and there is no value larger than 1 between them.</p>
+<p><math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msub><mi>g</mi><mn>2</mn></msub></mrow></math> is not coalesced because <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mn>2</mn></mrow></math> points to a higher point than <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mn>1</mn></mrow></math> and there is only a 1 between them.</p>
+<p><math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msub><mi>g</mi><mn>3</mn></msub></mrow></math> is not coalesced because <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>S</mi></mrow></math> is unsqueezed.</p>
+<p><img src="https://bear-images.sfo2.cdn.digitaloceanspaces.com/veitner/coalescing.webp" alt="Coalescing" /></p>
+<p>We coalesce <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>f</mi></mrow></math> as follows.</p>
+<ul>
+<li>The three 2s "down" violate 4). We multiply them together on left and right and replace the three arrows by one.</li>
+<li>The same is done for the two threes above.</li>
+<li>The two fives violate the condition that on a value without arrow there should follow one with arrow, we multiply them together.</li>
+</ul>
+<p><img src="https://bear-images.sfo2.cdn.digitaloceanspaces.com/veitner/coalescing-2.webp" alt="Coalescing 2" /></p>
+<p>We coalesce <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>f</mi></mrow></math> as follows:</p>
+<ul>
+<li>We first squeeze <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>S</mi></mrow></math>, i.e. remove all ones from it</li>
+<li>Than 128 and 256 have both an arrow and the mapped values are not separated by value larger than 1. We reduce this by multiplying the corresponding values left and right.</li>
+</ul>
+<p>Let's connect it to traditional Layout operation</p>
+<ul>
+<li><math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>L</mi><mo>&#x0003D;</mo><mo stretchy="false">&#x00028;</mo><mn>1</mn><mo>&#x0002C;</mo><mn>8</mn><mo>&#x0002C;</mo><mn>1</mn><mo>&#x0002C;</mo><mn>128</mn><mo>&#x0002C;</mo><mn>256</mn><mo stretchy="false">&#x00029;</mo><mi>:</mi><mo stretchy="false">&#x00028;</mo><mn>0</mn><mo>&#x0002C;</mo><mn>1</mn><mo>&#x0002C;</mo><mn>0</mn><mo>&#x0002C;</mo><mn>8192</mn><mo>&#x0002C;</mo><mn>1048576</mn><mo stretchy="false">&#x00029;</mo></mrow></math></li>
+<li><math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mrow><mi mathvariant="normal">s</mi><mi mathvariant="normal">q</mi><mi mathvariant="normal">u</mi><mi mathvariant="normal">e</mi><mi mathvariant="normal">e</mi><mi mathvariant="normal">z</mi><mi mathvariant="normal">e</mi></mrow><mo stretchy="false">&#x00028;</mo><mi>L</mi><mo stretchy="false">&#x00029;</mo><mo>&#x0003D;</mo><mo stretchy="false">&#x00028;</mo><mn>8</mn><mo>&#x0002C;</mo><mn>128</mn><mo>&#x0002C;</mo><mn>256</mn><mo stretchy="false">&#x00029;</mo><mi>:</mi><mo stretchy="false">&#x00028;</mo><mn>1</mn><mo>&#x0002C;</mo><mn>8192</mn><mo>&#x0002C;</mo><mn>1048576</mn><mo stretchy="false">&#x00029;</mo></mrow></math></li>
+<li>Than we perform coalesce, i.e. if <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msub><mi>s</mi><mi>i</mi></msub><mo>&#x0002C;</mo><msub><mi>s</mi><mrow><mi>i</mi><mo>&#x0002B;</mo><mn>1</mn></mrow></msub><mi>:</mi><msub><mi>d</mi><mi>i</mi></msub><mo>&#x0002C;</mo><msub><mi>s</mi><mi>i</mi></msub><msub><mi>d</mi><mi>i</mi></msub></mrow></math> than we replace it by <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msub><mi>s</mi><mi>i</mi></msub><msub><mi>s</mi><mi>i</mi></msub><mo>&#x0002B;</mo><mn>1</mn><mi>:</mi><msub><mi>d</mi><mi>i</mi></msub></mrow></math>.</li>
+<li>We see that <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msub><mi>s</mi><mn>1</mn></msub><msub><mi>d</mi><mn>1</mn></msub><mo>&#x0003D;</mo><msub><mi>d</mi><mn>2</mn></msub></mrow></math> so we reduce <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mrow><mi mathvariant="normal">c</mi><mi mathvariant="normal">o</mi><mi mathvariant="normal">a</mi><mi mathvariant="normal">l</mi></mrow><mo stretchy="false">&#x00028;</mo><mrow><mi mathvariant="normal">s</mi><mi mathvariant="normal">q</mi><mi mathvariant="normal">u</mi><mi mathvariant="normal">e</mi><mi mathvariant="normal">e</mi><mi mathvariant="normal">z</mi><mi mathvariant="normal">e</mi></mrow><mo stretchy="false">&#x00028;</mo><mi>L</mi><mo stretchy="false">&#x00029;</mo><mo stretchy="false">&#x00029;</mo><mo>&#x0003D;</mo><mo stretchy="false">&#x00028;</mo><mn>8</mn><mo>&#x0002C;</mo><mn>32768</mn><mo stretchy="false">&#x00029;</mo><mi>:</mi><mo stretchy="false">&#x00028;</mo><mn>1</mn><mo>&#x0002C;</mo><mn>8192</mn><mo stretchy="false">&#x00029;</mo></mrow></math>. Note that this is precisely the encoding of the morphism above!
+<img src="https://bear-images.sfo2.cdn.digitaloceanspaces.com/veitner/disjoint-images.webp" alt="Disjoint Images" /></li>
+</ul>
+<p>Let <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>f</mi><mo>&#x0002C;</mo><mi>g</mi><mo>&#x0002C;</mo><mi>h</mi></mrow></math> lie over <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>&#x003B1;</mi><mo>&#x0002C;</mo><mi>&#x003B2;</mi><mo>&#x0002C;</mo><mi>&#x003B3;</mi></mrow></math>. We see <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>&#x003B1;</mi><mo>&#x0003D;</mo><mo stretchy="false">&#x00028;</mo><mn>2</mn><mo>&#x0002C;</mo><mn>4</mn><mo stretchy="false">&#x00029;</mo><mo>&#x0002C;</mo><mi>&#x003B2;</mi><mo>&#x0003D;</mo><mo stretchy="false">&#x00028;</mo><mn>3</mn><mo>&#x0002C;</mo><mn>1</mn><mo stretchy="false">&#x00029;</mo><mo>&#x0002C;</mo><mi>&#x003B3;</mi><mo>&#x0003D;</mo><mo stretchy="false">&#x00028;</mo><mn>2</mn><mo>&#x0002C;</mo><mn>3</mn><mo stretchy="false">&#x00029;</mo></mrow></math>. We see that <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>&#x003B1;</mi></mrow></math> is disjoint with <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>&#x003B2;</mi></mrow></math> but not with <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>&#x003B3;</mi></mrow></math>. Also <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>&#x003B2;</mi></mrow></math> is not disjoint with <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>&#x003B3;</mi></mrow></math>.</p>
+<p><img src="https://bear-images.sfo2.cdn.digitaloceanspaces.com/veitner/concat-1.webp" alt="Concat" /></p>
+<p>This is the concatenation of the two morphisms. Obviously its tractable, because the images are disjoint (as we see visually as well).</p>
+<p><img src="https://bear-images.sfo2.cdn.digitaloceanspaces.com/veitner/complement-1.webp" alt="Complement" /></p>
+<p>If two morphisms have disjoint image and the concatenation of the two leads to an isomorphism than we say that <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>g</mi></mrow></math> is complement of <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>f</mi></mrow></math>. Note for the above picture that is the case because the concat is obviously bijective and we can therefore construct an inverse to it as done above.</p>
+<p>The Layouts associated to <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>f</mi></mrow></math> and <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>g</mi></mrow></math> are <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msub><mi>L</mi><mi>f</mi></msub><mo>&#x0003D;</mo><mo stretchy="false">&#x00028;</mo><mn>32</mn><mo>&#x0002C;</mo><mn>32</mn><mo stretchy="false">&#x00029;</mo><mi>:</mi><mo stretchy="false">&#x00028;</mo><mn>10</mn><mo>&#x0002C;</mo><mn>320</mn><mo stretchy="false">&#x00029;</mo></mrow></math> and <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msub><mi>L</mi><mi>g</mi></msub><mo>&#x0003D;</mo><mo stretchy="false">&#x00028;</mo><mn>16</mn><mo>&#x0002C;</mo><mn>10</mn><mo stretchy="false">&#x00029;</mo><mi>:</mi><mo stretchy="false">&#x00028;</mo><mn>10240</mn><mo>&#x0002C;</mo><mn>1</mn><mo stretchy="false">&#x00029;</mo></mrow></math>, furthermore we have <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mrow><mi mathvariant="normal">s</mi><mi mathvariant="normal">i</mi><mi mathvariant="normal">z</mi><mi mathvariant="normal">e</mi></mrow><mo stretchy="false">&#x00028;</mo><mi>T</mi><mo stretchy="false">&#x00029;</mo><mo>&#x0003D;</mo><mn>10</mn><mi>&#x000B7;</mi><mn>32</mn><mi>&#x000B7;</mi><mn>32</mn><mi>&#x000B7;</mi><mn>16</mn><mo>&#x0003D;</mo><mn>163840</mn></mrow></math>.</p>
+<p>Let's calculate the <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mrow><mi mathvariant="normal">s</mi><mi mathvariant="normal">i</mi><mi mathvariant="normal">z</mi><mi mathvariant="normal">e</mi></mrow><mo stretchy="false">&#x00028;</mo><msub><mi>L</mi><mi>f</mi></msub><mo stretchy="false">&#x00029;</mo></mrow></math> complement to <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msub><mi>L</mi><mi>f</mi></msub></mrow></math>.</p>
+<ul>
+<li><math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>C</mi><mo>&#x0003D;</mo><mo stretchy="false">&#x00028;</mo><mn>10</mn><mo>&#x0002C;</mo><mn>1</mn><mo>&#x0002C;</mo><mn>16</mn><mo stretchy="false">&#x00029;</mo><mi>:</mi><mo stretchy="false">&#x00028;</mo><mn>1</mn><mo>&#x0002C;</mo><mn>320</mn><mo>&#x0002C;</mo><mn>10240</mn><mo stretchy="false">&#x00029;</mo></mrow></math></li>
+<li><math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msup><mrow><mi mathvariant="normal">c</mi><mi mathvariant="normal">o</mi><mi mathvariant="normal">a</mi><mi mathvariant="normal">l</mi></mrow><mi>&#x0266D;</mi></msup><mo stretchy="false">&#x00028;</mo><mi>C</mi><mo stretchy="false">&#x00029;</mo><mo>&#x0003D;</mo><mo stretchy="false">&#x00028;</mo><mn>10</mn><mo>&#x0002C;</mo><mn>16</mn><mo stretchy="false">&#x00029;</mo><mi>:</mi><mo stretchy="false">&#x00028;</mo><mn>1</mn><mo>&#x0002C;</mo><mn>10240</mn><mo stretchy="false">&#x00029;</mo></mrow></math></li>
+</ul>
+<p>Note that up to sorting that agrees with <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msub><mi>L</mi><mi>g</mi></msub></mrow></math> from above which is a <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mrow><mi mathvariant="normal">s</mi><mi mathvariant="normal">i</mi><mi mathvariant="normal">z</mi><mi mathvariant="normal">e</mi></mrow><mo stretchy="false">&#x00028;</mo><mi>T</mi><mo stretchy="false">&#x00029;</mo></mrow></math> complement of <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msub><mi>L</mi><mi>f</mi></msub></mrow></math>. Note that this is given in <strong>3.1.5.48</strong>.</p>
+<p><img src="https://bear-images.sfo2.cdn.digitaloceanspaces.com/veitner/complement-def.webp" alt="Complement Def" /></p>
+<p>Let's understand above example:</p>
+<p><math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>f</mi><mi>:</mi><mo stretchy="false">&#x00028;</mo><mn>256</mn><mo>&#x0002C;</mo><mn>512</mn><mo stretchy="false">&#x00029;</mo><mo>&#x02192;</mo><mo stretchy="false">&#x00028;</mo><mn>10</mn><mo>&#x0002C;</mo><mn>256</mn><mo>&#x0002C;</mo><mn>512</mn><mo>&#x0002C;</mo><mn>512</mn><mo stretchy="false">&#x00029;</mo></mrow></math> with <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>&#x003B1;</mi><mo>&#x0003D;</mo><mo stretchy="false">&#x00028;</mo><mn>2</mn><mo>&#x0002C;</mo><mn>3</mn><mo stretchy="false">&#x00029;</mo></mrow></math>. So we have <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mo stretchy="false">&#x00028;</mo><msub><mi>j</mi><mn>1</mn></msub><mo>&#x0002C;</mo><msub><mi>j</mi><mn>2</mn></msub><mo stretchy="false">&#x00029;</mo><mo>&#x0003D;</mo><mo stretchy="false">&#x00028;</mo><mn>1</mn><mo>&#x0002C;</mo><mn>4</mn><mo stretchy="false">&#x00029;</mo></mrow></math>. So we have that <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msup><mi>f</mi><mi>c</mi></msup></mrow></math> is defined from <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>S</mi><mo>&#x0003D;</mo><mo stretchy="false">&#x00028;</mo><msub><mi>t</mi><mrow><msub><mi>j</mi><mn>1</mn></msub></mrow></msub><mo>&#x0002C;</mo><msub><mi>t</mi><mrow><msub><mi>j</mi><mn>2</mn></msub></mrow></msub><mo stretchy="false">&#x00029;</mo><mo>&#x0003D;</mo><mo stretchy="false">&#x00028;</mo><mn>10</mn><mo>&#x0002C;</mo><mn>512</mn><mo stretchy="false">&#x00029;</mo></mrow></math> to <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mo stretchy="false">&#x00028;</mo><mn>10</mn><mo>&#x0002C;</mo><mn>256</mn><mo>&#x0002C;</mo><mn>512</mn><mo>&#x0002C;</mo><mn>512</mn><mo stretchy="false">&#x00029;</mo></mrow></math> over <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>&#x003B2;</mi><mo>&#x0003D;</mo><mo stretchy="false">&#x00028;</mo><mn>1</mn><mo>&#x0002C;</mo><mn>4</mn><mo stretchy="false">&#x00029;</mo></mrow></math>. This is also what we can see in the picture.</p>
+<p><img src="https://bear-images.sfo2.cdn.digitaloceanspaces.com/veitner/logical-product.webp" alt="Logical Product" /></p>
+<p><img src="https://bear-images.sfo2.cdn.digitaloceanspaces.com/veitner/flat-divide.webp" alt="Flat Divide" /></p>
+<p><math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>g</mi><mi>:</mi><mo stretchy="false">&#x00028;</mo><mn>5</mn><mo>&#x0002C;</mo><mn>5</mn><mo stretchy="false">&#x00029;</mo><mo>&#x02192;</mo><mo stretchy="false">&#x00028;</mo><mn>2</mn><mo>&#x0002C;</mo><mn>2</mn><mo>&#x0002C;</mo><mn>5</mn><mo>&#x0002C;</mo><mn>5</mn><mo stretchy="false">&#x00029;</mo></mrow></math>, <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>f</mi><mi>:</mi><mo stretchy="false">&#x00028;</mo><mn>2</mn><mo>&#x0002C;</mo><mn>2</mn><mo>&#x0002C;</mo><mn>5</mn><mo>&#x0002C;</mo><mn>5</mn><mo stretchy="false">&#x00029;</mo><mo>&#x02192;</mo><mo stretchy="false">&#x00028;</mo><mn>2</mn><mo>&#x0002C;</mo><mn>2</mn><mo>&#x0002C;</mo><mn>5</mn><mo>&#x0002C;</mo><mn>5</mn><mo stretchy="false">&#x00029;</mo></mrow></math>.</p>
+<ul>
+<li><math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msup><mi>g</mi><mi>c</mi></msup><mo>&#x0003D;</mo><mo stretchy="false">&#x00028;</mo><mn>2</mn><mo>&#x0002C;</mo><mn>2</mn><mo stretchy="false">&#x00029;</mo><mo>&#x02192;</mo><mo stretchy="false">&#x00028;</mo><mn>2</mn><mo>&#x0002C;</mo><mn>2</mn><mo stretchy="false">&#x00029;</mo></mrow></math></li>
+<li><math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>g</mi><mo>&#x022C6;</mo><msup><mi>g</mi><mi>c</mi></msup><mi>:</mi><mo stretchy="false">&#x00028;</mo><mn>2</mn><mo>&#x0002C;</mo><mn>2</mn><mo>&#x0002C;</mo><mn>5</mn><mo>&#x0002C;</mo><mn>5</mn><mo stretchy="false">&#x00029;</mo><mo>&#x02192;</mo><mo stretchy="false">&#x00028;</mo><mn>2</mn><mo>&#x0002C;</mo><mn>2</mn><mo>&#x0002C;</mo><mn>5</mn><mo>&#x0002C;</mo><mn>5</mn><mo stretchy="false">&#x00029;</mo></mrow></math> over <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>&#x003B1;</mi><mo>&#x0003D;</mo><mo stretchy="false">&#x00028;</mo><mn>3</mn><mo>&#x0002C;</mo><mn>4</mn><mo>&#x0002C;</mo><mn>1</mn><mo>&#x0002C;</mo><mn>2</mn><mo stretchy="false">&#x00029;</mo></mrow></math></li>
+<li>Composed with <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>f</mi></mrow></math> this will not change because <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>f</mi></mrow></math> is the identity.</li>
+</ul>
+<p><img src="https://bear-images.sfo2.cdn.digitaloceanspaces.com/veitner/product-admissable.webp" alt="Product admissable" /></p>
+<p>Here we have <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>g</mi><mi>:</mi><mo stretchy="false">&#x00028;</mo><mn>16</mn><mo>&#x0002C;</mo><mn>16</mn><mo stretchy="false">&#x00029;</mo><mo>&#x02192;</mo><mo stretchy="false">&#x00028;</mo><mn>16</mn><mo>&#x0002C;</mo><mn>16</mn><mo stretchy="false">&#x00029;</mo></mrow></math> over <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>&#x003B1;</mi><mo>&#x0003D;</mo><mo stretchy="false">&#x00028;</mo><mn>1</mn><mo>&#x0002C;</mo><mn>2</mn><mo stretchy="false">&#x00029;</mo></mrow></math> and <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>f</mi><mi>:</mi><mo stretchy="false">&#x00028;</mo><mn>8</mn><mo>&#x0002C;</mo><mn>8</mn><mo stretchy="false">&#x00029;</mo><mo>&#x02192;</mo><mo stretchy="false">&#x00028;</mo><mn>8</mn><mo>&#x0002C;</mo><mn>8</mn><mo>&#x0002C;</mo><mn>16</mn><mo>&#x0002C;</mo><mn>16</mn><mo stretchy="false">&#x00029;</mo></mrow></math> over <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>&#x003B2;</mi><mo>&#x0003D;</mo><mo stretchy="false">&#x00028;</mo><mn>1</mn><mo>&#x0002C;</mo><mn>2</mn><mo stretchy="false">&#x00029;</mo></mrow></math>. Also we have <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msup><mi>f</mi><mi>c</mi></msup><mi>:</mi><mo stretchy="false">&#x00028;</mo><mn>16</mn><mo>&#x0002C;</mo><mn>16</mn><mo stretchy="false">&#x00029;</mo><mo>&#x02192;</mo><mo stretchy="false">&#x00028;</mo><mn>8</mn><mo>&#x0002C;</mo><mn>8</mn><mo>&#x0002C;</mo><mn>16</mn><mo>&#x0002C;</mo><mn>16</mn><mo stretchy="false">&#x00029;</mo></mrow></math> over <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>&#x003B3;</mi><mo>&#x0003D;</mo><mo stretchy="false">&#x00028;</mo><mn>3</mn><mo>&#x0002C;</mo><mn>4</mn><mo stretchy="false">&#x00029;</mo></mrow></math>. Let us use that to calculate the flat product. Let us do it visually.</p>
+<p>This picture visualises <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msup><mi>f</mi><mi>c</mi></msup><mo>&#x02218;</mo><mi>g</mi></mrow></math></p>
+<p><img src="https://bear-images.sfo2.cdn.digitaloceanspaces.com/veitner/composition-for-flat-product.svg" alt="Composition for Flat Product" /></p>
+<p>If we than perform coalesce with <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>f</mi></mrow></math> we will obtain the picture shown in above figure.</p>
+<p><img src="https://bear-images.sfo2.cdn.digitaloceanspaces.com/veitner/nest-1.webp" alt="Nest" /></p>
+<p>Lets understand the examples:</p>
+<ol>
+<li><math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>S</mi><mo>&#x0003D;</mo><mo stretchy="false">&#x00028;</mo><mn>64</mn><mo>&#x0002C;</mo><mo stretchy="false">&#x00028;</mo><mn>8</mn><mo>&#x0002C;</mo><mn>8</mn><mo stretchy="false">&#x00029;</mo><mo stretchy="false">&#x00029;</mo></mrow></math>, <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>T</mi><mo>&#x0003D;</mo><mo stretchy="false">&#x00028;</mo><mn>64</mn><mo>&#x0002C;</mo><mn>8</mn><mo>&#x0002C;</mo><mn>8</mn><mo stretchy="false">&#x00029;</mo></mrow></math>, <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msup><mi>S</mi><mi>&#x0266D;</mi></msup><mo>&#x0003D;</mo><mo stretchy="false">&#x00028;</mo><mn>64</mn><mo>&#x0002C;</mo><mn>8</mn><mo>&#x0002C;</mo><mn>8</mn><mo stretchy="false">&#x00029;</mo></mrow></math>, <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msup><mi>T</mi><mi>&#x0266D;</mi></msup><mo>&#x0003D;</mo><mi>T</mi></mrow></math>, <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>&#x003B1;</mi><mo>&#x0003D;</mo><mo stretchy="false">&#x00028;</mo><mn>1</mn><mo>&#x0002C;</mo><mn>2</mn><mo>&#x0002C;</mo><mn>3</mn><mo stretchy="false">&#x00029;</mo></mrow></math>.<ul>
+<li><math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msub><mrow><mi mathvariant="normal">e</mi><mi mathvariant="normal">n</mi><mi mathvariant="normal">t</mi><mi mathvariant="normal">r</mi><mi mathvariant="normal">y</mi></mrow><mn>1</mn></msub><mo stretchy="false">&#x00028;</mo><mi>S</mi><mo stretchy="false">&#x00029;</mo><mo>&#x0003D;</mo><mn>64</mn><mo>&#x0003D;</mo><msub><mrow><mi mathvariant="normal">e</mi><mi mathvariant="normal">n</mi><mi mathvariant="normal">t</mi><mi mathvariant="normal">r</mi><mi mathvariant="normal">y</mi></mrow><mrow><mi>&#x003B1;</mi><mo stretchy="false">&#x00028;</mo><mn>1</mn><mo stretchy="false">&#x00029;</mo></mrow></msub><mo stretchy="false">&#x00028;</mo><mi>T</mi><mo stretchy="false">&#x00029;</mo><mo>&#x0003D;</mo><msub><mrow><mi mathvariant="normal">e</mi><mi mathvariant="normal">n</mi><mi mathvariant="normal">t</mi><mi mathvariant="normal">r</mi><mi mathvariant="normal">y</mi></mrow><mrow><mn>1</mn></mrow></msub><mo stretchy="false">&#x00028;</mo><mi>T</mi><mo stretchy="false">&#x00029;</mo></mrow></math></li>
+<li><math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msub><mrow><mi mathvariant="normal">e</mi><mi mathvariant="normal">n</mi><mi mathvariant="normal">t</mi><mi mathvariant="normal">r</mi><mi mathvariant="normal">y</mi></mrow><mn>2</mn></msub><mo stretchy="false">&#x00028;</mo><mi>S</mi><mo stretchy="false">&#x00029;</mo><mo>&#x0003D;</mo><mn>8</mn><mo>&#x0003D;</mo><msub><mrow><mi mathvariant="normal">e</mi><mi mathvariant="normal">n</mi><mi mathvariant="normal">t</mi><mi mathvariant="normal">r</mi><mi mathvariant="normal">y</mi></mrow><mrow><mi>&#x003B1;</mi><mo stretchy="false">&#x00028;</mo><mn>2</mn><mo stretchy="false">&#x00029;</mo></mrow></msub><mo stretchy="false">&#x00028;</mo><mi>T</mi><mo stretchy="false">&#x00029;</mo><mo>&#x0003D;</mo><msub><mrow><mi mathvariant="normal">e</mi><mi mathvariant="normal">n</mi><mi mathvariant="normal">t</mi><mi mathvariant="normal">r</mi><mi mathvariant="normal">y</mi></mrow><mrow><mn>2</mn></mrow></msub><mo stretchy="false">&#x00028;</mo><mi>T</mi><mo stretchy="false">&#x00029;</mo></mrow></math></li>
+<li><math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msub><mrow><mi mathvariant="normal">e</mi><mi mathvariant="normal">n</mi><mi mathvariant="normal">t</mi><mi mathvariant="normal">r</mi><mi mathvariant="normal">y</mi></mrow><mn>3</mn></msub><mo stretchy="false">&#x00028;</mo><mi>S</mi><mo stretchy="false">&#x00029;</mo><mo>&#x0003D;</mo><mn>8</mn><mo>&#x0003D;</mo><msub><mrow><mi mathvariant="normal">e</mi><mi mathvariant="normal">n</mi><mi mathvariant="normal">t</mi><mi mathvariant="normal">r</mi><mi mathvariant="normal">y</mi></mrow><mrow><mi>&#x003B1;</mi><mo stretchy="false">&#x00028;</mo><mn>3</mn><mo stretchy="false">&#x00029;</mo></mrow></msub><mo stretchy="false">&#x00028;</mo><mi>T</mi><mo stretchy="false">&#x00029;</mo><mo>&#x0003D;</mo><msub><mrow><mi mathvariant="normal">e</mi><mi mathvariant="normal">n</mi><mi mathvariant="normal">t</mi><mi mathvariant="normal">r</mi><mi mathvariant="normal">y</mi></mrow><mrow><mn>3</mn></mrow></msub><mo stretchy="false">&#x00028;</mo><mi>T</mi><mo stretchy="false">&#x00029;</mo></mrow></math></li>
+</ul>
+</li>
+<li><math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>S</mi><mo>&#x0003D;</mo><mo stretchy="false">&#x00028;</mo><mo stretchy="false">&#x00028;</mo><mn>2</mn><mo>&#x0002C;</mo><mn>2</mn><mo stretchy="false">&#x00029;</mo><mo>&#x0002C;</mo><mn>2</mn><mo stretchy="false">&#x00029;</mo></mrow></math>, <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>T</mi><mo>&#x0003D;</mo><mo stretchy="false">&#x00028;</mo><mn>10</mn><mo>&#x0002C;</mo><mn>2</mn><mo>&#x0002C;</mo><mn>2</mn><mo>&#x0002C;</mo><mo stretchy="false">&#x00028;</mo><mn>3</mn><mo>&#x0002C;</mo><mn>2</mn><mo>&#x0002C;</mo><mn>3</mn><mo stretchy="false">&#x00029;</mo><mo stretchy="false">&#x00029;</mo></mrow></math>, <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msup><mi>S</mi><mi>&#x0266D;</mi></msup><mo>&#x0003D;</mo><mo stretchy="false">&#x00028;</mo><mn>2</mn><mo>&#x0002C;</mo><mn>2</mn><mo>&#x0002C;</mo><mn>2</mn><mo stretchy="false">&#x00029;</mo></mrow></math>, <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msup><mi>T</mi><mi>&#x0266D;</mi></msup><mo>&#x0003D;</mo><mo stretchy="false">&#x00028;</mo><mn>10</mn><mo>&#x0002C;</mo><mn>2</mn><mo>&#x0002C;</mo><mn>2</mn><mo>&#x0002C;</mo><mn>3</mn><mo>&#x0002C;</mo><mn>2</mn><mo>&#x0002C;</mo><mn>3</mn><mo stretchy="false">&#x00029;</mo></mrow></math>, <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>&#x003B1;</mi><mo>&#x0003D;</mo><mo stretchy="false">&#x00028;</mo><mo>&#x0002A;</mo><mo>&#x0002C;</mo><mn>5</mn><mo>&#x0002C;</mo><mn>2</mn><mo stretchy="false">&#x00029;</mo></mrow></math>.<ul>
+<li><math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msub><mrow><mi mathvariant="normal">e</mi><mi mathvariant="normal">n</mi><mi mathvariant="normal">t</mi><mi mathvariant="normal">r</mi><mi mathvariant="normal">y</mi></mrow><mn>2</mn></msub><mo stretchy="false">&#x00028;</mo><mi>S</mi><mo stretchy="false">&#x00029;</mo><mo>&#x0003D;</mo><mn>2</mn><mo>&#x0003D;</mo><msub><mrow><mi mathvariant="normal">e</mi><mi mathvariant="normal">n</mi><mi mathvariant="normal">t</mi><mi mathvariant="normal">r</mi><mi mathvariant="normal">y</mi></mrow><mrow><mi>&#x003B1;</mi><mo stretchy="false">&#x00028;</mo><mn>2</mn><mo stretchy="false">&#x00029;</mo></mrow></msub><mo stretchy="false">&#x00028;</mo><mi>T</mi><mo stretchy="false">&#x00029;</mo><mo>&#x0003D;</mo><msub><mrow><mi mathvariant="normal">e</mi><mi mathvariant="normal">n</mi><mi mathvariant="normal">t</mi><mi mathvariant="normal">r</mi><mi mathvariant="normal">y</mi></mrow><mrow><mn>5</mn></mrow></msub><mo stretchy="false">&#x00028;</mo><mi>T</mi><mo stretchy="false">&#x00029;</mo></mrow></math></li>
+<li><math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msub><mrow><mi mathvariant="normal">e</mi><mi mathvariant="normal">n</mi><mi mathvariant="normal">t</mi><mi mathvariant="normal">r</mi><mi mathvariant="normal">y</mi></mrow><mn>3</mn></msub><mo stretchy="false">&#x00028;</mo><mi>S</mi><mo stretchy="false">&#x00029;</mo><mo>&#x0003D;</mo><mn>8</mn><mo>&#x0003D;</mo><msub><mrow><mi mathvariant="normal">e</mi><mi mathvariant="normal">n</mi><mi mathvariant="normal">t</mi><mi mathvariant="normal">r</mi><mi mathvariant="normal">y</mi></mrow><mrow><mi>&#x003B1;</mi><mo stretchy="false">&#x00028;</mo><mn>3</mn><mo stretchy="false">&#x00029;</mo></mrow></msub><mo stretchy="false">&#x00028;</mo><mi>T</mi><mo stretchy="false">&#x00029;</mo><mo>&#x0003D;</mo><msub><mrow><mi mathvariant="normal">e</mi><mi mathvariant="normal">n</mi><mi mathvariant="normal">t</mi><mi mathvariant="normal">r</mi><mi mathvariant="normal">y</mi></mrow><mrow><mn>2</mn></mrow></msub><mo stretchy="false">&#x00028;</mo><mi>T</mi><mo stretchy="false">&#x00029;</mo></mrow></math></li>
+</ul>
+</li>
+<li><math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>S</mi><mo>&#x0003D;</mo><mn>64</mn></mrow></math>, <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>T</mi><mo>&#x0003D;</mo><mo stretchy="false">&#x00028;</mo><mo stretchy="false">&#x00028;</mo><mn>64</mn><mo>&#x0002C;</mo><mn>64</mn><mo stretchy="false">&#x00029;</mo><mo>&#x0002C;</mo><mn>512</mn><mo stretchy="false">&#x00029;</mo></mrow></math>, <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msup><mi>S</mi><mi>&#x0266D;</mi></msup><mo>&#x0003D;</mo><mo stretchy="false">&#x00028;</mo><mn>64</mn><mo stretchy="false">&#x00029;</mo></mrow></math>, <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msup><mi>T</mi><mi>&#x0266D;</mi></msup><mo>&#x0003D;</mo><mo stretchy="false">&#x00028;</mo><mn>64</mn><mo>&#x0002C;</mo><mn>64</mn><mo>&#x0002C;</mo><mn>512</mn><mo stretchy="false">&#x00029;</mo></mrow></math>, <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>&#x003B1;</mi><mo>&#x0003D;</mo><mo stretchy="false">&#x00028;</mo><mn>2</mn><mo stretchy="false">&#x00029;</mo></mrow></math>.<ul>
+<li><math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msub><mrow><mi mathvariant="normal">e</mi><mi mathvariant="normal">n</mi><mi mathvariant="normal">t</mi><mi mathvariant="normal">r</mi><mi mathvariant="normal">y</mi></mrow><mn>1</mn></msub><mo stretchy="false">&#x00028;</mo><mi>S</mi><mo stretchy="false">&#x00029;</mo><mo>&#x0003D;</mo><mn>64</mn><mo>&#x0003D;</mo><msub><mrow><mi mathvariant="normal">e</mi><mi mathvariant="normal">n</mi><mi mathvariant="normal">t</mi><mi mathvariant="normal">r</mi><mi mathvariant="normal">y</mi></mrow><mrow><mi>&#x003B1;</mi><mo stretchy="false">&#x00028;</mo><mn>1</mn><mo stretchy="false">&#x00029;</mo></mrow></msub><mo stretchy="false">&#x00028;</mo><mi>T</mi><mo stretchy="false">&#x00029;</mo><mo>&#x0003D;</mo><msub><mrow><mi mathvariant="normal">e</mi><mi mathvariant="normal">n</mi><mi mathvariant="normal">t</mi><mi mathvariant="normal">r</mi><mi mathvariant="normal">y</mi></mrow><mrow><mn>2</mn></mrow></msub><mo stretchy="false">&#x00028;</mo><mi>T</mi><mo stretchy="false">&#x00029;</mo></mrow></math></li>
+</ul>
+</li>
+</ol>
+<p><img src="https://bear-images.sfo2.cdn.digitaloceanspaces.com/veitner/layout-general-1.webp" alt="Layout general" /></p>
+<p><img src="https://bear-images.sfo2.cdn.digitaloceanspaces.com/veitner/layout-encoding-general.webp" alt="Layout encoding general" /></p>
+<p>Let us derive by hand:</p>
+<p><math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mo stretchy="false">&#x00028;</mo><mo stretchy="false">&#x00028;</mo><mn>8</mn><mo>&#x0002C;</mo><mn>8</mn><mo stretchy="false">&#x00029;</mo><mo>&#x0002C;</mo><mo stretchy="false">&#x00028;</mo><mn>4</mn><mo>&#x0002C;</mo><mn>4</mn><mo stretchy="false">&#x00029;</mo><mo stretchy="false">&#x00029;</mo><mo>&#x02192;</mo><mo stretchy="false">&#x00028;</mo><mn>8</mn><mo>&#x0002C;</mo><mn>4</mn><mo>&#x0002C;</mo><mn>4</mn><mo>&#x0002C;</mo><mn>8</mn><mo stretchy="false">&#x00029;</mo></mrow></math> over <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>&#x003B1;</mi><mo>&#x0003D;</mo><mo stretchy="false">&#x00028;</mo><mn>1</mn><mo>&#x0002C;</mo><mn>4</mn><mo>&#x0002C;</mo><mn>3</mn><mo>&#x0002C;</mo><mn>2</mn><mo stretchy="false">&#x00029;</mo></mrow></math>:</p>
+<ul>
+<li><math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>P</mi><mo>&#x0003D;</mo><mo stretchy="false">&#x00028;</mo><mo stretchy="false">&#x00028;</mo><mo>&#x0002A;</mo><mo>&#x0002C;</mo><mo>&#x0002A;</mo><mo stretchy="false">&#x00029;</mo><mo>&#x0002C;</mo><mo stretchy="false">&#x00028;</mo><mo>&#x0002A;</mo><mo>&#x0002C;</mo><mo>&#x0002A;</mo><mo stretchy="false">&#x00029;</mo><mo stretchy="false">&#x00029;</mo></mrow></math></li>
+<li><math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msub><mi>d</mi><mn>1</mn></msub><mo>&#x0003D;</mo><mn>1</mn></mrow></math> (empty Product)</li>
+<li><math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msub><mi>d</mi><mn>2</mn></msub><mo>&#x0003D;</mo><mn>8</mn><mi>&#x000B7;</mi><mn>4</mn><mi>&#x000B7;</mi><mn>4</mn><mo>&#x0003D;</mo><mn>128</mn></mrow></math></li>
+<li><math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msub><mi>d</mi><mn>3</mn></msub><mo>&#x0003D;</mo><mn>8</mn><mi>&#x000B7;</mi><mn>4</mn><mo>&#x0003D;</mo><mn>32</mn></mrow></math></li>
+<li><math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msub><mi>d</mi><mn>4</mn></msub><mo>&#x0003D;</mo><mn>8</mn></mrow></math></li>
+<li>Equip <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mrow><mi mathvariant="normal">s</mi><mi mathvariant="normal">t</mi><mi mathvariant="normal">r</mi><mi mathvariant="normal">i</mi><mi mathvariant="normal">d</mi><mi mathvariant="normal">e</mi></mrow></mrow></math> with <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>P</mi></mrow></math> gives <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mrow><mi mathvariant="normal">s</mi><mi mathvariant="normal">t</mi><mi mathvariant="normal">r</mi><mi mathvariant="normal">i</mi><mi mathvariant="normal">d</mi><mi mathvariant="normal">e</mi></mrow><mo stretchy="false">&#x00028;</mo><msub><mi>L</mi><mi>f</mi></msub><mo stretchy="false">&#x00029;</mo><mo>&#x0003D;</mo><mo stretchy="false">&#x00028;</mo><mo stretchy="false">&#x00028;</mo><mn>1</mn><mo>&#x0002C;</mo><mn>128</mn><mo stretchy="false">&#x00029;</mo><mo>&#x0002C;</mo><mo stretchy="false">&#x00028;</mo><mn>32</mn><mo>&#x0002C;</mo><mn>8</mn><mo stretchy="false">&#x00029;</mo><mo stretchy="false">&#x00029;</mo></mrow></math></li>
+<li>Combining with <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mrow><mi mathvariant="normal">s</mi><mi mathvariant="normal">h</mi><mi mathvariant="normal">a</mi><mi mathvariant="normal">p</mi><mi mathvariant="normal">e</mi></mrow></mrow></math> gives <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msub><mi>L</mi><mi>f</mi></msub><mo>&#x0003D;</mo><mo stretchy="false">&#x00028;</mo><mo stretchy="false">&#x00028;</mo><mn>8</mn><mo>&#x0002C;</mo><mn>8</mn><mo stretchy="false">&#x00029;</mo><mo>&#x0002C;</mo><mo stretchy="false">&#x00028;</mo><mn>4</mn><mo>&#x0002C;</mo><mn>4</mn><mo stretchy="false">&#x00029;</mo><mo stretchy="false">&#x00029;</mo><mi>:</mi><mo stretchy="false">&#x00028;</mo><mo stretchy="false">&#x00028;</mo><mn>1</mn><mo>&#x0002C;</mo><mn>128</mn><mo stretchy="false">&#x00029;</mo><mo>&#x0002C;</mo><mo stretchy="false">&#x00028;</mo><mn>32</mn><mo>&#x0002C;</mo><mn>8</mn><mo stretchy="false">&#x00029;</mo><mo stretchy="false">&#x00029;</mo></mrow></math></li>
+</ul>
+<p><math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mo stretchy="false">&#x00028;</mo><mn>128</mn><mo>&#x0002C;</mo><mo stretchy="false">&#x00028;</mo><mn>4</mn><mo>&#x0002C;</mo><mn>4</mn><mo>&#x0002C;</mo><mn>2</mn><mo stretchy="false">&#x00029;</mo><mo stretchy="false">&#x00029;</mo><mo>&#x02192;</mo><mo stretchy="false">&#x00028;</mo><mo stretchy="false">&#x00028;</mo><mn>4</mn><mo>&#x0002C;</mo><mn>4</mn><mo stretchy="false">&#x00029;</mo><mo>&#x0002C;</mo><mn>128</mn><mo stretchy="false">&#x00029;</mo></mrow></math> over <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mo stretchy="false">&#x00028;</mo><mn>3</mn><mo>&#x0002C;</mo><mn>1</mn><mo>&#x0002C;</mo><mn>2</mn><mo>&#x0002C;</mo><mo>&#x0002A;</mo><mo stretchy="false">&#x00029;</mo></mrow></math></p>
+<ul>
+<li><math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>P</mi><mo>&#x0003D;</mo><mo stretchy="false">&#x00028;</mo><mo>&#x0002A;</mo><mo>&#x0002C;</mo><mo stretchy="false">&#x00028;</mo><mo>&#x0002A;</mo><mo>&#x0002C;</mo><mo>&#x0002A;</mo><mo>&#x0002C;</mo><mo>&#x0002A;</mo><mo stretchy="false">&#x00029;</mo><mo stretchy="false">&#x00029;</mo></mrow></math></li>
+<li><math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msub><mi>d</mi><mn>1</mn></msub><mo>&#x0003D;</mo><mn>4</mn><mi>&#x000B7;</mi><mn>4</mn></mrow></math></li>
+<li><math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msub><mi>d</mi><mn>2</mn></msub><mo>&#x0003D;</mo><mn>1</mn></mrow></math>, empty product</li>
+<li><math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msub><mi>d</mi><mn>3</mn></msub><mo>&#x0003D;</mo><mn>4</mn></mrow></math></li>
+<li><math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msub><mi>d</mi><mn>4</mn></msub><mo>&#x0003D;</mo><mn>0</mn></mrow></math> because <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>&#x003B1;</mi><mo stretchy="false">&#x00028;</mo><mn>4</mn><mo stretchy="false">&#x00029;</mo><mo>&#x0003D;</mo><mo>&#x0002A;</mo></mrow></math></li>
+<li>Equip <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mrow><mi mathvariant="normal">s</mi><mi mathvariant="normal">t</mi><mi mathvariant="normal">r</mi><mi mathvariant="normal">i</mi><mi mathvariant="normal">d</mi><mi mathvariant="normal">e</mi></mrow></mrow></math> with <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>P</mi></mrow></math> gives <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mrow><mi mathvariant="normal">s</mi><mi mathvariant="normal">t</mi><mi mathvariant="normal">r</mi><mi mathvariant="normal">i</mi><mi mathvariant="normal">d</mi><mi mathvariant="normal">e</mi></mrow><mo stretchy="false">&#x00028;</mo><msub><mi>L</mi><mi>g</mi></msub><mo stretchy="false">&#x00029;</mo><mo>&#x0003D;</mo><mo stretchy="false">&#x00028;</mo><mn>16</mn><mo>&#x0002C;</mo><mo stretchy="false">&#x00028;</mo><mn>1</mn><mo>&#x0002C;</mo><mn>4</mn><mo>&#x0002C;</mo><mn>0</mn><mo stretchy="false">&#x00029;</mo><mo stretchy="false">&#x00029;</mo></mrow></math></li>
+<li>Combining with <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mrow><mi mathvariant="normal">s</mi><mi mathvariant="normal">h</mi><mi mathvariant="normal">a</mi><mi mathvariant="normal">p</mi><mi mathvariant="normal">e</mi></mrow></mrow></math> gives <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msub><mi>L</mi><mi>g</mi></msub><mo>&#x0003D;</mo><mo stretchy="false">&#x00028;</mo><mn>128</mn><mo>&#x0002C;</mo><mo stretchy="false">&#x00028;</mo><mn>4</mn><mo>&#x0002C;</mo><mn>4</mn><mo>&#x0002C;</mo><mn>2</mn><mo stretchy="false">&#x00029;</mo><mo stretchy="false">&#x00029;</mo><mi>:</mi><mo stretchy="false">&#x00028;</mo><mn>16</mn><mo>&#x0002C;</mo><mo stretchy="false">&#x00028;</mo><mn>1</mn><mo>&#x0002C;</mo><mn>4</mn><mo>&#x0002C;</mo><mn>0</mn><mo stretchy="false">&#x00029;</mo><mo stretchy="false">&#x00029;</mo></mrow></math></li>
+</ul>
+<p><img src="https://bear-images.sfo2.cdn.digitaloceanspaces.com/veitner/standard-form-general.webp" alt="Standard Form general" /></p>
+<p>Definition of standard form is similar to above, see <strong>3.2.2.10</strong>.</p>
+<p><img src="https://bear-images.sfo2.cdn.digitaloceanspaces.com/veitner/concat-general.webp" alt="Concat general" /></p>
+<p>Note that concatenation works such that we define two nested tuples to be in concatenation if the corresponding flattening of nested tuples is in concatenation.</p>
+<p>We may note that above we have very clearly for <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msup><mi>f</mi><mi>&#x0266D;</mi></msup><mi>:</mi><mo stretchy="false">&#x00028;</mo><mn>3</mn><mo>&#x0002C;</mo><mn>512</mn><mo>&#x0002C;</mo><mn>512</mn><mo stretchy="false">&#x00029;</mo><mo>&#x02192;</mo><mo stretchy="false">&#x00028;</mo><mn>2</mn><mo>&#x0002C;</mo><mn>512</mn><mo>&#x0002C;</mo><mn>2</mn><mo>&#x0002C;</mo><mn>512</mn><mo stretchy="false">&#x00029;</mo></mrow></math> over <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mo stretchy="false">&#x00028;</mo><mo>&#x0002A;</mo><mo>&#x0002C;</mo><mn>2</mn><mo>&#x0002C;</mo><mn>4</mn><mo stretchy="false">&#x00029;</mo></mrow></math> and <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msup><mi>g</mi><mi>&#x0266D;</mi></msup><mi>:</mi><mo stretchy="false">&#x00028;</mo><mn>2</mn><mo>&#x0002C;</mo><mn>2</mn><mo stretchy="false">&#x00029;</mo><mo>&#x02192;</mo><mo stretchy="false">&#x00028;</mo><mn>2</mn><mo>&#x0002C;</mo><mn>512</mn><mo>&#x0002C;</mo><mn>2</mn><mo>&#x0002C;</mo><mn>512</mn><mo stretchy="false">&#x00029;</mo></mrow></math> over <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mo stretchy="false">&#x00028;</mo><mn>1</mn><mo>&#x0002C;</mo><mn>3</mn><mo stretchy="false">&#x00029;</mo></mrow></math> that their concatenation is simply <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msup><mi>f</mi><mi>&#x0266D;</mi></msup><mo>&#x022C6;</mo><msup><mi>g</mi><mi>&#x0266D;</mi></msup><mo>&#x0003D;</mo><mo stretchy="false">&#x00028;</mo><mn>3</mn><mo>&#x0002C;</mo><mn>512</mn><mo>&#x0002C;</mo><mn>512</mn><mo>&#x0002C;</mo><mn>2</mn><mo>&#x0002C;</mo><mn>2</mn><mo stretchy="false">&#x00029;</mo><mo>&#x02192;</mo><mo stretchy="false">&#x00028;</mo><mn>2</mn><mo>&#x0002C;</mo><mn>512</mn><mo>&#x0002C;</mo><mn>2</mn><mo>&#x0002C;</mo><mn>512</mn><mo stretchy="false">&#x00029;</mo></mrow></math> over <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>&#x003B3;</mi><mo>&#x0003D;</mo><mo stretchy="false">&#x00028;</mo><mo>&#x0002A;</mo><mo>&#x0002C;</mo><mn>2</mn><mo>&#x0002C;</mo><mn>4</mn><mo>&#x0002C;</mo><mn>1</mn><mo>&#x0002C;</mo><mn>3</mn><mo stretchy="false">&#x00029;</mo></mrow></math>. Than using that concat is map from <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mo stretchy="false">&#x00028;</mo><mi>S</mi><mo>&#x0002C;</mo><mi>U</mi><mo stretchy="false">&#x00029;</mo><mo>&#x02192;</mo><mi>T</mi></mrow></math> as given in <strong>3.2.6.4</strong> will tell us with which profile, i.e. <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mo stretchy="false">&#x00028;</mo><msub><mi>P</mi><mi>S</mi></msub><mo>&#x0002C;</mo><msub><mi>P</mi><mi>U</mi></msub><mo stretchy="false">&#x00029;</mo></mrow></math>, to equip the above flat Layout and we obtain above result. Note that <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msub><mi>P</mi><mi>S</mi></msub><mo>&#x0003D;</mo><mo stretchy="false">&#x00028;</mo><mo>&#x0002A;</mo><mo>&#x0002C;</mo><mo stretchy="false">&#x00028;</mo><mo>&#x0002A;</mo><mo>&#x0002C;</mo><mo>&#x0002A;</mo><mo stretchy="false">&#x00029;</mo><mo stretchy="false">&#x00029;</mo></mrow></math> and <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msub><mi>P</mi><mi>U</mi></msub><mo>&#x0003D;</mo><mo stretchy="false">&#x00028;</mo><mo>&#x0002A;</mo><mo>&#x0002C;</mo><mo>&#x0002A;</mo><mo stretchy="false">&#x00029;</mo></mrow></math>.</p>
+<p><img src="https://bear-images.sfo2.cdn.digitaloceanspaces.com/veitner/coalesce-general-1.webp" alt="Coalesce general" /></p>
+<p>Let us calculate above example.</p>
+<p>We have that <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>m</mi><mo>&#x0003D;</mo><mn>3</mn></mrow></math>, so <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mrow><mi mathvariant="normal">c</mi><mi mathvariant="normal">o</mi><mi mathvariant="normal">a</mi><mi mathvariant="normal">l</mi></mrow><mo stretchy="false">&#x00028;</mo><mi>f</mi><mo stretchy="false">&#x00029;</mo><mo>&#x0003D;</mo><msup><mrow><mi mathvariant="normal">c</mi><mi mathvariant="normal">o</mi><mi mathvariant="normal">a</mi><mi mathvariant="normal">l</mi></mrow><mi>&#x0266D;</mi></msup><mo stretchy="false">&#x00028;</mo><msup><mi>f</mi><mi>&#x0266D;</mi></msup><mo stretchy="false">&#x00029;</mo></mrow></math>.</p>
+<ul>
+<li><math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msup><mi>f</mi><mi>&#x0266D;</mi></msup><mo>&#x0003D;</mo><mo stretchy="false">&#x00028;</mo><mn>2</mn><mo>&#x0002C;</mo><mn>2</mn><mo>&#x0002C;</mo><mn>3</mn><mo>&#x0002C;</mo><mn>3</mn><mo>&#x0002C;</mo><mn>5</mn><mo>&#x0002C;</mo><mn>5</mn><mo stretchy="false">&#x00029;</mo><mo>&#x02192;</mo><mo stretchy="false">&#x00028;</mo><mn>5</mn><mo>&#x0002C;</mo><mn>5</mn><mo>&#x0002C;</mo><mn>3</mn><mo>&#x0002C;</mo><mn>3</mn><mo>&#x0002C;</mo><mn>2</mn><mo>&#x0002C;</mo><mn>2</mn><mo stretchy="false">&#x00029;</mo></mrow></math> over <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>&#x003B1;</mi><mo>&#x0003D;</mo><mo stretchy="false">&#x00028;</mo><mn>5</mn><mo>&#x0002C;</mo><mn>6</mn><mo>&#x0002C;</mo><mn>3</mn><mo>&#x0002C;</mo><mn>4</mn><mo>&#x0002C;</mo><mn>1</mn><mo>&#x0002C;</mo><mn>2</mn><mo stretchy="false">&#x00029;</mo></mrow></math>.</li>
+</ul>
+<p>Before we continue let's remember:</p>
+<hr />
+<p>Let us summarise the 4 conditions in 2) in words and give their visual interpretation</p>
+<ol>
+<li>If <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>i</mi></mrow></math> doesn't have an arrow to the right, <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>i</mi><mo>&#x0002B;</mo><mn>1</mn></mrow></math> has one</li>
+<li>If <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>i</mi></mrow></math> has an arrow to the right, than <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>i</mi><mo>&#x0002B;</mo><mn>1</mn></mrow></math> has doesn't have one.</li>
+<li><math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>i</mi></mrow></math> "points" to a higher point in <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>T</mi></mrow></math> than <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>i</mi><mo>&#x0002B;</mo><mn>1</mn></mrow></math>. (This implies the arrows cross)</li>
+<li><math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>i</mi><mo>&#x0002B;</mo><mn>1</mn></mrow></math> "points" to a higher point in <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>T</mi></mrow></math> than <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>i</mi></mrow></math>. (This implies the arrows don't cross) Furthermore we have a value larger than one between the two values the two arrows point to.
+We demand S to be squeezed (i.e. all ones removed) and for each entry except the last one one of the above 4 conditions to be true. Than we say a tuple morphism is coalesced.</li>
+</ol>
+<hr />
+<p>Let us draw picture of <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msup><mi>f</mi><mi>&#x0266D;</mi></msup></mrow></math>.</p>
+<p><img src="https://bear-images.sfo2.cdn.digitaloceanspaces.com/veitner/coalesce-general-2.svg" alt="Coalesce General" /></p>
+<p>Note that if we reduce the adjacent nodes into one by multiplying (because they violate 4) from above) we will obtain the following picture</p>
+<p><img src="https://bear-images.sfo2.cdn.digitaloceanspaces.com/veitner/coalesce-general-2-1.svg" alt="Coalesce General 2" /></p>
+<p>Check for the first entry that it obeys rule 3) from above. Check for second entry that it obeys 3) as well. Therefore the morphism is coalesced. It is given by <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mo stretchy="false">&#x00028;</mo><mn>4</mn><mo>&#x0002C;</mo><mn>9</mn><mo>&#x0002C;</mo><mn>25</mn><mo stretchy="false">&#x00029;</mo><mo>&#x02192;</mo><mo stretchy="false">&#x00028;</mo><mn>25</mn><mo>&#x0002C;</mo><mn>9</mn><mo>&#x0002C;</mo><mn>4</mn><mo stretchy="false">&#x00029;</mo></mrow></math> over <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mo stretchy="false">&#x00028;</mo><mn>3</mn><mo>&#x0002C;</mo><mn>2</mn><mo>&#x0002C;</mo><mn>1</mn><mo stretchy="false">&#x00029;</mo></mrow></math>.</p>
+<p><img src="https://bear-images.sfo2.cdn.digitaloceanspaces.com/veitner/complement-general-1.webp" alt="Complement general" /></p>
+<p>Let us verify:</p>
+<ul>
+<li><math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msup><mi>f</mi><mi>&#x0266D;</mi></msup><mo>&#x0003D;</mo><mo stretchy="false">&#x00028;</mo><mn>2</mn><mo>&#x0002C;</mo><mn>2</mn><mo>&#x0002C;</mo><mn>5</mn><mo>&#x0002C;</mo><mn>5</mn><mo stretchy="false">&#x00029;</mo><mo>&#x02192;</mo><mo stretchy="false">&#x00028;</mo><mn>2</mn><mo>&#x0002C;</mo><mn>5</mn><mo>&#x0002C;</mo><mn>7</mn><mo>&#x0002C;</mo><mn>2</mn><mo>&#x0002C;</mo><mn>5</mn><mo>&#x0002C;</mo><mn>7</mn><mo stretchy="false">&#x00029;</mo></mrow></math> over <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mo stretchy="false">&#x00028;</mo><mn>1</mn><mo>&#x0002C;</mo><mn>4</mn><mo>&#x0002C;</mo><mn>2</mn><mo>&#x0002C;</mo><mn>5</mn><mo stretchy="false">&#x00029;</mo></mrow></math>. Similar to calculation for complement above we have <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mo stretchy="false">&#x00028;</mo><msub><mi>j</mi><mn>1</mn></msub><mo>&#x0002C;</mo><msub><mi>j</mi><mn>2</mn></msub><mo stretchy="false">&#x00029;</mo><mo>&#x0003D;</mo><mo stretchy="false">&#x00028;</mo><mn>3</mn><mo>&#x0002C;</mo><mn>6</mn><mo stretchy="false">&#x00029;</mo></mrow></math> and therefore <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mo stretchy="false">&#x00028;</mo><msup><mi>f</mi><mi>&#x0266D;</mi></msup><msup><mo stretchy="false">&#x00029;</mo><mi>c</mi></msup><mi>:</mi><mo stretchy="false">&#x00028;</mo><mn>7</mn><mo>&#x0002C;</mo><mn>7</mn><mo stretchy="false">&#x00029;</mo><mo>&#x02192;</mo><mo stretchy="false">&#x00028;</mo><mn>2</mn><mo>&#x0002C;</mo><mn>5</mn><mo>&#x0002C;</mo><mn>7</mn><mo>&#x0002C;</mo><mn>2</mn><mo>&#x0002C;</mo><mn>5</mn><mo>&#x0002C;</mo><mn>7</mn><mo stretchy="false">&#x00029;</mo></mrow></math> over <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mo stretchy="false">&#x00028;</mo><mn>3</mn><mo>&#x0002C;</mo><mn>6</mn><mo stretchy="false">&#x00029;</mo></mrow></math>.</li>
+<li>We perform "unflattening" by equipping <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>T</mi></mrow></math> with appropriate profile and obtain <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msup><mi>f</mi><mi>c</mi></msup><mi>:</mi><mo stretchy="false">&#x00028;</mo><mn>7</mn><mo>&#x0002C;</mo><mn>7</mn><mo stretchy="false">&#x00029;</mo><mo>&#x02192;</mo><mo stretchy="false">&#x00028;</mo><mo stretchy="false">&#x00028;</mo><mn>2</mn><mo>&#x0002C;</mo><mn>5</mn><mo>&#x0002C;</mo><mn>7</mn><mo stretchy="false">&#x00029;</mo><mo>&#x0002C;</mo><mo stretchy="false">&#x00028;</mo><mn>2</mn><mo>&#x0002C;</mo><mn>5</mn><mo>&#x0002C;</mo><mn>7</mn><mo stretchy="false">&#x00029;</mo><mo stretchy="false">&#x00029;</mo></mrow></math> like shown above.</li>
+</ul>
+<p><img src="https://bear-images.sfo2.cdn.digitaloceanspaces.com/veitner/logical-product-1.webp" alt="Logical Product 1" /></p>
+<p>We have obviously that the <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mrow><mi mathvariant="normal">c</mi><mi mathvariant="normal">o</mi><mi mathvariant="normal">d</mi><mi mathvariant="normal">o</mi><mi mathvariant="normal">m</mi><mi mathvariant="normal">a</mi><mi mathvariant="normal">i</mi><mi mathvariant="normal">n</mi></mrow><mo stretchy="false">&#x00028;</mo><mi>g</mi><mo stretchy="false">&#x00029;</mo></mrow></math> is <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mrow><mi mathvariant="normal">d</mi><mi mathvariant="normal">o</mi><mi mathvariant="normal">m</mi><mi mathvariant="normal">a</mi><mi mathvariant="normal">i</mi><mi mathvariant="normal">n</mi></mrow><mo stretchy="false">&#x00028;</mo><mi>f</mi><mo stretchy="false">&#x00029;</mo></mrow></math>. We have that <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msup><mi>g</mi><mi>c</mi></msup><mi>:</mi><mn>2</mn><mo>&#x02192;</mo><mo stretchy="false">&#x00028;</mo><mo stretchy="false">&#x00028;</mo><mn>2</mn><mo>&#x0002C;</mo><mn>2</mn><mo stretchy="false">&#x00029;</mo><mo>&#x0002C;</mo><mn>2</mn><mo stretchy="false">&#x00029;</mo></mrow></math> over <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mo stretchy="false">&#x00028;</mo><mn>2</mn><mo stretchy="false">&#x00029;</mo></mrow></math>. Therefore <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mo stretchy="false">&#x00028;</mo><mi>g</mi><mo>&#x0002C;</mo><msup><mi>g</mi><mi>c</mi></msup><mo stretchy="false">&#x00029;</mo><mo>&#x0003D;</mo><mo stretchy="false">&#x00028;</mo><mo stretchy="false">&#x00028;</mo><mn>2</mn><mo>&#x0002C;</mo><mn>2</mn><mo stretchy="false">&#x00029;</mo><mo>&#x0002C;</mo><mn>2</mn><mo stretchy="false">&#x00029;</mo><mo>&#x02192;</mo><mo stretchy="false">&#x00028;</mo><mo stretchy="false">&#x00028;</mo><mn>2</mn><mo>&#x0002C;</mo><mn>2</mn><mo stretchy="false">&#x00029;</mo><mo>&#x0002C;</mo><mn>2</mn><mo stretchy="false">&#x00029;</mo></mrow></math> over <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mo stretchy="false">&#x00028;</mo><mn>1</mn><mo>&#x0002C;</mo><mn>3</mn><mo>&#x0002C;</mo><mn>2</mn><mo stretchy="false">&#x00029;</mo></mrow></math>. We than compose <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>&#x003B1;</mi><mo>&#x0003D;</mo><mo stretchy="false">&#x00028;</mo><mn>2</mn><mo>&#x0002C;</mo><mn>4</mn><mo>&#x0002C;</mo><mo>&#x0002A;</mo><mo stretchy="false">&#x00029;</mo></mrow></math> with <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>&#x003B2;</mi><mo>&#x0003D;</mo><mo stretchy="false">&#x00028;</mo><mn>1</mn><mo>&#x0002C;</mo><mn>3</mn><mo>&#x0002C;</mo><mn>2</mn><mo stretchy="false">&#x00029;</mo></mrow></math> and this gives <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>&#x003B3;</mi><mo>&#x0003D;</mo><mi>&#x003B1;</mi><mo>&#x02218;</mo><mi>&#x003B2;</mi></mrow></math>. Lets determine <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>&#x003B3;</mi></mrow></math> by simply substituting the possible values.</p>
+<ul>
+<li><math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>&#x003B3;</mi><mo stretchy="false">&#x00028;</mo><mn>1</mn><mo stretchy="false">&#x00029;</mo><mo>&#x0003D;</mo><mi>&#x003B1;</mi><mo stretchy="false">&#x00028;</mo><mi>&#x003B2;</mi><mo stretchy="false">&#x00028;</mo><mn>1</mn><mo stretchy="false">&#x00029;</mo><mo stretchy="false">&#x00029;</mo><mo>&#x0003D;</mo><mi>&#x003B1;</mi><mo stretchy="false">&#x00028;</mo><mn>1</mn><mo stretchy="false">&#x00029;</mo><mo>&#x0003D;</mo><mn>2</mn></mrow></math></li>
+<li><math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>&#x003B3;</mi><mo stretchy="false">&#x00028;</mo><mn>2</mn><mo stretchy="false">&#x00029;</mo><mo>&#x0003D;</mo><mi>&#x003B1;</mi><mo stretchy="false">&#x00028;</mo><mi>&#x003B2;</mi><mo stretchy="false">&#x00028;</mo><mn>2</mn><mo stretchy="false">&#x00029;</mo><mo stretchy="false">&#x00029;</mo><mo>&#x0003D;</mo><mi>&#x003B1;</mi><mo stretchy="false">&#x00028;</mo><mn>3</mn><mo stretchy="false">&#x00029;</mo><mo>&#x0003D;</mo><mo>&#x0002A;</mo></mrow></math></li>
+<li><math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>&#x003B3;</mi><mo stretchy="false">&#x00028;</mo><mn>3</mn><mo stretchy="false">&#x00029;</mo><mo>&#x0003D;</mo><mi>&#x003B1;</mi><mo stretchy="false">&#x00028;</mo><mi>&#x003B2;</mi><mo stretchy="false">&#x00028;</mo><mn>3</mn><mo stretchy="false">&#x00029;</mo><mo stretchy="false">&#x00029;</mo><mo>&#x0003D;</mo><mi>&#x003B1;</mi><mo stretchy="false">&#x00028;</mo><mn>2</mn><mo stretchy="false">&#x00029;</mo><mo>&#x0003D;</mo><mn>4</mn></mrow></math>
+Therefore we have that <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mo stretchy="false">&#x00028;</mo><mo stretchy="false">&#x00028;</mo><mn>2</mn><mo>&#x0002C;</mo><mn>2</mn><mo stretchy="false">&#x00029;</mo><mo>&#x0002C;</mo><mn>2</mn><mo stretchy="false">&#x00029;</mo><mo>&#x02192;</mo><mo stretchy="false">&#x00028;</mo><mo stretchy="false">&#x00028;</mo><mn>4</mn><mo>&#x0002C;</mo><mn>2</mn><mo stretchy="false">&#x00029;</mo><mo>&#x0002C;</mo><mo stretchy="false">&#x00028;</mo><mn>4</mn><mo>&#x0002C;</mo><mn>2</mn><mo stretchy="false">&#x00029;</mo><mo stretchy="false">&#x00029;</mo></mrow></math> over <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mo stretchy="false">&#x00028;</mo><mn>2</mn><mo>&#x0002C;</mo><mo>&#x0002A;</mo><mo>&#x0002C;</mo><mn>4</mn><mo stretchy="false">&#x00029;</mo></mrow></math> is the logical product as indicated in the picture.</li>
+</ul>
+<h2 id=conclusion>Conclusion</h2><p>I hope this paper makes the new calculation mechanism by Colfax more accessible. Please refer to their original <a href='https://research.colfax-intl.com/categorical-foundations-for-cute-layouts/'>Paper</a> and consider starring the accompanying repo on <a href='https://github.com/ColfaxResearch/layout-categories'>Github</a>. I am happy to connect on <a href='https://www.linkedin.com/in/simon-veitner-174a681b6/'>Linkedin</a> to exchange ideas.</p>
+
+
+    
+
+    
+        
+
+        
+            <form id="upvote-form" action="/upvote/" method="post" style="display: inline">
+    <small>
+        <input hidden name="uid" value="itnnFWzCztyaUtKCTHmR" style="display:none">
+        <input hidden name="title" value="Applied introduction to Categorical treatment of CuTe" style="display:none">
+
+        <button
+            class="upvote-button"
+            aria-label="Toast this post"
+            title="Toast this post"
+        >
+            <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" class="css-i6dzq1">
+                <polyline points="17 11 12 6 7 11"></polyline>
+                <polyline points="17 18 12 13 7 18"></polyline>
+            </svg>
+            <small class="upvote-count" aria-hidden="true">&nbsp;</small>
+        </button>
+    </small>        
+</form>
+
+<script>
+    const $upvoteButton = document.querySelector('.upvote-button');
+    const $upvoteCount =  document.querySelector('.upvote-count')
+
+    fetch('/upvote-info/itnnFWzCztyaUtKCTHmR/').then(response => response.json()).then(data => {
+        $upvoteCount.innerText = data.upvote_count;
+        if (data.upvoted) {
+            $upvoteButton.disabled = true
+            $upvoteButton.style.color = "salmon"
+            $upvoteButton.ariaLabel = "Toasted"
+            $upvoteButton.title = "Toasted"
+        }
+        $upvoteButton.ariaLabel += ` (${data.upvote_count})`
+    });
+
+    let moved = false;
+    let pageLoaded = Date.now();
+
+    document.addEventListener('touchmove', () => moved = true);
+    document.addEventListener('mousemove', () => moved = true);
+
+    document.querySelector('#upvote-form').addEventListener('submit', (e) => {
+        e.preventDefault();
+
+        if (moved) {
+            document.querySelector('input[name="title"]').value = "";
+        }
+        if (Date.now() - pageLoaded < 2000 || !moved) {
+            return;
+        }
+
+        fetch(e.target.action, {
+            method: 'post',
+            body: new FormData(e.target),
+        });
+        
+        $upvoteButton.disabled = true
+        $upvoteButton.style.color = "salmon"
+        $upvoteButton.ariaLabel = "Toasted"
+        $upvoteButton.title = "Toasted"
+        const newUpvoteCount = `${(parseInt($upvoteCount.innerHTML.split(" ")[0]) + 1)}`
+        $upvoteCount.innerHTML = newUpvoteCount
+        $upvoteButton.ariaLabel += ` (${newUpvoteCount})`
+    });
+</script>
+        
+
+        
+            <script>
+            window.addEventListener("load", () => {
+                if (navigator.webdriver !== true) {
+                    const sendHit = score => {
+                        const params = new URLSearchParams({
+                            blog: "veitner",
+                            token: "itnnFWzCztyaUtKCTHmR",
+                            referrer: document.referrer.includes("veitner.bearblog.dev") ? "" : document.referrer,
+                            title: "",
+                            score: score
+                        });
+                        new Image().src = `/hit/?${params.toString()}`;
+                    };
+
+                    document.addEventListener('touchmove', () => sendHit(100), { once: true });
+                    document.addEventListener('mousemove', () => sendHit(100), { once: true });
+                }
+            });
+            </script>
+        
+    
+
+
+  </main>
+  <footer>
+    
+    
+    <span>
+        Powered by <a href="https://bearblog.dev">Bear <span role="img" class="bear" aria-label="ASCII bear logo">ʕ•ᴥ•ʔ</span></a>
+    </span>
+
+  </footer>
+
+  
+  <script>
+        (() => {
+          "use strict";
+          const times = document.querySelectorAll('time');
+          const format_string = "d M, Y" || "d M, Y"
+
+          times.forEach(time => {
+              time.innerText = formatDate(time.dateTime, format_string)
+          });
+
+          function formatDate(dateStr, formatStr) {
+            const date = new Date(dateStr);
+            const day = date.getDate();
+            const month = date.getMonth();
+            const year = date.getFullYear();
+            const weekday = date.getDay();
+            const hours = date.getHours();
+            const minutes = date.getMinutes();
+            const monthsFull = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+            const monthsShort = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+            const daysFull = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+            const daysShort = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+            
+            function getOrdinal(n) {
+                const s = ['th', 'st', 'nd', 'rd'];
+                const v = n % 100;
+                return s[(v - 20) % 10] || s[v] || s[0];
+            }
+            
+            const map = {
+                'd': () => day.toString().padStart(2, '0'),
+                'm': () => (month + 1).toString().padStart(2, '0'),
+                'Y': () => year.toString(),
+                'y': () => year.toString().slice(-2),
+                'F': () => monthsFull[month],
+                'j': () => day.toString(),
+                'D': () => daysShort[weekday],
+                'l': () => daysFull[weekday],
+                'S': () => getOrdinal(day),
+                'M': () => monthsShort[month],
+                'H': () => hours.toString().padStart(2, '0'),
+                'h': () => {
+                    let h = hours % 12;
+                    h = h === 0 ? 12 : h;
+                    return h.toString().padStart(2, '0');
+                },
+                'g': () => {
+                    let h = hours % 12;
+                    return h === 0 ? '12' : h.toString();
+                },
+                'i': () => minutes.toString().padStart(2, '0'),
+                'a': () => hours < 12 ? 'am' : 'pm',
+                'A': () => hours < 12 ? 'AM' : 'PM',
+            };
+            
+            let result = '';
+            for (let char of formatStr) {
+                result += map[char] ? map[char]() : char;
+            }
+            return result;
+        }
+        })();
+    </script>
+    
+</body>
+<!-- ID: veitner -->
+<!-- 🐻 -->
+</html>

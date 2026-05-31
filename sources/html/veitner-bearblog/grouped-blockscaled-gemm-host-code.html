@@ -1,0 +1,842 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!-- Powered by Bear Blog -->
+
+<head>
+  
+  
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5">
+  
+  <title>Grouped Blockscaled Gemm - Host code | simons blog</title>
+  <link rel="canonical" href="https://veitner.bearblog.dev/grouped-blockscaled-gemm-host-code/">
+  
+    
+
+    <meta name="veitner" content="look-for-the-bear-necessities">
+    <meta name="token" content="rAtFmaIBZRkJgQVUEKYk">
+
+    
+<!-- Primary Meta Tags -->
+<meta name="title" content="Grouped Blockscaled Gemm - Host code">
+<meta name="description" content="This is the next blogpost where I aim to explain grouped blockscaled GEMM for B200 GPUs in a top down manner.
+Before studying the internals of Grouped Block...">
+
+<!-- Open Graph / Facebook -->
+<meta property="og:site_name" content="simons blog">
+<meta property="og:title" content="Grouped Blockscaled Gemm - Host code">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://veitner.bearblog.dev/grouped-blockscaled-gemm-host-code/">
+<meta property="og:description" content="This is the next blogpost where I aim to explain grouped blockscaled GEMM for B200 GPUs in a top down manner.
+Before studying the internals of Grouped Block...">
+<meta property="og:image" content="/static/og-image.png">
+
+
+<!-- Twitter -->
+<meta property="twitter:card" content="summary">
+<meta property="twitter:url" content="https://veitner.bearblog.dev/grouped-blockscaled-gemm-host-code/">
+<meta property="twitter:title" content="Grouped Blockscaled Gemm - Host code">
+<meta property="twitter:description" content="This is the next blogpost where I aim to explain grouped blockscaled GEMM for B200 GPUs in a top down manner.
+Before studying the internals of Grouped Block...">
+<meta property="twitter:image" content="/static/og-image.png">
+
+
+
+<!-- Microdata -->
+<script type="application/ld+json">
+  {
+    "@context": "http://schema.org",
+    "@type": "article",
+    "name": "Grouped Blockscaled Gemm - Host code",
+    "headline": "Grouped Blockscaled Gemm - Host code",
+    "url": "https://veitner.bearblog.dev/grouped-blockscaled-gemm-host-code/",
+    "description": "This is the next blogpost where I aim to explain grouped blockscaled GEMM for B200 GPUs in a top down manner.
+Before studying the internals of Grouped Block...",
+    "image": "/static/og-image.png"
+  }
+</script>
+    <link rel="alternate" type="application/atom+xml" href="/feed/" title="simons blog">
+    <link rel="alternate" type="application/rss+xml" href="/feed/?type=rss" title="simons blog">
+
+  
+    
+
+    
+    <style>pre { line-height: 125%; }
+td.linenos .normal { color: #666666; background-color: transparent; padding-left: 5px; padding-right: 5px; }
+span.linenos { color: #666666; background-color: transparent; padding-left: 5px; padding-right: 5px; }
+td.linenos .special { color: #000000; background-color: #ffffc0; padding-left: 5px; padding-right: 5px; }
+span.linenos.special { color: #000000; background-color: #ffffc0; padding-left: 5px; padding-right: 5px; }
+.highlight .hll { background-color: #ffffcc }
+.highlight { background: #f0f0f0; }
+.highlight .c { color: #60A0B0; font-style: italic } /* Comment */
+.highlight .err { border: 1px solid #F00 } /* Error */
+.highlight .k { color: #007020; font-weight: bold } /* Keyword */
+.highlight .o { color: #666 } /* Operator */
+.highlight .ch { color: #60A0B0; font-style: italic } /* Comment.Hashbang */
+.highlight .cm { color: #60A0B0; font-style: italic } /* Comment.Multiline */
+.highlight .cp { color: #007020 } /* Comment.Preproc */
+.highlight .cpf { color: #60A0B0; font-style: italic } /* Comment.PreprocFile */
+.highlight .c1 { color: #60A0B0; font-style: italic } /* Comment.Single */
+.highlight .cs { color: #60A0B0; background-color: #FFF0F0 } /* Comment.Special */
+.highlight .gd { color: #A00000 } /* Generic.Deleted */
+.highlight .ge { font-style: italic } /* Generic.Emph */
+.highlight .ges { font-weight: bold; font-style: italic } /* Generic.EmphStrong */
+.highlight .gr { color: #F00 } /* Generic.Error */
+.highlight .gh { color: #000080; font-weight: bold } /* Generic.Heading */
+.highlight .gi { color: #00A000 } /* Generic.Inserted */
+.highlight .go { color: #888 } /* Generic.Output */
+.highlight .gp { color: #C65D09; font-weight: bold } /* Generic.Prompt */
+.highlight .gs { font-weight: bold } /* Generic.Strong */
+.highlight .gu { color: #800080; font-weight: bold } /* Generic.Subheading */
+.highlight .gt { color: #04D } /* Generic.Traceback */
+.highlight .kc { color: #007020; font-weight: bold } /* Keyword.Constant */
+.highlight .kd { color: #007020; font-weight: bold } /* Keyword.Declaration */
+.highlight .kn { color: #007020; font-weight: bold } /* Keyword.Namespace */
+.highlight .kp { color: #007020 } /* Keyword.Pseudo */
+.highlight .kr { color: #007020; font-weight: bold } /* Keyword.Reserved */
+.highlight .kt { color: #902000 } /* Keyword.Type */
+.highlight .m { color: #40A070 } /* Literal.Number */
+.highlight .s { color: #4070A0 } /* Literal.String */
+.highlight .na { color: #4070A0 } /* Name.Attribute */
+.highlight .nb { color: #007020 } /* Name.Builtin */
+.highlight .nc { color: #0E84B5; font-weight: bold } /* Name.Class */
+.highlight .no { color: #60ADD5 } /* Name.Constant */
+.highlight .nd { color: #555; font-weight: bold } /* Name.Decorator */
+.highlight .ni { color: #D55537; font-weight: bold } /* Name.Entity */
+.highlight .ne { color: #007020 } /* Name.Exception */
+.highlight .nf { color: #06287E } /* Name.Function */
+.highlight .nl { color: #002070; font-weight: bold } /* Name.Label */
+.highlight .nn { color: #0E84B5; font-weight: bold } /* Name.Namespace */
+.highlight .nt { color: #062873; font-weight: bold } /* Name.Tag */
+.highlight .nv { color: #BB60D5 } /* Name.Variable */
+.highlight .ow { color: #007020; font-weight: bold } /* Operator.Word */
+.highlight .w { color: #BBB } /* Text.Whitespace */
+.highlight .mb { color: #40A070 } /* Literal.Number.Bin */
+.highlight .mf { color: #40A070 } /* Literal.Number.Float */
+.highlight .mh { color: #40A070 } /* Literal.Number.Hex */
+.highlight .mi { color: #40A070 } /* Literal.Number.Integer */
+.highlight .mo { color: #40A070 } /* Literal.Number.Oct */
+.highlight .sa { color: #4070A0 } /* Literal.String.Affix */
+.highlight .sb { color: #4070A0 } /* Literal.String.Backtick */
+.highlight .sc { color: #4070A0 } /* Literal.String.Char */
+.highlight .dl { color: #4070A0 } /* Literal.String.Delimiter */
+.highlight .sd { color: #4070A0; font-style: italic } /* Literal.String.Doc */
+.highlight .s2 { color: #4070A0 } /* Literal.String.Double */
+.highlight .se { color: #4070A0; font-weight: bold } /* Literal.String.Escape */
+.highlight .sh { color: #4070A0 } /* Literal.String.Heredoc */
+.highlight .si { color: #70A0D0; font-style: italic } /* Literal.String.Interpol */
+.highlight .sx { color: #C65D09 } /* Literal.String.Other */
+.highlight .sr { color: #235388 } /* Literal.String.Regex */
+.highlight .s1 { color: #4070A0 } /* Literal.String.Single */
+.highlight .ss { color: #517918 } /* Literal.String.Symbol */
+.highlight .bp { color: #007020 } /* Name.Builtin.Pseudo */
+.highlight .fm { color: #06287E } /* Name.Function.Magic */
+.highlight .vc { color: #BB60D5 } /* Name.Variable.Class */
+.highlight .vg { color: #BB60D5 } /* Name.Variable.Global */
+.highlight .vi { color: #BB60D5 } /* Name.Variable.Instance */
+.highlight .vm { color: #BB60D5 } /* Name.Variable.Magic */
+.highlight .il { color: #40A070 } /* Literal.Number.Integer.Long */
+</style>
+  
+  
+  
+    
+        <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20100%20100'%3E%3Ctext%20y='.9em'%20font-size='90'%3E🐼%3C/text%3E%3C/svg%3E">
+    
+
+
+
+  <style>
+      
+      
+    
+:root {
+    --width: 720px;
+    --font-main: Verdana, sans-serif;
+    --font-secondary: Verdana, sans-serif;
+    --font-scale: 1em;
+    --background-color: #fff;
+    --heading-color: #222;
+    --text-color: #444;
+    --link-color: #3273dc;
+    --visited-color:  #8b6fcb;
+    --code-background-color: #f2f2f2;
+    --code-color: #222;
+    --blockquote-color: #222;
+}
+
+@media (prefers-color-scheme: dark) {
+    :root {
+        --background-color: #01242e;
+        --heading-color: #eee;
+        --text-color: #ddd;
+        --link-color: #8cc2dd;
+        --visited-color:  #8b6fcb;
+        --code-background-color: #000;
+        --code-color: #ddd;
+        --blockquote-color: #ccc;
+    }
+}
+
+body {
+    font-family: var(--font-secondary);
+    font-size: var(--font-scale);
+    margin: auto;
+    padding: 20px;
+    max-width: var(--width);
+    text-align: left;
+    background-color: var(--background-color);
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    line-height: 1.5;
+    color: var(--text-color);
+}
+
+h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-main);
+    color: var(--heading-color);
+}
+
+a {
+    color: var(--link-color);
+    cursor: pointer;
+    text-decoration: none;
+}
+
+a:hover {
+    text-decoration: underline; 
+}
+
+nav a {
+    margin-right: 8px;
+}
+
+strong, b {
+    color: var(--heading-color);
+}
+
+button {
+    margin: 0;
+    cursor: pointer;
+}
+
+time {
+ 	font-family: monospace;
+  	font-style: normal;
+  	font-size: 15px;
+}
+
+main {
+    line-height: 1.6;
+}
+
+table {
+    width: 100%;
+}
+
+hr {
+    border: 0;
+    border-top: 1px dashed;
+}
+
+img {
+    max-width: 100%;
+}
+
+code {
+    font-family: monospace;
+    padding: 2px;
+    background-color: var(--code-background-color);
+    color: var(--code-color);
+    border-radius: 3px;
+}
+
+blockquote {
+    border-left: 1px solid #999;
+    color: var(--code-color);
+    padding-left: 20px;
+    font-style: italic;
+}
+
+footer {
+    padding: 25px 0;
+    text-align: center;
+}
+
+.title:hover {
+    text-decoration: none;
+}
+
+.title h1 {
+    font-size: 1.5em;
+}
+
+.inline {
+    width: auto !important;
+}
+
+.highlight, .code {
+    padding: 1px 15px;
+    background-color: var(--code-background-color);
+    color: var(--code-color);
+    border-radius: 3px;
+    margin-block-start: 1em;
+    margin-block-end: 1em;
+    overflow-x: auto;
+}
+
+/* blog post list */
+ul.blog-posts {
+    list-style-type: none;
+    padding: unset;
+}
+
+ul.blog-posts li {
+    display: flex;
+}
+
+ul.blog-posts li span {
+    flex: 0 0 130px;
+}
+
+ul.blog-posts li a:visited {
+    color: var(--visited-color);
+}
+    .upvote-button {
+        padding: 0;
+        margin: 0;
+        border: 0;
+        background-color: inherit;
+        color: inherit;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+    .upvote-button.upvoted {
+        color: salmon;
+    }
+    .upvote-count {
+        margin-top: -3px;
+    }
+
+      
+  </style>
+</head>
+
+<body class="post " onload="(function() { document.cookie = `timezone=${Intl.DateTimeFormat().resolvedOptions().timeZone};path=/`; })()">
+  
+  <header>
+    <a class="title" href="/">
+      <h1>
+        simons blog
+      </h1>
+    </a>
+    <nav>
+      <p><a href='/'>Home</a> <a href='/blog/'>Blog</a></p>
+
+    </nav>
+  </header>
+  <main>
+    
+
+    
+
+    
+        <h1>Grouped Blockscaled Gemm - Host code</h1>
+
+        <p>
+            <i>
+                <time datetime="2026-01-24T16:58Z">
+    24 Jan, 2026
+</time>
+            </i>
+        </p>
+    
+
+    <p>This is the next blogpost where I aim to explain grouped blockscaled GEMM for B200 GPUs in a top down manner.
+Before studying the internals of Grouped Blockscaled GEMM Kernel we should understand the setup of MMA and TMA, tile scheduler and other parts which are important during kernel execution. This blogs aims to explain the parts that are different from the usual persistent blockscaled dense gemm approach.</p>
+<h2 id=codecallcode><code>call</code></h2><div class="highlight"><pre><span></span>    <span class="nd">@cute</span><span class="o">.</span><span class="n">jit</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__call__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">initial_a</span><span class="p">:</span> <span class="n">cute</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span>
+        <span class="n">initial_b</span><span class="p">:</span> <span class="n">cute</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span>
+        <span class="n">initial_c</span><span class="p">:</span> <span class="n">cute</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span>
+        <span class="n">initial_sfa</span><span class="p">:</span> <span class="n">cute</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span>
+        <span class="n">initial_sfb</span><span class="p">:</span> <span class="n">cute</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span>
+        <span class="n">group_count</span><span class="p">:</span> <span class="n">cutlass</span><span class="o">.</span><span class="n">Constexpr</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span>
+        <span class="n">problem_shape_mnkl</span><span class="p">:</span> <span class="n">cute</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span>
+        <span class="n">strides_abc</span><span class="p">:</span> <span class="n">cute</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span>
+        <span class="n">tensor_address_abc</span><span class="p">:</span> <span class="n">cute</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span>
+        <span class="n">tensor_address_sfasfb</span><span class="p">:</span> <span class="n">cute</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span>
+        <span class="n">total_num_clusters</span><span class="p">:</span> <span class="n">cutlass</span><span class="o">.</span><span class="n">Constexpr</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span>
+        <span class="n">tensormap_cute_tensor</span><span class="p">:</span> <span class="n">cute</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span>
+        <span class="n">max_active_clusters</span><span class="p">:</span> <span class="n">cutlass</span><span class="o">.</span><span class="n">Constexpr</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span>
+        <span class="n">stream</span><span class="p">:</span> <span class="n">cuda</span><span class="o">.</span><span class="n">CUstream</span><span class="p">,</span>
+    <span class="p">):</span>
+</pre></div>
+<p>Let's quickly recap the meaning of each of this arguments:</p>
+<ul>
+<li><code>initial_{a|b|c}</code>: These are the smallest <code>a</code>, <code>b</code>, <code>c</code> across all groups where by smallest we mean smallest "Area" of matrix, i.e. <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msub><mo>min</mo><mrow><msub><mi>M</mi><mi>g</mi></msub><mo>&#x0002C;</mo><msub><mi>K</mi><mi>g</mi></msub><mtext>&#x000A0;</mtext><mi>:</mi><mtext>&#x000A0;</mtext><mi>g</mi><mtext>&#x000A0;</mtext><mo>&#x02208;</mo><mtext>&#x000A0;</mtext><mi>G</mi></mrow></msub><msub><mi>M</mi><mi>g</mi></msub><msub><mi>K</mi><mi>g</mi></msub></mrow></math>  for <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>A</mi></mrow></math> and similar for the other matrices.</li>
+<li><code>initial_{sfa|sfb}</code>: Corresponding scale factors for <code>a</code> and <code>b</code> above.</li>
+<li><code>group_count</code>: Number of groups. Known at compile time.</li>
+<li><code>problem_shape_mnkl</code>: Tensor containing the problem shape for each group</li>
+<li><code>strides_abc</code>: Tensor with Layout <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mo stretchy="false">&#x00028;</mo><msub><mi>N</mi><mi>g</mi></msub><mo>&#x0002C;</mo><mn>3</mn><mo>&#x0002C;</mo><mn>2</mn><mo stretchy="false">&#x00029;</mo><mi>:</mi><mo stretchy="false">&#x00028;</mo><mn>6</mn><mo>&#x0002C;</mo><mn>2</mn><mo>&#x0002C;</mo><mn>1</mn><mo stretchy="false">&#x00029;</mo></mrow></math> where first mode is the group index, second mode is wether we deal with <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>A</mi></mrow></math>, <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>B</mi></mrow></math> or <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>C</mi></mrow></math> and last index are the strides in <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>M</mi></mrow></math> mode and <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>K</mi></mrow></math> mode for <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>A</mi></mrow></math>, <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>N</mi></mrow></math> mode and <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>K</mi></mrow></math> mode for <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>B</mi></mrow></math> and <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>M</mi></mrow></math> mode and <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>N</mi></mrow></math> mode for <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>C</mi></mrow></math>. Note the strides for each tensor are 2 dimensional because the <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>L</mi></mrow></math> mode is always chosen to be one and therefore trivially given</li>
+<li><code>tensor_address_abc</code>: Tensor with Layout <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mo stretchy="false">&#x00028;</mo><msub><mi>N</mi><mi>g</mi></msub><mo>&#x0002C;</mo><mn>3</mn><mo stretchy="false">&#x00029;</mo><mi>:</mi><mo stretchy="false">&#x00028;</mo><mn>3</mn><mo>&#x0002C;</mo><mn>1</mn><mo stretchy="false">&#x00029;</mo></mrow></math>. First mode is group index, second mode is wether we deal with <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>A</mi></mrow></math>, <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>B</mi></mrow></math> or <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>C</mi></mrow></math>. Each entry is a pointer to the the corresponding tensor within the group.</li>
+<li><code>tensor_address_sfasfb</code>: Corresponding pointers to the scale factors for each group.</li>
+<li><code>total_num_clusters</code>: The total number of tiles we need to cover <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>C</mi></mrow></math> within each group summed up (taken into account potential cluster we use). Known at compile time.</li>
+<li><code>tensormap_cute_tensor</code>: Buffers of tensormaps, each buffer corresponds to one <code>SM</code> and contains 5 tensormaps. Created from an empty torch tensor (i.e. initially contains garbage).</li>
+<li><code>max_active_clusters</code>: Determined by hardware. User chosen number of clusters but capped with the maximum available clusters of our hardware. Known at compile time.</li>
+<li><code>stream</code>: The stream we launch our kernel within.</li>
+</ul>
+<p>In the following we will briefly go over the "usual" Blackwell GPU stuff. Please take a look at my other Blackwell blogs if you feel lost at any point. If there is something new I will explain it in more detail.</p>
+<div class="highlight"><pre><span></span>        <span class="bp">self</span><span class="o">.</span><span class="n">a_dtype</span> <span class="o">=</span> <span class="n">initial_a</span><span class="o">.</span><span class="n">element_type</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">b_dtype</span> <span class="o">=</span> <span class="n">initial_b</span><span class="o">.</span><span class="n">element_type</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sf_dtype</span> <span class="o">=</span> <span class="n">initial_sfa</span><span class="o">.</span><span class="n">element_type</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">c_dtype</span> <span class="o">=</span> <span class="n">initial_c</span><span class="o">.</span><span class="n">element_type</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">a_major_mode</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">LayoutEnum</span><span class="o">.</span><span class="n">from_tensor</span><span class="p">(</span><span class="n">initial_a</span><span class="p">)</span><span class="o">.</span><span class="n">mma_major_mode</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">b_major_mode</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">LayoutEnum</span><span class="o">.</span><span class="n">from_tensor</span><span class="p">(</span><span class="n">initial_b</span><span class="p">)</span><span class="o">.</span><span class="n">mma_major_mode</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">c_layout</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">LayoutEnum</span><span class="o">.</span><span class="n">from_tensor</span><span class="p">(</span><span class="n">initial_c</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">cutlass</span><span class="o">.</span><span class="n">const_expr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">a_dtype</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">b_dtype</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Type mismatch: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">a_dtype</span><span class="si">}</span><span class="s2"> != </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">b_dtype</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="c1"># Setup attributes that dependent on gemm inputs</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_setup_attributes</span><span class="p">()</span>
+</pre></div>
+<p>The <code>_setup_attributes</code> works largely as usual.</p>
+<p>The only major deviation is here. Please read the original code for details, as this is basically just a bookkeeping step to ensure we don't get into troubles with the SMEM.</p>
+<div class="highlight"><pre><span></span>        <span class="n">mbar_smem_bytes</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_mbar_smem_bytes</span><span class="p">(</span>
+            <span class="n">num_acc_stage</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">num_acc_stage</span><span class="p">,</span>
+            <span class="n">num_ab_stage</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">num_ab_stage</span><span class="p">,</span>
+            <span class="n">num_c_stage</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">num_c_stage</span><span class="p">,</span>
+        <span class="p">)</span>
+
+        <span class="c1"># Use utils.TensorMapUpdateMode.SMEM by default</span>
+        <span class="n">tensormap_smem_bytes</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">Sm100GroupedBlockScaledGemmKernel</span><span class="o">.</span><span class="n">bytes_per_tensormap</span>
+            <span class="o">*</span> <span class="n">Sm100GroupedBlockScaledGemmKernel</span><span class="o">.</span><span class="n">num_tensormaps</span>
+        <span class="p">)</span>
+        <span class="k">if</span> <span class="p">(</span>
+            <span class="n">mbar_smem_bytes</span>
+            <span class="o">+</span> <span class="n">tensormap_smem_bytes</span>
+            <span class="o">+</span> <span class="n">Sm100GroupedBlockScaledGemmKernel</span><span class="o">.</span><span class="n">tensor_memory_management_bytes</span>
+            <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">reserved_smem_bytes</span>
+        <span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;smem consumption for mbar and tensormap </span><span class="si">{</span><span class="n">mbar_smem_bytes</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">tensormap_smem_bytes</span><span class="si">}</span><span class="s2"> exceeds the &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;reserved smem bytes </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">reserved_smem_bytes</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="p">)</span>
+</pre></div>
+<p>Afterwards we perform usual setup of tiled MMA and TMA with the <code>initial tensors</code>. Note that this is only relevant for the <code>TMA</code>. That is because the <code>tiled_mma</code> will not use the shape of the <code>initial tensors</code> but only their majorness and datatypes. The SMEM layouts are also the same because they only depend on the tile size we use. So the only difference across different elements is in the GMEM tensor we provide to the helper functions that setup the TMA. We will later see how we assign correct elements to TMA during transfer from GMEM to SMEM later.
+Note we could also just read the docstring here</p>
+<div class="highlight"><pre><span></span>For grouped GEMM, tensor shapes, tensor strides, and tensor address are all provided
+by different tensors in global memory. The &quot;initial&quot; tensors only carry data type and
+majorness information.
+</pre></div>
+<div class="highlight"><pre><span></span>        <span class="c1"># Setup sfa/sfb tensor by filling A/B tensor to scale factor atom layout</span>
+        <span class="c1"># ((Atom_M, Rest_M),(Atom_K, Rest_K),RestL)</span>
+        <span class="n">sfa_layout</span> <span class="o">=</span> <span class="n">blockscaled_utils</span><span class="o">.</span><span class="n">tile_atom_to_shape_SF</span><span class="p">(</span>
+            <span class="n">initial_a</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">sf_vec_size</span>
+        <span class="p">)</span>
+        <span class="n">initial_sfa</span> <span class="o">=</span> <span class="n">cute</span><span class="o">.</span><span class="n">make_tensor</span><span class="p">(</span><span class="n">initial_sfa</span><span class="o">.</span><span class="n">iterator</span><span class="p">,</span> <span class="n">sfa_layout</span><span class="p">)</span>
+
+        <span class="c1"># ((Atom_N, Rest_N),(Atom_K, Rest_K),RestL)</span>
+        <span class="n">sfb_layout</span> <span class="o">=</span> <span class="n">blockscaled_utils</span><span class="o">.</span><span class="n">tile_atom_to_shape_SF</span><span class="p">(</span>
+            <span class="n">initial_b</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">sf_vec_size</span>
+        <span class="p">)</span>
+        <span class="n">initial_sfb</span> <span class="o">=</span> <span class="n">cute</span><span class="o">.</span><span class="n">make_tensor</span><span class="p">(</span><span class="n">initial_sfb</span><span class="o">.</span><span class="n">iterator</span><span class="p">,</span> <span class="n">sfb_layout</span><span class="p">)</span>
+
+        <span class="n">tiled_mma</span> <span class="o">=</span> <span class="n">sm100_utils</span><span class="o">.</span><span class="n">make_blockscaled_trivial_tiled_mma</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">a_dtype</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">a_major_mode</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">b_major_mode</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">sf_dtype</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">sf_vec_size</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">cta_group</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">mma_inst_shape_mn</span><span class="p">,</span>
+        <span class="p">)</span>
+
+        <span class="n">tiled_mma_sfb</span> <span class="o">=</span> <span class="n">sm100_utils</span><span class="o">.</span><span class="n">make_blockscaled_trivial_tiled_mma</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">a_dtype</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">a_major_mode</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">b_major_mode</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">sf_dtype</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">sf_vec_size</span><span class="p">,</span>
+            <span class="n">cute</span><span class="o">.</span><span class="n">nvgpu</span><span class="o">.</span><span class="n">tcgen05</span><span class="o">.</span><span class="n">CtaGroup</span><span class="o">.</span><span class="n">ONE</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">mma_inst_shape_mn_sfb</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="n">atom_thr_size</span> <span class="o">=</span> <span class="n">cute</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="n">tiled_mma</span><span class="o">.</span><span class="n">thr_id</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+
+        <span class="c1"># Setup TMA load for A</span>
+        <span class="n">a_op</span> <span class="o">=</span> <span class="n">sm100_utils</span><span class="o">.</span><span class="n">cluster_shape_to_tma_atom_A</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">cluster_shape_mn</span><span class="p">,</span> <span class="n">tiled_mma</span><span class="o">.</span><span class="n">thr_id</span>
+        <span class="p">)</span>
+        <span class="n">a_smem_layout</span> <span class="o">=</span> <span class="n">cute</span><span class="o">.</span><span class="n">slice_</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">a_smem_layout_staged</span><span class="p">,</span> <span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="mi">0</span><span class="p">))</span>
+        <span class="n">tma_atom_a</span><span class="p">,</span> <span class="n">tma_tensor_a</span> <span class="o">=</span> <span class="n">cute</span><span class="o">.</span><span class="n">nvgpu</span><span class="o">.</span><span class="n">make_tiled_tma_atom_A</span><span class="p">(</span>
+            <span class="n">a_op</span><span class="p">,</span>
+            <span class="n">initial_a</span><span class="p">,</span>
+            <span class="n">a_smem_layout</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">mma_tiler</span><span class="p">,</span>
+            <span class="n">tiled_mma</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">cluster_layout_vmnk</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span>
+        <span class="p">)</span>
+
+        <span class="c1"># Setup TMA load for B</span>
+        <span class="n">b_op</span> <span class="o">=</span> <span class="n">sm100_utils</span><span class="o">.</span><span class="n">cluster_shape_to_tma_atom_B</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">cluster_shape_mn</span><span class="p">,</span> <span class="n">tiled_mma</span><span class="o">.</span><span class="n">thr_id</span>
+        <span class="p">)</span>
+        <span class="n">b_smem_layout</span> <span class="o">=</span> <span class="n">cute</span><span class="o">.</span><span class="n">slice_</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">b_smem_layout_staged</span><span class="p">,</span> <span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="mi">0</span><span class="p">))</span>
+        <span class="n">tma_atom_b</span><span class="p">,</span> <span class="n">tma_tensor_b</span> <span class="o">=</span> <span class="n">cute</span><span class="o">.</span><span class="n">nvgpu</span><span class="o">.</span><span class="n">make_tiled_tma_atom_B</span><span class="p">(</span>
+            <span class="n">b_op</span><span class="p">,</span>
+            <span class="n">initial_b</span><span class="p">,</span>
+            <span class="n">b_smem_layout</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">mma_tiler</span><span class="p">,</span>
+            <span class="n">tiled_mma</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">cluster_layout_vmnk</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span>
+        <span class="p">)</span>
+
+        <span class="c1"># Setup TMA load for SFA</span>
+        <span class="n">sfa_op</span> <span class="o">=</span> <span class="n">sm100_utils</span><span class="o">.</span><span class="n">cluster_shape_to_tma_atom_A</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">cluster_shape_mn</span><span class="p">,</span> <span class="n">tiled_mma</span><span class="o">.</span><span class="n">thr_id</span>
+        <span class="p">)</span>
+        <span class="n">sfa_smem_layout</span> <span class="o">=</span> <span class="n">cute</span><span class="o">.</span><span class="n">slice_</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">sfa_smem_layout_staged</span><span class="p">,</span> <span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="p">)</span>
+        <span class="n">tma_atom_sfa</span><span class="p">,</span> <span class="n">tma_tensor_sfa</span> <span class="o">=</span> <span class="n">cute</span><span class="o">.</span><span class="n">nvgpu</span><span class="o">.</span><span class="n">make_tiled_tma_atom_A</span><span class="p">(</span>
+            <span class="n">sfa_op</span><span class="p">,</span>
+            <span class="n">initial_sfa</span><span class="p">,</span>
+            <span class="n">sfa_smem_layout</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">mma_tiler</span><span class="p">,</span>
+            <span class="n">tiled_mma</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">cluster_layout_vmnk</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span>
+            <span class="n">internal_type</span><span class="o">=</span><span class="n">cutlass</span><span class="o">.</span><span class="n">Int16</span><span class="p">,</span>
+        <span class="p">)</span>
+
+        <span class="c1"># Setup TMA load for SFB</span>
+        <span class="n">sfb_op</span> <span class="o">=</span> <span class="n">sm100_utils</span><span class="o">.</span><span class="n">cluster_shape_to_tma_atom_SFB</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">cluster_shape_mn</span><span class="p">,</span> <span class="n">tiled_mma</span><span class="o">.</span><span class="n">thr_id</span>
+        <span class="p">)</span>
+        <span class="n">sfb_smem_layout</span> <span class="o">=</span> <span class="n">cute</span><span class="o">.</span><span class="n">slice_</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">sfb_smem_layout_staged</span><span class="p">,</span> <span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="p">)</span>
+        <span class="n">tma_atom_sfb</span><span class="p">,</span> <span class="n">tma_tensor_sfb</span> <span class="o">=</span> <span class="n">cute</span><span class="o">.</span><span class="n">nvgpu</span><span class="o">.</span><span class="n">make_tiled_tma_atom_B</span><span class="p">(</span>
+            <span class="n">sfb_op</span><span class="p">,</span>
+            <span class="n">initial_sfb</span><span class="p">,</span>
+            <span class="n">sfb_smem_layout</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">mma_tiler_sfb</span><span class="p">,</span>
+            <span class="n">tiled_mma_sfb</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">cluster_layout_sfb_vmnk</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span>
+            <span class="n">internal_type</span><span class="o">=</span><span class="n">cutlass</span><span class="o">.</span><span class="n">Int16</span><span class="p">,</span>
+        <span class="p">)</span>
+
+        <span class="n">a_copy_size</span> <span class="o">=</span> <span class="n">cute</span><span class="o">.</span><span class="n">size_in_bytes</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">a_dtype</span><span class="p">,</span> <span class="n">a_smem_layout</span><span class="p">)</span>
+        <span class="n">b_copy_size</span> <span class="o">=</span> <span class="n">cute</span><span class="o">.</span><span class="n">size_in_bytes</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">b_dtype</span><span class="p">,</span> <span class="n">b_smem_layout</span><span class="p">)</span>
+        <span class="n">sfa_copy_size</span> <span class="o">=</span> <span class="n">cute</span><span class="o">.</span><span class="n">size_in_bytes</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">sf_dtype</span><span class="p">,</span> <span class="n">sfa_smem_layout</span><span class="p">)</span>
+        <span class="n">sfb_copy_size</span> <span class="o">=</span> <span class="n">cute</span><span class="o">.</span><span class="n">size_in_bytes</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">sf_dtype</span><span class="p">,</span> <span class="n">sfb_smem_layout</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">num_tma_load_bytes</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">a_copy_size</span> <span class="o">+</span> <span class="n">b_copy_size</span> <span class="o">+</span> <span class="n">sfa_copy_size</span> <span class="o">+</span> <span class="n">sfb_copy_size</span>
+        <span class="p">)</span> <span class="o">*</span> <span class="n">atom_thr_size</span>
+
+        <span class="c1"># Setup TMA store for C</span>
+        <span class="n">epi_smem_layout</span> <span class="o">=</span> <span class="n">cute</span><span class="o">.</span><span class="n">slice_</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">c_smem_layout_staged</span><span class="p">,</span> <span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="mi">0</span><span class="p">))</span>
+        <span class="n">tma_atom_c</span><span class="p">,</span> <span class="n">tma_tensor_c</span> <span class="o">=</span> <span class="n">cpasync</span><span class="o">.</span><span class="n">make_tiled_tma_atom</span><span class="p">(</span>
+            <span class="n">cpasync</span><span class="o">.</span><span class="n">CopyBulkTensorTileS2GOp</span><span class="p">(),</span>
+            <span class="n">initial_c</span><span class="p">,</span>
+            <span class="n">epi_smem_layout</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">epi_tile</span><span class="p">,</span>
+        <span class="p">)</span>
+</pre></div>
+<p>Afterwards we compute the grid.</p>
+<div class="highlight"><pre><span></span>        <span class="c1"># Compute grid size</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">tile_sched_params</span><span class="p">,</span> <span class="n">grid</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_compute_grid</span><span class="p">(</span>
+            <span class="n">total_num_clusters</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">cluster_shape_mn</span><span class="p">,</span> <span class="n">max_active_clusters</span>
+        <span class="p">)</span>
+</pre></div>
+<p>Lets take a closer look at how this is done</p>
+<div class="highlight"><pre><span></span>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_compute_grid</span><span class="p">(</span>
+        <span class="n">total_num_clusters</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="n">cluster_shape_mn</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">],</span>
+        <span class="n">max_active_clusters</span><span class="p">:</span> <span class="n">cutlass</span><span class="o">.</span><span class="n">Constexpr</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">utils</span><span class="o">.</span><span class="n">PersistentTileSchedulerParams</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]]:</span>
+        <span class="c1"># Create problem shape with M, N dimensions from cluster shape</span>
+        <span class="c1"># and L dimension representing the total number of clusters.</span>
+        <span class="n">problem_shape_ntile_mnl</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">cluster_shape_mn</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+            <span class="n">cluster_shape_mn</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span>
+            <span class="n">cutlass</span><span class="o">.</span><span class="n">Int32</span><span class="p">(</span><span class="n">total_num_clusters</span><span class="p">),</span>
+        <span class="p">)</span>
+
+        <span class="n">tile_sched_params</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">PersistentTileSchedulerParams</span><span class="p">(</span>
+            <span class="n">problem_shape_ntile_mnl</span><span class="p">,</span> <span class="p">(</span><span class="o">*</span><span class="n">cluster_shape_mn</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="p">)</span>
+
+        <span class="n">grid</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">StaticPersistentTileScheduler</span><span class="o">.</span><span class="n">get_grid_shape</span><span class="p">(</span>
+            <span class="n">tile_sched_params</span><span class="p">,</span> <span class="n">max_active_clusters</span>
+        <span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">tile_sched_params</span><span class="p">,</span> <span class="n">grid</span>
+</pre></div>
+<p>As we can see the setup of the persistent tile scheduler is slightly different from the usual setup which looks like this:</p>
+<div class="highlight"><pre><span></span>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_compute_grid</span><span class="p">(</span>
+        <span class="n">c</span><span class="p">:</span> <span class="n">cute</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span>
+        <span class="n">cta_tile_shape_mnk</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">],</span>
+        <span class="n">cluster_shape_mn</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">],</span>
+        <span class="n">max_active_clusters</span><span class="p">:</span> <span class="n">cutlass</span><span class="o">.</span><span class="n">Constexpr</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">utils</span><span class="o">.</span><span class="n">PersistentTileSchedulerParams</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]]:</span>
+        <span class="n">c_shape</span> <span class="o">=</span> <span class="n">cute</span><span class="o">.</span><span class="n">slice_</span><span class="p">(</span><span class="n">cta_tile_shape_mnk</span><span class="p">,</span> <span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="mi">0</span><span class="p">))</span>
+        <span class="n">gc</span> <span class="o">=</span> <span class="n">cute</span><span class="o">.</span><span class="n">zipped_divide</span><span class="p">(</span><span class="n">c</span><span class="p">,</span> <span class="n">tiler</span><span class="o">=</span><span class="n">c_shape</span><span class="p">)</span>
+        <span class="n">num_ctas_mnl</span> <span class="o">=</span> <span class="n">gc</span><span class="p">[(</span><span class="mi">0</span><span class="p">,</span> <span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">))]</span><span class="o">.</span><span class="n">shape</span>
+        <span class="n">cluster_shape_mnl</span> <span class="o">=</span> <span class="p">(</span><span class="o">*</span><span class="n">cluster_shape_mn</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+
+        <span class="n">tile_sched_params</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">PersistentTileSchedulerParams</span><span class="p">(</span>
+            <span class="n">num_ctas_mnl</span><span class="p">,</span> <span class="n">cluster_shape_mnl</span>
+        <span class="p">)</span>
+        <span class="n">grid</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">StaticPersistentTileScheduler</span><span class="o">.</span><span class="n">get_grid_shape</span><span class="p">(</span>
+            <span class="n">tile_sched_params</span><span class="p">,</span> <span class="n">max_active_clusters</span>
+        <span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">tile_sched_params</span><span class="p">,</span> <span class="n">grid</span>
+</pre></div>
+<p>Let's quickly recap what the code in the persistent blockscaled dense gemm does. We extract <code>(bM, bN)</code> into the <code>c_shape</code>. We'll than use the <code>zipped_divide</code> to obtain layout <code>gc</code> with shape <code>((bM, bN), (RestM, RestN, RestL))</code> and use the first mode as the <code>num_ctas_mnl</code> parameter.</p>
+<p>Contrast that to the group blockscaled kernel: Here we will use the cluster shape as first and second mode of <code>problem_shape_ntile_mnl</code> and in the last mode we put <code>total_num_clusters</code>. Note that <code>total_num_clusters</code> is simply the total number of tiles we need to cover all the <code>(bM, bN)</code> "cluster scaled tiles" across all groups.</p>
+<p>The next step is to setup the SMEM. Note that we have one buffer per SM. And because we have a persistent kernel we will launch a grid where each SM corresponds to one block. So we allocate <code>num_tensor_map</code> tensormaps per block in SMEM.
+The rest is same as for usual persistent kernel.</p>
+<div class="highlight"><pre><span></span>        <span class="bp">self</span><span class="o">.</span><span class="n">buffer_align_bytes</span> <span class="o">=</span> <span class="mi">1024</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">size_tensormap_in_i64</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">Sm100GroupedBlockScaledGemmKernel</span><span class="o">.</span><span class="n">num_tensormaps</span>
+            <span class="o">*</span> <span class="n">Sm100GroupedBlockScaledGemmKernel</span><span class="o">.</span><span class="n">bytes_per_tensormap</span>
+            <span class="o">//</span> <span class="mi">8</span>
+        <span class="p">)</span>
+
+        <span class="c1"># Define shared storage for kernel</span>
+        <span class="nd">@cute</span><span class="o">.</span><span class="n">struct</span>
+        <span class="k">class</span><span class="w"> </span><span class="nc">SharedStorage</span><span class="p">:</span>
+            <span class="n">tensormap_buffer</span><span class="p">:</span> <span class="n">cute</span><span class="o">.</span><span class="n">struct</span><span class="o">.</span><span class="n">MemRange</span><span class="p">[</span>
+                <span class="n">cutlass</span><span class="o">.</span><span class="n">Int64</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">size_tensormap_in_i64</span>
+            <span class="p">]</span>
+            <span class="n">ab_full_mbar_ptr</span><span class="p">:</span> <span class="n">cute</span><span class="o">.</span><span class="n">struct</span><span class="o">.</span><span class="n">MemRange</span><span class="p">[</span><span class="n">cutlass</span><span class="o">.</span><span class="n">Int64</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_ab_stage</span><span class="p">]</span>
+            <span class="n">ab_empty_mbar_ptr</span><span class="p">:</span> <span class="n">cute</span><span class="o">.</span><span class="n">struct</span><span class="o">.</span><span class="n">MemRange</span><span class="p">[</span><span class="n">cutlass</span><span class="o">.</span><span class="n">Int64</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_ab_stage</span><span class="p">]</span>
+            <span class="n">acc_full_mbar_ptr</span><span class="p">:</span> <span class="n">cute</span><span class="o">.</span><span class="n">struct</span><span class="o">.</span><span class="n">MemRange</span><span class="p">[</span><span class="n">cutlass</span><span class="o">.</span><span class="n">Int64</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_acc_stage</span><span class="p">]</span>
+            <span class="n">acc_empty_mbar_ptr</span><span class="p">:</span> <span class="n">cute</span><span class="o">.</span><span class="n">struct</span><span class="o">.</span><span class="n">MemRange</span><span class="p">[</span><span class="n">cutlass</span><span class="o">.</span><span class="n">Int64</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_acc_stage</span><span class="p">]</span>
+            <span class="n">tmem_dealloc_mbar_ptr</span><span class="p">:</span> <span class="n">cutlass</span><span class="o">.</span><span class="n">Int64</span>
+            <span class="n">tmem_holding_buf</span><span class="p">:</span> <span class="n">cutlass</span><span class="o">.</span><span class="n">Int32</span>
+            <span class="c1"># (EPI_TILE_M, EPI_TILE_N, STAGE)</span>
+            <span class="n">sC</span><span class="p">:</span> <span class="n">cute</span><span class="o">.</span><span class="n">struct</span><span class="o">.</span><span class="n">Align</span><span class="p">[</span>
+                <span class="n">cute</span><span class="o">.</span><span class="n">struct</span><span class="o">.</span><span class="n">MemRange</span><span class="p">[</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">c_dtype</span><span class="p">,</span>
+                    <span class="n">cute</span><span class="o">.</span><span class="n">cosize</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">c_smem_layout_staged</span><span class="o">.</span><span class="n">outer</span><span class="p">),</span>
+                <span class="p">],</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">buffer_align_bytes</span><span class="p">,</span>
+            <span class="p">]</span>
+            <span class="c1"># (MMA, MMA_M, MMA_K, STAGE)</span>
+            <span class="n">sA</span><span class="p">:</span> <span class="n">cute</span><span class="o">.</span><span class="n">struct</span><span class="o">.</span><span class="n">Align</span><span class="p">[</span>
+                <span class="n">cute</span><span class="o">.</span><span class="n">struct</span><span class="o">.</span><span class="n">MemRange</span><span class="p">[</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">a_dtype</span><span class="p">,</span> <span class="n">cute</span><span class="o">.</span><span class="n">cosize</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">a_smem_layout_staged</span><span class="o">.</span><span class="n">outer</span><span class="p">)</span>
+                <span class="p">],</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">buffer_align_bytes</span><span class="p">,</span>
+            <span class="p">]</span>
+            <span class="c1"># (MMA, MMA_N, MMA_K, STAGE)</span>
+            <span class="n">sB</span><span class="p">:</span> <span class="n">cute</span><span class="o">.</span><span class="n">struct</span><span class="o">.</span><span class="n">Align</span><span class="p">[</span>
+                <span class="n">cute</span><span class="o">.</span><span class="n">struct</span><span class="o">.</span><span class="n">MemRange</span><span class="p">[</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">b_dtype</span><span class="p">,</span> <span class="n">cute</span><span class="o">.</span><span class="n">cosize</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">b_smem_layout_staged</span><span class="o">.</span><span class="n">outer</span><span class="p">)</span>
+                <span class="p">],</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">buffer_align_bytes</span><span class="p">,</span>
+            <span class="p">]</span>
+            <span class="c1"># (MMA, MMA_M, MMA_K, STAGE)</span>
+            <span class="n">sSFA</span><span class="p">:</span> <span class="n">cute</span><span class="o">.</span><span class="n">struct</span><span class="o">.</span><span class="n">Align</span><span class="p">[</span>
+                <span class="n">cute</span><span class="o">.</span><span class="n">struct</span><span class="o">.</span><span class="n">MemRange</span><span class="p">[</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">sf_dtype</span><span class="p">,</span> <span class="n">cute</span><span class="o">.</span><span class="n">cosize</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">sfa_smem_layout_staged</span><span class="p">)</span>
+                <span class="p">],</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">buffer_align_bytes</span><span class="p">,</span>
+            <span class="p">]</span>
+            <span class="c1"># (MMA, MMA_N, MMA_K, STAGE)</span>
+            <span class="n">sSFB</span><span class="p">:</span> <span class="n">cute</span><span class="o">.</span><span class="n">struct</span><span class="o">.</span><span class="n">Align</span><span class="p">[</span>
+                <span class="n">cute</span><span class="o">.</span><span class="n">struct</span><span class="o">.</span><span class="n">MemRange</span><span class="p">[</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">sf_dtype</span><span class="p">,</span> <span class="n">cute</span><span class="o">.</span><span class="n">cosize</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">sfb_smem_layout_staged</span><span class="p">)</span>
+                <span class="p">],</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">buffer_align_bytes</span><span class="p">,</span>
+            <span class="p">]</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">shared_storage</span> <span class="o">=</span> <span class="n">SharedStorage</span>
+</pre></div>
+<h2 id=conclusion>Conclusion</h2><p>I hope this brief note could successfully explain which steps on the host side are different from the ones for a usual persistent kernel. The next blogpost will continue with the logic within the kernel. Thanks to <a href='https://verda.com/'>Verda</a> which enabled me to do these experiments. If you want to exchange ideas I am happy to connect on <a href='https://www.linkedin.com/in/simon-veitner-174a681b6/'>Linkedin</a>.</p>
+
+
+    
+
+    
+        
+
+        
+            <form id="upvote-form" action="/upvote/" method="post" style="display: inline">
+    <small>
+        <input hidden name="uid" value="rAtFmaIBZRkJgQVUEKYk" style="display:none">
+        <input hidden name="title" value="Grouped Blockscaled Gemm - Host code" style="display:none">
+
+        <button
+            class="upvote-button"
+            aria-label="Toast this post"
+            title="Toast this post"
+        >
+            <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" class="css-i6dzq1">
+                <polyline points="17 11 12 6 7 11"></polyline>
+                <polyline points="17 18 12 13 7 18"></polyline>
+            </svg>
+            <small class="upvote-count" aria-hidden="true">&nbsp;</small>
+        </button>
+    </small>        
+</form>
+
+<script>
+    const $upvoteButton = document.querySelector('.upvote-button');
+    const $upvoteCount =  document.querySelector('.upvote-count')
+
+    fetch('/upvote-info/rAtFmaIBZRkJgQVUEKYk/').then(response => response.json()).then(data => {
+        $upvoteCount.innerText = data.upvote_count;
+        if (data.upvoted) {
+            $upvoteButton.disabled = true
+            $upvoteButton.style.color = "salmon"
+            $upvoteButton.ariaLabel = "Toasted"
+            $upvoteButton.title = "Toasted"
+        }
+        $upvoteButton.ariaLabel += ` (${data.upvote_count})`
+    });
+
+    let moved = false;
+    let pageLoaded = Date.now();
+
+    document.addEventListener('touchmove', () => moved = true);
+    document.addEventListener('mousemove', () => moved = true);
+
+    document.querySelector('#upvote-form').addEventListener('submit', (e) => {
+        e.preventDefault();
+
+        if (moved) {
+            document.querySelector('input[name="title"]').value = "";
+        }
+        if (Date.now() - pageLoaded < 2000 || !moved) {
+            return;
+        }
+
+        fetch(e.target.action, {
+            method: 'post',
+            body: new FormData(e.target),
+        });
+        
+        $upvoteButton.disabled = true
+        $upvoteButton.style.color = "salmon"
+        $upvoteButton.ariaLabel = "Toasted"
+        $upvoteButton.title = "Toasted"
+        const newUpvoteCount = `${(parseInt($upvoteCount.innerHTML.split(" ")[0]) + 1)}`
+        $upvoteCount.innerHTML = newUpvoteCount
+        $upvoteButton.ariaLabel += ` (${newUpvoteCount})`
+    });
+</script>
+        
+
+        
+            <script>
+            window.addEventListener("load", () => {
+                if (navigator.webdriver !== true) {
+                    const sendHit = score => {
+                        const params = new URLSearchParams({
+                            blog: "veitner",
+                            token: "rAtFmaIBZRkJgQVUEKYk",
+                            referrer: document.referrer.includes("veitner.bearblog.dev") ? "" : document.referrer,
+                            title: "",
+                            score: score
+                        });
+                        new Image().src = `/hit/?${params.toString()}`;
+                    };
+
+                    document.addEventListener('touchmove', () => sendHit(100), { once: true });
+                    document.addEventListener('mousemove', () => sendHit(100), { once: true });
+                }
+            });
+            </script>
+        
+    
+
+
+  </main>
+  <footer>
+    
+    
+    <span>
+        Powered by <a href="https://bearblog.dev">Bear <span role="img" class="bear" aria-label="ASCII bear logo">ʕ•ᴥ•ʔ</span></a>
+    </span>
+
+  </footer>
+
+  
+  <script>
+        (() => {
+          "use strict";
+          const times = document.querySelectorAll('time');
+          const format_string = "d M, Y" || "d M, Y"
+
+          times.forEach(time => {
+              time.innerText = formatDate(time.dateTime, format_string)
+          });
+
+          function formatDate(dateStr, formatStr) {
+            const date = new Date(dateStr);
+            const day = date.getDate();
+            const month = date.getMonth();
+            const year = date.getFullYear();
+            const weekday = date.getDay();
+            const hours = date.getHours();
+            const minutes = date.getMinutes();
+            const monthsFull = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+            const monthsShort = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+            const daysFull = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+            const daysShort = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+            
+            function getOrdinal(n) {
+                const s = ['th', 'st', 'nd', 'rd'];
+                const v = n % 100;
+                return s[(v - 20) % 10] || s[v] || s[0];
+            }
+            
+            const map = {
+                'd': () => day.toString().padStart(2, '0'),
+                'm': () => (month + 1).toString().padStart(2, '0'),
+                'Y': () => year.toString(),
+                'y': () => year.toString().slice(-2),
+                'F': () => monthsFull[month],
+                'j': () => day.toString(),
+                'D': () => daysShort[weekday],
+                'l': () => daysFull[weekday],
+                'S': () => getOrdinal(day),
+                'M': () => monthsShort[month],
+                'H': () => hours.toString().padStart(2, '0'),
+                'h': () => {
+                    let h = hours % 12;
+                    h = h === 0 ? 12 : h;
+                    return h.toString().padStart(2, '0');
+                },
+                'g': () => {
+                    let h = hours % 12;
+                    return h === 0 ? '12' : h.toString();
+                },
+                'i': () => minutes.toString().padStart(2, '0'),
+                'a': () => hours < 12 ? 'am' : 'pm',
+                'A': () => hours < 12 ? 'AM' : 'PM',
+            };
+            
+            let result = '';
+            for (let char of formatStr) {
+                result += map[char] ? map[char]() : char;
+            }
+            return result;
+        }
+        })();
+    </script>
+    
+</body>
+<!-- ID: veitner -->
+<!-- 🐻 -->
+</html>

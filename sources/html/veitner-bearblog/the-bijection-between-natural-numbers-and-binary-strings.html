@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!-- Powered by Bear Blog -->
+
+<head>
+  
+  
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5">
+  
+  <title>The Bijection Between Natural Numbers and Binary Strings | simons blog</title>
+  <link rel="canonical" href="https://veitner.bearblog.dev/the-bijection-between-natural-numbers-and-binary-strings/">
+  
+    
+
+    <meta name="veitner" content="look-for-the-bear-necessities">
+    <meta name="token" content="SPiJqEdHiwskQChfFUSv">
+
+    
+<!-- Primary Meta Tags -->
+<meta name="title" content="The Bijection Between Natural Numbers and Binary Strings">
+<meta name="description" content="Computers fundamentally operate on bits and sequences of bits. It is therefore useful to study the associated mathematical structure of the concept of sequen...">
+
+<!-- Open Graph / Facebook -->
+<meta property="og:site_name" content="simons blog">
+<meta property="og:title" content="The Bijection Between Natural Numbers and Binary Strings">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://veitner.bearblog.dev/the-bijection-between-natural-numbers-and-binary-strings/">
+<meta property="og:description" content="Computers fundamentally operate on bits and sequences of bits. It is therefore useful to study the associated mathematical structure of the concept of sequen...">
+<meta property="og:image" content="/static/og-image.png">
+
+
+<!-- Twitter -->
+<meta property="twitter:card" content="summary">
+<meta property="twitter:url" content="https://veitner.bearblog.dev/the-bijection-between-natural-numbers-and-binary-strings/">
+<meta property="twitter:title" content="The Bijection Between Natural Numbers and Binary Strings">
+<meta property="twitter:description" content="Computers fundamentally operate on bits and sequences of bits. It is therefore useful to study the associated mathematical structure of the concept of sequen...">
+<meta property="twitter:image" content="/static/og-image.png">
+
+
+
+<!-- Microdata -->
+<script type="application/ld+json">
+  {
+    "@context": "http://schema.org",
+    "@type": "article",
+    "name": "The Bijection Between Natural Numbers and Binary Strings",
+    "headline": "The Bijection Between Natural Numbers and Binary Strings",
+    "url": "https://veitner.bearblog.dev/the-bijection-between-natural-numbers-and-binary-strings/",
+    "description": "Computers fundamentally operate on bits and sequences of bits. It is therefore useful to study the associated mathematical structure of the concept of sequen...",
+    "image": "/static/og-image.png"
+  }
+</script>
+    <link rel="alternate" type="application/atom+xml" href="/feed/" title="simons blog">
+    <link rel="alternate" type="application/rss+xml" href="/feed/?type=rss" title="simons blog">
+
+  
+    
+
+    
+    
+  
+  
+  
+    
+        <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20100%20100'%3E%3Ctext%20y='.9em'%20font-size='90'%3E🐼%3C/text%3E%3C/svg%3E">
+    
+
+
+
+  <style>
+      
+      
+    
+:root {
+    --width: 720px;
+    --font-main: Verdana, sans-serif;
+    --font-secondary: Verdana, sans-serif;
+    --font-scale: 1em;
+    --background-color: #fff;
+    --heading-color: #222;
+    --text-color: #444;
+    --link-color: #3273dc;
+    --visited-color:  #8b6fcb;
+    --code-background-color: #f2f2f2;
+    --code-color: #222;
+    --blockquote-color: #222;
+}
+
+@media (prefers-color-scheme: dark) {
+    :root {
+        --background-color: #01242e;
+        --heading-color: #eee;
+        --text-color: #ddd;
+        --link-color: #8cc2dd;
+        --visited-color:  #8b6fcb;
+        --code-background-color: #000;
+        --code-color: #ddd;
+        --blockquote-color: #ccc;
+    }
+}
+
+body {
+    font-family: var(--font-secondary);
+    font-size: var(--font-scale);
+    margin: auto;
+    padding: 20px;
+    max-width: var(--width);
+    text-align: left;
+    background-color: var(--background-color);
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    line-height: 1.5;
+    color: var(--text-color);
+}
+
+h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-main);
+    color: var(--heading-color);
+}
+
+a {
+    color: var(--link-color);
+    cursor: pointer;
+    text-decoration: none;
+}
+
+a:hover {
+    text-decoration: underline; 
+}
+
+nav a {
+    margin-right: 8px;
+}
+
+strong, b {
+    color: var(--heading-color);
+}
+
+button {
+    margin: 0;
+    cursor: pointer;
+}
+
+time {
+ 	font-family: monospace;
+  	font-style: normal;
+  	font-size: 15px;
+}
+
+main {
+    line-height: 1.6;
+}
+
+table {
+    width: 100%;
+}
+
+hr {
+    border: 0;
+    border-top: 1px dashed;
+}
+
+img {
+    max-width: 100%;
+}
+
+code {
+    font-family: monospace;
+    padding: 2px;
+    background-color: var(--code-background-color);
+    color: var(--code-color);
+    border-radius: 3px;
+}
+
+blockquote {
+    border-left: 1px solid #999;
+    color: var(--code-color);
+    padding-left: 20px;
+    font-style: italic;
+}
+
+footer {
+    padding: 25px 0;
+    text-align: center;
+}
+
+.title:hover {
+    text-decoration: none;
+}
+
+.title h1 {
+    font-size: 1.5em;
+}
+
+.inline {
+    width: auto !important;
+}
+
+.highlight, .code {
+    padding: 1px 15px;
+    background-color: var(--code-background-color);
+    color: var(--code-color);
+    border-radius: 3px;
+    margin-block-start: 1em;
+    margin-block-end: 1em;
+    overflow-x: auto;
+}
+
+/* blog post list */
+ul.blog-posts {
+    list-style-type: none;
+    padding: unset;
+}
+
+ul.blog-posts li {
+    display: flex;
+}
+
+ul.blog-posts li span {
+    flex: 0 0 130px;
+}
+
+ul.blog-posts li a:visited {
+    color: var(--visited-color);
+}
+    .upvote-button {
+        padding: 0;
+        margin: 0;
+        border: 0;
+        background-color: inherit;
+        color: inherit;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+    .upvote-button.upvoted {
+        color: salmon;
+    }
+    .upvote-count {
+        margin-top: -3px;
+    }
+
+      
+  </style>
+</head>
+
+<body class="post " onload="(function() { document.cookie = `timezone=${Intl.DateTimeFormat().resolvedOptions().timeZone};path=/`; })()">
+  
+  <header>
+    <a class="title" href="/">
+      <h1>
+        simons blog
+      </h1>
+    </a>
+    <nav>
+      <p><a href='/'>Home</a> <a href='/blog/'>Blog</a></p>
+
+    </nav>
+  </header>
+  <main>
+    
+
+    
+
+    
+        <h1>The Bijection Between Natural Numbers and Binary Strings</h1>
+
+        <p>
+            <i>
+                <time datetime="2025-06-05T16:00Z">
+    05 Jun, 2025
+</time>
+            </i>
+        </p>
+    
+
+    <p>Computers fundamentally operate on bits and sequences of bits. It is therefore useful to study the associated mathematical structure of the concept of sequences of bits. In this blogpost we give a brief introduction to the mathematical concept of finite binary strings and it's relation to the natural numbers.</p>
+<p>We write a binary string of length n as <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>x</mi><mo>&#x0003D;</mo><msub><mi>x</mi><mn>1</mn></msub><msub><mi>x</mi><mn>2</mn></msub><mo>&#x0002E;</mo><mo>&#x0002E;</mo><mo>&#x0002E;</mo><msub><mi>x</mi><mi>n</mi></msub></mrow></math> where <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msub><mi>x</mi><mi>i</mi></msub><mo>&#x02208;</mo><mo stretchy="false">&#x0007B;</mo><mn>0</mn><mo>&#x0002C;</mo><mn>1</mn><mo stretchy="false">&#x0007D;</mo></mrow></math>.</p>
+<p>We define the concatenation of two binary string <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>x</mi><mo>&#x0003D;</mo><msub><mi>x</mi><mn>1</mn></msub><mo>&#x0002E;</mo><mo>&#x0002E;</mo><mo>&#x0002E;</mo><msub><mi>x</mi><mi>n</mi></msub></mrow></math> and <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>y</mi><mo>&#x0003D;</mo><msub><mi>y</mi><mn>1</mn></msub><mo>&#x0002E;</mo><mo>&#x0002E;</mo><mo>&#x0002E;</mo><msub><mi>y</mi><mi>m</mi></msub></mrow></math> as <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>x</mi><mi>y</mi><mo>&#x0003D;</mo><msub><mi>x</mi><mn>1</mn></msub><mo>&#x0002E;</mo><mo>&#x0002E;</mo><mo>&#x0002E;</mo><msub><mi>x</mi><mi>n</mi></msub><msub><mi>y</mi><mn>1</mn></msub><mo>&#x0002E;</mo><mo>&#x0002E;</mo><mo>&#x0002E;</mo><msub><mi>y</mi><mi>m</mi></msub></mrow></math>.</p>
+<p>Let <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msup><mtext mathvariant="bold">B</mtext><mo>&#x0002A;</mo></msup><mo>&#x0003D;</mo><mo stretchy="false">&#x0007B;</mo><mi>&#x003F5;</mi><mo>&#x0002C;</mo><mtext mathvariant="italic">0</mtext><mo>&#x0002C;</mo><mtext mathvariant="italic">1</mtext><mo>&#x0002C;</mo><mtext mathvariant="italic">00</mtext><mo>&#x0002C;</mo><mtext mathvariant="italic">01</mtext><mo>&#x0002C;</mo><mtext mathvariant="italic">11</mtext><mo>&#x0002C;</mo><mtext mathvariant="italic">000</mtext><mo>&#x0002C;</mo><mo>&#x0002E;</mo><mo>&#x0002E;</mo><mo>&#x0002E;</mo><mo stretchy="false">&#x0007D;</mo></mrow></math> the set of all finite binary strings with <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>&#x003F5;</mi></mrow></math> the empty string. We call <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>l</mi></mrow></math> the length of a binary string, i.e. <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>l</mi><mo stretchy="false">&#x00028;</mo><mtext mathvariant="italic">00</mtext><mo stretchy="false">&#x00029;</mo><mo>&#x0003D;</mo><mn>2</mn></mrow></math>.</p>
+<p>Let <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>B</mi><mi>:</mi><msup><mtext mathvariant="bold">N</mtext><mo>&#x0002B;</mo></msup><mo>&#x02192;</mo><msup><mtext mathvariant="bold">B</mtext><mo>&#x0002A;</mo></msup></mrow></math> be the function that takes a number and returns its binary representation, i.e. <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>B</mi><mo stretchy="false">&#x00028;</mo><mn>4</mn><mo stretchy="false">&#x00029;</mo><mo>&#x0003D;</mo><mtext mathvariant="italic">100</mtext></mrow></math>.</p>
+<p><math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>B</mi></mrow></math> by itself won't give us a bijection because we can't match binary strings like <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>&#x003F5;</mi></mrow></math> or <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mtext mathvariant="italic">00</mtext></mrow></math>.</p>
+<p>To get a bijection we have to use the following function from <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msub><mtext mathvariant="bold">N</mtext><mn>0</mn></msub></mrow></math> to <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msup><mtext mathvariant="bold">B</mtext><mo>&#x0002A;</mo></msup></mrow></math></p>
+<math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><mrow><mi>&#x027E8;</mi><mi>n</mi><mi>&#x027E9;</mi><mi>:</mi><mo>&#x0003D;</mo><mi>B</mi><mo stretchy="false">&#x00028;</mo><mi>n</mi><mo>&#x0002B;</mo><mn>1</mn><msub><mo stretchy="false">&#x00029;</mo><mrow><mn>2</mn><mi>:</mi><mi>l</mi></mrow></msub><mtext>&#x000A0;where&#x000A0;</mtext><mi>l</mi><mo>&#x0003D;</mo><mi>&#x0230A;</mi><msub><mi>log</mi><mn>2</mn></msub><mo stretchy="false">&#x00028;</mo><mi>n</mi><mo>&#x0002B;</mo><mn>1</mn><mo stretchy="false">&#x00029;</mo><mi>&#x0230B;</mi><mo>&#x0002B;</mo><mn>1</mn></mrow></math><p>This function simply adds one to the number <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>n</mi></mrow></math>, than represents <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>n</mi></mrow></math> as a binary and takes the substring from the second character on. The first character is always a one and we drop it.</p>
+<p>For example we have <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>&#x027E8;</mi><mn>3</mn><mi>&#x027E9;</mi><mo>&#x0003D;</mo><mi>B</mi><mo stretchy="false">&#x00028;</mo><mn>4</mn><msub><mo stretchy="false">&#x00029;</mo><mrow><mn>2</mn><mi>:</mi><mn>3</mn></mrow></msub><mo>&#x0003D;</mo><mn>00</mn></mrow></math> or <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>&#x027E8;</mi><mn>0</mn><mi>&#x027E9;</mi><mo>&#x0003D;</mo><mi>B</mi><mo stretchy="false">&#x00028;</mo><mn>1</mn><msub><mo stretchy="false">&#x00029;</mo><mrow><mn>2</mn><mi>:</mi><mn>1</mn></mrow></msub><mo>&#x0003D;</mo><mi>&#x003F5;</mi></mrow></math> where we use the convention that a slice <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msub><mi>x</mi><mrow><mi>i</mi><mi>:</mi><mi>j</mi></mrow></msub></mrow></math> with <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>i</mi><mo>&#x0003E;</mo><mi>j</mi></mrow></math> is empty.</p>
+<p>We now proof that the mapping above is indeed bijective:</p>
+<p><em>Injective</em>: Suppose <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>&#x027E8;</mi><mi>x</mi><mi>&#x027E9;</mi><mo>&#x0003D;</mo><mi>&#x027E8;</mi><mi>y</mi><mi>&#x027E9;</mi></mrow></math>, this would mean <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>B</mi><mo stretchy="false">&#x00028;</mo><mi>x</mi><mo>&#x0002B;</mo><mn>1</mn><msub><mo stretchy="false">&#x00029;</mo><mrow><mn>2</mn><mi>:</mi><msub><mi>l</mi><mi>x</mi></msub></mrow></msub><mo>&#x0003D;</mo><mi>B</mi><mo stretchy="false">&#x00028;</mo><mi>y</mi><mo>&#x0002B;</mo><mn>1</mn><msub><mo stretchy="false">&#x00029;</mo><mrow><mn>2</mn><mi>:</mi><msub><mi>l</mi><mi>y</mi></msub></mrow></msub></mrow></math>. This can only be the case when <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>l</mi><mo stretchy="false">&#x00028;</mo><mi>x</mi><mo stretchy="false">&#x00029;</mo><mo>&#x0003D;</mo><mi>l</mi><mo stretchy="false">&#x00028;</mo><mi>y</mi><mo stretchy="false">&#x00029;</mo></mrow></math>. But than equality would mean that <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>B</mi><mo stretchy="false">&#x00028;</mo><mi>x</mi><mo>&#x0002B;</mo><mn>1</mn><mo stretchy="false">&#x00029;</mo><mo>&#x0003D;</mo><mi>B</mi><mo stretchy="false">&#x00028;</mo><mi>y</mi><mo>&#x0002B;</mo><mn>1</mn><mo stretchy="false">&#x00029;</mo></mrow></math> because both have the same leading one as first char. That implies <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>x</mi><mo>&#x0002B;</mo><mn>1</mn><mo>&#x0003D;</mo><mi>y</mi><mo>&#x0002B;</mo><mn>1</mn></mrow></math> because the binary representation of a number is unique. Therefore we can conclude that <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>&#x027E8;</mi><mi>n</mi><mi>&#x027E9;</mi></mrow></math> is injective.</p>
+<p><em>Surjective</em>: Let <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>x</mi></mrow></math> be an arbitrary binary string. Concatenate this string with <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mtext mathvariant="italic">1</mtext></mrow></math> from the left side and call this string <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>y</mi></mrow></math>. The natural number which fulfils <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>B</mi><mo stretchy="false">&#x00028;</mo><mi>n</mi><mo>&#x0002B;</mo><mn>1</mn><mo stretchy="false">&#x00029;</mo><mo>&#x0003D;</mo><mi>y</mi></mrow></math> is the number that fulfils <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>&#x027E8;</mi><mi>n</mi><mi>&#x027E9;</mi><mo>&#x0003D;</mo><mi>x</mi></mrow></math>.</p>
+<p>More formally we may define the inverse as</p>
+<math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><mrow><mi>&#x027E8;</mi><mi>x</mi><msup><mi>&#x027E9;</mi><mrow><mo>&#x02212;</mo><mn>1</mn></mrow></msup><mo>&#x0003D;</mo><mi>b</mi><mo stretchy="false">&#x00028;</mo><mtext mathvariant="italic">1</mtext><mi>x</mi><mo stretchy="false">&#x00029;</mo><mo>&#x02212;</mo><mn>1</mn><mtext>&#x000A0;where&#x000A0;</mtext><mi>b</mi><mo stretchy="false">&#x00028;</mo><mi>x</mi><mo stretchy="false">&#x00029;</mo><mo>&#x0003D;</mo><msubsup><mo>&#x02211;</mo><mrow><mi>i</mi><mo>&#x0003D;</mo><mn>1</mn></mrow><mrow><mi>l</mi><mo stretchy="false">&#x00028;</mo><mi>x</mi><mo stretchy="false">&#x00029;</mo></mrow></msubsup><msup><mn>2</mn><mrow><mi>l</mi><mo stretchy="false">&#x00028;</mo><mi>x</mi><mo stretchy="false">&#x00029;</mo><mo>&#x02212;</mo><mi>i</mi></mrow></msup><mo stretchy="false">[</mo><mo stretchy="false">[</mo><msub><mi>x</mi><mi>i</mi></msub><mo>&#x0003D;</mo><mn>1</mn><mo stretchy="false">]</mo><mo stretchy="false">]</mo></mrow></math><p><math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>b</mi><mi>:</mi><msup><mtext mathvariant="bold">B</mtext><mo>&#x0002A;</mo></msup><mo>&#x02192;</mo><msup><mtext mathvariant="bold">N</mtext><mo>&#x0002B;</mo></msup></mrow></math> is the natural mapping that interprets the binary string <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mtext mathvariant="italic">1</mtext><mi>x</mi></mrow></math> as a natural number.</p>
+<p>Example:</p>
+<p><math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>x</mi><mo>&#x0003D;</mo><mtext mathvariant="italic">101</mtext></mrow></math>, <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>l</mi><mo stretchy="false">&#x00028;</mo><mtext mathvariant="italic">101</mtext><mo stretchy="false">&#x00029;</mo><mo>&#x0003D;</mo><mn>3</mn></mrow></math></p>
+<p><math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>b</mi><mo stretchy="false">&#x00028;</mo><mtext mathvariant="italic">101</mtext><mo stretchy="false">&#x00029;</mo><mo>&#x0003D;</mo><msup><mn>2</mn><mrow><mn>3</mn><mo>&#x02212;</mo><mn>1</mn></mrow></msup><mi>&#x000B7;</mi><mn>1</mn><mo>&#x0002B;</mo><msup><mn>2</mn><mrow><mn>3</mn><mo>&#x02212;</mo><mn>2</mn></mrow></msup><mi>&#x000B7;</mi><mn>0</mn><mo>&#x0002B;</mo><msup><mn>2</mn><mrow><mn>3</mn><mo>&#x02212;</mo><mn>3</mn></mrow></msup><mi>&#x000B7;</mi><mn>1</mn><mo>&#x0003D;</mo><mn>5</mn></mrow></math>.</p>
+<p>Note that <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mn>0</mn><mo>&#x02264;</mo><mi>b</mi><mo stretchy="false">&#x00028;</mo><mi>x</mi><mo stretchy="false">&#x00029;</mo></mrow></math> because the min value is obtained iff all <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msub><mi>x</mi><mi>i</mi></msub></mrow></math> are <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mtext mathvariant="italic">0</mtext></mrow></math></p>
+<p>Note that <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>b</mi><mo stretchy="false">&#x00028;</mo><mi>x</mi><mo stretchy="false">&#x00029;</mo><mo>&#x02264;</mo><msup><mn>2</mn><mrow><mi>l</mi><mo stretchy="false">&#x00028;</mo><mi>x</mi><mo stretchy="false">&#x00029;</mo></mrow></msup><msubsup><mo>&#x02211;</mo><mrow><mi>i</mi><mo>&#x0003D;</mo><mn>1</mn></mrow><mrow><mi>l</mi><mo stretchy="false">&#x00028;</mo><mi>x</mi><mo stretchy="false">&#x00029;</mo></mrow></msubsup><msup><mn>2</mn><mrow><mo>&#x02212;</mo><mi>i</mi></mrow></msup><mo>&#x0003D;</mo><msup><mn>2</mn><mrow><mi>l</mi><mo stretchy="false">&#x00028;</mo><mi>x</mi><mo stretchy="false">&#x00029;</mo></mrow></msup><mo stretchy="false">&#x00028;</mo><mn>1</mn><mo>&#x02212;</mo><msup><mn>2</mn><mrow><mo>&#x02212;</mo><mi>l</mi><mo stretchy="false">&#x00028;</mo><mi>x</mi><mo stretchy="false">&#x00029;</mo></mrow></msup><mo stretchy="false">&#x00029;</mo><mo>&#x0003D;</mo><msup><mn>2</mn><mrow><mi>l</mi><mo stretchy="false">&#x00028;</mo><mi>x</mi><mo stretchy="false">&#x00029;</mo></mrow></msup><mo>&#x02212;</mo><mn>1</mn></mrow></math> because the maximum value is obtained iff all <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msub><mi>x</mi><mi>i</mi></msub></mrow></math> are <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mtext mathvariant="italic">1</mtext></mrow></math></p>
+<p>We have <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>b</mi><mo stretchy="false">&#x00028;</mo><mtext mathvariant="italic">1</mtext><mi>x</mi><mo stretchy="false">&#x00029;</mo><mo>&#x0003D;</mo><msup><mn>2</mn><mrow><mi>l</mi><mo stretchy="false">&#x00028;</mo><mi>x</mi><mo stretchy="false">&#x00029;</mo></mrow></msup><mo>&#x0002B;</mo><mi>b</mi><mo stretchy="false">&#x00028;</mo><mi>x</mi><mo stretchy="false">&#x00029;</mo></mrow></math> and therefore <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msup><mn>2</mn><mrow><mi>l</mi><mo stretchy="false">&#x00028;</mo><mi>x</mi><mo stretchy="false">&#x00029;</mo></mrow></msup><mo>&#x02212;</mo><mn>1</mn><mo>&#x02264;</mo><mi>b</mi><mo stretchy="false">&#x00028;</mo><mtext mathvariant="italic">1</mtext><mi>x</mi><mo stretchy="false">&#x00029;</mo><mo>&#x02212;</mo><mn>1</mn></mrow></math>.
+Furthermore we have <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>b</mi><mo stretchy="false">&#x00028;</mo><mtext mathvariant="italic">1</mtext><mi>x</mi><mo stretchy="false">&#x00029;</mo><mo>&#x02212;</mo><mn>1</mn><mo>&#x02264;</mo><msup><mn>2</mn><mrow><mi>l</mi><mo stretchy="false">&#x00028;</mo><mi>x</mi><mo stretchy="false">&#x00029;</mo></mrow></msup><mo>&#x0002B;</mo><msup><mn>2</mn><mrow><mi>l</mi><mo stretchy="false">&#x00028;</mo><mi>x</mi><mo stretchy="false">&#x00029;</mo></mrow></msup><mo>&#x02212;</mo><mn>1</mn><mo>&#x02212;</mo><mn>1</mn><mo>&#x0003D;</mo><msup><mn>2</mn><mrow><mi>l</mi><mo stretchy="false">&#x00028;</mo><mi>x</mi><mo stretchy="false">&#x00029;</mo><mo>&#x0002B;</mo><mn>1</mn></mrow></msup><mo>&#x02212;</mo><mn>2</mn></mrow></math>.</p>
+<p>This gives us an effective bound for <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>&#x027E8;</mi><mi>x</mi><msup><mi>&#x027E9;</mi><mrow><mo>&#x02212;</mo><mn>1</mn></mrow></msup></mrow></math>:</p>
+<math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><mrow><msup><mn>2</mn><mrow><mi>l</mi><mo stretchy="false">&#x00028;</mo><mi>x</mi><mo stretchy="false">&#x00029;</mo></mrow></msup><mo>&#x02212;</mo><mn>1</mn><mo>&#x02264;</mo><mi>&#x027E8;</mi><mi>x</mi><msup><mi>&#x027E9;</mi><mrow><mo>&#x02212;</mo><mn>1</mn></mrow></msup><mo>&#x02264;</mo><msup><mn>2</mn><mrow><mi>l</mi><mo stretchy="false">&#x00028;</mo><mi>x</mi><mo stretchy="false">&#x00029;</mo><mo>&#x0002B;</mo><mn>1</mn></mrow></msup><mo>&#x02212;</mo><mn>2</mn></mrow></math><p>This shows that the range in which a number associated with a binary string is determined solely by the length of the binary string.</p>
+<p>Note that the above bijection is often used in literature such that we write <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>l</mi><mo stretchy="false">&#x00028;</mo><mi>n</mi><mo stretchy="false">&#x00029;</mo></mrow></math> for <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>l</mi><mo stretchy="false">&#x00028;</mo><mi>&#x027E8;</mi><mi>n</mi><mi>&#x027E9;</mi><mo stretchy="false">&#x00029;</mo></mrow></math> and <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>x</mi><mo>&#x0002B;</mo><mn>1</mn></mrow></math> instead of <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>&#x027E8;</mi><mi>x</mi><msup><mi>&#x027E9;</mi><mrow><mo>&#x02212;</mo><mn>1</mn></mrow></msup><mo>&#x0002B;</mo><mn>1</mn></mrow></math> if clear from the context. It also gives us a way to enumerate all binary strings.</p>
+
+
+    
+
+    
+        
+
+        
+            <form id="upvote-form" action="/upvote/" method="post" style="display: inline">
+    <small>
+        <input hidden name="uid" value="SPiJqEdHiwskQChfFUSv" style="display:none">
+        <input hidden name="title" value="The Bijection Between Natural Numbers and Binary Strings" style="display:none">
+
+        <button
+            class="upvote-button"
+            aria-label="Toast this post"
+            title="Toast this post"
+        >
+            <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" class="css-i6dzq1">
+                <polyline points="17 11 12 6 7 11"></polyline>
+                <polyline points="17 18 12 13 7 18"></polyline>
+            </svg>
+            <small class="upvote-count" aria-hidden="true">&nbsp;</small>
+        </button>
+    </small>        
+</form>
+
+<script>
+    const $upvoteButton = document.querySelector('.upvote-button');
+    const $upvoteCount =  document.querySelector('.upvote-count')
+
+    fetch('/upvote-info/SPiJqEdHiwskQChfFUSv/').then(response => response.json()).then(data => {
+        $upvoteCount.innerText = data.upvote_count;
+        if (data.upvoted) {
+            $upvoteButton.disabled = true
+            $upvoteButton.style.color = "salmon"
+            $upvoteButton.ariaLabel = "Toasted"
+            $upvoteButton.title = "Toasted"
+        }
+        $upvoteButton.ariaLabel += ` (${data.upvote_count})`
+    });
+
+    let moved = false;
+    let pageLoaded = Date.now();
+
+    document.addEventListener('touchmove', () => moved = true);
+    document.addEventListener('mousemove', () => moved = true);
+
+    document.querySelector('#upvote-form').addEventListener('submit', (e) => {
+        e.preventDefault();
+
+        if (moved) {
+            document.querySelector('input[name="title"]').value = "";
+        }
+        if (Date.now() - pageLoaded < 2000 || !moved) {
+            return;
+        }
+
+        fetch(e.target.action, {
+            method: 'post',
+            body: new FormData(e.target),
+        });
+        
+        $upvoteButton.disabled = true
+        $upvoteButton.style.color = "salmon"
+        $upvoteButton.ariaLabel = "Toasted"
+        $upvoteButton.title = "Toasted"
+        const newUpvoteCount = `${(parseInt($upvoteCount.innerHTML.split(" ")[0]) + 1)}`
+        $upvoteCount.innerHTML = newUpvoteCount
+        $upvoteButton.ariaLabel += ` (${newUpvoteCount})`
+    });
+</script>
+        
+
+        
+            <script>
+            window.addEventListener("load", () => {
+                if (navigator.webdriver !== true) {
+                    const sendHit = score => {
+                        const params = new URLSearchParams({
+                            blog: "veitner",
+                            token: "SPiJqEdHiwskQChfFUSv",
+                            referrer: document.referrer.includes("veitner.bearblog.dev") ? "" : document.referrer,
+                            title: "",
+                            score: score
+                        });
+                        new Image().src = `/hit/?${params.toString()}`;
+                    };
+
+                    document.addEventListener('touchmove', () => sendHit(100), { once: true });
+                    document.addEventListener('mousemove', () => sendHit(100), { once: true });
+                }
+            });
+            </script>
+        
+    
+
+
+  </main>
+  <footer>
+    
+    
+    <span>
+        Powered by <a href="https://bearblog.dev">Bear <span role="img" class="bear" aria-label="ASCII bear logo">ʕ•ᴥ•ʔ</span></a>
+    </span>
+
+  </footer>
+
+  
+  <script>
+        (() => {
+          "use strict";
+          const times = document.querySelectorAll('time');
+          const format_string = "d M, Y" || "d M, Y"
+
+          times.forEach(time => {
+              time.innerText = formatDate(time.dateTime, format_string)
+          });
+
+          function formatDate(dateStr, formatStr) {
+            const date = new Date(dateStr);
+            const day = date.getDate();
+            const month = date.getMonth();
+            const year = date.getFullYear();
+            const weekday = date.getDay();
+            const hours = date.getHours();
+            const minutes = date.getMinutes();
+            const monthsFull = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+            const monthsShort = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+            const daysFull = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+            const daysShort = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+            
+            function getOrdinal(n) {
+                const s = ['th', 'st', 'nd', 'rd'];
+                const v = n % 100;
+                return s[(v - 20) % 10] || s[v] || s[0];
+            }
+            
+            const map = {
+                'd': () => day.toString().padStart(2, '0'),
+                'm': () => (month + 1).toString().padStart(2, '0'),
+                'Y': () => year.toString(),
+                'y': () => year.toString().slice(-2),
+                'F': () => monthsFull[month],
+                'j': () => day.toString(),
+                'D': () => daysShort[weekday],
+                'l': () => daysFull[weekday],
+                'S': () => getOrdinal(day),
+                'M': () => monthsShort[month],
+                'H': () => hours.toString().padStart(2, '0'),
+                'h': () => {
+                    let h = hours % 12;
+                    h = h === 0 ? 12 : h;
+                    return h.toString().padStart(2, '0');
+                },
+                'g': () => {
+                    let h = hours % 12;
+                    return h === 0 ? '12' : h.toString();
+                },
+                'i': () => minutes.toString().padStart(2, '0'),
+                'a': () => hours < 12 ? 'am' : 'pm',
+                'A': () => hours < 12 ? 'AM' : 'PM',
+            };
+            
+            let result = '';
+            for (let char of formatStr) {
+                result += map[char] ? map[char]() : char;
+            }
+            return result;
+        }
+        })();
+    </script>
+    
+</body>
+<!-- ID: veitner -->
+<!-- 🐻 -->
+</html>

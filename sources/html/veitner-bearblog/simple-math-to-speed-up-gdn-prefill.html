@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!-- Powered by Bear Blog -->
+
+<head>
+  
+  
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5">
+  
+  <title>Simple math to speed up GDN prefill | simons blog</title>
+  <link rel="canonical" href="https://veitner.bearblog.dev/simple-math-to-speed-up-gdn-prefill/">
+  
+    
+
+    <meta name="veitner" content="look-for-the-bear-necessities">
+    <meta name="token" content="IqhbcmqLDDHajdrfxtjV">
+
+    
+<!-- Primary Meta Tags -->
+<meta name="title" content="Simple math to speed up GDN prefill">
+<meta name="description" content="In this short note we will briefly derive a helpful identity to speedup GDN prefill algorithm. In my simple Torch implementation of the algorithm that gave a...">
+
+<!-- Open Graph / Facebook -->
+<meta property="og:site_name" content="simons blog">
+<meta property="og:title" content="Simple math to speed up GDN prefill">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://veitner.bearblog.dev/simple-math-to-speed-up-gdn-prefill/">
+<meta property="og:description" content="In this short note we will briefly derive a helpful identity to speedup GDN prefill algorithm. In my simple Torch implementation of the algorithm that gave a...">
+<meta property="og:image" content="/static/og-image.png">
+
+
+<!-- Twitter -->
+<meta property="twitter:card" content="summary">
+<meta property="twitter:url" content="https://veitner.bearblog.dev/simple-math-to-speed-up-gdn-prefill/">
+<meta property="twitter:title" content="Simple math to speed up GDN prefill">
+<meta property="twitter:description" content="In this short note we will briefly derive a helpful identity to speedup GDN prefill algorithm. In my simple Torch implementation of the algorithm that gave a...">
+<meta property="twitter:image" content="/static/og-image.png">
+
+
+
+<!-- Microdata -->
+<script type="application/ld+json">
+  {
+    "@context": "http://schema.org",
+    "@type": "article",
+    "name": "Simple math to speed up GDN prefill",
+    "headline": "Simple math to speed up GDN prefill",
+    "url": "https://veitner.bearblog.dev/simple-math-to-speed-up-gdn-prefill/",
+    "description": "In this short note we will briefly derive a helpful identity to speedup GDN prefill algorithm. In my simple Torch implementation of the algorithm that gave a...",
+    "image": "/static/og-image.png"
+  }
+</script>
+    <link rel="alternate" type="application/atom+xml" href="/feed/" title="simons blog">
+    <link rel="alternate" type="application/rss+xml" href="/feed/?type=rss" title="simons blog">
+
+  
+    
+
+    
+    
+  
+  
+  
+    
+        <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20100%20100'%3E%3Ctext%20y='.9em'%20font-size='90'%3E🐼%3C/text%3E%3C/svg%3E">
+    
+
+
+
+  <style>
+      
+      
+    
+:root {
+    --width: 720px;
+    --font-main: Verdana, sans-serif;
+    --font-secondary: Verdana, sans-serif;
+    --font-scale: 1em;
+    --background-color: #fff;
+    --heading-color: #222;
+    --text-color: #444;
+    --link-color: #3273dc;
+    --visited-color:  #8b6fcb;
+    --code-background-color: #f2f2f2;
+    --code-color: #222;
+    --blockquote-color: #222;
+}
+
+@media (prefers-color-scheme: dark) {
+    :root {
+        --background-color: #01242e;
+        --heading-color: #eee;
+        --text-color: #ddd;
+        --link-color: #8cc2dd;
+        --visited-color:  #8b6fcb;
+        --code-background-color: #000;
+        --code-color: #ddd;
+        --blockquote-color: #ccc;
+    }
+}
+
+body {
+    font-family: var(--font-secondary);
+    font-size: var(--font-scale);
+    margin: auto;
+    padding: 20px;
+    max-width: var(--width);
+    text-align: left;
+    background-color: var(--background-color);
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    line-height: 1.5;
+    color: var(--text-color);
+}
+
+h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-main);
+    color: var(--heading-color);
+}
+
+a {
+    color: var(--link-color);
+    cursor: pointer;
+    text-decoration: none;
+}
+
+a:hover {
+    text-decoration: underline; 
+}
+
+nav a {
+    margin-right: 8px;
+}
+
+strong, b {
+    color: var(--heading-color);
+}
+
+button {
+    margin: 0;
+    cursor: pointer;
+}
+
+time {
+ 	font-family: monospace;
+  	font-style: normal;
+  	font-size: 15px;
+}
+
+main {
+    line-height: 1.6;
+}
+
+table {
+    width: 100%;
+}
+
+hr {
+    border: 0;
+    border-top: 1px dashed;
+}
+
+img {
+    max-width: 100%;
+}
+
+code {
+    font-family: monospace;
+    padding: 2px;
+    background-color: var(--code-background-color);
+    color: var(--code-color);
+    border-radius: 3px;
+}
+
+blockquote {
+    border-left: 1px solid #999;
+    color: var(--code-color);
+    padding-left: 20px;
+    font-style: italic;
+}
+
+footer {
+    padding: 25px 0;
+    text-align: center;
+}
+
+.title:hover {
+    text-decoration: none;
+}
+
+.title h1 {
+    font-size: 1.5em;
+}
+
+.inline {
+    width: auto !important;
+}
+
+.highlight, .code {
+    padding: 1px 15px;
+    background-color: var(--code-background-color);
+    color: var(--code-color);
+    border-radius: 3px;
+    margin-block-start: 1em;
+    margin-block-end: 1em;
+    overflow-x: auto;
+}
+
+/* blog post list */
+ul.blog-posts {
+    list-style-type: none;
+    padding: unset;
+}
+
+ul.blog-posts li {
+    display: flex;
+}
+
+ul.blog-posts li span {
+    flex: 0 0 130px;
+}
+
+ul.blog-posts li a:visited {
+    color: var(--visited-color);
+}
+    .upvote-button {
+        padding: 0;
+        margin: 0;
+        border: 0;
+        background-color: inherit;
+        color: inherit;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+    .upvote-button.upvoted {
+        color: salmon;
+    }
+    .upvote-count {
+        margin-top: -3px;
+    }
+
+      
+  </style>
+</head>
+
+<body class="post " onload="(function() { document.cookie = `timezone=${Intl.DateTimeFormat().resolvedOptions().timeZone};path=/`; })()">
+  
+  <header>
+    <a class="title" href="/">
+      <h1>
+        simons blog
+      </h1>
+    </a>
+    <nav>
+      <p><a href='/'>Home</a> <a href='/blog/'>Blog</a></p>
+
+    </nav>
+  </header>
+  <main>
+    
+
+    
+
+    
+        <h1>Simple math to speed up GDN prefill</h1>
+
+        <p>
+            <i>
+                <time datetime="2026-03-14T16:55Z">
+    14 Mar, 2026
+</time>
+            </i>
+        </p>
+    
+
+    <p>In this short note we will briefly derive a helpful identity to speedup GDN prefill algorithm. In my simple Torch implementation of the algorithm that gave already a good speedup of about 18%. I assume for custom CUDA C++ kernel the gains can even be more pronounced.</p>
+<p>Please read my <a href='https://veitner.bearblog.dev/chunkwise-gated-delta-rule/'>previous post on GDN</a> for background.</p>
+<h2 id=reminder>Reminder</h2><p>The state transition for GDN is as follows:</p>
+<math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><mrow><msub><mi>S</mi><mi>t</mi></msub><mo>&#x0003D;</mo><msub><mi>S</mi><mrow><mi>t</mi><mo>&#x02212;</mo><mn>1</mn></mrow></msub><mo stretchy="true" fence="true" minsize="1.2em" maxsize="1.2em">(</mo><msub><mi>&#x003B1;</mi><mi>t</mi></msub><mo stretchy="false">&#x00028;</mo><mi>I</mi><mo>&#x02212;</mo><msub><mi>&#x003B2;</mi><mi>t</mi></msub><msub><mi>k</mi><mi>t</mi></msub><msubsup><mi>k</mi><mi>t</mi><mi>T</mi></msubsup><mo stretchy="false">&#x00029;</mo><mo stretchy="true" fence="true" minsize="1.2em" maxsize="1.2em">)</mo><mo>&#x0002B;</mo><msub><mi>&#x003B2;</mi><mi>t</mi></msub><msub><mi>v</mi><mi>t</mi></msub><msubsup><mi>k</mi><mi>t</mi><mi>T</mi></msubsup><mo>&#x02208;</mo><msup><mi>&#x1D411;</mi><mrow><msub><mi>d</mi><mi>v</mi></msub><mi>&#x000D7;</mi><msub><mi>d</mi><mi>k</mi></msub></mrow></msup><mo>&#x0002E;</mo></mrow></math><p>Define the cumulative gate</p>
+<math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><mrow><msubsup><mi>&#x003B3;</mi><mrow><mo stretchy="false">[</mo><mi>t</mi><mo stretchy="false">]</mo></mrow><mi>r</mi></msubsup><mo>&#x0003D;</mo><msubsup><mo>&#x0220F;</mo><mrow><mi>j</mi><mo>&#x0003D;</mo><mn>1</mn></mrow><mi>r</mi></msubsup><msubsup><mi>&#x003B1;</mi><mrow><mo stretchy="false">[</mo><mi>t</mi><mo stretchy="false">]</mo></mrow><mi>j</mi></msubsup></mrow></math><p>and for <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mn>1</mn><mo>&#x02264;</mo><mi>i</mi><mo>&#x02264;</mo><mi>r</mi></mrow></math></p>
+<math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><mrow><msubsup><mi>&#x00393;</mi><mrow><mo stretchy="false">[</mo><mi>t</mi><mo stretchy="false">]</mo></mrow><mrow><mi>r</mi><mo>&#x0002C;</mo><mi>i</mi></mrow></msubsup><mo>&#x0003D;</mo><mfrac><mrow><msubsup><mi>&#x003B3;</mi><mrow><mo stretchy="false">[</mo><mi>t</mi><mo stretchy="false">]</mo></mrow><mi>r</mi></msubsup></mrow><mrow><msubsup><mi>&#x003B3;</mi><mrow><mo stretchy="false">[</mo><mi>t</mi><mo stretchy="false">]</mo></mrow><mi>i</mi></msubsup></mrow></mfrac><mo>&#x0003D;</mo><msubsup><mo>&#x0220F;</mo><mrow><mi>j</mi><mo>&#x0003D;</mo><mi>i</mi><mo>&#x0002B;</mo><mn>1</mn></mrow><mi>r</mi></msubsup><msubsup><mi>&#x003B1;</mi><mrow><mo stretchy="false">[</mo><mi>t</mi><mo stretchy="false">]</mo></mrow><mi>j</mi></msubsup><mo>&#x0002E;</mo></mrow></math><p>We obtained the following chunkwise transition rule</p>
+<math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><mrow><msub><mi>S</mi><mrow><mo stretchy="false">[</mo><mi>t</mi><mo>&#x0002B;</mo><mn>1</mn><mo stretchy="false">]</mo></mrow></msub><mo>&#x0003D;</mo><msub><mover><mi>S</mi><mo>&#x02192;</mo></mover><mrow><mo stretchy="false">[</mo><mi>t</mi><mo stretchy="false">]</mo></mrow></msub><mo>&#x0002B;</mo><mo stretchy="true" fence="true" minsize="1.2em" maxsize="1.2em">(</mo><msub><mover><mi>U</mi><mo>&#x0007E;</mo></mover><mrow><mo stretchy="false">[</mo><mi>t</mi><mo stretchy="false">]</mo></mrow></msub><mo>&#x02212;</mo><msub><mover><mi>W</mi><mo>&#x02190;</mo></mover><mrow><mo stretchy="false">[</mo><mi>t</mi><mo stretchy="false">]</mo></mrow></msub><msubsup><mi>S</mi><mrow><mo stretchy="false">[</mo><mi>t</mi><mo stretchy="false">]</mo></mrow><mi>T</mi></msubsup><msup><mo stretchy="true" fence="true" minsize="1.2em" maxsize="1.2em">)</mo><mi>T</mi></msup><msub><mover><mi>K</mi><mo>&#x02192;</mo></mover><mrow><mo stretchy="false">[</mo><mi>t</mi><mo stretchy="false">]</mo></mrow></msub><mo>&#x02208;</mo><msup><mi>&#x1D411;</mi><mrow><msub><mi>d</mi><mi>v</mi></msub><mi>&#x000D7;</mi><msub><mi>d</mi><mi>k</mi></msub></mrow></msup><mo>&#x0002E;</mo></mrow></math><p>We had (up to a decay factor)</p>
+<math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><mrow><msub><mi>W</mi><mrow><mo stretchy="false">[</mo><mi>t</mi><mo stretchy="false">]</mo></mrow></msub><mo>&#x0003D;</mo><mo stretchy="true" fence="true" minsize="1.623em" maxsize="1.623em">(</mo><mi>I</mi><mo>&#x0002B;</mo><mo>tril</mo><mo stretchy="false">&#x00028;</mo><msub><mi>B</mi><mrow><mo stretchy="false">[</mo><mi>t</mi><mo stretchy="false">]</mo></mrow></msub><msub><mi>K</mi><mrow><mo stretchy="false">[</mo><mi>t</mi><mo stretchy="false">]</mo></mrow></msub><msubsup><mi>K</mi><mrow><mo stretchy="false">[</mo><mi>t</mi><mo stretchy="false">]</mo></mrow><mi>T</mi></msubsup><mo>&#x0002C;</mo><mo>&#x02212;</mo><mn>1</mn><mo stretchy="false">&#x00029;</mo><msup><mo stretchy="true" fence="true" minsize="1.623em" maxsize="1.623em">)</mo><mrow><mo>&#x02212;</mo><mn>1</mn></mrow></msup><msub><mi>B</mi><mrow><mo stretchy="false">[</mo><mi>t</mi><mo stretchy="false">]</mo></mrow></msub><msub><mi>K</mi><mrow><mo stretchy="false">[</mo><mi>t</mi><mo stretchy="false">]</mo></mrow></msub><mo>&#x0002E;</mo></mrow></math><p>and</p>
+<math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><mrow><msub><mover><mi>U</mi><mo>&#x0007E;</mo></mover><mrow><mo stretchy="false">[</mo><mi>t</mi><mo stretchy="false">]</mo></mrow></msub><mo>&#x0003D;</mo><mo stretchy="true" fence="true" minsize="1.2em" maxsize="1.2em">(</mo><mi>I</mi><mo>&#x0002B;</mo><msub><mover><mi>L</mi><mo>&#x0007E;</mo></mover><mrow><mo stretchy="false">[</mo><mi>t</mi><mo stretchy="false">]</mo></mrow></msub><msup><mo stretchy="true" fence="true" minsize="1.2em" maxsize="1.2em">)</mo><mrow><mo>&#x02212;</mo><mn>1</mn></mrow></msup><msub><mi>B</mi><mrow><mo stretchy="false">[</mo><mi>t</mi><mo stretchy="false">]</mo></mrow></msub><msub><mi>V</mi><mrow><mo stretchy="false">[</mo><mi>t</mi><mo stretchy="false">]</mo></mrow></msub><mo>&#x0003D;</mo><mo stretchy="true" fence="true" minsize="1.623em" maxsize="1.623em">(</mo><mi>I</mi><mo>&#x0002B;</mo><mo>tril</mo><mo stretchy="true" fence="true" minsize="1.2em" maxsize="1.2em">(</mo><msub><mi>B</mi><mrow><mo stretchy="false">[</mo><mi>t</mi><mo stretchy="false">]</mo></mrow></msub><mo stretchy="false">&#x00028;</mo><msub><mi>&#x00393;</mi><mrow><mo stretchy="false">[</mo><mi>t</mi><mo stretchy="false">]</mo></mrow></msub><mo>&#x02299;</mo><msub><mi>K</mi><mrow><mo stretchy="false">[</mo><mi>t</mi><mo stretchy="false">]</mo></mrow></msub><msubsup><mi>K</mi><mrow><mo stretchy="false">[</mo><mi>t</mi><mo stretchy="false">]</mo></mrow><mi>T</mi></msubsup><mo stretchy="false">&#x00029;</mo><mo>&#x0002C;</mo><mo>&#x02212;</mo><mn>1</mn><mo stretchy="true" fence="true" minsize="1.2em" maxsize="1.2em">)</mo><msup><mo stretchy="true" fence="true" minsize="1.623em" maxsize="1.623em">)</mo><mrow><mo>&#x02212;</mo><mn>1</mn></mrow></msup><msub><mi>B</mi><mrow><mo stretchy="false">[</mo><mi>t</mi><mo stretchy="false">]</mo></mrow></msub><msub><mi>V</mi><mrow><mo stretchy="false">[</mo><mi>t</mi><mo stretchy="false">]</mo></mrow></msub><mo>&#x02208;</mo><msup><mi>&#x1D411;</mi><mrow><mi>C</mi><mi>&#x000D7;</mi><msub><mi>d</mi><mi>v</mi></msub></mrow></msup><mo>&#x0002E;</mo></mrow></math><p>We see that there are two inverts involved these computations. Invert is potentially one of the bottlenecks during computation of the chunkwise transition so it would be helpful if we could save one of these.</p>
+<h2 id=save-one-invert>Save one invert</h2><p>Consider</p>
+<math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><mrow><mi>M</mi><mo>&#x0003D;</mo><mi>I</mi><mo>&#x0002B;</mo><mo>tril</mo><mo stretchy="false">&#x00028;</mo><msub><mi>B</mi><mrow><mo stretchy="false">[</mo><mi>t</mi><mo stretchy="false">]</mo></mrow></msub><msub><mi>K</mi><mrow><mo stretchy="false">[</mo><mi>t</mi><mo stretchy="false">]</mo></mrow></msub><msubsup><mi>K</mi><mrow><mo stretchy="false">[</mo><mi>t</mi><mo stretchy="false">]</mo></mrow><mi>T</mi></msubsup><mo>&#x0002C;</mo><mo>&#x02212;</mo><mn>1</mn><mo stretchy="false">&#x00029;</mo></mrow></math><p>and</p>
+<math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><mrow><mi>N</mi><mo>&#x0003D;</mo><mi>I</mi><mo>&#x0002B;</mo><mo>tril</mo><mo stretchy="true" fence="true" minsize="1.2em" maxsize="1.2em">(</mo><msub><mi>B</mi><mrow><mo stretchy="false">[</mo><mi>t</mi><mo stretchy="false">]</mo></mrow></msub><mo stretchy="false">&#x00028;</mo><msub><mi>&#x00393;</mi><mrow><mo stretchy="false">[</mo><mi>t</mi><mo stretchy="false">]</mo></mrow></msub><mo>&#x02299;</mo><msub><mi>K</mi><mrow><mo stretchy="false">[</mo><mi>t</mi><mo stretchy="false">]</mo></mrow></msub><msubsup><mi>K</mi><mrow><mo stretchy="false">[</mo><mi>t</mi><mo stretchy="false">]</mo></mrow><mi>T</mi></msubsup><mo stretchy="false">&#x00029;</mo><mo>&#x0002C;</mo><mo>&#x02212;</mo><mn>1</mn><mo stretchy="true" fence="true" minsize="1.2em" maxsize="1.2em">)</mo><mo>&#x0002E;</mo></mrow></math><p>Let <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msub><mi>K</mi><mrow><mo stretchy="false">[</mo><mi>t</mi><mo stretchy="false">]</mo></mrow></msub><mo>&#x02208;</mo><msup><mi>&#x0211D;</mi><mrow><mi>C</mi><mi>&#x000D7;</mi><msub><mi>d</mi><mi>k</mi></msub></mrow></msup></mrow></math> and denote by <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msub><mi>k</mi><mi>&#x003BC;</mi></msub></mrow></math> the <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>&#x003BC;</mi></mrow></math>-th row of <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msub><mi>K</mi><mrow><mo stretchy="false">[</mo><mi>t</mi><mo stretchy="false">]</mo></mrow></msub></mrow></math>. Then</p>
+<math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><mrow><mo stretchy="false">&#x00028;</mo><msub><mi>K</mi><mrow><mo stretchy="false">[</mo><mi>t</mi><mo stretchy="false">]</mo></mrow></msub><msubsup><mi>K</mi><mrow><mo stretchy="false">[</mo><mi>t</mi><mo stretchy="false">]</mo></mrow><mi>T</mi></msubsup><msub><mo stretchy="false">&#x00029;</mo><mrow><mi>&#x003BC;</mi><mi>&#x003BD;</mi></mrow></msub><mo>&#x0003D;</mo><msubsup><mi>k</mi><mi>&#x003BC;</mi><mi>T</mi></msubsup><msub><mi>k</mi><mi>&#x003BD;</mi></msub><mo>&#x0002E;</mo></mrow></math><p>Since <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msub><mi>B</mi><mrow><mo stretchy="false">[</mo><mi>t</mi><mo stretchy="false">]</mo></mrow></msub></mrow></math> is diagonal, we write <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msub><mi>B</mi><mrow><mo stretchy="false">[</mo><mi>t</mi><mo stretchy="false">]</mo></mrow></msub><mo>&#x0003D;</mo><mo>diag</mo><mo stretchy="false">&#x00028;</mo><msub><mi>&#x003B2;</mi><mn>1</mn></msub><mo>&#x0002C;</mo><mo>&#x02026;</mo><mo>&#x0002C;</mo><msub><mi>&#x003B2;</mi><mi>C</mi></msub><mo stretchy="false">&#x00029;</mo></mrow></math>.<br />
+For <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>&#x003BC;</mi><mo>&#x0003E;</mo><mi>&#x003BD;</mi></mrow></math> the strict lower triangular part of <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>M</mi></mrow></math> therefore has entries</p>
+<math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><mrow><msub><mi>M</mi><mrow><mi>&#x003BC;</mi><mi>&#x003BD;</mi></mrow></msub><mo>&#x0003D;</mo><msub><mi>&#x003B2;</mi><mi>&#x003BC;</mi></msub><mspace width="0.167em" /><msubsup><mi>k</mi><mi>&#x003BC;</mi><mi>T</mi></msubsup><msub><mi>k</mi><mi>&#x003BD;</mi></msub><mo>&#x0002C;</mo><mspace width="2em" /><msub><mi>M</mi><mrow><mi>&#x003BC;</mi><mi>&#x003BC;</mi></mrow></msub><mo>&#x0003D;</mo><mn>1</mn><mo>&#x0002E;</mo></mrow></math><p>Similarly, for <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>N</mi></mrow></math> we obtain</p>
+<math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><mrow><msub><mi>N</mi><mrow><mi>&#x003BC;</mi><mi>&#x003BD;</mi></mrow></msub><mo>&#x0003D;</mo><msub><mi>&#x003B2;</mi><mi>&#x003BC;</mi></msub><mspace width="0.167em" /><msub><mi>&#x00393;</mi><mrow><mo stretchy="false">[</mo><mi>t</mi><mo stretchy="false">]</mo><mo>&#x0002C;</mo><mi>&#x003BC;</mi><mi>&#x003BD;</mi></mrow></msub><mspace width="0.167em" /><msubsup><mi>k</mi><mi>&#x003BC;</mi><mi>T</mi></msubsup><msub><mi>k</mi><mi>&#x003BD;</mi></msub><mo>&#x0002C;</mo><mspace width="2em" /><msub><mi>N</mi><mrow><mi>&#x003BC;</mi><mi>&#x003BC;</mi></mrow></msub><mo>&#x0003D;</mo><mn>1</mn><mo>&#x0002E;</mo></mrow></math><p>We see that these look already highly similar and will make this more explicit below.</p>
+<p>Plugging in the definition of <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>&#x00393;</mi></mrow></math> we obtain</p>
+<math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><mrow><msub><mi>&#x00393;</mi><mrow><mo stretchy="false">[</mo><mi>t</mi><mo stretchy="false">]</mo><mo>&#x0002C;</mo><mi>&#x003BC;</mi><mi>&#x003BD;</mi></mrow></msub><mo>&#x0003D;</mo><mfrac><mrow><msub><mi>&#x003B3;</mi><mrow><mo stretchy="false">[</mo><mi>t</mi><mo stretchy="false">]</mo><mo>&#x0002C;</mo><mi>&#x003BC;</mi></mrow></msub></mrow><mrow><msub><mi>&#x003B3;</mi><mrow><mo stretchy="false">[</mo><mi>t</mi><mo stretchy="false">]</mo><mo>&#x0002C;</mo><mi>&#x003BD;</mi></mrow></msub></mrow></mfrac></mrow></math><p>and therefore</p>
+<math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><mrow><msub><mi>N</mi><mrow><mi>&#x003BC;</mi><mi>&#x003BD;</mi></mrow></msub><mo>&#x0003D;</mo><msub><mi>&#x003B2;</mi><mi>&#x003BC;</mi></msub><mfrac><mrow><msub><mi>&#x003B3;</mi><mrow><mo stretchy="false">[</mo><mi>t</mi><mo stretchy="false">]</mo><mo>&#x0002C;</mo><mi>&#x003BC;</mi></mrow></msub></mrow><mrow><msub><mi>&#x003B3;</mi><mrow><mo stretchy="false">[</mo><mi>t</mi><mo stretchy="false">]</mo><mo>&#x0002C;</mo><mi>&#x003BD;</mi></mrow></msub></mrow></mfrac><msubsup><mi>k</mi><mi>&#x003BC;</mi><mi>T</mi></msubsup><msub><mi>k</mi><mi>&#x003BD;</mi></msub><mo>&#x0002E;</mo></mrow></math><p>Let us factor out the <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>&#x003B3;</mi></mrow></math> factors. Define</p>
+<math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><mrow><mi>G</mi><mo>&#x0003D;</mo><mo>diag</mo><mo stretchy="false">&#x00028;</mo><msub><mi>&#x003B3;</mi><mrow><mo stretchy="false">[</mo><mi>t</mi><mo stretchy="false">]</mo><mo>&#x0002C;</mo><mn>1</mn></mrow></msub><mo>&#x0002C;</mo><mo>&#x02026;</mo><mo>&#x0002C;</mo><msub><mi>&#x003B3;</mi><mrow><mo stretchy="false">[</mo><mi>t</mi><mo stretchy="false">]</mo><mo>&#x0002C;</mo><mi>C</mi></mrow></msub><mo stretchy="false">&#x00029;</mo><mo>&#x0002C;</mo><mspace width="2em" /><msup><mi>G</mi><mrow><mo>&#x02212;</mo><mn>1</mn></mrow></msup><mo>&#x0003D;</mo><mo>diag</mo><mo stretchy="false">&#x00028;</mo><msubsup><mi>&#x003B3;</mi><mrow><mo stretchy="false">[</mo><mi>t</mi><mo stretchy="false">]</mo><mo>&#x0002C;</mo><mn>1</mn></mrow><mrow><mo>&#x02212;</mo><mn>1</mn></mrow></msubsup><mo>&#x0002C;</mo><mo>&#x02026;</mo><mo>&#x0002C;</mo><msubsup><mi>&#x003B3;</mi><mrow><mo stretchy="false">[</mo><mi>t</mi><mo stretchy="false">]</mo><mo>&#x0002C;</mo><mi>C</mi></mrow><mrow><mo>&#x02212;</mo><mn>1</mn></mrow></msubsup><mo stretchy="false">&#x00029;</mo><mo>&#x0002E;</mo></mrow></math><p>For any matrix <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>A</mi></mrow></math> we have</p>
+<math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><mrow><mo stretchy="false">&#x00028;</mo><mi>G</mi><mi>A</mi><msup><mi>G</mi><mrow><mo>&#x02212;</mo><mn>1</mn></mrow></msup><msub><mo stretchy="false">&#x00029;</mo><mrow><mi>&#x003BC;</mi><mi>&#x003BD;</mi></mrow></msub><mo>&#x0003D;</mo><msub><mi>&#x003B3;</mi><mrow><mo stretchy="false">[</mo><mi>t</mi><mo stretchy="false">]</mo><mo>&#x0002C;</mo><mi>&#x003BC;</mi></mrow></msub><mspace width="0.167em" /><msub><mi>A</mi><mrow><mi>&#x003BC;</mi><mi>&#x003BD;</mi></mrow></msub><mspace width="0.167em" /><msubsup><mi>&#x003B3;</mi><mrow><mo stretchy="false">[</mo><mi>t</mi><mo stretchy="false">]</mo><mo>&#x0002C;</mo><mi>&#x003BD;</mi></mrow><mrow><mo>&#x02212;</mo><mn>1</mn></mrow></msubsup><mo>&#x0002E;</mo></mrow></math><p>Thus multiplying a matrix by <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>G</mi></mrow></math> on the left and <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msup><mi>G</mi><mrow><mo>&#x02212;</mo><mn>1</mn></mrow></msup></mrow></math> on the right multiplies the <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mo stretchy="false">&#x00028;</mo><mi>&#x003BC;</mi><mo>&#x0002C;</mo><mi>&#x003BD;</mi><mo stretchy="false">&#x00029;</mo></mrow></math> entry by <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msub><mi>&#x003B3;</mi><mrow><mo stretchy="false">[</mo><mi>t</mi><mo stretchy="false">]</mo><mo>&#x0002C;</mo><mi>&#x003BC;</mi></mrow></msub><msubsup><mi>&#x003B3;</mi><mrow><mo stretchy="false">[</mo><mi>t</mi><mo stretchy="false">]</mo><mo>&#x0002C;</mo><mi>&#x003BD;</mi></mrow><mrow><mo>&#x02212;</mo><mn>1</mn></mrow></msubsup></mrow></math>.</p>
+<p>Applying this observation to <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>A</mi><mo>&#x0003D;</mo><mo>tril</mo><mo stretchy="false">&#x00028;</mo><msub><mi>B</mi><mrow><mo stretchy="false">[</mo><mi>t</mi><mo stretchy="false">]</mo></mrow></msub><msub><mi>K</mi><mrow><mo stretchy="false">[</mo><mi>t</mi><mo stretchy="false">]</mo></mrow></msub><msubsup><mi>K</mi><mrow><mo stretchy="false">[</mo><mi>t</mi><mo stretchy="false">]</mo></mrow><mi>T</mi></msubsup><mo>&#x0002C;</mo><mo>&#x02212;</mo><mn>1</mn><mo stretchy="false">&#x00029;</mo></mrow></math> yields</p>
+<math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><mrow><mo>tril</mo><mo stretchy="true" fence="true" minsize="1.2em" maxsize="1.2em">(</mo><msub><mi>B</mi><mrow><mo stretchy="false">[</mo><mi>t</mi><mo stretchy="false">]</mo></mrow></msub><mo stretchy="false">&#x00028;</mo><msub><mi>&#x00393;</mi><mrow><mo stretchy="false">[</mo><mi>t</mi><mo stretchy="false">]</mo></mrow></msub><mo>&#x02299;</mo><msub><mi>K</mi><mrow><mo stretchy="false">[</mo><mi>t</mi><mo stretchy="false">]</mo></mrow></msub><msubsup><mi>K</mi><mrow><mo stretchy="false">[</mo><mi>t</mi><mo stretchy="false">]</mo></mrow><mi>T</mi></msubsup><mo stretchy="false">&#x00029;</mo><mo>&#x0002C;</mo><mo>&#x02212;</mo><mn>1</mn><mo stretchy="true" fence="true" minsize="1.2em" maxsize="1.2em">)</mo><mo>&#x0003D;</mo><mi>G</mi><mo>tril</mo><mo stretchy="true" fence="true" minsize="1.2em" maxsize="1.2em">(</mo><msub><mi>B</mi><mrow><mo stretchy="false">[</mo><mi>t</mi><mo stretchy="false">]</mo></mrow></msub><msub><mi>K</mi><mrow><mo stretchy="false">[</mo><mi>t</mi><mo stretchy="false">]</mo></mrow></msub><msubsup><mi>K</mi><mrow><mo stretchy="false">[</mo><mi>t</mi><mo stretchy="false">]</mo></mrow><mi>T</mi></msubsup><mo>&#x0002C;</mo><mo>&#x02212;</mo><mn>1</mn><mo stretchy="true" fence="true" minsize="1.2em" maxsize="1.2em">)</mo><msup><mi>G</mi><mrow><mo>&#x02212;</mo><mn>1</mn></mrow></msup><mo>&#x0002E;</mo></mrow></math><p>Therefore we can write</p>
+<math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><mrow><mi>N</mi><mo>&#x0003D;</mo><mi>I</mi><mo>&#x0002B;</mo><mi>G</mi><mo>tril</mo><mo stretchy="true" fence="true" minsize="1.2em" maxsize="1.2em">(</mo><msub><mi>B</mi><mrow><mo stretchy="false">[</mo><mi>t</mi><mo stretchy="false">]</mo></mrow></msub><msub><mi>K</mi><mrow><mo stretchy="false">[</mo><mi>t</mi><mo stretchy="false">]</mo></mrow></msub><msubsup><mi>K</mi><mrow><mo stretchy="false">[</mo><mi>t</mi><mo stretchy="false">]</mo></mrow><mi>T</mi></msubsup><mo>&#x0002C;</mo><mo>&#x02212;</mo><mn>1</mn><mo stretchy="true" fence="true" minsize="1.2em" maxsize="1.2em">)</mo><msup><mi>G</mi><mrow><mo>&#x02212;</mo><mn>1</mn></mrow></msup><mo>&#x0002E;</mo></mrow></math><p>Since <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>I</mi><mo>&#x0003D;</mo><mi>G</mi><mi>I</mi><msup><mi>G</mi><mrow><mo>&#x02212;</mo><mn>1</mn></mrow></msup></mrow></math>, we obtain</p>
+<math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><mrow><mi>N</mi><mo>&#x0003D;</mo><mi>G</mi><mo stretchy="true" fence="true" minsize="1.623em" maxsize="1.623em">(</mo><mi>I</mi><mo>&#x0002B;</mo><mo>tril</mo><mo stretchy="true" fence="true" minsize="1.2em" maxsize="1.2em">(</mo><msub><mi>B</mi><mrow><mo stretchy="false">[</mo><mi>t</mi><mo stretchy="false">]</mo></mrow></msub><msub><mi>K</mi><mrow><mo stretchy="false">[</mo><mi>t</mi><mo stretchy="false">]</mo></mrow></msub><msubsup><mi>K</mi><mrow><mo stretchy="false">[</mo><mi>t</mi><mo stretchy="false">]</mo></mrow><mi>T</mi></msubsup><mo>&#x0002C;</mo><mo>&#x02212;</mo><mn>1</mn><mo stretchy="true" fence="true" minsize="1.2em" maxsize="1.2em">)</mo><mo stretchy="true" fence="true" minsize="1.623em" maxsize="1.623em">)</mo><msup><mi>G</mi><mrow><mo>&#x02212;</mo><mn>1</mn></mrow></msup><mo>&#x0003D;</mo><mi>G</mi><mi>M</mi><msup><mi>G</mi><mrow><mo>&#x02212;</mo><mn>1</mn></mrow></msup><mo>&#x0002E;</mo></mrow></math><p>Taking the inverse gives</p>
+<math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><mrow><msup><mi>N</mi><mrow><mo>&#x02212;</mo><mn>1</mn></mrow></msup><mo>&#x0003D;</mo><mo stretchy="false">&#x00028;</mo><mi>G</mi><mi>M</mi><msup><mi>G</mi><mrow><mo>&#x02212;</mo><mn>1</mn></mrow></msup><msup><mo stretchy="false">&#x00029;</mo><mrow><mo>&#x02212;</mo><mn>1</mn></mrow></msup><mo>&#x0003D;</mo><mi>G</mi><msup><mi>M</mi><mrow><mo>&#x02212;</mo><mn>1</mn></mrow></msup><msup><mi>G</mi><mrow><mo>&#x02212;</mo><mn>1</mn></mrow></msup><mo>&#x0002E;</mo></mrow></math><p>Thus the factor <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>N</mi></mrow></math> appearing in <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msub><mover><mi>U</mi><mo>&#x0007E;</mo></mover><mrow><mo stretchy="false">[</mo><mi>t</mi><mo stretchy="false">]</mo></mrow></msub></mrow></math> can be expressed using the same inverse <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msup><mi>M</mi><mrow><mo>&#x02212;</mo><mn>1</mn></mrow></msup></mrow></math> together with two diagonal matrix multiplications. This allows us to reuse the computed inverse and avoid performing a second matrix inversion.</p>
+<h2 id=conclusion>Conclusion</h2><p>In this short note we have seen how to derive simple math to speed up parallel algorithms in deep learning. Sometimes it is good to look carefully at the equations and bring them into their simplest form.</p>
+<p>The observation how to "save the invert" was first made in <a href='https://arxiv.org/pdf/2506.02475'>Comba</a>. Please take a look at their paper for an alternative derivation.</p>
+
+
+    
+
+    
+        
+
+        
+            <form id="upvote-form" action="/upvote/" method="post" style="display: inline">
+    <small>
+        <input hidden name="uid" value="IqhbcmqLDDHajdrfxtjV" style="display:none">
+        <input hidden name="title" value="Simple math to speed up GDN prefill" style="display:none">
+
+        <button
+            class="upvote-button"
+            aria-label="Toast this post"
+            title="Toast this post"
+        >
+            <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" class="css-i6dzq1">
+                <polyline points="17 11 12 6 7 11"></polyline>
+                <polyline points="17 18 12 13 7 18"></polyline>
+            </svg>
+            <small class="upvote-count" aria-hidden="true">&nbsp;</small>
+        </button>
+    </small>        
+</form>
+
+<script>
+    const $upvoteButton = document.querySelector('.upvote-button');
+    const $upvoteCount =  document.querySelector('.upvote-count')
+
+    fetch('/upvote-info/IqhbcmqLDDHajdrfxtjV/').then(response => response.json()).then(data => {
+        $upvoteCount.innerText = data.upvote_count;
+        if (data.upvoted) {
+            $upvoteButton.disabled = true
+            $upvoteButton.style.color = "salmon"
+            $upvoteButton.ariaLabel = "Toasted"
+            $upvoteButton.title = "Toasted"
+        }
+        $upvoteButton.ariaLabel += ` (${data.upvote_count})`
+    });
+
+    let moved = false;
+    let pageLoaded = Date.now();
+
+    document.addEventListener('touchmove', () => moved = true);
+    document.addEventListener('mousemove', () => moved = true);
+
+    document.querySelector('#upvote-form').addEventListener('submit', (e) => {
+        e.preventDefault();
+
+        if (moved) {
+            document.querySelector('input[name="title"]').value = "";
+        }
+        if (Date.now() - pageLoaded < 2000 || !moved) {
+            return;
+        }
+
+        fetch(e.target.action, {
+            method: 'post',
+            body: new FormData(e.target),
+        });
+        
+        $upvoteButton.disabled = true
+        $upvoteButton.style.color = "salmon"
+        $upvoteButton.ariaLabel = "Toasted"
+        $upvoteButton.title = "Toasted"
+        const newUpvoteCount = `${(parseInt($upvoteCount.innerHTML.split(" ")[0]) + 1)}`
+        $upvoteCount.innerHTML = newUpvoteCount
+        $upvoteButton.ariaLabel += ` (${newUpvoteCount})`
+    });
+</script>
+        
+
+        
+            <script>
+            window.addEventListener("load", () => {
+                if (navigator.webdriver !== true) {
+                    const sendHit = score => {
+                        const params = new URLSearchParams({
+                            blog: "veitner",
+                            token: "IqhbcmqLDDHajdrfxtjV",
+                            referrer: document.referrer.includes("veitner.bearblog.dev") ? "" : document.referrer,
+                            title: "",
+                            score: score
+                        });
+                        new Image().src = `/hit/?${params.toString()}`;
+                    };
+
+                    document.addEventListener('touchmove', () => sendHit(100), { once: true });
+                    document.addEventListener('mousemove', () => sendHit(100), { once: true });
+                }
+            });
+            </script>
+        
+    
+
+
+  </main>
+  <footer>
+    
+    
+    <span>
+        Powered by <a href="https://bearblog.dev">Bear <span role="img" class="bear" aria-label="ASCII bear logo">ʕ•ᴥ•ʔ</span></a>
+    </span>
+
+  </footer>
+
+  
+  <script>
+        (() => {
+          "use strict";
+          const times = document.querySelectorAll('time');
+          const format_string = "d M, Y" || "d M, Y"
+
+          times.forEach(time => {
+              time.innerText = formatDate(time.dateTime, format_string)
+          });
+
+          function formatDate(dateStr, formatStr) {
+            const date = new Date(dateStr);
+            const day = date.getDate();
+            const month = date.getMonth();
+            const year = date.getFullYear();
+            const weekday = date.getDay();
+            const hours = date.getHours();
+            const minutes = date.getMinutes();
+            const monthsFull = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+            const monthsShort = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+            const daysFull = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+            const daysShort = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+            
+            function getOrdinal(n) {
+                const s = ['th', 'st', 'nd', 'rd'];
+                const v = n % 100;
+                return s[(v - 20) % 10] || s[v] || s[0];
+            }
+            
+            const map = {
+                'd': () => day.toString().padStart(2, '0'),
+                'm': () => (month + 1).toString().padStart(2, '0'),
+                'Y': () => year.toString(),
+                'y': () => year.toString().slice(-2),
+                'F': () => monthsFull[month],
+                'j': () => day.toString(),
+                'D': () => daysShort[weekday],
+                'l': () => daysFull[weekday],
+                'S': () => getOrdinal(day),
+                'M': () => monthsShort[month],
+                'H': () => hours.toString().padStart(2, '0'),
+                'h': () => {
+                    let h = hours % 12;
+                    h = h === 0 ? 12 : h;
+                    return h.toString().padStart(2, '0');
+                },
+                'g': () => {
+                    let h = hours % 12;
+                    return h === 0 ? '12' : h.toString();
+                },
+                'i': () => minutes.toString().padStart(2, '0'),
+                'a': () => hours < 12 ? 'am' : 'pm',
+                'A': () => hours < 12 ? 'AM' : 'PM',
+            };
+            
+            let result = '';
+            for (let char of formatStr) {
+                result += map[char] ? map[char]() : char;
+            }
+            return result;
+        }
+        })();
+    </script>
+    
+</body>
+<!-- ID: veitner -->
+<!-- 🐻 -->
+</html>

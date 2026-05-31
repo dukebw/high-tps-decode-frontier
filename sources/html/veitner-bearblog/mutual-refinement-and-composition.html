@@ -1,0 +1,670 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!-- Powered by Bear Blog -->
+
+<head>
+  
+  
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5">
+  
+  <title>Mutual Refinement and Composition | simons blog</title>
+  <link rel="canonical" href="https://veitner.bearblog.dev/mutual-refinement-and-composition/">
+  
+    
+
+    <meta name="veitner" content="look-for-the-bear-necessities">
+    <meta name="token" content="EiBtzBQEyAyqQzqvPKCY">
+
+    
+<!-- Primary Meta Tags -->
+<meta name="title" content="Mutual Refinement and Composition">
+<meta name="description" content="Introduction
+
+Composition is a fundamental operation on Layouts. An example one encounters for example &quot;in the wild&quot; is composition of data with Thread Val...">
+
+<!-- Open Graph / Facebook -->
+<meta property="og:site_name" content="simons blog">
+<meta property="og:title" content="Mutual Refinement and Composition">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://veitner.bearblog.dev/mutual-refinement-and-composition/">
+<meta property="og:description" content="Introduction
+
+Composition is a fundamental operation on Layouts. An example one encounters for example &quot;in the wild&quot; is composition of data with Thread Val...">
+<meta property="og:image" content="/static/og-image.png">
+
+
+<!-- Twitter -->
+<meta property="twitter:card" content="summary">
+<meta property="twitter:url" content="https://veitner.bearblog.dev/mutual-refinement-and-composition/">
+<meta property="twitter:title" content="Mutual Refinement and Composition">
+<meta property="twitter:description" content="Introduction
+
+Composition is a fundamental operation on Layouts. An example one encounters for example &quot;in the wild&quot; is composition of data with Thread Val...">
+<meta property="twitter:image" content="/static/og-image.png">
+
+
+
+<!-- Microdata -->
+<script type="application/ld+json">
+  {
+    "@context": "http://schema.org",
+    "@type": "article",
+    "name": "Mutual Refinement and Composition",
+    "headline": "Mutual Refinement and Composition",
+    "url": "https://veitner.bearblog.dev/mutual-refinement-and-composition/",
+    "description": "Introduction
+
+Composition is a fundamental operation on Layouts. An example one encounters for example &quot;in the wild&quot; is composition of data with Thread Val...",
+    "image": "/static/og-image.png"
+  }
+</script>
+    <link rel="alternate" type="application/atom+xml" href="/feed/" title="simons blog">
+    <link rel="alternate" type="application/rss+xml" href="/feed/?type=rss" title="simons blog">
+
+  
+    
+
+    
+    <style>pre { line-height: 125%; }
+td.linenos .normal { color: #666666; background-color: transparent; padding-left: 5px; padding-right: 5px; }
+span.linenos { color: #666666; background-color: transparent; padding-left: 5px; padding-right: 5px; }
+td.linenos .special { color: #000000; background-color: #ffffc0; padding-left: 5px; padding-right: 5px; }
+span.linenos.special { color: #000000; background-color: #ffffc0; padding-left: 5px; padding-right: 5px; }
+.highlight .hll { background-color: #ffffcc }
+.highlight { background: #f0f0f0; }
+.highlight .c { color: #60A0B0; font-style: italic } /* Comment */
+.highlight .err { border: 1px solid #F00 } /* Error */
+.highlight .k { color: #007020; font-weight: bold } /* Keyword */
+.highlight .o { color: #666 } /* Operator */
+.highlight .ch { color: #60A0B0; font-style: italic } /* Comment.Hashbang */
+.highlight .cm { color: #60A0B0; font-style: italic } /* Comment.Multiline */
+.highlight .cp { color: #007020 } /* Comment.Preproc */
+.highlight .cpf { color: #60A0B0; font-style: italic } /* Comment.PreprocFile */
+.highlight .c1 { color: #60A0B0; font-style: italic } /* Comment.Single */
+.highlight .cs { color: #60A0B0; background-color: #FFF0F0 } /* Comment.Special */
+.highlight .gd { color: #A00000 } /* Generic.Deleted */
+.highlight .ge { font-style: italic } /* Generic.Emph */
+.highlight .ges { font-weight: bold; font-style: italic } /* Generic.EmphStrong */
+.highlight .gr { color: #F00 } /* Generic.Error */
+.highlight .gh { color: #000080; font-weight: bold } /* Generic.Heading */
+.highlight .gi { color: #00A000 } /* Generic.Inserted */
+.highlight .go { color: #888 } /* Generic.Output */
+.highlight .gp { color: #C65D09; font-weight: bold } /* Generic.Prompt */
+.highlight .gs { font-weight: bold } /* Generic.Strong */
+.highlight .gu { color: #800080; font-weight: bold } /* Generic.Subheading */
+.highlight .gt { color: #04D } /* Generic.Traceback */
+.highlight .kc { color: #007020; font-weight: bold } /* Keyword.Constant */
+.highlight .kd { color: #007020; font-weight: bold } /* Keyword.Declaration */
+.highlight .kn { color: #007020; font-weight: bold } /* Keyword.Namespace */
+.highlight .kp { color: #007020 } /* Keyword.Pseudo */
+.highlight .kr { color: #007020; font-weight: bold } /* Keyword.Reserved */
+.highlight .kt { color: #902000 } /* Keyword.Type */
+.highlight .m { color: #40A070 } /* Literal.Number */
+.highlight .s { color: #4070A0 } /* Literal.String */
+.highlight .na { color: #4070A0 } /* Name.Attribute */
+.highlight .nb { color: #007020 } /* Name.Builtin */
+.highlight .nc { color: #0E84B5; font-weight: bold } /* Name.Class */
+.highlight .no { color: #60ADD5 } /* Name.Constant */
+.highlight .nd { color: #555; font-weight: bold } /* Name.Decorator */
+.highlight .ni { color: #D55537; font-weight: bold } /* Name.Entity */
+.highlight .ne { color: #007020 } /* Name.Exception */
+.highlight .nf { color: #06287E } /* Name.Function */
+.highlight .nl { color: #002070; font-weight: bold } /* Name.Label */
+.highlight .nn { color: #0E84B5; font-weight: bold } /* Name.Namespace */
+.highlight .nt { color: #062873; font-weight: bold } /* Name.Tag */
+.highlight .nv { color: #BB60D5 } /* Name.Variable */
+.highlight .ow { color: #007020; font-weight: bold } /* Operator.Word */
+.highlight .w { color: #BBB } /* Text.Whitespace */
+.highlight .mb { color: #40A070 } /* Literal.Number.Bin */
+.highlight .mf { color: #40A070 } /* Literal.Number.Float */
+.highlight .mh { color: #40A070 } /* Literal.Number.Hex */
+.highlight .mi { color: #40A070 } /* Literal.Number.Integer */
+.highlight .mo { color: #40A070 } /* Literal.Number.Oct */
+.highlight .sa { color: #4070A0 } /* Literal.String.Affix */
+.highlight .sb { color: #4070A0 } /* Literal.String.Backtick */
+.highlight .sc { color: #4070A0 } /* Literal.String.Char */
+.highlight .dl { color: #4070A0 } /* Literal.String.Delimiter */
+.highlight .sd { color: #4070A0; font-style: italic } /* Literal.String.Doc */
+.highlight .s2 { color: #4070A0 } /* Literal.String.Double */
+.highlight .se { color: #4070A0; font-weight: bold } /* Literal.String.Escape */
+.highlight .sh { color: #4070A0 } /* Literal.String.Heredoc */
+.highlight .si { color: #70A0D0; font-style: italic } /* Literal.String.Interpol */
+.highlight .sx { color: #C65D09 } /* Literal.String.Other */
+.highlight .sr { color: #235388 } /* Literal.String.Regex */
+.highlight .s1 { color: #4070A0 } /* Literal.String.Single */
+.highlight .ss { color: #517918 } /* Literal.String.Symbol */
+.highlight .bp { color: #007020 } /* Name.Builtin.Pseudo */
+.highlight .fm { color: #06287E } /* Name.Function.Magic */
+.highlight .vc { color: #BB60D5 } /* Name.Variable.Class */
+.highlight .vg { color: #BB60D5 } /* Name.Variable.Global */
+.highlight .vi { color: #BB60D5 } /* Name.Variable.Instance */
+.highlight .vm { color: #BB60D5 } /* Name.Variable.Magic */
+.highlight .il { color: #40A070 } /* Literal.Number.Integer.Long */
+</style>
+  
+  
+  
+    
+        <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20100%20100'%3E%3Ctext%20y='.9em'%20font-size='90'%3E🐼%3C/text%3E%3C/svg%3E">
+    
+
+
+
+  <style>
+      
+      
+    
+:root {
+    --width: 720px;
+    --font-main: Verdana, sans-serif;
+    --font-secondary: Verdana, sans-serif;
+    --font-scale: 1em;
+    --background-color: #fff;
+    --heading-color: #222;
+    --text-color: #444;
+    --link-color: #3273dc;
+    --visited-color:  #8b6fcb;
+    --code-background-color: #f2f2f2;
+    --code-color: #222;
+    --blockquote-color: #222;
+}
+
+@media (prefers-color-scheme: dark) {
+    :root {
+        --background-color: #01242e;
+        --heading-color: #eee;
+        --text-color: #ddd;
+        --link-color: #8cc2dd;
+        --visited-color:  #8b6fcb;
+        --code-background-color: #000;
+        --code-color: #ddd;
+        --blockquote-color: #ccc;
+    }
+}
+
+body {
+    font-family: var(--font-secondary);
+    font-size: var(--font-scale);
+    margin: auto;
+    padding: 20px;
+    max-width: var(--width);
+    text-align: left;
+    background-color: var(--background-color);
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    line-height: 1.5;
+    color: var(--text-color);
+}
+
+h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-main);
+    color: var(--heading-color);
+}
+
+a {
+    color: var(--link-color);
+    cursor: pointer;
+    text-decoration: none;
+}
+
+a:hover {
+    text-decoration: underline; 
+}
+
+nav a {
+    margin-right: 8px;
+}
+
+strong, b {
+    color: var(--heading-color);
+}
+
+button {
+    margin: 0;
+    cursor: pointer;
+}
+
+time {
+ 	font-family: monospace;
+  	font-style: normal;
+  	font-size: 15px;
+}
+
+main {
+    line-height: 1.6;
+}
+
+table {
+    width: 100%;
+}
+
+hr {
+    border: 0;
+    border-top: 1px dashed;
+}
+
+img {
+    max-width: 100%;
+}
+
+code {
+    font-family: monospace;
+    padding: 2px;
+    background-color: var(--code-background-color);
+    color: var(--code-color);
+    border-radius: 3px;
+}
+
+blockquote {
+    border-left: 1px solid #999;
+    color: var(--code-color);
+    padding-left: 20px;
+    font-style: italic;
+}
+
+footer {
+    padding: 25px 0;
+    text-align: center;
+}
+
+.title:hover {
+    text-decoration: none;
+}
+
+.title h1 {
+    font-size: 1.5em;
+}
+
+.inline {
+    width: auto !important;
+}
+
+.highlight, .code {
+    padding: 1px 15px;
+    background-color: var(--code-background-color);
+    color: var(--code-color);
+    border-radius: 3px;
+    margin-block-start: 1em;
+    margin-block-end: 1em;
+    overflow-x: auto;
+}
+
+/* blog post list */
+ul.blog-posts {
+    list-style-type: none;
+    padding: unset;
+}
+
+ul.blog-posts li {
+    display: flex;
+}
+
+ul.blog-posts li span {
+    flex: 0 0 130px;
+}
+
+ul.blog-posts li a:visited {
+    color: var(--visited-color);
+}
+    .upvote-button {
+        padding: 0;
+        margin: 0;
+        border: 0;
+        background-color: inherit;
+        color: inherit;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+    .upvote-button.upvoted {
+        color: salmon;
+    }
+    .upvote-count {
+        margin-top: -3px;
+    }
+
+      
+  </style>
+</head>
+
+<body class="post " onload="(function() { document.cookie = `timezone=${Intl.DateTimeFormat().resolvedOptions().timeZone};path=/`; })()">
+  
+  <header>
+    <a class="title" href="/">
+      <h1>
+        simons blog
+      </h1>
+    </a>
+    <nav>
+      <p><a href='/'>Home</a> <a href='/blog/'>Blog</a></p>
+
+    </nav>
+  </header>
+  <main>
+    
+
+    
+
+    
+        <h1>Mutual Refinement and Composition</h1>
+
+        <p>
+            <i>
+                <time datetime="2025-10-03T17:00Z">
+    03 Oct, 2025
+</time>
+            </i>
+        </p>
+    
+
+    <h2 id=introduction>Introduction</h2><p>Composition is a fundamental operation on Layouts. An example one encounters for example "in the wild" is composition of data with Thread Value Layout which than gives the user possibility to assign appropriate portion of data to each thread as indicated in this picture <a href='https://docs.nvidia.com/cutlass/media/docs/cpp/cute/03_tensor.html'>which I took from the CuTe docs</a>:</p>
+<p><img src="https://bear-images.sfo2.cdn.digitaloceanspaces.com/veitner/tv_layout.webp" alt="TV_Layout" /></p>
+<p>The categorical treatment of Layouts that Colfax established equips us with a step by step procedure to calculate Layout composition using the graphical representation of morphisms. In this blogpost I want to recap Chapter 4 of the Colfax Paper and conclude therewith my series of blogposts on this Paper.</p>
+<h2 id=mutual-refinement-and-composition>Mutual Refinement and Composition</h2><p>Consider <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>A</mi><mo>&#x0003D;</mo><mo stretchy="false">&#x00028;</mo><mn>6</mn><mo>&#x0002C;</mo><mn>6</mn><mo stretchy="false">&#x00029;</mo><mi>:</mi><mo stretchy="false">&#x00028;</mo><mn>6</mn><mo>&#x0002C;</mo><mn>1</mn><mo stretchy="false">&#x00029;</mo></mrow></math>, <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>B</mi><mo>&#x0003D;</mo><mo stretchy="false">&#x00028;</mo><mn>12</mn><mo>&#x0002C;</mo><mn>3</mn><mo>&#x0002C;</mo><mn>6</mn><mo stretchy="false">&#x00029;</mo><mi>:</mi><mo stretchy="false">&#x00028;</mo><mn>1</mn><mo>&#x0002C;</mo><mn>72</mn><mo>&#x0002C;</mo><mn>12</mn><mo stretchy="false">&#x00029;</mo></mrow></math>.</p>
+<p>Let's find corresponding Morphism representation. Let <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>f</mi></mrow></math> be morphism which encodes <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>A</mi></mrow></math> and <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>g</mi></mrow></math> be morphism which encodes <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>B</mi></mrow></math>.</p>
+<p><math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>f</mi></mrow></math>:</p>
+<ul>
+<li><math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msub><mi>s</mi><mn>0</mn></msub><msub><mi>d</mi><mn>0</mn></msub><mo>&#x0003D;</mo><mn>1</mn><mo>&#x0003D;</mo><msub><mi>d</mi><mn>2</mn></msub></mrow></math>, append <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mo stretchy="false">&#x00028;</mo><mn>6</mn><mo stretchy="false">&#x00029;</mo></mrow></math> traverse to <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msub><mi>d</mi><mn>1</mn></msub></mrow></math></li>
+<li><math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msub><mi>s</mi><mn>2</mn></msub><msub><mi>d</mi><mn>2</mn></msub><mo>&#x0003D;</mo><mn>6</mn><mo>&#x0003D;</mo><msub><mi>d</mi><mn>1</mn></msub></mrow></math>, append <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mo stretchy="false">&#x00028;</mo><mn>6</mn><mo stretchy="false">&#x00029;</mo></mrow></math>.</li>
+<li>We have therefore <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>f</mi><mi>:</mi><mi>S</mi><mo>&#x02192;</mo><mi>T</mi><mo>&#x0003D;</mo><mo stretchy="false">&#x00028;</mo><mn>6</mn><mo>&#x0002C;</mo><mn>6</mn><mo stretchy="false">&#x00029;</mo><mo>&#x02192;</mo><mo stretchy="false">&#x00028;</mo><mn>6</mn><mo>&#x0002C;</mo><mn>6</mn><mo stretchy="false">&#x00029;</mo></mrow></math> over <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>&#x003B1;</mi><mo>&#x0003D;</mo><mo stretchy="false">&#x00028;</mo><mn>2</mn><mo>&#x0002C;</mo><mn>1</mn><mo stretchy="false">&#x00029;</mo></mrow></math>.
+<math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>g</mi></mrow></math>:</li>
+<li><math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msub><mi>s</mi><mn>0</mn></msub><msub><mi>d</mi><mn>0</mn></msub><mo>&#x0003D;</mo><mn>1</mn><mo>&#x0003D;</mo><msub><mi>d</mi><mn>1</mn></msub></mrow></math>, append <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mo stretchy="false">&#x00028;</mo><msub><mi>s</mi><mn>1</mn></msub><mo stretchy="false">&#x00029;</mo><mo>&#x0003D;</mo><mo stretchy="false">&#x00028;</mo><mn>12</mn><mo stretchy="false">&#x00029;</mo></mrow></math> traverse to <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msub><mi>d</mi><mn>3</mn></msub></mrow></math></li>
+<li><math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msub><mi>s</mi><mn>1</mn></msub><msub><mi>d</mi><mn>1</mn></msub><mo>&#x0003D;</mo><mn>12</mn><mo>&#x0003D;</mo><msub><mi>d</mi><mn>3</mn></msub></mrow></math>, append <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mo stretchy="false">&#x00028;</mo><msub><mi>s</mi><mn>3</mn></msub><mo stretchy="false">&#x00029;</mo><mo>&#x0003D;</mo><mo stretchy="false">&#x00028;</mo><mn>6</mn><mo stretchy="false">&#x00029;</mo></mrow></math>, traverse to <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msub><mi>d</mi><mn>2</mn></msub></mrow></math></li>
+<li><math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msub><mi>s</mi><mn>3</mn></msub><msub><mi>d</mi><mn>3</mn></msub><mo>&#x0003D;</mo><mn>72</mn><mo>&#x0003D;</mo><msub><mi>d</mi><mn>2</mn></msub></mrow></math>, append <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mo stretchy="false">&#x00028;</mo><msub><mi>s</mi><mn>2</mn></msub><mo stretchy="false">&#x00029;</mo><mo>&#x0003D;</mo><mo stretchy="false">&#x00028;</mo><mn>3</mn><mo stretchy="false">&#x00029;</mo></mrow></math>.</li>
+<li>We have therefore <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>g</mi><mi>:</mi><mi>U</mi><mo>&#x02192;</mo><mi>V</mi><mo>&#x0003D;</mo><mo stretchy="false">&#x00028;</mo><mn>12</mn><mo>&#x0002C;</mo><mn>3</mn><mo>&#x0002C;</mo><mn>6</mn><mo stretchy="false">&#x00029;</mo><mo>&#x02192;</mo><mo stretchy="false">&#x00028;</mo><mn>12</mn><mo>&#x0002C;</mo><mn>6</mn><mo>&#x0002C;</mo><mn>3</mn><mo stretchy="false">&#x00029;</mo></mrow></math> over <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>&#x003B2;</mi><mo>&#x0003D;</mo><mo stretchy="false">&#x00028;</mo><mn>1</mn><mo>&#x0002C;</mo><mn>3</mn><mo>&#x0002C;</mo><mn>2</mn><mo stretchy="false">&#x00029;</mo></mrow></math></li>
+</ul>
+<p>This can be depicted visually:</p>
+<p><img src="https://bear-images.sfo2.cdn.digitaloceanspaces.com/veitner/composition-intro.webp" alt="Composition Intro" /></p>
+<p>Note that we attempt to compute the Layout composition <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>B</mi><mo>&#x02218;</mo><mi>A</mi></mrow></math> that corresponds to <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>g</mi><mo>&#x02218;</mo><mi>f</mi></mrow></math>.</p>
+<p>We see that is problematic, because we can't "input" the arrows coming from <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>f</mi></mrow></math> to the start of <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>g</mi></mrow></math>.</p>
+<p>To be clear, what we want would be to have a picture like this, where arrows flow from <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msup><mi>f</mi><mi>&#x02032;</mi></msup></mrow></math> into the domain of <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msup><mi>g</mi><mi>&#x02032;</mi></msup></mrow></math> and from there into the codomain of <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msup><mi>g</mi><mi>&#x02032;</mi></msup></mrow></math>. We see below that loosely speaking that is archived by splitting up the <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mn>6</mn></mrow></math> into a <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mn>2</mn></mrow></math> and a <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mn>3</mn></mrow></math> in the codomain of <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msup><mi>f</mi><mi>&#x02032;</mi></msup></mrow></math> and by factoring the <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mn>12</mn></mrow></math> in the domain of <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msup><mi>g</mi><mi>&#x02032;</mi></msup></mrow></math> into <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mn>6</mn></mrow></math> and <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mn>2</mn></mrow></math>.</p>
+<p><img src="https://bear-images.sfo2.cdn.digitaloceanspaces.com/veitner/composition-into-2.webp" alt="Composition Into 2" /></p>
+<p>Here we see the concept visually.</p>
+<p><img src="https://bear-images.sfo2.cdn.digitaloceanspaces.com/veitner/composition-intro-3.webp" alt="Composition Intro 3" /></p>
+<p>Let's recap the concept of <em>Refinement</em>. <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mo stretchy="false">&#x00028;</mo><mo stretchy="false">&#x00028;</mo><mn>2</mn><mo>&#x0002C;</mo><mo stretchy="false">&#x00028;</mo><mn>2</mn><mo>&#x0002C;</mo><mn>2</mn><mo stretchy="false">&#x00029;</mo><mo stretchy="false">&#x00029;</mo><mo stretchy="false">&#x00029;</mo></mrow></math> refines <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mo stretchy="false">&#x00028;</mo><mo stretchy="false">&#x00028;</mo><mn>2</mn><mo>&#x0002C;</mo><mn>4</mn><mo stretchy="false">&#x00029;</mo><mo stretchy="false">&#x00029;</mo></mrow></math> refines <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mo stretchy="false">&#x00028;</mo><mn>8</mn><mo stretchy="false">&#x00029;</mo></mrow></math> but not in the other direction. That is because in our framework <em>Refinement</em> can be thought of such that <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msup><mi>S</mi><mi>&#x02032;</mi></msup></mrow></math> refines <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>S</mi></mrow></math> if <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msup><mi>S</mi><mi>&#x02032;</mi></msup></mrow></math> may be obtained from <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>S</mi></mrow></math> by replacing each entry in <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>S</mi></mrow></math> with a some nested tuples of equal size. Let us think a moment about what this geometrically means using a simple example:</p>
+<p><math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mo stretchy="false">&#x00028;</mo><mn>2</mn><mo>&#x0002C;</mo><mn>4</mn><mo stretchy="false">&#x00029;</mo></mrow></math> can be geometrically thought of as a rectangle. <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mo stretchy="false">&#x00028;</mo><mn>2</mn><mo>&#x0002C;</mo><mo stretchy="false">&#x00028;</mo><mn>2</mn><mo>&#x0002C;</mo><mn>2</mn><mo stretchy="false">&#x00029;</mo><mo stretchy="false">&#x00029;</mo></mrow></math> also describes shape of a rectangle. However one dimension of a rectangle can be again described as a rectangle. This is useful and important concept in <code>CuTe</code> because it allows us to implement highly non trivial patterns in an intuitive way as you can convince yourself of by following <a href='https://veitner.bearblog.dev/intuition-behind-hierarchical-layouts/'>examples</a> from my blogpost about hierarchical Layouts.</p>
+<p>A mutual refinement can be thought of in terms of the following diagram</p>
+<p><img src="https://bear-images.sfo2.cdn.digitaloceanspaces.com/veitner/mutual-refinement.webp" alt="Mutual refinement" /></p>
+<p>In other words we want to refine the codomain of one function and the domain of another function such that we all possible values of the codomain of one function lie in the domain of the other function. That in turn will yield that we can compose the two functions we obtain by mutually refining.</p>
+<p><img src="https://bear-images.sfo2.cdn.digitaloceanspaces.com/veitner/algo.webp" alt="Algo" /></p>
+<p>This is an algorithm to find mutual refinement between two nested tuples.</p>
+<p>Let's apply it to <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mrow><mi mathvariant="normal">c</mi><mi mathvariant="normal">o</mi><mi mathvariant="normal">d</mi><mi mathvariant="normal">o</mi><mi mathvariant="normal">m</mi><mi mathvariant="normal">a</mi><mi mathvariant="normal">i</mi><mi mathvariant="normal">n</mi></mrow><mo stretchy="false">&#x00028;</mo><mi>f</mi><mo stretchy="false">&#x00029;</mo><mo>&#x0003D;</mo><mi>T</mi><mo>&#x0003D;</mo><mo stretchy="false">&#x00028;</mo><mn>6</mn><mo>&#x0002C;</mo><mn>6</mn><mo stretchy="false">&#x00029;</mo></mrow></math> and <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mrow><mi mathvariant="normal">d</mi><mi mathvariant="normal">o</mi><mi mathvariant="normal">m</mi><mi mathvariant="normal">a</mi><mi mathvariant="normal">i</mi><mi mathvariant="normal">n</mi></mrow><mo stretchy="false">&#x00028;</mo><mi>g</mi><mo stretchy="false">&#x00029;</mo><mo>&#x0003D;</mo><mi>U</mi><mo>&#x0003D;</mo><mo stretchy="false">&#x00028;</mo><mn>12</mn><mo>&#x0002C;</mo><mn>3</mn><mo>&#x0002C;</mo><mn>6</mn><mo stretchy="false">&#x00029;</mo></mrow></math>.</p>
+<p>Initially we have <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>X</mi><mo>&#x0003D;</mo><mi>T</mi><mo>&#x0002C;</mo><mi>Y</mi><mo>&#x0003D;</mo><mi>U</mi><mo>&#x0002C;</mo><msup><mi>X</mi><mi>&#x02032;</mi></msup><mo>&#x0003D;</mo><mo stretchy="false">&#x00028;</mo><mo stretchy="false">&#x00029;</mo><mo>&#x0002C;</mo><msup><mi>Y</mi><mi>&#x02032;</mi></msup><mo>&#x0003D;</mo><mo stretchy="false">&#x00028;</mo><mo stretchy="false">&#x00029;</mo><mo>&#x0002C;</mo><msub><mi>X</mi><mi>m</mi></msub><mo>&#x0003D;</mo><mo stretchy="false">&#x00028;</mo><mo stretchy="false">&#x00029;</mo><mo>&#x0002C;</mo><msub><mi>Y</mi><mi>m</mi></msub><mo>&#x0003D;</mo><mo stretchy="false">&#x00028;</mo><mo stretchy="false">&#x00029;</mo></mrow></math>.
+We will now compute the mutual refinement <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msup><mi>T</mi><mi>&#x02032;</mi></msup><mo>&#x0002C;</mo><msup><mi>U</mi><mi>&#x02032;</mi></msup></mrow></math>.</p>
+<p>Note that <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mrow><mi mathvariant="normal">l</mi><mi mathvariant="normal">e</mi><mi mathvariant="normal">n</mi></mrow><mo stretchy="false">&#x00028;</mo><mi>X</mi><mo stretchy="false">&#x00029;</mo><mo>&#x0003D;</mo><mn>2</mn></mrow></math> and <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mrow><mi mathvariant="normal">l</mi><mi mathvariant="normal">e</mi><mi mathvariant="normal">n</mi></mrow><mo stretchy="false">&#x00028;</mo><mi>Y</mi><mo stretchy="false">&#x00029;</mo><mo>&#x0003D;</mo><mn>3</mn></mrow></math>.</p>
+<p><strong>First step</strong>:</p>
+<ul>
+<li><math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>i</mi><mo>&#x0003D;</mo><mn>1</mn><mo>&#x0002C;</mo><mi>j</mi><mo>&#x0003D;</mo><mn>1</mn></mrow></math><ol>
+<li><math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mrow><mi mathvariant="normal">e</mi><mi mathvariant="normal">n</mi><mi mathvariant="normal">t</mi><mi mathvariant="normal">r</mi><msub><mi mathvariant="normal">y</mi><mn>1</mn></msub></mrow><mo stretchy="false">&#x00028;</mo><mi>X</mi><mo stretchy="false">&#x00029;</mo></mrow></math> divides <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msub><mrow><mi mathvariant="normal">e</mi><mi mathvariant="normal">n</mi><mi mathvariant="normal">t</mi><mi mathvariant="normal">r</mi><mi mathvariant="normal">y</mi></mrow><mn>1</mn></msub><mo stretchy="false">&#x00028;</mo><mi>Y</mi><mo stretchy="false">&#x00029;</mo></mrow></math> <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mo>&#x02192;</mo></mrow></math> <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msub><mi>X</mi><mi>m</mi></msub><mo>&#x0003D;</mo><mo stretchy="false">&#x00028;</mo><mn>6</mn><mo stretchy="false">&#x00029;</mo></mrow></math> <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mo>&#x02192;</mo></mrow></math> <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msup><mi>X</mi><mi>&#x02032;</mi></msup><mo>&#x0003D;</mo><mo stretchy="false">&#x00028;</mo><mn>6</mn><mo stretchy="false">&#x00029;</mo></mrow></math></li>
+<li><math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msub><mi>Y</mi><mi>m</mi></msub><mo>&#x0003D;</mo><mo stretchy="false">&#x00028;</mo><mn>6</mn><mo stretchy="false">&#x00029;</mo></mrow></math>, <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msub><mrow><mi mathvariant="normal">e</mi><mi mathvariant="normal">n</mi><mi mathvariant="normal">t</mi><mi mathvariant="normal">r</mi><mi mathvariant="normal">y</mi></mrow><mn>1</mn></msub><mo stretchy="false">&#x00028;</mo><mi>Y</mi><mo stretchy="false">&#x00029;</mo><mo>&#x0003D;</mo><mn>2</mn></mrow></math>, <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>i</mi><mo>&#x02192;</mo><mn>2</mn></mrow></math></li>
+</ol>
+</li>
+<li><math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>i</mi><mo>&#x0003D;</mo><mn>2</mn><mo>&#x0002C;</mo><mi>j</mi><mo>&#x0003D;</mo><mn>1</mn></mrow></math><ol>
+<li><math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msub><mrow><mi mathvariant="normal">e</mi><mi mathvariant="normal">n</mi><mi mathvariant="normal">t</mi><mi mathvariant="normal">r</mi><mi mathvariant="normal">y</mi></mrow><mn>1</mn></msub><mo stretchy="false">&#x00028;</mo><mi>Y</mi><mo stretchy="false">&#x00029;</mo></mrow></math> divides <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msub><mrow><mi mathvariant="normal">e</mi><mi mathvariant="normal">n</mi><mi mathvariant="normal">t</mi><mi mathvariant="normal">r</mi><mi mathvariant="normal">y</mi></mrow><mn>2</mn></msub><mo stretchy="false">&#x00028;</mo><mi>X</mi><mo stretchy="false">&#x00029;</mo></mrow></math> <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mo>&#x02192;</mo></mrow></math> <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msub><mi>X</mi><mi>m</mi></msub><mo>&#x0003D;</mo><mo stretchy="false">&#x00028;</mo><mn>2</mn><mo stretchy="false">&#x00029;</mo></mrow></math>, <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msub><mi>Y</mi><mi>m</mi></msub><mo>&#x0003D;</mo><mo stretchy="false">&#x00028;</mo><mn>6</mn><mo>&#x0002C;</mo><mn>2</mn><mo stretchy="false">&#x00029;</mo></mrow></math>, <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msup><mi>Y</mi><mi>&#x02032;</mi></msup><mo>&#x0003D;</mo><mo stretchy="false">&#x00028;</mo><mo stretchy="false">&#x00028;</mo><mn>6</mn><mo>&#x0002C;</mo><mn>2</mn><mo stretchy="false">&#x00029;</mo><mo stretchy="false">&#x00029;</mo></mrow></math></li>
+<li><math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msub><mi>Y</mi><mi>m</mi></msub><mo>&#x0003D;</mo><mo stretchy="false">&#x00028;</mo><mo stretchy="false">&#x00029;</mo></mrow></math>, <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msub><mrow><mi mathvariant="normal">e</mi><mi mathvariant="normal">n</mi><mi mathvariant="normal">t</mi><mi mathvariant="normal">r</mi><mi mathvariant="normal">y</mi></mrow><mn>2</mn></msub><mo stretchy="false">&#x00028;</mo><mi>X</mi><mo stretchy="false">&#x00029;</mo><mo>&#x0003D;</mo><mn>3</mn></mrow></math>, <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>j</mi><mo>&#x02192;</mo><mn>2</mn></mrow></math></li>
+</ol>
+</li>
+<li><math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>i</mi><mo>&#x0003D;</mo><mn>2</mn><mo>&#x0002C;</mo><mi>j</mi><mo>&#x0003D;</mo><mn>2</mn></mrow></math><ol>
+<li><math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msub><mrow><mi mathvariant="normal">e</mi><mi mathvariant="normal">n</mi><mi mathvariant="normal">t</mi><mi mathvariant="normal">r</mi><mi mathvariant="normal">y</mi></mrow><mn>2</mn></msub><mo stretchy="false">&#x00028;</mo><mi>X</mi><mo stretchy="false">&#x00029;</mo><mo>&#x0003D;</mo><msub><mrow><mi mathvariant="normal">e</mi><mi mathvariant="normal">n</mi><mi mathvariant="normal">t</mi><mi mathvariant="normal">r</mi><mi mathvariant="normal">y</mi></mrow><mn>2</mn></msub><mo stretchy="false">&#x00028;</mo><mi>Y</mi><mo stretchy="false">&#x00029;</mo></mrow></math> <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mo>&#x02192;</mo></mrow></math> <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msub><mi>X</mi><mi>m</mi></msub><mo>&#x0003D;</mo><mo stretchy="false">&#x00028;</mo><mn>2</mn><mo>&#x0002C;</mo><mn>3</mn><mo stretchy="false">&#x00029;</mo></mrow></math>, <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msup><mi>X</mi><mi>&#x02032;</mi></msup><mo>&#x0003D;</mo><mo stretchy="false">&#x00028;</mo><mn>6</mn><mo>&#x0002C;</mo><mo stretchy="false">&#x00028;</mo><mn>2</mn><mo>&#x0002C;</mo><mn>3</mn><mo stretchy="false">&#x00029;</mo><mo stretchy="false">&#x00029;</mo></mrow></math></li>
+<li><math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msub><mi>Y</mi><mi>m</mi></msub><mo>&#x0003D;</mo><mo stretchy="false">&#x00028;</mo><mn>3</mn><mo stretchy="false">&#x00029;</mo></mrow></math>, <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msup><mi>Y</mi><mi>&#x02032;</mi></msup><mo>&#x0003D;</mo><mo stretchy="false">&#x00028;</mo><mo stretchy="false">&#x00028;</mo><mn>6</mn><mo>&#x0002C;</mo><mn>2</mn><mo stretchy="false">&#x00029;</mo><mo>&#x0002C;</mo><mn>3</mn><mo stretchy="false">&#x00029;</mo></mrow></math>, <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msub><mi>Y</mi><mi>m</mi></msub><mo>&#x0003D;</mo><mo stretchy="false">&#x00028;</mo><mo stretchy="false">&#x00029;</mo></mrow></math></li>
+<li><math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>i</mi><mo>&#x02192;</mo><mn>3</mn><mo>&#x0002C;</mo><mi>j</mi><mo>&#x02192;</mo><mn>3</mn></mrow></math></li>
+</ol>
+</li>
+</ul>
+<p><strong>Fill Y' with remaining entries from Y</strong>
+<math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msup><mi>Y</mi><mi>&#x02032;</mi></msup><mo>&#x0003D;</mo><mo stretchy="false">&#x00028;</mo><mo stretchy="false">&#x00028;</mo><mn>6</mn><mo>&#x0002C;</mo><mn>2</mn><mo stretchy="false">&#x00029;</mo><mo>&#x0002C;</mo><mn>3</mn><mo>&#x0002C;</mo><mn>6</mn><mo stretchy="false">&#x00029;</mo></mrow></math></p>
+<p>So we obtained <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msup><mi>T</mi><mi>&#x02032;</mi></msup><mo>&#x0003D;</mo><mo stretchy="false">&#x00028;</mo><mn>6</mn><mo>&#x0002C;</mo><mo stretchy="false">&#x00028;</mo><mn>2</mn><mo>&#x0002C;</mo><mn>3</mn><mo stretchy="false">&#x00029;</mo><mo stretchy="false">&#x00029;</mo></mrow></math> and <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msup><mi>U</mi><mi>&#x02032;</mi></msup><mo>&#x0003D;</mo><mo stretchy="false">&#x00028;</mo><mo stretchy="false">&#x00028;</mo><mn>6</mn><mo>&#x0002C;</mo><mn>2</mn><mo stretchy="false">&#x00029;</mo><mo>&#x0002C;</mo><mn>3</mn><mo>&#x0002C;</mo><mn>6</mn><mo stretchy="false">&#x00029;</mo></mrow></math></p>
+<p><img src="https://bear-images.sfo2.cdn.digitaloceanspaces.com/veitner/diagram.webp" alt="Diagram" /></p>
+<p>The diagram on the left show</p>
+<div class="highlight"><pre><span></span>T&#39;   U&#39;
+T    U
+</pre></div>
+<p>We know that the domain of the second morphism needs to contain the codomain of the first morphism (after all, that is the whole reason we perform mutual refinement) which is depicted by the fact that for the upper <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mn>6</mn></mrow></math> we only have an outgoing arrow. For all the other entries we have ingoing and outgoing arrow.</p>
+<p><img src="https://bear-images.sfo2.cdn.digitaloceanspaces.com/veitner/branching-1.webp" alt="Branching 1" /></p>
+<p>Note that we take all "branching arrows" at the second stage and instead branch at first stage and than have an "identity arrow" pointing from <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>i</mi><mo>&#x02192;</mo><mi>i</mi></mrow></math>.</p>
+<p><img src="https://bear-images.sfo2.cdn.digitaloceanspaces.com/veitner/branching-2.webp" alt="Branching 2" /></p>
+<p>Here we simply make the replacement that for every incoming branch we replace it with a simple identity onto itself <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>i</mi><mo>&#x02192;</mo><mi>i</mi></mrow></math>.</p>
+<p>Let's take a look again at the above diagram and show how to resolve the diagram:</p>
+<p><img src="https://bear-images.sfo2.cdn.digitaloceanspaces.com/veitner/diagram-compose-1.webp" alt="Diagram Compose 1" /></p>
+<p>The left side is obtained by the process provided above.</p>
+<ol>
+<li>Find mutual refinement.</li>
+<li>Bring each part separately into the desired form by using above process
+Gives us the left side.</li>
+</ol>
+<p>From here we can drop the "mutual refinement" layer from the middle because by construction it is clear that <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>i</mi><mo>&#x02192;</mo><mi>i</mi></mrow></math> from left and right side. This gives us the right diagram from where we can read of <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msup><mi>g</mi><mi>&#x02032;</mi></msup><mo>&#x02218;</mo><msup><mi>f</mi><mi>&#x02032;</mi></msup><mo>&#x0003D;</mo><mo stretchy="false">&#x00028;</mo><mo stretchy="false">&#x00028;</mo><mn>2</mn><mo>&#x0002C;</mo><mn>3</mn><mo stretchy="false">&#x00029;</mo><mo>&#x0002C;</mo><mn>6</mn><mo stretchy="false">&#x00029;</mo><mo>&#x02192;</mo><mo stretchy="false">&#x00028;</mo><mn>6</mn><mo>&#x0002C;</mo><mn>2</mn><mo>&#x0002C;</mo><mn>6</mn><mo>&#x0002C;</mo><mn>3</mn><mo stretchy="false">&#x00029;</mo></mrow></math> over <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>&#x003B1;</mi><mo>&#x0003D;</mo><mo stretchy="false">&#x00028;</mo><mn>2</mn><mo>&#x0002C;</mo><mn>4</mn><mo>&#x0002C;</mo><mn>1</mn><mo stretchy="false">&#x00029;</mo></mrow></math>.</p>
+<p>This in return yields the Layout:</p>
+<ul>
+<li><math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mrow><mi mathvariant="normal">s</mi><mi mathvariant="normal">h</mi><mi mathvariant="normal">a</mi><mi mathvariant="normal">p</mi><mi mathvariant="normal">e</mi></mrow><mo stretchy="false">&#x00028;</mo><mi>L</mi><mo stretchy="false">&#x00029;</mo><mo>&#x0003D;</mo><mo stretchy="false">&#x00028;</mo><mo stretchy="false">&#x00028;</mo><mn>2</mn><mo>&#x0002C;</mo><mn>3</mn><mo stretchy="false">&#x00029;</mo><mo>&#x0002C;</mo><mn>6</mn><mo stretchy="false">&#x00029;</mo></mrow></math></li>
+<li><math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mrow><mi mathvariant="normal">s</mi><mi mathvariant="normal">t</mi><mi mathvariant="normal">r</mi><mi mathvariant="normal">i</mi><mi mathvariant="normal">d</mi><mi mathvariant="normal">e</mi></mrow><mo stretchy="false">&#x00028;</mo><msup><mi>L</mi><mi>&#x0266D;</mi></msup><mo stretchy="false">&#x00029;</mo><mo>&#x0003D;</mo><mo stretchy="false">&#x00028;</mo><mn>6</mn><mo>&#x0002C;</mo><mn>72</mn><mo>&#x0002C;</mo><mn>1</mn><mo stretchy="false">&#x00029;</mo></mrow></math></li>
+<li>equip stride with profile <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mo stretchy="false">&#x00028;</mo><mo stretchy="false">&#x00028;</mo><mn>6</mn><mo>&#x0002C;</mo><mn>72</mn><mo stretchy="false">&#x00029;</mo><mo>&#x0002C;</mo><mn>1</mn><mo stretchy="false">&#x00029;</mo></mrow></math></li>
+<li><math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msub><mi>L</mi><mrow><msup><mi>g</mi><mi>&#x02032;</mi></msup><mo>&#x02218;</mo><msup><mi>f</mi><mi>&#x02032;</mi></msup></mrow></msub><mo>&#x0003D;</mo><mo stretchy="false">&#x00028;</mo><mo stretchy="false">&#x00028;</mo><mn>2</mn><mo>&#x0002C;</mo><mn>3</mn><mo stretchy="false">&#x00029;</mo><mo>&#x0002C;</mo><mn>6</mn><mo stretchy="false">&#x00029;</mo><mi>:</mi><mo stretchy="false">&#x00028;</mo><mo stretchy="false">&#x00028;</mo><mn>6</mn><mo>&#x0002C;</mo><mn>72</mn><mo stretchy="false">&#x00029;</mo><mo>&#x0002C;</mo><mn>1</mn><mo stretchy="false">&#x00029;</mo></mrow></math></li>
+</ul>
+<p>We have a useful theorem that connect the composition <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>C</mi><mo>&#x0003D;</mo><msub><mi>L</mi><mrow><msup><mi>g</mi><mi>&#x02032;</mi></msup><mo>&#x02218;</mo><msup><mi>f</mi><mi>&#x02032;</mi></msup></mrow></msub></mrow></math>  to <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>B</mi><mo>&#x02218;</mo><mi>A</mi></mrow></math>.</p>
+<p><img src="https://bear-images.sfo2.cdn.digitaloceanspaces.com/veitner/formula.webp" alt="Formula" /></p>
+<p>So to obtain the composition we just take the <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mrow><mi mathvariant="normal">s</mi><mi mathvariant="normal">i</mi><mi mathvariant="normal">z</mi><mi mathvariant="normal">e</mi></mrow><mo stretchy="false">&#x00028;</mo><mi>A</mi><mo stretchy="false">&#x00029;</mo></mrow></math> complement of <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>C</mi></mrow></math>.</p>
+<p>That means we have a clear procedure to compute composition:</p>
+<ul>
+<li>Determine standard representation of <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>A</mi></mrow></math> and <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>B</mi></mrow></math></li>
+<li>Determine mutual refinement similar to what we did above</li>
+<li>Form the diagram using mutual refinement, i.e. "connect" codomain of <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>f</mi></mrow></math> and domain of <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>g</mi></mrow></math> to the mutual refinement "layer"</li>
+<li>Use above mechanism to resolve the diagram. For incoming branches, let them branch from their corresponding source and from there map <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>i</mi><mo>&#x02192;</mo><mi>i</mi></mrow></math>. For outgoing branches map <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>i</mi><mo>&#x02192;</mo><mi>i</mi></mrow></math> instead of branching "into" a source</li>
+<li>Read off the Layout from the diagram</li>
+<li>Use the above formula to obtain the composition from the Layout we read off the diagram. (i.e. coalesce over the size of the Layout we apply first)</li>
+</ul>
+<p>Let's use the most complex example given in the Paper and analyse it step by step:</p>
+<p><img src="https://bear-images.sfo2.cdn.digitaloceanspaces.com/veitner/step_1.webp" alt="Step_1" /></p>
+<ul>
+<li>We see that <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>f</mi></mrow></math> corresponds to <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>A</mi></mrow></math> because <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mrow><mi mathvariant="normal">s</mi><mi mathvariant="normal">h</mi><mi mathvariant="normal">a</mi><mi mathvariant="normal">p</mi><mi mathvariant="normal">e</mi></mrow><mo stretchy="false">&#x00028;</mo><mi>A</mi><mo stretchy="false">&#x00029;</mo><mo>&#x0003D;</mo><mo stretchy="false">&#x00028;</mo><mn>6</mn><mo>&#x0002C;</mo><mn>6</mn><mo stretchy="false">&#x00029;</mo></mrow></math> and <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mrow><mi mathvariant="normal">s</mi><mi mathvariant="normal">t</mi><mi mathvariant="normal">r</mi><mi mathvariant="normal">i</mi><mi mathvariant="normal">d</mi><mi mathvariant="normal">e</mi></mrow><mo stretchy="false">&#x00028;</mo><mi>A</mi><mo stretchy="false">&#x00029;</mo><mo>&#x0003D;</mo><mo stretchy="false">&#x00028;</mo><mn>5</mn><mo>&#x0002C;</mo><mn>2</mn><mi>&#x000B7;</mi><mn>6</mn><mi>&#x000B7;</mi><mn>5</mn><mo stretchy="false">&#x00029;</mo><mo>&#x0003D;</mo><mo stretchy="false">&#x00028;</mo><mn>5</mn><mo>&#x0002C;</mo><mn>60</mn><mo stretchy="false">&#x00029;</mo></mrow></math>.</li>
+<li>We see that <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>g</mi></mrow></math> corresponds to <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mrow><mi mathvariant="normal">s</mi><mi mathvariant="normal">h</mi><mi mathvariant="normal">a</mi><mi mathvariant="normal">p</mi><mi mathvariant="normal">e</mi></mrow><mo stretchy="false">&#x00028;</mo><mi>B</mi><mo stretchy="false">&#x00029;</mo><mo>&#x0003D;</mo><mo stretchy="false">&#x00028;</mo><mn>10</mn><mo>&#x0002C;</mo><mn>360</mn><mo stretchy="false">&#x00029;</mo></mrow></math> and <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mrow><mi mathvariant="normal">s</mi><mi mathvariant="normal">t</mi><mi mathvariant="normal">r</mi><mi mathvariant="normal">i</mi><mi mathvariant="normal">d</mi><mi mathvariant="normal">e</mi></mrow><mo stretchy="false">&#x00028;</mo><mi>B</mi><mo stretchy="false">&#x00029;</mo><mo>&#x0003D;</mo><mo stretchy="false">&#x00028;</mo><mn>2</mn><mo>&#x0002C;</mo><mn>3</mn><mi>&#x000B7;</mi><mn>10</mn><mi>&#x000B7;</mi><mn>2</mn><mo stretchy="false">&#x00029;</mo><mo>&#x0003D;</mo><mo stretchy="false">&#x00028;</mo><mn>2</mn><mo>&#x0002C;</mo><mn>60</mn><mo stretchy="false">&#x00029;</mo></mrow></math>.</li>
+</ul>
+<p><img src="https://bear-images.sfo2.cdn.digitaloceanspaces.com/veitner/step_2.webp" alt="Step_2" /></p>
+<ul>
+<li>We will not go through the mechanical procedure above, but we can confirm visually that this is correct. We see that <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mn>3</mn><mi>&#x000B7;</mi><mn>2</mn><mo>&#x0003D;</mo><mn>6</mn></mrow></math>, <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mn>5</mn><mi>&#x000B7;</mi><mn>2</mn><mo>&#x0003D;</mo><mn>10</mn></mrow></math> and <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mn>3</mn><mi>&#x000B7;</mi><mn>2</mn><mi>&#x000B7;</mi><mn>6</mn><mi>&#x000B7;</mi><mn>10</mn><mo>&#x0003D;</mo><mn>360</mn></mrow></math>.</li>
+</ul>
+<p><img src="https://bear-images.sfo2.cdn.digitaloceanspaces.com/veitner/step_3.webp" alt="Step_3" /></p>
+<ul>
+<li>Forming the diagram here means simply to insert the "mutual refinement layer" in the middle and connect the codomain of <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>f</mi></mrow></math> to it and the domain of <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>g</mi></mrow></math> to it.</li>
+</ul>
+<p><img src="https://bear-images.sfo2.cdn.digitaloceanspaces.com/veitner/step_4.webp" alt="Step_4" /></p>
+<ul>
+<li>Resolving the diagram is the process from above.</li>
+<li>Left side of mutual refinement layer: For example replace <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mn>6</mn></mrow></math> by the two points it branches to (<math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mn>2</mn></mrow></math> and <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mn>3</mn></mrow></math>) and map them via <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>i</mi><mo>&#x02192;</mo><mi>i</mi></mrow></math>.</li>
+<li>Right side: This is even simpler. Simply "resolve" all branches via <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>i</mi><mo>&#x02192;</mo><mi>i</mi></mrow></math>.</li>
+</ul>
+<p><img src="https://bear-images.sfo2.cdn.digitaloceanspaces.com/veitner/step_5.webp" alt="Step_5" /></p>
+<ul>
+<li>We remove the "mutual refinement layer". This is can be easily done by tracing from where the three arrows entering come and where they go to. For example <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mn>2</mn></mrow></math> goes into at <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mn>2</mn></mrow></math> and from there to <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mn>2</mn></mrow></math> so we can replace the two arrows by one arrow directly going from <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mn>2</mn></mrow></math> to <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mn>2</mn></mrow></math> and similar for the others.</li>
+</ul>
+<p><img src="https://bear-images.sfo2.cdn.digitaloceanspaces.com/veitner/step_6.webp" alt="Step_6" /></p>
+<ul>
+<li>Read the Layout off</li>
+<li><math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mrow><mi mathvariant="normal">s</mi><mi mathvariant="normal">h</mi><mi mathvariant="normal">a</mi><mi mathvariant="normal">p</mi><mi mathvariant="normal">e</mi></mrow><mo stretchy="false">&#x00028;</mo><msub><mi>L</mi><mrow><msup><mi>g</mi><mi>&#x02032;</mi></msup><mo>&#x02218;</mo><msup><mi>f</mi><mi>&#x02032;</mi></msup></mrow></msub><mo stretchy="false">&#x00029;</mo><mo>&#x0003D;</mo><mo stretchy="false">&#x00028;</mo><mo stretchy="false">&#x00028;</mo><mn>2</mn><mo>&#x0002C;</mo><mn>3</mn><mo stretchy="false">&#x00029;</mo><mo>&#x0002C;</mo><mn>6</mn><mo stretchy="false">&#x00029;</mo></mrow></math></li>
+<li>flattened stride is <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mo stretchy="false">&#x00028;</mo><mn>10</mn><mo>&#x0002C;</mo><mn>60</mn><mo>&#x0002C;</mo><mn>360</mn><mo stretchy="false">&#x00029;</mo></mrow></math> (see above how to obtain it)</li>
+<li><math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mrow><mi mathvariant="normal">s</mi><mi mathvariant="normal">t</mi><mi mathvariant="normal">r</mi><mi mathvariant="normal">i</mi><mi mathvariant="normal">d</mi><mi mathvariant="normal">e</mi></mrow><mo stretchy="false">&#x00028;</mo><msub><mi>L</mi><mrow><msup><mi>g</mi><mi>&#x02032;</mi></msup><mo>&#x02218;</mo><msup><mi>f</mi><mi>&#x02032;</mi></msup></mrow></msub><mo>&#x0003D;</mo><mo stretchy="false">&#x00028;</mo><mo stretchy="false">&#x00028;</mo><mn>10</mn><mo>&#x0002C;</mo><mn>60</mn><mo stretchy="false">&#x00029;</mo><mo>&#x0002C;</mo><mn>360</mn><mo stretchy="false">&#x00029;</mo></mrow></math> is the flattened stride equipped with profile of the shape.</li>
+</ul>
+<p><img src="https://bear-images.sfo2.cdn.digitaloceanspaces.com/veitner/step_7.webp" alt="Step_7" /></p>
+<ul>
+<li><math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mrow><mi mathvariant="normal">c</mi><mi mathvariant="normal">o</mi><mi mathvariant="normal">a</mi><mi mathvariant="normal">l</mi></mrow><mo stretchy="false">&#x00028;</mo><mi>C</mi><mo>&#x0002C;</mo><mrow><mi mathvariant="normal">s</mi><mi mathvariant="normal">h</mi><mi mathvariant="normal">a</mi><mi mathvariant="normal">p</mi><mi mathvariant="normal">e</mi></mrow><mo stretchy="false">&#x00028;</mo><mi>A</mi><mo stretchy="false">&#x00029;</mo><mo stretchy="false">&#x00029;</mo></mrow></math></li>
+<li>The relative modes <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mo stretchy="false">&#x00028;</mo><mn>2</mn><mo>&#x0002C;</mo><mn>3</mn><mo stretchy="false">&#x00029;</mo><mi>:</mi><mo stretchy="false">&#x00028;</mo><mn>10</mn><mo>&#x0002C;</mo><mn>60</mn><mo stretchy="false">&#x00029;</mo></mrow></math> and <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mn>6</mn><mi>:</mi><mn>360</mn></mrow></math> are coalesced, therefore the Layout is coalesced over the shape and we are done. The relative modes are determined by the procedure described in <strong>Relative coalesce</strong> chapter of the paper.</li>
+</ul>
+<h2 id=conclusion>Conclusion</h2><p>This concludes the blogpost about the <a href='https://research.colfax-intl.com/categorical-foundations-for-cute-layouts/'>Colfax paper</a>. Please consider <a href='https://github.com/ColfaxResearch/layout-categories'>starring the repository</a> they released along the paper. The codebase delivered there offers also ability to produce lots of the figures shown here and of course can be used to let computer perform the calculations. However it is helpful if we know how things supposed to look like so we can sanity check the computer output and especially understand how to interpret them.</p>
+
+
+    
+
+    
+        
+
+        
+            <form id="upvote-form" action="/upvote/" method="post" style="display: inline">
+    <small>
+        <input hidden name="uid" value="EiBtzBQEyAyqQzqvPKCY" style="display:none">
+        <input hidden name="title" value="Mutual Refinement and Composition" style="display:none">
+
+        <button
+            class="upvote-button"
+            aria-label="Toast this post"
+            title="Toast this post"
+        >
+            <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" class="css-i6dzq1">
+                <polyline points="17 11 12 6 7 11"></polyline>
+                <polyline points="17 18 12 13 7 18"></polyline>
+            </svg>
+            <small class="upvote-count" aria-hidden="true">&nbsp;</small>
+        </button>
+    </small>        
+</form>
+
+<script>
+    const $upvoteButton = document.querySelector('.upvote-button');
+    const $upvoteCount =  document.querySelector('.upvote-count')
+
+    fetch('/upvote-info/EiBtzBQEyAyqQzqvPKCY/').then(response => response.json()).then(data => {
+        $upvoteCount.innerText = data.upvote_count;
+        if (data.upvoted) {
+            $upvoteButton.disabled = true
+            $upvoteButton.style.color = "salmon"
+            $upvoteButton.ariaLabel = "Toasted"
+            $upvoteButton.title = "Toasted"
+        }
+        $upvoteButton.ariaLabel += ` (${data.upvote_count})`
+    });
+
+    let moved = false;
+    let pageLoaded = Date.now();
+
+    document.addEventListener('touchmove', () => moved = true);
+    document.addEventListener('mousemove', () => moved = true);
+
+    document.querySelector('#upvote-form').addEventListener('submit', (e) => {
+        e.preventDefault();
+
+        if (moved) {
+            document.querySelector('input[name="title"]').value = "";
+        }
+        if (Date.now() - pageLoaded < 2000 || !moved) {
+            return;
+        }
+
+        fetch(e.target.action, {
+            method: 'post',
+            body: new FormData(e.target),
+        });
+        
+        $upvoteButton.disabled = true
+        $upvoteButton.style.color = "salmon"
+        $upvoteButton.ariaLabel = "Toasted"
+        $upvoteButton.title = "Toasted"
+        const newUpvoteCount = `${(parseInt($upvoteCount.innerHTML.split(" ")[0]) + 1)}`
+        $upvoteCount.innerHTML = newUpvoteCount
+        $upvoteButton.ariaLabel += ` (${newUpvoteCount})`
+    });
+</script>
+        
+
+        
+            <script>
+            window.addEventListener("load", () => {
+                if (navigator.webdriver !== true) {
+                    const sendHit = score => {
+                        const params = new URLSearchParams({
+                            blog: "veitner",
+                            token: "EiBtzBQEyAyqQzqvPKCY",
+                            referrer: document.referrer.includes("veitner.bearblog.dev") ? "" : document.referrer,
+                            title: "",
+                            score: score
+                        });
+                        new Image().src = `/hit/?${params.toString()}`;
+                    };
+
+                    document.addEventListener('touchmove', () => sendHit(100), { once: true });
+                    document.addEventListener('mousemove', () => sendHit(100), { once: true });
+                }
+            });
+            </script>
+        
+    
+
+
+  </main>
+  <footer>
+    
+    
+    <span>
+        Powered by <a href="https://bearblog.dev">Bear <span role="img" class="bear" aria-label="ASCII bear logo">ʕ•ᴥ•ʔ</span></a>
+    </span>
+
+  </footer>
+
+  
+  <script>
+        (() => {
+          "use strict";
+          const times = document.querySelectorAll('time');
+          const format_string = "d M, Y" || "d M, Y"
+
+          times.forEach(time => {
+              time.innerText = formatDate(time.dateTime, format_string)
+          });
+
+          function formatDate(dateStr, formatStr) {
+            const date = new Date(dateStr);
+            const day = date.getDate();
+            const month = date.getMonth();
+            const year = date.getFullYear();
+            const weekday = date.getDay();
+            const hours = date.getHours();
+            const minutes = date.getMinutes();
+            const monthsFull = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+            const monthsShort = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+            const daysFull = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+            const daysShort = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+            
+            function getOrdinal(n) {
+                const s = ['th', 'st', 'nd', 'rd'];
+                const v = n % 100;
+                return s[(v - 20) % 10] || s[v] || s[0];
+            }
+            
+            const map = {
+                'd': () => day.toString().padStart(2, '0'),
+                'm': () => (month + 1).toString().padStart(2, '0'),
+                'Y': () => year.toString(),
+                'y': () => year.toString().slice(-2),
+                'F': () => monthsFull[month],
+                'j': () => day.toString(),
+                'D': () => daysShort[weekday],
+                'l': () => daysFull[weekday],
+                'S': () => getOrdinal(day),
+                'M': () => monthsShort[month],
+                'H': () => hours.toString().padStart(2, '0'),
+                'h': () => {
+                    let h = hours % 12;
+                    h = h === 0 ? 12 : h;
+                    return h.toString().padStart(2, '0');
+                },
+                'g': () => {
+                    let h = hours % 12;
+                    return h === 0 ? '12' : h.toString();
+                },
+                'i': () => minutes.toString().padStart(2, '0'),
+                'a': () => hours < 12 ? 'am' : 'pm',
+                'A': () => hours < 12 ? 'AM' : 'PM',
+            };
+            
+            let result = '';
+            for (let char of formatStr) {
+                result += map[char] ? map[char]() : char;
+            }
+            return result;
+        }
+        })();
+    </script>
+    
+</body>
+<!-- ID: veitner -->
+<!-- 🐻 -->
+</html>

@@ -1,0 +1,999 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!-- Powered by Bear Blog -->
+
+<head>
+  
+  
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5">
+  
+  <title>Demystifying numeric conversions in CuTeDSL | simons blog</title>
+  <link rel="canonical" href="https://veitner.bearblog.dev/demystifying-numeric-conversions-in-cutedsl/">
+  
+    
+
+    <meta name="veitner" content="look-for-the-bear-necessities">
+    <meta name="token" content="aMpBwKAtRsTTgctfVEbu">
+
+    
+<!-- Primary Meta Tags -->
+<meta name="title" content="Demystifying numeric conversions in CuTeDSL">
+<meta name="description" content="CuTeDSL has vector primitives which the user can convert between. On a high level, conversion can be implemented such that we can summarize it in a top-to-bo...">
+
+<!-- Open Graph / Facebook -->
+<meta property="og:site_name" content="simons blog">
+<meta property="og:title" content="Demystifying numeric conversions in CuTeDSL">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://veitner.bearblog.dev/demystifying-numeric-conversions-in-cutedsl/">
+<meta property="og:description" content="CuTeDSL has vector primitives which the user can convert between. On a high level, conversion can be implemented such that we can summarize it in a top-to-bo...">
+<meta property="og:image" content="/static/og-image.png">
+
+
+<!-- Twitter -->
+<meta property="twitter:card" content="summary">
+<meta property="twitter:url" content="https://veitner.bearblog.dev/demystifying-numeric-conversions-in-cutedsl/">
+<meta property="twitter:title" content="Demystifying numeric conversions in CuTeDSL">
+<meta property="twitter:description" content="CuTeDSL has vector primitives which the user can convert between. On a high level, conversion can be implemented such that we can summarize it in a top-to-bo...">
+<meta property="twitter:image" content="/static/og-image.png">
+
+
+
+<!-- Microdata -->
+<script type="application/ld+json">
+  {
+    "@context": "http://schema.org",
+    "@type": "article",
+    "name": "Demystifying numeric conversions in CuTeDSL",
+    "headline": "Demystifying numeric conversions in CuTeDSL",
+    "url": "https://veitner.bearblog.dev/demystifying-numeric-conversions-in-cutedsl/",
+    "description": "CuTeDSL has vector primitives which the user can convert between. On a high level, conversion can be implemented such that we can summarize it in a top-to-bo...",
+    "image": "/static/og-image.png"
+  }
+</script>
+    <link rel="alternate" type="application/atom+xml" href="/feed/" title="simons blog">
+    <link rel="alternate" type="application/rss+xml" href="/feed/?type=rss" title="simons blog">
+
+  
+    
+
+    
+    <style>pre { line-height: 125%; }
+td.linenos .normal { color: #666666; background-color: transparent; padding-left: 5px; padding-right: 5px; }
+span.linenos { color: #666666; background-color: transparent; padding-left: 5px; padding-right: 5px; }
+td.linenos .special { color: #000000; background-color: #ffffc0; padding-left: 5px; padding-right: 5px; }
+span.linenos.special { color: #000000; background-color: #ffffc0; padding-left: 5px; padding-right: 5px; }
+.highlight .hll { background-color: #ffffcc }
+.highlight { background: #f0f0f0; }
+.highlight .c { color: #60A0B0; font-style: italic } /* Comment */
+.highlight .err { border: 1px solid #F00 } /* Error */
+.highlight .k { color: #007020; font-weight: bold } /* Keyword */
+.highlight .o { color: #666 } /* Operator */
+.highlight .ch { color: #60A0B0; font-style: italic } /* Comment.Hashbang */
+.highlight .cm { color: #60A0B0; font-style: italic } /* Comment.Multiline */
+.highlight .cp { color: #007020 } /* Comment.Preproc */
+.highlight .cpf { color: #60A0B0; font-style: italic } /* Comment.PreprocFile */
+.highlight .c1 { color: #60A0B0; font-style: italic } /* Comment.Single */
+.highlight .cs { color: #60A0B0; background-color: #FFF0F0 } /* Comment.Special */
+.highlight .gd { color: #A00000 } /* Generic.Deleted */
+.highlight .ge { font-style: italic } /* Generic.Emph */
+.highlight .ges { font-weight: bold; font-style: italic } /* Generic.EmphStrong */
+.highlight .gr { color: #F00 } /* Generic.Error */
+.highlight .gh { color: #000080; font-weight: bold } /* Generic.Heading */
+.highlight .gi { color: #00A000 } /* Generic.Inserted */
+.highlight .go { color: #888 } /* Generic.Output */
+.highlight .gp { color: #C65D09; font-weight: bold } /* Generic.Prompt */
+.highlight .gs { font-weight: bold } /* Generic.Strong */
+.highlight .gu { color: #800080; font-weight: bold } /* Generic.Subheading */
+.highlight .gt { color: #04D } /* Generic.Traceback */
+.highlight .kc { color: #007020; font-weight: bold } /* Keyword.Constant */
+.highlight .kd { color: #007020; font-weight: bold } /* Keyword.Declaration */
+.highlight .kn { color: #007020; font-weight: bold } /* Keyword.Namespace */
+.highlight .kp { color: #007020 } /* Keyword.Pseudo */
+.highlight .kr { color: #007020; font-weight: bold } /* Keyword.Reserved */
+.highlight .kt { color: #902000 } /* Keyword.Type */
+.highlight .m { color: #40A070 } /* Literal.Number */
+.highlight .s { color: #4070A0 } /* Literal.String */
+.highlight .na { color: #4070A0 } /* Name.Attribute */
+.highlight .nb { color: #007020 } /* Name.Builtin */
+.highlight .nc { color: #0E84B5; font-weight: bold } /* Name.Class */
+.highlight .no { color: #60ADD5 } /* Name.Constant */
+.highlight .nd { color: #555; font-weight: bold } /* Name.Decorator */
+.highlight .ni { color: #D55537; font-weight: bold } /* Name.Entity */
+.highlight .ne { color: #007020 } /* Name.Exception */
+.highlight .nf { color: #06287E } /* Name.Function */
+.highlight .nl { color: #002070; font-weight: bold } /* Name.Label */
+.highlight .nn { color: #0E84B5; font-weight: bold } /* Name.Namespace */
+.highlight .nt { color: #062873; font-weight: bold } /* Name.Tag */
+.highlight .nv { color: #BB60D5 } /* Name.Variable */
+.highlight .ow { color: #007020; font-weight: bold } /* Operator.Word */
+.highlight .w { color: #BBB } /* Text.Whitespace */
+.highlight .mb { color: #40A070 } /* Literal.Number.Bin */
+.highlight .mf { color: #40A070 } /* Literal.Number.Float */
+.highlight .mh { color: #40A070 } /* Literal.Number.Hex */
+.highlight .mi { color: #40A070 } /* Literal.Number.Integer */
+.highlight .mo { color: #40A070 } /* Literal.Number.Oct */
+.highlight .sa { color: #4070A0 } /* Literal.String.Affix */
+.highlight .sb { color: #4070A0 } /* Literal.String.Backtick */
+.highlight .sc { color: #4070A0 } /* Literal.String.Char */
+.highlight .dl { color: #4070A0 } /* Literal.String.Delimiter */
+.highlight .sd { color: #4070A0; font-style: italic } /* Literal.String.Doc */
+.highlight .s2 { color: #4070A0 } /* Literal.String.Double */
+.highlight .se { color: #4070A0; font-weight: bold } /* Literal.String.Escape */
+.highlight .sh { color: #4070A0 } /* Literal.String.Heredoc */
+.highlight .si { color: #70A0D0; font-style: italic } /* Literal.String.Interpol */
+.highlight .sx { color: #C65D09 } /* Literal.String.Other */
+.highlight .sr { color: #235388 } /* Literal.String.Regex */
+.highlight .s1 { color: #4070A0 } /* Literal.String.Single */
+.highlight .ss { color: #517918 } /* Literal.String.Symbol */
+.highlight .bp { color: #007020 } /* Name.Builtin.Pseudo */
+.highlight .fm { color: #06287E } /* Name.Function.Magic */
+.highlight .vc { color: #BB60D5 } /* Name.Variable.Class */
+.highlight .vg { color: #BB60D5 } /* Name.Variable.Global */
+.highlight .vi { color: #BB60D5 } /* Name.Variable.Instance */
+.highlight .vm { color: #BB60D5 } /* Name.Variable.Magic */
+.highlight .il { color: #40A070 } /* Literal.Number.Integer.Long */
+</style>
+  
+  
+  
+    
+        <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20100%20100'%3E%3Ctext%20y='.9em'%20font-size='90'%3E🐼%3C/text%3E%3C/svg%3E">
+    
+
+
+
+  <style>
+      
+      
+    
+:root {
+    --width: 720px;
+    --font-main: Verdana, sans-serif;
+    --font-secondary: Verdana, sans-serif;
+    --font-scale: 1em;
+    --background-color: #fff;
+    --heading-color: #222;
+    --text-color: #444;
+    --link-color: #3273dc;
+    --visited-color:  #8b6fcb;
+    --code-background-color: #f2f2f2;
+    --code-color: #222;
+    --blockquote-color: #222;
+}
+
+@media (prefers-color-scheme: dark) {
+    :root {
+        --background-color: #01242e;
+        --heading-color: #eee;
+        --text-color: #ddd;
+        --link-color: #8cc2dd;
+        --visited-color:  #8b6fcb;
+        --code-background-color: #000;
+        --code-color: #ddd;
+        --blockquote-color: #ccc;
+    }
+}
+
+body {
+    font-family: var(--font-secondary);
+    font-size: var(--font-scale);
+    margin: auto;
+    padding: 20px;
+    max-width: var(--width);
+    text-align: left;
+    background-color: var(--background-color);
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    line-height: 1.5;
+    color: var(--text-color);
+}
+
+h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-main);
+    color: var(--heading-color);
+}
+
+a {
+    color: var(--link-color);
+    cursor: pointer;
+    text-decoration: none;
+}
+
+a:hover {
+    text-decoration: underline; 
+}
+
+nav a {
+    margin-right: 8px;
+}
+
+strong, b {
+    color: var(--heading-color);
+}
+
+button {
+    margin: 0;
+    cursor: pointer;
+}
+
+time {
+ 	font-family: monospace;
+  	font-style: normal;
+  	font-size: 15px;
+}
+
+main {
+    line-height: 1.6;
+}
+
+table {
+    width: 100%;
+}
+
+hr {
+    border: 0;
+    border-top: 1px dashed;
+}
+
+img {
+    max-width: 100%;
+}
+
+code {
+    font-family: monospace;
+    padding: 2px;
+    background-color: var(--code-background-color);
+    color: var(--code-color);
+    border-radius: 3px;
+}
+
+blockquote {
+    border-left: 1px solid #999;
+    color: var(--code-color);
+    padding-left: 20px;
+    font-style: italic;
+}
+
+footer {
+    padding: 25px 0;
+    text-align: center;
+}
+
+.title:hover {
+    text-decoration: none;
+}
+
+.title h1 {
+    font-size: 1.5em;
+}
+
+.inline {
+    width: auto !important;
+}
+
+.highlight, .code {
+    padding: 1px 15px;
+    background-color: var(--code-background-color);
+    color: var(--code-color);
+    border-radius: 3px;
+    margin-block-start: 1em;
+    margin-block-end: 1em;
+    overflow-x: auto;
+}
+
+/* blog post list */
+ul.blog-posts {
+    list-style-type: none;
+    padding: unset;
+}
+
+ul.blog-posts li {
+    display: flex;
+}
+
+ul.blog-posts li span {
+    flex: 0 0 130px;
+}
+
+ul.blog-posts li a:visited {
+    color: var(--visited-color);
+}
+    .upvote-button {
+        padding: 0;
+        margin: 0;
+        border: 0;
+        background-color: inherit;
+        color: inherit;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+    .upvote-button.upvoted {
+        color: salmon;
+    }
+    .upvote-count {
+        margin-top: -3px;
+    }
+
+      
+  </style>
+</head>
+
+<body class="post " onload="(function() { document.cookie = `timezone=${Intl.DateTimeFormat().resolvedOptions().timeZone};path=/`; })()">
+  
+  <header>
+    <a class="title" href="/">
+      <h1>
+        simons blog
+      </h1>
+    </a>
+    <nav>
+      <p><a href='/'>Home</a> <a href='/blog/'>Blog</a></p>
+
+    </nav>
+  </header>
+  <main>
+    
+
+    
+
+    
+        <h1>Demystifying numeric conversions in CuTeDSL</h1>
+
+        <p>
+            <i>
+                <time datetime="2025-11-23T18:10Z">
+    23 Nov, 2025
+</time>
+            </i>
+        </p>
+    
+
+    <p>CuTeDSL has <code>vector</code> primitives which the user can convert between. On a high level, conversion can be implemented such that we can summarize it in a top-to-bottom fashion as follows: Successively extract packed subsequences of the vector under consideration and then apply corresponding cvt instruction from PTX to convert the packed datatype into the converted packed datatype.<br />
+However, currently not all possible conversions are implemented. In this short note I quickly show how to implement such a conversion yourself. This may help code to run faster. On the GEMV task in current GPU mode competition I could leverage the below newly introduced conversion to improve performance by ~10%.</p>
+<h2 id=the-problem>The problem</h2><p>Let's consider <code>FP8</code> format <code>f8E4M3FN</code> which is for example used as the data format of scaling factors for the <code>FP4</code> format <code>Float4E2M1FN</code>. We can convert a <code>RMEM</code> tensor in this format to <code>F32</code> precision using the following minimal code example:</p>
+<div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">cutlass.cute</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">cute</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">cutlass</span><span class="w"> </span><span class="kn">import</span> <span class="n">Float8E4M3FN</span><span class="p">,</span> <span class="n">Float32</span>
+
+<span class="nd">@cute</span><span class="o">.</span><span class="n">jit</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">cvt</span><span class="p">():</span>
+    <span class="n">vec_f8e4m3</span> <span class="o">=</span> <span class="n">cute</span><span class="o">.</span><span class="n">make_rmem_tensor_like</span><span class="p">(</span>
+        <span class="n">cute</span><span class="o">.</span><span class="n">make_layout</span><span class="p">(</span><span class="mi">32</span><span class="p">),</span>
+        <span class="n">Float8E4M3FN</span>
+    <span class="p">)</span>
+    <span class="n">vec_f32</span> <span class="o">=</span> <span class="n">cute</span><span class="o">.</span><span class="n">make_rmem_tensor_like</span><span class="p">(</span>
+        <span class="n">cute</span><span class="o">.</span><span class="n">make_layout</span><span class="p">(</span><span class="mi">32</span><span class="p">),</span>
+        <span class="n">Float32</span>
+    <span class="p">)</span>
+    <span class="n">vec_f32</span><span class="o">.</span><span class="n">store</span><span class="p">(</span><span class="n">vec_f8e4m3</span><span class="o">.</span><span class="n">load</span><span class="p">()</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">Float32</span><span class="p">))</span>
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="n">cvt</span><span class="p">()</span>
+</pre></div>
+<p>Note that when we switch <code>Float32</code> with <code>Float16</code> we will get a compiler error like so:</p>
+<div class="highlight"><pre><span></span>error: &quot;vec_f16.store(vec_f8e4m3.load().to(Float16))&quot;
+&#39;arith.extf&#39; op operand type &#39;vector&lt;32xf16&gt;&#39; and result type &#39;vector&lt;32xf16&gt;&#39; are cast incompatible
+</pre></div>
+<p>During current GEMV competition I noticed that the conversion for <code>FP16</code> worked for the <code>NVFP4</code> datatype and that it brings small but measurable improvement in memory bound GEMV kernel performance to cast them into this format instead of <code>FP32</code>.</p>
+<h2 id=how-its-done-for-codefp4code>How it's done for <code>FP4</code></h2><p>In the <a href='https://github.com/NVIDIA/cutlass/blob/main/python/CuTeDSL/cutlass/cute/tensor.py#L1758'>tensor</a> class we can find code that is used to convert to <code>FP16</code> when we deal with <code>NVFP4</code> data format (the 4 bit factor is called <code>Float4E2M1FN</code>):</p>
+<div class="highlight"><pre><span></span><span class="k">if</span> <span class="n">src_dtype</span> <span class="o">==</span> <span class="n">Float4E2M1FN</span> <span class="ow">and</span> <span class="n">dtype</span> <span class="ow">in</span> <span class="p">(</span><span class="n">Float16</span><span class="p">,</span> <span class="n">Float32</span><span class="p">):</span>
+	<span class="n">res_vect</span> <span class="o">=</span> <span class="n">cvt_f4e2m1_f16_intrinsic</span><span class="p">(</span>
+		<span class="n">src</span><span class="p">,</span> <span class="n">size</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">shape</span><span class="p">),</span> <span class="n">loc</span><span class="o">=</span><span class="n">loc</span><span class="p">,</span> <span class="n">ip</span><span class="o">=</span><span class="n">ip</span>
+	<span class="p">)</span>
+	<span class="k">if</span> <span class="n">dtype</span> <span class="o">==</span> <span class="n">Float32</span><span class="p">:</span>
+		<span class="n">res_vect</span> <span class="o">=</span> <span class="n">cutlass_arith</span><span class="o">.</span><span class="n">cvtf</span><span class="p">(</span>
+			<span class="n">res_vect</span><span class="p">,</span> <span class="n">dtype</span><span class="o">.</span><span class="n">mlir_type</span><span class="p">,</span> <span class="n">loc</span><span class="o">=</span><span class="n">loc</span><span class="p">,</span> <span class="n">ip</span><span class="o">=</span><span class="n">ip</span>
+		<span class="p">)</span>
+</pre></div>
+<p>We can see that an intrinsic is called which can be found <a href='https://github.com/NVIDIA/cutlass/blob/main/python/CuTeDSL/cutlass/cute/arch/numeric_conversion.py#L197'>here</a>.</p>
+<div class="highlight"><pre><span></span><span class="nd">@dsl_user_op</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">cvt_f4e2m1_f16_intrinsic</span><span class="p">(</span><span class="n">vec_f4e2m1</span><span class="p">,</span> <span class="n">length</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">loc</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ip</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Convert a vector of float4e2m1 to a vector of float16.</span>
+
+<span class="sd">    :param vec_f4e2m1: The input vector of float4e2m1.</span>
+<span class="sd">    :type vec_f4e2m1: 1D vector of float4e2m1</span>
+<span class="sd">    :param length: The length of the input vector.</span>
+<span class="sd">    :type length: int</span>
+<span class="sd">    :return: The output 1D vector of float16 with the same length as the input vector.</span>
+<span class="sd">    :rtype: 1D vector of float16</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">src_pos</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">vec_src_i4</span> <span class="o">=</span> <span class="n">builtin</span><span class="o">.</span><span class="n">unrealized_conversion_cast</span><span class="p">(</span>
+        <span class="p">[</span><span class="n">ir</span><span class="o">.</span><span class="n">VectorType</span><span class="o">.</span><span class="n">get</span><span class="p">([</span><span class="n">length</span><span class="p">],</span> <span class="n">Int4</span><span class="o">.</span><span class="n">mlir_type</span><span class="p">,</span> <span class="n">loc</span><span class="o">=</span><span class="n">loc</span><span class="p">)],</span>
+        <span class="p">[</span><span class="n">vec_f4e2m1</span><span class="p">],</span>
+        <span class="n">loc</span><span class="o">=</span><span class="n">loc</span><span class="p">,</span>
+        <span class="n">ip</span><span class="o">=</span><span class="n">ip</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">vec_i4x8_type</span> <span class="o">=</span> <span class="n">ir</span><span class="o">.</span><span class="n">VectorType</span><span class="o">.</span><span class="n">get</span><span class="p">([</span><span class="mi">8</span><span class="p">],</span> <span class="n">Int4</span><span class="o">.</span><span class="n">mlir_type</span><span class="p">,</span> <span class="n">loc</span><span class="o">=</span><span class="n">loc</span><span class="p">)</span>
+    <span class="n">vec_i4x4_type</span> <span class="o">=</span> <span class="n">ir</span><span class="o">.</span><span class="n">VectorType</span><span class="o">.</span><span class="n">get</span><span class="p">([</span><span class="mi">4</span><span class="p">],</span> <span class="n">Int4</span><span class="o">.</span><span class="n">mlir_type</span><span class="p">,</span> <span class="n">loc</span><span class="o">=</span><span class="n">loc</span><span class="p">)</span>
+    <span class="n">vec_i4x2_type</span> <span class="o">=</span> <span class="n">ir</span><span class="o">.</span><span class="n">VectorType</span><span class="o">.</span><span class="n">get</span><span class="p">([</span><span class="mi">2</span><span class="p">],</span> <span class="n">Int4</span><span class="o">.</span><span class="n">mlir_type</span><span class="p">,</span> <span class="n">loc</span><span class="o">=</span><span class="n">loc</span><span class="p">)</span>
+    <span class="n">vec_dst_type</span> <span class="o">=</span> <span class="n">ir</span><span class="o">.</span><span class="n">VectorType</span><span class="o">.</span><span class="n">get</span><span class="p">([</span><span class="n">length</span><span class="p">],</span> <span class="n">Float16</span><span class="o">.</span><span class="n">mlir_type</span><span class="p">,</span> <span class="n">loc</span><span class="o">=</span><span class="n">loc</span><span class="p">)</span>
+    <span class="n">vec_dst</span> <span class="o">=</span> <span class="n">llvm</span><span class="o">.</span><span class="n">mlir_zero</span><span class="p">(</span><span class="n">vec_dst_type</span><span class="p">,</span> <span class="n">loc</span><span class="o">=</span><span class="n">loc</span><span class="p">,</span> <span class="n">ip</span><span class="o">=</span><span class="n">ip</span><span class="p">)</span>
+    <span class="c1"># try to use vectorized version</span>
+    <span class="k">if</span> <span class="n">length</span> <span class="o">&gt;=</span> <span class="mi">8</span><span class="p">:</span>
+        <span class="n">num_vec8</span> <span class="o">=</span> <span class="n">length</span> <span class="o">//</span> <span class="mi">8</span>
+        <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">num_vec8</span><span class="p">):</span>
+            <span class="n">vec_f4e2m1x8</span> <span class="o">=</span> <span class="n">vector</span><span class="o">.</span><span class="n">extract_strided_slice</span><span class="p">(</span>
+                <span class="n">vec_i4x8_type</span><span class="p">,</span> <span class="n">vec_src_i4</span><span class="p">,</span> <span class="p">[</span><span class="n">src_pos</span><span class="p">],</span> <span class="p">[</span><span class="mi">8</span><span class="p">],</span> <span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">loc</span><span class="o">=</span><span class="n">loc</span><span class="p">,</span> <span class="n">ip</span><span class="o">=</span><span class="n">ip</span>
+            <span class="p">)</span>
+            <span class="n">vec_f16x8</span> <span class="o">=</span> <span class="n">cvt_f4e2m1x8_to_f16x8</span><span class="p">(</span><span class="n">vec_f4e2m1x8</span><span class="p">,</span> <span class="n">loc</span><span class="o">=</span><span class="n">loc</span><span class="p">,</span> <span class="n">ip</span><span class="o">=</span><span class="n">ip</span><span class="p">)</span>
+            <span class="n">vec_dst</span> <span class="o">=</span> <span class="n">vector</span><span class="o">.</span><span class="n">insert_strided_slice</span><span class="p">(</span>
+                <span class="n">vec_f16x8</span><span class="p">,</span> <span class="n">vec_dst</span><span class="p">,</span> <span class="p">[</span><span class="n">src_pos</span><span class="p">],</span> <span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">loc</span><span class="o">=</span><span class="n">loc</span><span class="p">,</span> <span class="n">ip</span><span class="o">=</span><span class="n">ip</span>
+            <span class="p">)</span>
+            <span class="n">src_pos</span> <span class="o">+=</span> <span class="mi">8</span>
+            <span class="n">length</span> <span class="o">-=</span> <span class="mi">8</span>
+    <span class="k">if</span> <span class="n">length</span> <span class="o">&gt;=</span> <span class="mi">4</span><span class="p">:</span>
+        <span class="n">vec_f4e2m1x4</span> <span class="o">=</span> <span class="n">vector</span><span class="o">.</span><span class="n">extract_strided_slice</span><span class="p">(</span>
+            <span class="n">vec_i4x4_type</span><span class="p">,</span> <span class="n">vec_src_i4</span><span class="p">,</span> <span class="p">[</span><span class="n">src_pos</span><span class="p">],</span> <span class="p">[</span><span class="mi">4</span><span class="p">],</span> <span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">loc</span><span class="o">=</span><span class="n">loc</span><span class="p">,</span> <span class="n">ip</span><span class="o">=</span><span class="n">ip</span>
+        <span class="p">)</span>
+        <span class="n">vec_f16x4</span> <span class="o">=</span> <span class="n">cvt_f4e2m1x4_to_f16x4</span><span class="p">(</span><span class="n">vec_f4e2m1x4</span><span class="p">,</span> <span class="n">loc</span><span class="o">=</span><span class="n">loc</span><span class="p">,</span> <span class="n">ip</span><span class="o">=</span><span class="n">ip</span><span class="p">)</span>
+        <span class="n">vec_dst</span> <span class="o">=</span> <span class="n">vector</span><span class="o">.</span><span class="n">insert_strided_slice</span><span class="p">(</span>
+            <span class="n">vec_f16x4</span><span class="p">,</span> <span class="n">vec_dst</span><span class="p">,</span> <span class="p">[</span><span class="n">src_pos</span><span class="p">],</span> <span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">loc</span><span class="o">=</span><span class="n">loc</span><span class="p">,</span> <span class="n">ip</span><span class="o">=</span><span class="n">ip</span>
+        <span class="p">)</span>
+        <span class="n">src_pos</span> <span class="o">+=</span> <span class="mi">4</span>
+        <span class="n">length</span> <span class="o">-=</span> <span class="mi">4</span>
+    <span class="k">if</span> <span class="n">length</span> <span class="o">&gt;=</span> <span class="mi">2</span><span class="p">:</span>
+        <span class="n">vec_f4e2m1x2</span> <span class="o">=</span> <span class="n">vector</span><span class="o">.</span><span class="n">extract_strided_slice</span><span class="p">(</span>
+            <span class="n">vec_i4x2_type</span><span class="p">,</span> <span class="n">vec_src_i4</span><span class="p">,</span> <span class="p">[</span><span class="n">src_pos</span><span class="p">],</span> <span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">loc</span><span class="o">=</span><span class="n">loc</span><span class="p">,</span> <span class="n">ip</span><span class="o">=</span><span class="n">ip</span>
+        <span class="p">)</span>
+        <span class="n">vec_f16x2</span> <span class="o">=</span> <span class="n">cvt_f4e2m1x2_to_f16x2</span><span class="p">(</span><span class="n">vec_f4e2m1x2</span><span class="p">,</span> <span class="n">loc</span><span class="o">=</span><span class="n">loc</span><span class="p">,</span> <span class="n">ip</span><span class="o">=</span><span class="n">ip</span><span class="p">)</span>
+        <span class="n">vec_dst</span> <span class="o">=</span> <span class="n">vector</span><span class="o">.</span><span class="n">insert_strided_slice</span><span class="p">(</span>
+            <span class="n">vec_f16x2</span><span class="p">,</span> <span class="n">vec_dst</span><span class="p">,</span> <span class="p">[</span><span class="n">src_pos</span><span class="p">],</span> <span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">loc</span><span class="o">=</span><span class="n">loc</span><span class="p">,</span> <span class="n">ip</span><span class="o">=</span><span class="n">ip</span>
+        <span class="p">)</span>
+        <span class="n">src_pos</span> <span class="o">+=</span> <span class="mi">2</span>
+        <span class="n">length</span> <span class="o">-=</span> <span class="mi">2</span>
+    <span class="k">if</span> <span class="n">length</span> <span class="o">&gt;=</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="n">val_f16</span> <span class="o">=</span> <span class="n">cvt_f4e2m1_f16</span><span class="p">(</span>
+            <span class="n">vector</span><span class="o">.</span><span class="n">extractelement</span><span class="p">(</span>
+                <span class="n">vec_src_i4</span><span class="p">,</span>
+                <span class="n">position</span><span class="o">=</span><span class="n">arith</span><span class="o">.</span><span class="n">constant</span><span class="p">(</span><span class="n">Int32</span><span class="o">.</span><span class="n">mlir_type</span><span class="p">,</span> <span class="n">src_pos</span><span class="p">),</span>
+                <span class="n">loc</span><span class="o">=</span><span class="n">loc</span><span class="p">,</span>
+                <span class="n">ip</span><span class="o">=</span><span class="n">ip</span><span class="p">,</span>
+            <span class="p">),</span>
+            <span class="n">loc</span><span class="o">=</span><span class="n">loc</span><span class="p">,</span>
+            <span class="n">ip</span><span class="o">=</span><span class="n">ip</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="n">vec_dst</span> <span class="o">=</span> <span class="n">vector</span><span class="o">.</span><span class="n">insertelement</span><span class="p">(</span>
+            <span class="n">val_f16</span><span class="p">,</span>
+            <span class="n">vec_dst</span><span class="p">,</span>
+            <span class="n">position</span><span class="o">=</span><span class="n">arith</span><span class="o">.</span><span class="n">constant</span><span class="p">(</span><span class="n">Int32</span><span class="o">.</span><span class="n">mlir_type</span><span class="p">,</span> <span class="n">src_pos</span><span class="p">),</span>
+            <span class="n">loc</span><span class="o">=</span><span class="n">loc</span><span class="p">,</span>
+            <span class="n">ip</span><span class="o">=</span><span class="n">ip</span><span class="p">,</span>
+        <span class="p">)</span>
+    <span class="k">return</span> <span class="n">vec_dst</span>
+</pre></div>
+<p>Note that we iteratively extract packed bit sequences in packed format. We then convert such a pack. The implementation is such that we process larger packs of bit sequences if possible (i.e. the shape of the vector allows it). Let's take a look at how these individual conversions can be done. The code can be found <a href='https://github.com/NVIDIA/cutlass/blob/main/python/CuTeDSL/cutlass/cute/arch/nvvm_wrappers.py#L1310'>here</a>:</p>
+<div class="highlight"><pre><span></span><span class="nd">@dsl_user_op</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">cvt_f4e2m1_f16</span><span class="p">(</span><span class="n">src</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">loc</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ip</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="c1"># 0 padding for upper 4 bits</span>
+    <span class="n">zero</span> <span class="o">=</span> <span class="n">arith</span><span class="o">.</span><span class="n">constant</span><span class="p">(</span><span class="n">src</span><span class="o">.</span><span class="n">type</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">loc</span><span class="o">=</span><span class="n">loc</span><span class="p">,</span> <span class="n">ip</span><span class="o">=</span><span class="n">ip</span><span class="p">)</span>
+    <span class="n">vec2</span> <span class="o">=</span> <span class="n">vector</span><span class="o">.</span><span class="n">from_elements</span><span class="p">(</span>
+        <span class="n">ir</span><span class="o">.</span><span class="n">VectorType</span><span class="o">.</span><span class="n">get</span><span class="p">([</span><span class="mi">2</span><span class="p">],</span> <span class="n">src</span><span class="o">.</span><span class="n">type</span><span class="p">,</span> <span class="n">loc</span><span class="o">=</span><span class="n">loc</span><span class="p">),</span> <span class="p">[</span><span class="n">src</span><span class="p">,</span> <span class="n">zero</span><span class="p">],</span> <span class="n">loc</span><span class="o">=</span><span class="n">loc</span><span class="p">,</span> <span class="n">ip</span><span class="o">=</span><span class="n">ip</span>
+    <span class="p">)</span>
+    <span class="n">rst_vec2</span> <span class="o">=</span> <span class="n">cvt_f4e2m1x2_to_f16x2</span><span class="p">(</span><span class="n">vec2</span><span class="p">,</span> <span class="n">loc</span><span class="o">=</span><span class="n">loc</span><span class="p">,</span> <span class="n">ip</span><span class="o">=</span><span class="n">ip</span><span class="p">)</span>
+    <span class="c1"># only the 1st element is valid</span>
+    <span class="n">rst</span> <span class="o">=</span> <span class="n">vector</span><span class="o">.</span><span class="n">extract</span><span class="p">(</span>
+        <span class="n">rst_vec2</span><span class="p">,</span> <span class="n">dynamic_position</span><span class="o">=</span><span class="p">[],</span> <span class="n">static_position</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">loc</span><span class="o">=</span><span class="n">loc</span><span class="p">,</span> <span class="n">ip</span><span class="o">=</span><span class="n">ip</span>
+    <span class="p">)</span>
+    <span class="k">return</span> <span class="n">rst</span>
+
+
+<span class="c1"># Convert 2 float4e2m1 values to 2 float16 values</span>
+<span class="nd">@dsl_user_op</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">cvt_f4e2m1x2_to_f16x2</span><span class="p">(</span><span class="n">src_vec2</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">loc</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ip</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="c1"># pack 2 float4e2m1 into 1 int8 value and fill upper bits with 0</span>
+    <span class="n">src_i8</span> <span class="o">=</span> <span class="n">llvm</span><span class="o">.</span><span class="n">bitcast</span><span class="p">(</span><span class="n">Int8</span><span class="o">.</span><span class="n">mlir_type</span><span class="p">,</span> <span class="n">src_vec2</span><span class="p">,</span> <span class="n">loc</span><span class="o">=</span><span class="n">loc</span><span class="p">,</span> <span class="n">ip</span><span class="o">=</span><span class="n">ip</span><span class="p">)</span>
+    <span class="n">src_i16</span> <span class="o">=</span> <span class="n">llvm</span><span class="o">.</span><span class="n">zext</span><span class="p">(</span><span class="n">Int16</span><span class="o">.</span><span class="n">mlir_type</span><span class="p">,</span> <span class="n">src_i8</span><span class="p">,</span> <span class="n">loc</span><span class="o">=</span><span class="n">loc</span><span class="p">,</span> <span class="n">ip</span><span class="o">=</span><span class="n">ip</span><span class="p">)</span>
+    <span class="n">rst_i32</span> <span class="o">=</span> <span class="n">llvm</span><span class="o">.</span><span class="n">inline_asm</span><span class="p">(</span>
+        <span class="n">Int32</span><span class="o">.</span><span class="n">mlir_type</span><span class="p">,</span>
+        <span class="p">[</span><span class="n">src_i16</span><span class="p">],</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;{\n\t</span>
+<span class="sd">            .reg .b8 b;\n\t</span>
+<span class="sd">            mov.b16 {b,_}, $1;\n\t</span>
+<span class="sd">            cvt.rn.f16x2.e2m1x2 $0, b;\n\t</span>
+<span class="sd">        }&quot;&quot;&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;=r,h&quot;</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">vec_f16x2_type</span> <span class="o">=</span> <span class="n">ir</span><span class="o">.</span><span class="n">VectorType</span><span class="o">.</span><span class="n">get</span><span class="p">([</span><span class="mi">2</span><span class="p">],</span> <span class="n">Float16</span><span class="o">.</span><span class="n">mlir_type</span><span class="p">,</span> <span class="n">loc</span><span class="o">=</span><span class="n">loc</span><span class="p">)</span>
+    <span class="n">vec_f16x2</span> <span class="o">=</span> <span class="n">llvm</span><span class="o">.</span><span class="n">bitcast</span><span class="p">(</span><span class="n">vec_f16x2_type</span><span class="p">,</span> <span class="n">rst_i32</span><span class="p">,</span> <span class="n">loc</span><span class="o">=</span><span class="n">loc</span><span class="p">,</span> <span class="n">ip</span><span class="o">=</span><span class="n">ip</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">vec_f16x2</span>
+
+
+<span class="c1"># Convert 4 float4e2m1 values to 4 float16 values</span>
+<span class="nd">@dsl_user_op</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">cvt_f4e2m1x4_to_f16x4</span><span class="p">(</span><span class="n">src_vec4</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">loc</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ip</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="c1"># pack 4 float4e2m1 into 1 int16 value</span>
+    <span class="n">src_i16</span> <span class="o">=</span> <span class="n">llvm</span><span class="o">.</span><span class="n">bitcast</span><span class="p">(</span><span class="n">Int16</span><span class="o">.</span><span class="n">mlir_type</span><span class="p">,</span> <span class="n">src_vec4</span><span class="p">,</span> <span class="n">loc</span><span class="o">=</span><span class="n">loc</span><span class="p">,</span> <span class="n">ip</span><span class="o">=</span><span class="n">ip</span><span class="p">)</span>
+    <span class="n">rst_i32x2</span> <span class="o">=</span> <span class="n">llvm</span><span class="o">.</span><span class="n">inline_asm</span><span class="p">(</span>
+        <span class="n">llvm</span><span class="o">.</span><span class="n">StructType</span><span class="o">.</span><span class="n">get_literal</span><span class="p">([</span><span class="n">T</span><span class="o">.</span><span class="n">i32</span><span class="p">(),</span> <span class="n">T</span><span class="o">.</span><span class="n">i32</span><span class="p">()]),</span>
+        <span class="p">[</span><span class="n">src_i16</span><span class="p">],</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;{\n\t</span>
+<span class="sd">            .reg .b8 b0, b1;\n\t</span>
+<span class="sd">            mov.b16 {b0, b1}, $2;\n\t</span>
+<span class="sd">            cvt.rn.f16x2.e2m1x2 $0, b0;\n\t</span>
+<span class="sd">            cvt.rn.f16x2.e2m1x2 $1, b1;\n\t</span>
+<span class="sd">        }&quot;&quot;&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;=r,=r,h&quot;</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">res0</span> <span class="o">=</span> <span class="n">llvm</span><span class="o">.</span><span class="n">extractvalue</span><span class="p">(</span><span class="n">T</span><span class="o">.</span><span class="n">i32</span><span class="p">(),</span> <span class="n">rst_i32x2</span><span class="p">,</span> <span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+    <span class="n">res1</span> <span class="o">=</span> <span class="n">llvm</span><span class="o">.</span><span class="n">extractvalue</span><span class="p">(</span><span class="n">T</span><span class="o">.</span><span class="n">i32</span><span class="p">(),</span> <span class="n">rst_i32x2</span><span class="p">,</span> <span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+    <span class="n">vec_f32x2_type</span> <span class="o">=</span> <span class="n">ir</span><span class="o">.</span><span class="n">VectorType</span><span class="o">.</span><span class="n">get</span><span class="p">([</span><span class="mi">2</span><span class="p">],</span> <span class="n">Int32</span><span class="o">.</span><span class="n">mlir_type</span><span class="p">,</span> <span class="n">loc</span><span class="o">=</span><span class="n">loc</span><span class="p">)</span>
+    <span class="n">vec_f32x2</span> <span class="o">=</span> <span class="n">vector</span><span class="o">.</span><span class="n">from_elements</span><span class="p">(</span><span class="n">vec_f32x2_type</span><span class="p">,</span> <span class="p">[</span><span class="n">res0</span><span class="p">,</span> <span class="n">res1</span><span class="p">],</span> <span class="n">loc</span><span class="o">=</span><span class="n">loc</span><span class="p">,</span> <span class="n">ip</span><span class="o">=</span><span class="n">ip</span><span class="p">)</span>
+    <span class="n">vec_f16x4_type</span> <span class="o">=</span> <span class="n">ir</span><span class="o">.</span><span class="n">VectorType</span><span class="o">.</span><span class="n">get</span><span class="p">([</span><span class="mi">4</span><span class="p">],</span> <span class="n">Float16</span><span class="o">.</span><span class="n">mlir_type</span><span class="p">,</span> <span class="n">loc</span><span class="o">=</span><span class="n">loc</span><span class="p">)</span>
+    <span class="n">vec_f16x4</span> <span class="o">=</span> <span class="n">llvm</span><span class="o">.</span><span class="n">bitcast</span><span class="p">(</span><span class="n">vec_f16x4_type</span><span class="p">,</span> <span class="n">vec_f32x2</span><span class="p">,</span> <span class="n">loc</span><span class="o">=</span><span class="n">loc</span><span class="p">,</span> <span class="n">ip</span><span class="o">=</span><span class="n">ip</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">vec_f16x4</span>
+
+
+<span class="c1"># Convert 8 float4e2m1 values to 8 float16 values</span>
+<span class="nd">@dsl_user_op</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">cvt_f4e2m1x8_to_f16x8</span><span class="p">(</span><span class="n">src_vec8</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">loc</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ip</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="c1"># pack 8 float4e2m1 into 1 int32 value and fill upper bits with 0</span>
+    <span class="n">src_i32</span> <span class="o">=</span> <span class="n">llvm</span><span class="o">.</span><span class="n">bitcast</span><span class="p">(</span><span class="n">Int32</span><span class="o">.</span><span class="n">mlir_type</span><span class="p">,</span> <span class="n">src_vec8</span><span class="p">,</span> <span class="n">loc</span><span class="o">=</span><span class="n">loc</span><span class="p">,</span> <span class="n">ip</span><span class="o">=</span><span class="n">ip</span><span class="p">)</span>
+    <span class="n">rst_i32x4</span> <span class="o">=</span> <span class="n">llvm</span><span class="o">.</span><span class="n">inline_asm</span><span class="p">(</span>
+        <span class="n">llvm</span><span class="o">.</span><span class="n">StructType</span><span class="o">.</span><span class="n">get_literal</span><span class="p">([</span><span class="n">T</span><span class="o">.</span><span class="n">i32</span><span class="p">(),</span> <span class="n">T</span><span class="o">.</span><span class="n">i32</span><span class="p">(),</span> <span class="n">T</span><span class="o">.</span><span class="n">i32</span><span class="p">(),</span> <span class="n">T</span><span class="o">.</span><span class="n">i32</span><span class="p">()]),</span>
+        <span class="p">[</span><span class="n">src_i32</span><span class="p">],</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;{\n\t</span>
+<span class="sd">            .reg .b8 b0, b1, b2, b3;\n\t</span>
+<span class="sd">            mov.b32 {b0, b1, b2, b3}, $4;\n\t</span>
+<span class="sd">            cvt.rn.f16x2.e2m1x2 $0, b0;\n\t</span>
+<span class="sd">            cvt.rn.f16x2.e2m1x2 $1, b1;\n\t</span>
+<span class="sd">            cvt.rn.f16x2.e2m1x2 $2, b2;\n\t</span>
+<span class="sd">            cvt.rn.f16x2.e2m1x2 $3, b3;\n\t</span>
+<span class="sd">        }&quot;&quot;&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;=r,=r,=r,=r,r&quot;</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">res0</span> <span class="o">=</span> <span class="n">llvm</span><span class="o">.</span><span class="n">extractvalue</span><span class="p">(</span><span class="n">T</span><span class="o">.</span><span class="n">i32</span><span class="p">(),</span> <span class="n">rst_i32x4</span><span class="p">,</span> <span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+    <span class="n">res1</span> <span class="o">=</span> <span class="n">llvm</span><span class="o">.</span><span class="n">extractvalue</span><span class="p">(</span><span class="n">T</span><span class="o">.</span><span class="n">i32</span><span class="p">(),</span> <span class="n">rst_i32x4</span><span class="p">,</span> <span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+    <span class="n">res2</span> <span class="o">=</span> <span class="n">llvm</span><span class="o">.</span><span class="n">extractvalue</span><span class="p">(</span><span class="n">T</span><span class="o">.</span><span class="n">i32</span><span class="p">(),</span> <span class="n">rst_i32x4</span><span class="p">,</span> <span class="p">[</span><span class="mi">2</span><span class="p">])</span>
+    <span class="n">res3</span> <span class="o">=</span> <span class="n">llvm</span><span class="o">.</span><span class="n">extractvalue</span><span class="p">(</span><span class="n">T</span><span class="o">.</span><span class="n">i32</span><span class="p">(),</span> <span class="n">rst_i32x4</span><span class="p">,</span> <span class="p">[</span><span class="mi">3</span><span class="p">])</span>
+    <span class="n">vec_f32x4_type</span> <span class="o">=</span> <span class="n">ir</span><span class="o">.</span><span class="n">VectorType</span><span class="o">.</span><span class="n">get</span><span class="p">([</span><span class="mi">4</span><span class="p">],</span> <span class="n">Int32</span><span class="o">.</span><span class="n">mlir_type</span><span class="p">,</span> <span class="n">loc</span><span class="o">=</span><span class="n">loc</span><span class="p">)</span>
+    <span class="n">vec_f32x4</span> <span class="o">=</span> <span class="n">vector</span><span class="o">.</span><span class="n">from_elements</span><span class="p">(</span>
+        <span class="n">vec_f32x4_type</span><span class="p">,</span> <span class="p">[</span><span class="n">res0</span><span class="p">,</span> <span class="n">res1</span><span class="p">,</span> <span class="n">res2</span><span class="p">,</span> <span class="n">res3</span><span class="p">],</span> <span class="n">loc</span><span class="o">=</span><span class="n">loc</span><span class="p">,</span> <span class="n">ip</span><span class="o">=</span><span class="n">ip</span>
+    <span class="p">)</span>
+    <span class="n">vec_f16x8_type</span> <span class="o">=</span> <span class="n">ir</span><span class="o">.</span><span class="n">VectorType</span><span class="o">.</span><span class="n">get</span><span class="p">([</span><span class="mi">8</span><span class="p">],</span> <span class="n">Float16</span><span class="o">.</span><span class="n">mlir_type</span><span class="p">,</span> <span class="n">loc</span><span class="o">=</span><span class="n">loc</span><span class="p">)</span>
+    <span class="n">vec_f16x8</span> <span class="o">=</span> <span class="n">llvm</span><span class="o">.</span><span class="n">bitcast</span><span class="p">(</span><span class="n">vec_f16x8_type</span><span class="p">,</span> <span class="n">vec_f32x4</span><span class="p">,</span> <span class="n">loc</span><span class="o">=</span><span class="n">loc</span><span class="p">,</span> <span class="n">ip</span><span class="o">=</span><span class="n">ip</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">vec_f16x8</span>
+</pre></div>
+<p>Let's analyze this more closely:</p>
+<div class="highlight"><pre><span></span><span class="nd">@dsl_user_op</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">cvt_f4e2m1_f16</span><span class="p">(</span><span class="n">src</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">loc</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ip</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="c1"># 0 padding for upper 4 bits</span>
+    <span class="n">zero</span> <span class="o">=</span> <span class="n">arith</span><span class="o">.</span><span class="n">constant</span><span class="p">(</span><span class="n">src</span><span class="o">.</span><span class="n">type</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">loc</span><span class="o">=</span><span class="n">loc</span><span class="p">,</span> <span class="n">ip</span><span class="o">=</span><span class="n">ip</span><span class="p">)</span>
+    <span class="n">vec2</span> <span class="o">=</span> <span class="n">vector</span><span class="o">.</span><span class="n">from_elements</span><span class="p">(</span>
+        <span class="n">ir</span><span class="o">.</span><span class="n">VectorType</span><span class="o">.</span><span class="n">get</span><span class="p">([</span><span class="mi">2</span><span class="p">],</span> <span class="n">src</span><span class="o">.</span><span class="n">type</span><span class="p">,</span> <span class="n">loc</span><span class="o">=</span><span class="n">loc</span><span class="p">),</span> <span class="p">[</span><span class="n">src</span><span class="p">,</span> <span class="n">zero</span><span class="p">],</span> <span class="n">loc</span><span class="o">=</span><span class="n">loc</span><span class="p">,</span> <span class="n">ip</span><span class="o">=</span><span class="n">ip</span>
+    <span class="p">)</span>
+    <span class="n">rst_vec2</span> <span class="o">=</span> <span class="n">cvt_f4e2m1x2_to_f16x2</span><span class="p">(</span><span class="n">vec2</span><span class="p">,</span> <span class="n">loc</span><span class="o">=</span><span class="n">loc</span><span class="p">,</span> <span class="n">ip</span><span class="o">=</span><span class="n">ip</span><span class="p">)</span>
+    <span class="c1"># only the 1st element is valid</span>
+    <span class="n">rst</span> <span class="o">=</span> <span class="n">vector</span><span class="o">.</span><span class="n">extract</span><span class="p">(</span>
+        <span class="n">rst_vec2</span><span class="p">,</span> <span class="n">dynamic_position</span><span class="o">=</span><span class="p">[],</span> <span class="n">static_position</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">loc</span><span class="o">=</span><span class="n">loc</span><span class="p">,</span> <span class="n">ip</span><span class="o">=</span><span class="n">ip</span>
+    <span class="p">)</span>
+    <span class="k">return</span> <span class="n">rst</span>
+</pre></div>
+<p>We pack two <code>4</code> bit sequences, one of them containing information about the original number, the other one containing zeros. I assume that is because PTX does not allow sub-byte operation. We then call the packed instruction and extract the relevant part from the two packed f16 values.</p>
+<div class="highlight"><pre><span></span><span class="c1"># Convert 2 float4e2m1 values to 2 float16 values</span>
+<span class="nd">@dsl_user_op</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">cvt_f4e2m1x2_to_f16x2</span><span class="p">(</span><span class="n">src_vec2</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">loc</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ip</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="c1"># pack 2 float4e2m1 into 1 int8 value and fill upper bits with 0</span>
+    <span class="n">src_i8</span> <span class="o">=</span> <span class="n">llvm</span><span class="o">.</span><span class="n">bitcast</span><span class="p">(</span><span class="n">Int8</span><span class="o">.</span><span class="n">mlir_type</span><span class="p">,</span> <span class="n">src_vec2</span><span class="p">,</span> <span class="n">loc</span><span class="o">=</span><span class="n">loc</span><span class="p">,</span> <span class="n">ip</span><span class="o">=</span><span class="n">ip</span><span class="p">)</span>
+    <span class="n">src_i16</span> <span class="o">=</span> <span class="n">llvm</span><span class="o">.</span><span class="n">zext</span><span class="p">(</span><span class="n">Int16</span><span class="o">.</span><span class="n">mlir_type</span><span class="p">,</span> <span class="n">src_i8</span><span class="p">,</span> <span class="n">loc</span><span class="o">=</span><span class="n">loc</span><span class="p">,</span> <span class="n">ip</span><span class="o">=</span><span class="n">ip</span><span class="p">)</span>
+    <span class="n">rst_i32</span> <span class="o">=</span> <span class="n">llvm</span><span class="o">.</span><span class="n">inline_asm</span><span class="p">(</span>
+        <span class="n">Int32</span><span class="o">.</span><span class="n">mlir_type</span><span class="p">,</span>
+        <span class="p">[</span><span class="n">src_i16</span><span class="p">],</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;{\n\t</span>
+<span class="sd">            .reg .b8 b;\n\t</span>
+<span class="sd">            mov.b16 {b,_}, $1;\n\t</span>
+<span class="sd">            cvt.rn.f16x2.e2m1x2 $0, b;\n\t</span>
+<span class="sd">        }&quot;&quot;&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;=r,h&quot;</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">vec_f16x2_type</span> <span class="o">=</span> <span class="n">ir</span><span class="o">.</span><span class="n">VectorType</span><span class="o">.</span><span class="n">get</span><span class="p">([</span><span class="mi">2</span><span class="p">],</span> <span class="n">Float16</span><span class="o">.</span><span class="n">mlir_type</span><span class="p">,</span> <span class="n">loc</span><span class="o">=</span><span class="n">loc</span><span class="p">)</span>
+    <span class="n">vec_f16x2</span> <span class="o">=</span> <span class="n">llvm</span><span class="o">.</span><span class="n">bitcast</span><span class="p">(</span><span class="n">vec_f16x2_type</span><span class="p">,</span> <span class="n">rst_i32</span><span class="p">,</span> <span class="n">loc</span><span class="o">=</span><span class="n">loc</span><span class="p">,</span> <span class="n">ip</span><span class="o">=</span><span class="n">ip</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">vec_f16x2</span>
+</pre></div>
+<p>We pack the two <code>FP4</code> values into one <code>Int8</code>, then use <code>zext</code> instruction. <code>zext</code> is an LLVM instruction that converts to a different datatype by zero extension.</p>
+<p>Below is the assembly code that first allocates an 8 bit register and then moves the packed numbers we convert there. We then call <code>cvt</code> instruction which will make the data conversion from <code>e2m1x2</code> to <code>f16x2</code>.</p>
+<p>Finally we convert the result (which was obtained as an <code>Int32</code>) to the form we want to use it in, i.e. we interpret the <code>32</code> bits of the <code>Int32</code> as 2 <code>F16</code> values. The other intrinsic functions work similarly.</p>
+<h2 id=implement-conversion-for-fp8>Implement conversion for FP8</h2><p>Let's now implement a conversion from <code>f8e4m3</code> to <code>f16</code>.</p>
+<p>On the upper level we have a similar wrapper to above</p>
+<div class="highlight"><pre><span></span><span class="nd">@dsl_user_op</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">cvt_f8e4m3_f16_intrinsic</span><span class="p">(</span><span class="n">vec_f8e4m3</span><span class="p">,</span> <span class="n">length</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">loc</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ip</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Convert a vector of float8e4m3 to a vector of float16.</span>
+<span class="sd">    :param vec_f8e4m3: The input vector of float8e4m3.</span>
+<span class="sd">    :type vec_f8e4m3: 1D vector of float8e4m3</span>
+<span class="sd">    :param length: The length of the input vector.</span>
+<span class="sd">    :type length: int</span>
+<span class="sd">    :return: The output 1D vector of float16 with the same length as the input vector.</span>
+<span class="sd">    :rtype: 1D vector of float16</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">src_pos</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">vec_src_i8</span> <span class="o">=</span> <span class="n">builtin</span><span class="o">.</span><span class="n">unrealized_conversion_cast</span><span class="p">(</span>
+        <span class="p">[</span><span class="n">ir</span><span class="o">.</span><span class="n">VectorType</span><span class="o">.</span><span class="n">get</span><span class="p">([</span><span class="n">length</span><span class="p">],</span> <span class="n">Int8</span><span class="o">.</span><span class="n">mlir_type</span><span class="p">,</span> <span class="n">loc</span><span class="o">=</span><span class="n">loc</span><span class="p">)],</span>
+        <span class="p">[</span><span class="n">vec_f8e4m3</span><span class="p">],</span>
+        <span class="n">loc</span><span class="o">=</span><span class="n">loc</span><span class="p">,</span>
+        <span class="n">ip</span><span class="o">=</span><span class="n">ip</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">vec_i8x8_type</span> <span class="o">=</span> <span class="n">ir</span><span class="o">.</span><span class="n">VectorType</span><span class="o">.</span><span class="n">get</span><span class="p">([</span><span class="mi">8</span><span class="p">],</span> <span class="n">Int8</span><span class="o">.</span><span class="n">mlir_type</span><span class="p">,</span> <span class="n">loc</span><span class="o">=</span><span class="n">loc</span><span class="p">)</span>
+    <span class="n">vec_i8x4_type</span> <span class="o">=</span> <span class="n">ir</span><span class="o">.</span><span class="n">VectorType</span><span class="o">.</span><span class="n">get</span><span class="p">([</span><span class="mi">4</span><span class="p">],</span> <span class="n">Int8</span><span class="o">.</span><span class="n">mlir_type</span><span class="p">,</span> <span class="n">loc</span><span class="o">=</span><span class="n">loc</span><span class="p">)</span>
+    <span class="n">vec_i8x2_type</span> <span class="o">=</span> <span class="n">ir</span><span class="o">.</span><span class="n">VectorType</span><span class="o">.</span><span class="n">get</span><span class="p">([</span><span class="mi">2</span><span class="p">],</span> <span class="n">Int8</span><span class="o">.</span><span class="n">mlir_type</span><span class="p">,</span> <span class="n">loc</span><span class="o">=</span><span class="n">loc</span><span class="p">)</span>
+    <span class="n">vec_dst_type</span> <span class="o">=</span> <span class="n">ir</span><span class="o">.</span><span class="n">VectorType</span><span class="o">.</span><span class="n">get</span><span class="p">([</span><span class="n">length</span><span class="p">],</span> <span class="n">Float16</span><span class="o">.</span><span class="n">mlir_type</span><span class="p">,</span> <span class="n">loc</span><span class="o">=</span><span class="n">loc</span><span class="p">)</span>
+    <span class="n">vec_dst</span> <span class="o">=</span> <span class="n">llvm</span><span class="o">.</span><span class="n">mlir_zero</span><span class="p">(</span><span class="n">vec_dst_type</span><span class="p">,</span> <span class="n">loc</span><span class="o">=</span><span class="n">loc</span><span class="p">,</span> <span class="n">ip</span><span class="o">=</span><span class="n">ip</span><span class="p">)</span>
+
+    <span class="c1"># try to use vectorized version</span>
+    <span class="k">if</span> <span class="n">length</span> <span class="o">&gt;=</span> <span class="mi">8</span><span class="p">:</span>
+        <span class="n">num_vec8</span> <span class="o">=</span> <span class="n">length</span> <span class="o">//</span> <span class="mi">8</span>
+        <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">num_vec8</span><span class="p">):</span>
+            <span class="n">vec_f8e4m3x8</span> <span class="o">=</span> <span class="n">vector</span><span class="o">.</span><span class="n">extract_strided_slice</span><span class="p">(</span>
+                <span class="n">vec_i8x8_type</span><span class="p">,</span> <span class="n">vec_src_i8</span><span class="p">,</span> <span class="p">[</span><span class="n">src_pos</span><span class="p">],</span> <span class="p">[</span><span class="mi">8</span><span class="p">],</span> <span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">loc</span><span class="o">=</span><span class="n">loc</span><span class="p">,</span> <span class="n">ip</span><span class="o">=</span><span class="n">ip</span>
+            <span class="p">)</span>
+            <span class="n">vec_f16x8</span> <span class="o">=</span> <span class="n">cvt_f8e4m3x8_to_f16x8</span><span class="p">(</span><span class="n">vec_f8e4m3x8</span><span class="p">,</span> <span class="n">loc</span><span class="o">=</span><span class="n">loc</span><span class="p">,</span> <span class="n">ip</span><span class="o">=</span><span class="n">ip</span><span class="p">)</span>
+            <span class="n">vec_dst</span> <span class="o">=</span> <span class="n">vector</span><span class="o">.</span><span class="n">insert_strided_slice</span><span class="p">(</span>
+                <span class="n">vec_f16x8</span><span class="p">,</span> <span class="n">vec_dst</span><span class="p">,</span> <span class="p">[</span><span class="n">src_pos</span><span class="p">],</span> <span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">loc</span><span class="o">=</span><span class="n">loc</span><span class="p">,</span> <span class="n">ip</span><span class="o">=</span><span class="n">ip</span>
+            <span class="p">)</span>
+            <span class="n">src_pos</span> <span class="o">+=</span> <span class="mi">8</span>
+            <span class="n">length</span> <span class="o">-=</span> <span class="mi">8</span>
+
+    <span class="k">if</span> <span class="n">length</span> <span class="o">&gt;=</span> <span class="mi">4</span><span class="p">:</span>
+        <span class="n">vec_f8e4m3x4</span> <span class="o">=</span> <span class="n">vector</span><span class="o">.</span><span class="n">extract_strided_slice</span><span class="p">(</span>
+            <span class="n">vec_i8x4_type</span><span class="p">,</span> <span class="n">vec_src_i8</span><span class="p">,</span> <span class="p">[</span><span class="n">src_pos</span><span class="p">],</span> <span class="p">[</span><span class="mi">4</span><span class="p">],</span> <span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">loc</span><span class="o">=</span><span class="n">loc</span><span class="p">,</span> <span class="n">ip</span><span class="o">=</span><span class="n">ip</span>
+        <span class="p">)</span>
+        <span class="n">vec_f16x4</span> <span class="o">=</span> <span class="n">cvt_f8e4m3x4_to_f16x4</span><span class="p">(</span><span class="n">vec_f8e4m3x4</span><span class="p">,</span> <span class="n">loc</span><span class="o">=</span><span class="n">loc</span><span class="p">,</span> <span class="n">ip</span><span class="o">=</span><span class="n">ip</span><span class="p">)</span>
+        <span class="n">vec_dst</span> <span class="o">=</span> <span class="n">vector</span><span class="o">.</span><span class="n">insert_strided_slice</span><span class="p">(</span>
+            <span class="n">vec_f16x4</span><span class="p">,</span> <span class="n">vec_dst</span><span class="p">,</span> <span class="p">[</span><span class="n">src_pos</span><span class="p">],</span> <span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">loc</span><span class="o">=</span><span class="n">loc</span><span class="p">,</span> <span class="n">ip</span><span class="o">=</span><span class="n">ip</span>
+        <span class="p">)</span>
+        <span class="n">src_pos</span> <span class="o">+=</span> <span class="mi">4</span>
+        <span class="n">length</span> <span class="o">-=</span> <span class="mi">4</span>
+
+    <span class="k">if</span> <span class="n">length</span> <span class="o">&gt;=</span> <span class="mi">2</span><span class="p">:</span>
+        <span class="n">vec_f8e4m3x2</span> <span class="o">=</span> <span class="n">vector</span><span class="o">.</span><span class="n">extract_strided_slice</span><span class="p">(</span>
+            <span class="n">vec_i8x2_type</span><span class="p">,</span> <span class="n">vec_src_i8</span><span class="p">,</span> <span class="p">[</span><span class="n">src_pos</span><span class="p">],</span> <span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">loc</span><span class="o">=</span><span class="n">loc</span><span class="p">,</span> <span class="n">ip</span><span class="o">=</span><span class="n">ip</span>
+        <span class="p">)</span>
+        <span class="n">vec_f16x2</span> <span class="o">=</span> <span class="n">cvt_f8e4m3x2_to_f16x2</span><span class="p">(</span><span class="n">vec_f8e4m3x2</span><span class="p">,</span> <span class="n">loc</span><span class="o">=</span><span class="n">loc</span><span class="p">,</span> <span class="n">ip</span><span class="o">=</span><span class="n">ip</span><span class="p">)</span>
+        <span class="n">vec_dst</span> <span class="o">=</span> <span class="n">vector</span><span class="o">.</span><span class="n">insert_strided_slice</span><span class="p">(</span>
+            <span class="n">vec_f16x2</span><span class="p">,</span> <span class="n">vec_dst</span><span class="p">,</span> <span class="p">[</span><span class="n">src_pos</span><span class="p">],</span> <span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">loc</span><span class="o">=</span><span class="n">loc</span><span class="p">,</span> <span class="n">ip</span><span class="o">=</span><span class="n">ip</span>
+        <span class="p">)</span>
+        <span class="n">src_pos</span> <span class="o">+=</span> <span class="mi">2</span>
+        <span class="n">length</span> <span class="o">-=</span> <span class="mi">2</span>
+
+    <span class="k">if</span> <span class="n">length</span> <span class="o">&gt;=</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="n">val_f16</span> <span class="o">=</span> <span class="n">cvt_f8e4m3_f16</span><span class="p">(</span>
+            <span class="n">vector</span><span class="o">.</span><span class="n">extractelement</span><span class="p">(</span>
+                <span class="n">vec_src_i8</span><span class="p">,</span>
+                <span class="n">position</span><span class="o">=</span><span class="n">arith</span><span class="o">.</span><span class="n">constant</span><span class="p">(</span><span class="n">Int32</span><span class="o">.</span><span class="n">mlir_type</span><span class="p">,</span> <span class="n">src_pos</span><span class="p">),</span>
+                <span class="n">loc</span><span class="o">=</span><span class="n">loc</span><span class="p">,</span>
+                <span class="n">ip</span><span class="o">=</span><span class="n">ip</span><span class="p">,</span>
+            <span class="p">),</span>
+            <span class="n">loc</span><span class="o">=</span><span class="n">loc</span><span class="p">,</span>
+            <span class="n">ip</span><span class="o">=</span><span class="n">ip</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="n">vec_dst</span> <span class="o">=</span> <span class="n">vector</span><span class="o">.</span><span class="n">insertelement</span><span class="p">(</span>
+            <span class="n">val_f16</span><span class="p">,</span>
+            <span class="n">vec_dst</span><span class="p">,</span>
+            <span class="n">position</span><span class="o">=</span><span class="n">arith</span><span class="o">.</span><span class="n">constant</span><span class="p">(</span><span class="n">Int32</span><span class="o">.</span><span class="n">mlir_type</span><span class="p">,</span> <span class="n">src_pos</span><span class="p">),</span>
+            <span class="n">loc</span><span class="o">=</span><span class="n">loc</span><span class="p">,</span>
+            <span class="n">ip</span><span class="o">=</span><span class="n">ip</span><span class="p">,</span>
+        <span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">vec_dst</span>
+</pre></div>
+<p>Note that here we use <code>Int8</code> types because we deal with <code>8 bit</code> format now. Otherwise it's very similar to above.</p>
+<p>Next we need to wrap our ASM instructions:</p>
+<div class="highlight"><pre><span></span><span class="nd">@dsl_user_op</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">cvt_f8e4m3_f16</span><span class="p">(</span><span class="n">src</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">loc</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ip</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="c1"># 0 padding for upper 8 bits</span>
+    <span class="n">zero</span> <span class="o">=</span> <span class="n">arith</span><span class="o">.</span><span class="n">constant</span><span class="p">(</span><span class="n">src</span><span class="o">.</span><span class="n">type</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">loc</span><span class="o">=</span><span class="n">loc</span><span class="p">,</span> <span class="n">ip</span><span class="o">=</span><span class="n">ip</span><span class="p">)</span>
+    <span class="n">vec2</span> <span class="o">=</span> <span class="n">vector</span><span class="o">.</span><span class="n">from_elements</span><span class="p">(</span>
+        <span class="n">ir</span><span class="o">.</span><span class="n">VectorType</span><span class="o">.</span><span class="n">get</span><span class="p">([</span><span class="mi">2</span><span class="p">],</span> <span class="n">src</span><span class="o">.</span><span class="n">type</span><span class="p">,</span> <span class="n">loc</span><span class="o">=</span><span class="n">loc</span><span class="p">),</span> <span class="p">[</span><span class="n">src</span><span class="p">,</span> <span class="n">zero</span><span class="p">],</span> <span class="n">loc</span><span class="o">=</span><span class="n">loc</span><span class="p">,</span> <span class="n">ip</span><span class="o">=</span><span class="n">ip</span>
+    <span class="p">)</span>
+    <span class="n">rst_vec2</span> <span class="o">=</span> <span class="n">cvt_f8e4m3x2_to_f16x2</span><span class="p">(</span><span class="n">vec2</span><span class="p">,</span> <span class="n">loc</span><span class="o">=</span><span class="n">loc</span><span class="p">,</span> <span class="n">ip</span><span class="o">=</span><span class="n">ip</span><span class="p">)</span>
+    <span class="c1"># only the 1st element is valid</span>
+    <span class="n">rst</span> <span class="o">=</span> <span class="n">vector</span><span class="o">.</span><span class="n">extract</span><span class="p">(</span>
+        <span class="n">rst_vec2</span><span class="p">,</span> <span class="n">dynamic_position</span><span class="o">=</span><span class="p">[],</span> <span class="n">static_position</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">loc</span><span class="o">=</span><span class="n">loc</span><span class="p">,</span> <span class="n">ip</span><span class="o">=</span><span class="n">ip</span>
+    <span class="p">)</span>
+    <span class="k">return</span> <span class="n">rst</span>
+
+
+<span class="c1"># Convert 2 float8e4m3 values to 2 float16 values</span>
+<span class="nd">@dsl_user_op</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">cvt_f8e4m3x2_to_f16x2</span><span class="p">(</span><span class="n">src_vec2</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">loc</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ip</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="c1"># pack 2 float8e4m3 into 1 int16 value</span>
+    <span class="n">src_i16</span> <span class="o">=</span> <span class="n">llvm</span><span class="o">.</span><span class="n">bitcast</span><span class="p">(</span><span class="n">Int16</span><span class="o">.</span><span class="n">mlir_type</span><span class="p">,</span> <span class="n">src_vec2</span><span class="p">,</span> <span class="n">loc</span><span class="o">=</span><span class="n">loc</span><span class="p">,</span> <span class="n">ip</span><span class="o">=</span><span class="n">ip</span><span class="p">)</span>
+    <span class="n">rst_i32</span> <span class="o">=</span> <span class="n">llvm</span><span class="o">.</span><span class="n">inline_asm</span><span class="p">(</span>
+        <span class="n">Int32</span><span class="o">.</span><span class="n">mlir_type</span><span class="p">,</span>
+        <span class="p">[</span><span class="n">src_i16</span><span class="p">],</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;{\n\t</span>
+<span class="sd">            cvt.rn.f16x2.e4m3x2 $0, $1;\n\t</span>
+<span class="sd">        }&quot;&quot;&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;=r,h&quot;</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">vec_f16x2_type</span> <span class="o">=</span> <span class="n">ir</span><span class="o">.</span><span class="n">VectorType</span><span class="o">.</span><span class="n">get</span><span class="p">([</span><span class="mi">2</span><span class="p">],</span> <span class="n">Float16</span><span class="o">.</span><span class="n">mlir_type</span><span class="p">,</span> <span class="n">loc</span><span class="o">=</span><span class="n">loc</span><span class="p">)</span>
+    <span class="n">vec_f16x2</span> <span class="o">=</span> <span class="n">llvm</span><span class="o">.</span><span class="n">bitcast</span><span class="p">(</span><span class="n">vec_f16x2_type</span><span class="p">,</span> <span class="n">rst_i32</span><span class="p">,</span> <span class="n">loc</span><span class="o">=</span><span class="n">loc</span><span class="p">,</span> <span class="n">ip</span><span class="o">=</span><span class="n">ip</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">vec_f16x2</span>
+
+
+<span class="c1"># Convert 4 float8e4m3 values to 4 float16 values</span>
+<span class="nd">@dsl_user_op</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">cvt_f8e4m3x4_to_f16x4</span><span class="p">(</span><span class="n">src_vec4</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">loc</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ip</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="c1"># pack 4 float8e4m3 into 1 int32 value</span>
+    <span class="n">src_i32</span> <span class="o">=</span> <span class="n">llvm</span><span class="o">.</span><span class="n">bitcast</span><span class="p">(</span><span class="n">Int32</span><span class="o">.</span><span class="n">mlir_type</span><span class="p">,</span> <span class="n">src_vec4</span><span class="p">,</span> <span class="n">loc</span><span class="o">=</span><span class="n">loc</span><span class="p">,</span> <span class="n">ip</span><span class="o">=</span><span class="n">ip</span><span class="p">)</span>
+    <span class="n">rst_i32x2</span> <span class="o">=</span> <span class="n">llvm</span><span class="o">.</span><span class="n">inline_asm</span><span class="p">(</span>
+        <span class="n">llvm</span><span class="o">.</span><span class="n">StructType</span><span class="o">.</span><span class="n">get_literal</span><span class="p">([</span><span class="n">T</span><span class="o">.</span><span class="n">i32</span><span class="p">(),</span> <span class="n">T</span><span class="o">.</span><span class="n">i32</span><span class="p">()]),</span>
+        <span class="p">[</span><span class="n">src_i32</span><span class="p">],</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;{\n\t</span>
+<span class="sd">            .reg .b16 h0, h1;\n\t</span>
+<span class="sd">            mov.b32 {h0, h1}, $2;\n\t</span>
+<span class="sd">            cvt.rn.f16x2.e4m3x2 $0, h0;\n\t</span>
+<span class="sd">            cvt.rn.f16x2.e4m3x2 $1, h1;\n\t</span>
+<span class="sd">        }&quot;&quot;&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;=r,=r,r&quot;</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">res0</span> <span class="o">=</span> <span class="n">llvm</span><span class="o">.</span><span class="n">extractvalue</span><span class="p">(</span><span class="n">T</span><span class="o">.</span><span class="n">i32</span><span class="p">(),</span> <span class="n">rst_i32x2</span><span class="p">,</span> <span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+    <span class="n">res1</span> <span class="o">=</span> <span class="n">llvm</span><span class="o">.</span><span class="n">extractvalue</span><span class="p">(</span><span class="n">T</span><span class="o">.</span><span class="n">i32</span><span class="p">(),</span> <span class="n">rst_i32x2</span><span class="p">,</span> <span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+    <span class="n">vec_i32x2_type</span> <span class="o">=</span> <span class="n">ir</span><span class="o">.</span><span class="n">VectorType</span><span class="o">.</span><span class="n">get</span><span class="p">([</span><span class="mi">2</span><span class="p">],</span> <span class="n">Int32</span><span class="o">.</span><span class="n">mlir_type</span><span class="p">,</span> <span class="n">loc</span><span class="o">=</span><span class="n">loc</span><span class="p">)</span>
+    <span class="n">vec_i32x2</span> <span class="o">=</span> <span class="n">vector</span><span class="o">.</span><span class="n">from_elements</span><span class="p">(</span><span class="n">vec_i32x2_type</span><span class="p">,</span> <span class="p">[</span><span class="n">res0</span><span class="p">,</span> <span class="n">res1</span><span class="p">],</span> <span class="n">loc</span><span class="o">=</span><span class="n">loc</span><span class="p">,</span> <span class="n">ip</span><span class="o">=</span><span class="n">ip</span><span class="p">)</span>
+    <span class="n">vec_f16x4_type</span> <span class="o">=</span> <span class="n">ir</span><span class="o">.</span><span class="n">VectorType</span><span class="o">.</span><span class="n">get</span><span class="p">([</span><span class="mi">4</span><span class="p">],</span> <span class="n">Float16</span><span class="o">.</span><span class="n">mlir_type</span><span class="p">,</span> <span class="n">loc</span><span class="o">=</span><span class="n">loc</span><span class="p">)</span>
+    <span class="n">vec_f16x4</span> <span class="o">=</span> <span class="n">llvm</span><span class="o">.</span><span class="n">bitcast</span><span class="p">(</span><span class="n">vec_f16x4_type</span><span class="p">,</span> <span class="n">vec_i32x2</span><span class="p">,</span> <span class="n">loc</span><span class="o">=</span><span class="n">loc</span><span class="p">,</span> <span class="n">ip</span><span class="o">=</span><span class="n">ip</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">vec_f16x4</span>
+
+<span class="c1"># Convert 8 float8e4m3 values to 8 float16 values</span>
+<span class="nd">@dsl_user_op</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">cvt_f8e4m3x8_to_f16x8</span><span class="p">(</span><span class="n">src_vec8</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">loc</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ip</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="c1"># Split into two i32 values instead of using i64</span>
+    <span class="n">vec_i32x2_type</span> <span class="o">=</span> <span class="n">ir</span><span class="o">.</span><span class="n">VectorType</span><span class="o">.</span><span class="n">get</span><span class="p">([</span><span class="mi">2</span><span class="p">],</span> <span class="n">Int32</span><span class="o">.</span><span class="n">mlir_type</span><span class="p">,</span> <span class="n">loc</span><span class="o">=</span><span class="n">loc</span><span class="p">)</span>
+    <span class="n">src_i32x2</span> <span class="o">=</span> <span class="n">llvm</span><span class="o">.</span><span class="n">bitcast</span><span class="p">(</span><span class="n">vec_i32x2_type</span><span class="p">,</span> <span class="n">src_vec8</span><span class="p">,</span> <span class="n">loc</span><span class="o">=</span><span class="n">loc</span><span class="p">,</span> <span class="n">ip</span><span class="o">=</span><span class="n">ip</span><span class="p">)</span>
+    <span class="n">src_lo</span> <span class="o">=</span> <span class="n">llvm</span><span class="o">.</span><span class="n">extractelement</span><span class="p">(</span><span class="n">src_i32x2</span><span class="p">,</span> <span class="n">arith</span><span class="o">.</span><span class="n">constant</span><span class="p">(</span><span class="n">Int32</span><span class="o">.</span><span class="n">mlir_type</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="n">loc</span><span class="o">=</span><span class="n">loc</span><span class="p">,</span> <span class="n">ip</span><span class="o">=</span><span class="n">ip</span><span class="p">)</span>
+    <span class="n">src_hi</span> <span class="o">=</span> <span class="n">llvm</span><span class="o">.</span><span class="n">extractelement</span><span class="p">(</span><span class="n">src_i32x2</span><span class="p">,</span> <span class="n">arith</span><span class="o">.</span><span class="n">constant</span><span class="p">(</span><span class="n">Int32</span><span class="o">.</span><span class="n">mlir_type</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="n">loc</span><span class="o">=</span><span class="n">loc</span><span class="p">,</span> <span class="n">ip</span><span class="o">=</span><span class="n">ip</span><span class="p">)</span>
+    
+    <span class="c1"># Process lower 4 bytes (4 fp8 values)</span>
+    <span class="n">rst_lo_i32x2</span> <span class="o">=</span> <span class="n">llvm</span><span class="o">.</span><span class="n">inline_asm</span><span class="p">(</span>
+        <span class="n">llvm</span><span class="o">.</span><span class="n">StructType</span><span class="o">.</span><span class="n">get_literal</span><span class="p">([</span><span class="n">T</span><span class="o">.</span><span class="n">i32</span><span class="p">(),</span> <span class="n">T</span><span class="o">.</span><span class="n">i32</span><span class="p">()]),</span>
+        <span class="p">[</span><span class="n">src_lo</span><span class="p">],</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;{\n\t</span>
+<span class="sd">            .reg .b16 h0, h1;\n\t</span>
+<span class="sd">            mov.b32 {h0, h1}, $2;\n\t</span>
+<span class="sd">            cvt.rn.f16x2.e4m3x2 $0, h0;\n\t</span>
+<span class="sd">            cvt.rn.f16x2.e4m3x2 $1, h1;\n\t</span>
+<span class="sd">        }&quot;&quot;&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;=r,=r,r&quot;</span><span class="p">,</span>
+    <span class="p">)</span>
+    
+    <span class="c1"># Process upper 4 bytes (4 fp8 values)</span>
+    <span class="n">rst_hi_i32x2</span> <span class="o">=</span> <span class="n">llvm</span><span class="o">.</span><span class="n">inline_asm</span><span class="p">(</span>
+        <span class="n">llvm</span><span class="o">.</span><span class="n">StructType</span><span class="o">.</span><span class="n">get_literal</span><span class="p">([</span><span class="n">T</span><span class="o">.</span><span class="n">i32</span><span class="p">(),</span> <span class="n">T</span><span class="o">.</span><span class="n">i32</span><span class="p">()]),</span>
+        <span class="p">[</span><span class="n">src_hi</span><span class="p">],</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;{\n\t</span>
+<span class="sd">            .reg .b16 h0, h1;\n\t</span>
+<span class="sd">            mov.b32 {h0, h1}, $2;\n\t</span>
+<span class="sd">            cvt.rn.f16x2.e4m3x2 $0, h0;\n\t</span>
+<span class="sd">            cvt.rn.f16x2.e4m3x2 $1, h1;\n\t</span>
+<span class="sd">        }&quot;&quot;&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;=r,=r,r&quot;</span><span class="p">,</span>
+    <span class="p">)</span>
+    
+    <span class="n">res0</span> <span class="o">=</span> <span class="n">llvm</span><span class="o">.</span><span class="n">extractvalue</span><span class="p">(</span><span class="n">T</span><span class="o">.</span><span class="n">i32</span><span class="p">(),</span> <span class="n">rst_lo_i32x2</span><span class="p">,</span> <span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+    <span class="n">res1</span> <span class="o">=</span> <span class="n">llvm</span><span class="o">.</span><span class="n">extractvalue</span><span class="p">(</span><span class="n">T</span><span class="o">.</span><span class="n">i32</span><span class="p">(),</span> <span class="n">rst_lo_i32x2</span><span class="p">,</span> <span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+    <span class="n">res2</span> <span class="o">=</span> <span class="n">llvm</span><span class="o">.</span><span class="n">extractvalue</span><span class="p">(</span><span class="n">T</span><span class="o">.</span><span class="n">i32</span><span class="p">(),</span> <span class="n">rst_hi_i32x2</span><span class="p">,</span> <span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+    <span class="n">res3</span> <span class="o">=</span> <span class="n">llvm</span><span class="o">.</span><span class="n">extractvalue</span><span class="p">(</span><span class="n">T</span><span class="o">.</span><span class="n">i32</span><span class="p">(),</span> <span class="n">rst_hi_i32x2</span><span class="p">,</span> <span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+    
+    <span class="n">vec_i32x4_type</span> <span class="o">=</span> <span class="n">ir</span><span class="o">.</span><span class="n">VectorType</span><span class="o">.</span><span class="n">get</span><span class="p">([</span><span class="mi">4</span><span class="p">],</span> <span class="n">Int32</span><span class="o">.</span><span class="n">mlir_type</span><span class="p">,</span> <span class="n">loc</span><span class="o">=</span><span class="n">loc</span><span class="p">)</span>
+    <span class="n">vec_i32x4</span> <span class="o">=</span> <span class="n">vector</span><span class="o">.</span><span class="n">from_elements</span><span class="p">(</span>
+        <span class="n">vec_i32x4_type</span><span class="p">,</span> <span class="p">[</span><span class="n">res0</span><span class="p">,</span> <span class="n">res1</span><span class="p">,</span> <span class="n">res2</span><span class="p">,</span> <span class="n">res3</span><span class="p">],</span> <span class="n">loc</span><span class="o">=</span><span class="n">loc</span><span class="p">,</span> <span class="n">ip</span><span class="o">=</span><span class="n">ip</span>
+    <span class="p">)</span>
+    <span class="n">vec_f16x8_type</span> <span class="o">=</span> <span class="n">ir</span><span class="o">.</span><span class="n">VectorType</span><span class="o">.</span><span class="n">get</span><span class="p">([</span><span class="mi">8</span><span class="p">],</span> <span class="n">Float16</span><span class="o">.</span><span class="n">mlir_type</span><span class="p">,</span> <span class="n">loc</span><span class="o">=</span><span class="n">loc</span><span class="p">)</span>
+    <span class="n">vec_f16x8</span> <span class="o">=</span> <span class="n">llvm</span><span class="o">.</span><span class="n">bitcast</span><span class="p">(</span><span class="n">vec_f16x8_type</span><span class="p">,</span> <span class="n">vec_i32x4</span><span class="p">,</span> <span class="n">loc</span><span class="o">=</span><span class="n">loc</span><span class="p">,</span> <span class="n">ip</span><span class="o">=</span><span class="n">ip</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">vec_f16x8</span>
+</pre></div>
+<div class="highlight"><pre><span></span><span class="nd">@dsl_user_op</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">cvt_f8e4m3_f16</span><span class="p">(</span><span class="n">src</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">loc</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ip</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="c1"># 0 padding for upper 8 bits</span>
+    <span class="n">zero</span> <span class="o">=</span> <span class="n">arith</span><span class="o">.</span><span class="n">constant</span><span class="p">(</span><span class="n">src</span><span class="o">.</span><span class="n">type</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">loc</span><span class="o">=</span><span class="n">loc</span><span class="p">,</span> <span class="n">ip</span><span class="o">=</span><span class="n">ip</span><span class="p">)</span>
+    <span class="n">vec2</span> <span class="o">=</span> <span class="n">vector</span><span class="o">.</span><span class="n">from_elements</span><span class="p">(</span>
+        <span class="n">ir</span><span class="o">.</span><span class="n">VectorType</span><span class="o">.</span><span class="n">get</span><span class="p">([</span><span class="mi">2</span><span class="p">],</span> <span class="n">src</span><span class="o">.</span><span class="n">type</span><span class="p">,</span> <span class="n">loc</span><span class="o">=</span><span class="n">loc</span><span class="p">),</span> <span class="p">[</span><span class="n">src</span><span class="p">,</span> <span class="n">zero</span><span class="p">],</span> <span class="n">loc</span><span class="o">=</span><span class="n">loc</span><span class="p">,</span> <span class="n">ip</span><span class="o">=</span><span class="n">ip</span>
+    <span class="p">)</span>
+    <span class="n">rst_vec2</span> <span class="o">=</span> <span class="n">cvt_f8e4m3x2_to_f16x2</span><span class="p">(</span><span class="n">vec2</span><span class="p">,</span> <span class="n">loc</span><span class="o">=</span><span class="n">loc</span><span class="p">,</span> <span class="n">ip</span><span class="o">=</span><span class="n">ip</span><span class="p">)</span>
+    <span class="c1"># only the 1st element is valid</span>
+    <span class="n">rst</span> <span class="o">=</span> <span class="n">vector</span><span class="o">.</span><span class="n">extract</span><span class="p">(</span>
+        <span class="n">rst_vec2</span><span class="p">,</span> <span class="n">dynamic_position</span><span class="o">=</span><span class="p">[],</span> <span class="n">static_position</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">loc</span><span class="o">=</span><span class="n">loc</span><span class="p">,</span> <span class="n">ip</span><span class="o">=</span><span class="n">ip</span>
+    <span class="p">)</span>
+    <span class="k">return</span> <span class="n">rst</span>
+</pre></div>
+<p>For one element to convert we pad the upper 8 bits. That is because we want to again use packed instruction as above and therefore will need two input values (one of them being set to zero here).</p>
+<div class="highlight"><pre><span></span><span class="c1"># Convert 2 float8e4m3 values to 2 float16 values</span>
+<span class="nd">@dsl_user_op</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">cvt_f8e4m3x2_to_f16x2</span><span class="p">(</span><span class="n">src_vec2</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">loc</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ip</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="c1"># pack 2 float8e4m3 into 1 int16 value</span>
+    <span class="n">src_i16</span> <span class="o">=</span> <span class="n">llvm</span><span class="o">.</span><span class="n">bitcast</span><span class="p">(</span><span class="n">Int16</span><span class="o">.</span><span class="n">mlir_type</span><span class="p">,</span> <span class="n">src_vec2</span><span class="p">,</span> <span class="n">loc</span><span class="o">=</span><span class="n">loc</span><span class="p">,</span> <span class="n">ip</span><span class="o">=</span><span class="n">ip</span><span class="p">)</span>
+    <span class="n">rst_i32</span> <span class="o">=</span> <span class="n">llvm</span><span class="o">.</span><span class="n">inline_asm</span><span class="p">(</span>
+        <span class="n">Int32</span><span class="o">.</span><span class="n">mlir_type</span><span class="p">,</span>
+        <span class="p">[</span><span class="n">src_i16</span><span class="p">],</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;{\n\t</span>
+<span class="sd">            cvt.rn.f16x2.e4m3x2 $0, $1;\n\t</span>
+<span class="sd">        }&quot;&quot;&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;=r,h&quot;</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">vec_f16x2_type</span> <span class="o">=</span> <span class="n">ir</span><span class="o">.</span><span class="n">VectorType</span><span class="o">.</span><span class="n">get</span><span class="p">([</span><span class="mi">2</span><span class="p">],</span> <span class="n">Float16</span><span class="o">.</span><span class="n">mlir_type</span><span class="p">,</span> <span class="n">loc</span><span class="o">=</span><span class="n">loc</span><span class="p">)</span>
+    <span class="n">vec_f16x2</span> <span class="o">=</span> <span class="n">llvm</span><span class="o">.</span><span class="n">bitcast</span><span class="p">(</span><span class="n">vec_f16x2_type</span><span class="p">,</span> <span class="n">rst_i32</span><span class="p">,</span> <span class="n">loc</span><span class="o">=</span><span class="n">loc</span><span class="p">,</span> <span class="n">ip</span><span class="o">=</span><span class="n">ip</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">vec_f16x2</span>
+</pre></div>
+<p>Here we pack two <code>8 bit</code> values into one <code>16</code> bit value. We'll then call the PTX instruction. Afterwards we again convert from <code>Int32</code> by interpreting each of the 16 bits as <code>fp16</code>.</p>
+<p>The other two wrappers can be derived similarly. Note that one peculiarity is that for 8 packed values (i.e. <code>64</code> bits) we need to interpret the 8 packed values as 2 * 32 bit sequences. That is because as of today <code>CuTeDSL</code> does not have an <code>Int64</code> datatype. Everything else is straightforward and as before.</p>
+<h2 id=conclusion>Conclusion</h2><p>I don't want to give full details until end of competition how exactly I used this. But by using above conversion I could achieve a good performance boost of ~10% in performance for the GEMV task in GPU mode competition. I hope this blogpost demystifies numeric conversions in CuTeDSL and can help others to improve their own pipelines. Feel free to contact me on <a href='https://www.linkedin.com/in/simon-veitner-174a681b6/'>LinkedIn</a></p>
+
+
+    
+
+    
+        
+
+        
+            <form id="upvote-form" action="/upvote/" method="post" style="display: inline">
+    <small>
+        <input hidden name="uid" value="aMpBwKAtRsTTgctfVEbu" style="display:none">
+        <input hidden name="title" value="Demystifying numeric conversions in CuTeDSL" style="display:none">
+
+        <button
+            class="upvote-button"
+            aria-label="Toast this post"
+            title="Toast this post"
+        >
+            <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" class="css-i6dzq1">
+                <polyline points="17 11 12 6 7 11"></polyline>
+                <polyline points="17 18 12 13 7 18"></polyline>
+            </svg>
+            <small class="upvote-count" aria-hidden="true">&nbsp;</small>
+        </button>
+    </small>        
+</form>
+
+<script>
+    const $upvoteButton = document.querySelector('.upvote-button');
+    const $upvoteCount =  document.querySelector('.upvote-count')
+
+    fetch('/upvote-info/aMpBwKAtRsTTgctfVEbu/').then(response => response.json()).then(data => {
+        $upvoteCount.innerText = data.upvote_count;
+        if (data.upvoted) {
+            $upvoteButton.disabled = true
+            $upvoteButton.style.color = "salmon"
+            $upvoteButton.ariaLabel = "Toasted"
+            $upvoteButton.title = "Toasted"
+        }
+        $upvoteButton.ariaLabel += ` (${data.upvote_count})`
+    });
+
+    let moved = false;
+    let pageLoaded = Date.now();
+
+    document.addEventListener('touchmove', () => moved = true);
+    document.addEventListener('mousemove', () => moved = true);
+
+    document.querySelector('#upvote-form').addEventListener('submit', (e) => {
+        e.preventDefault();
+
+        if (moved) {
+            document.querySelector('input[name="title"]').value = "";
+        }
+        if (Date.now() - pageLoaded < 2000 || !moved) {
+            return;
+        }
+
+        fetch(e.target.action, {
+            method: 'post',
+            body: new FormData(e.target),
+        });
+        
+        $upvoteButton.disabled = true
+        $upvoteButton.style.color = "salmon"
+        $upvoteButton.ariaLabel = "Toasted"
+        $upvoteButton.title = "Toasted"
+        const newUpvoteCount = `${(parseInt($upvoteCount.innerHTML.split(" ")[0]) + 1)}`
+        $upvoteCount.innerHTML = newUpvoteCount
+        $upvoteButton.ariaLabel += ` (${newUpvoteCount})`
+    });
+</script>
+        
+
+        
+            <script>
+            window.addEventListener("load", () => {
+                if (navigator.webdriver !== true) {
+                    const sendHit = score => {
+                        const params = new URLSearchParams({
+                            blog: "veitner",
+                            token: "aMpBwKAtRsTTgctfVEbu",
+                            referrer: document.referrer.includes("veitner.bearblog.dev") ? "" : document.referrer,
+                            title: "",
+                            score: score
+                        });
+                        new Image().src = `/hit/?${params.toString()}`;
+                    };
+
+                    document.addEventListener('touchmove', () => sendHit(100), { once: true });
+                    document.addEventListener('mousemove', () => sendHit(100), { once: true });
+                }
+            });
+            </script>
+        
+    
+
+
+  </main>
+  <footer>
+    
+    
+    <span>
+        Powered by <a href="https://bearblog.dev">Bear <span role="img" class="bear" aria-label="ASCII bear logo">ʕ•ᴥ•ʔ</span></a>
+    </span>
+
+  </footer>
+
+  
+  <script>
+        (() => {
+          "use strict";
+          const times = document.querySelectorAll('time');
+          const format_string = "d M, Y" || "d M, Y"
+
+          times.forEach(time => {
+              time.innerText = formatDate(time.dateTime, format_string)
+          });
+
+          function formatDate(dateStr, formatStr) {
+            const date = new Date(dateStr);
+            const day = date.getDate();
+            const month = date.getMonth();
+            const year = date.getFullYear();
+            const weekday = date.getDay();
+            const hours = date.getHours();
+            const minutes = date.getMinutes();
+            const monthsFull = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+            const monthsShort = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+            const daysFull = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+            const daysShort = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+            
+            function getOrdinal(n) {
+                const s = ['th', 'st', 'nd', 'rd'];
+                const v = n % 100;
+                return s[(v - 20) % 10] || s[v] || s[0];
+            }
+            
+            const map = {
+                'd': () => day.toString().padStart(2, '0'),
+                'm': () => (month + 1).toString().padStart(2, '0'),
+                'Y': () => year.toString(),
+                'y': () => year.toString().slice(-2),
+                'F': () => monthsFull[month],
+                'j': () => day.toString(),
+                'D': () => daysShort[weekday],
+                'l': () => daysFull[weekday],
+                'S': () => getOrdinal(day),
+                'M': () => monthsShort[month],
+                'H': () => hours.toString().padStart(2, '0'),
+                'h': () => {
+                    let h = hours % 12;
+                    h = h === 0 ? 12 : h;
+                    return h.toString().padStart(2, '0');
+                },
+                'g': () => {
+                    let h = hours % 12;
+                    return h === 0 ? '12' : h.toString();
+                },
+                'i': () => minutes.toString().padStart(2, '0'),
+                'a': () => hours < 12 ? 'am' : 'pm',
+                'A': () => hours < 12 ? 'AM' : 'PM',
+            };
+            
+            let result = '';
+            for (let char of formatStr) {
+                result += map[char] ? map[char]() : char;
+            }
+            return result;
+        }
+        })();
+    </script>
+    
+</body>
+<!-- ID: veitner -->
+<!-- 🐻 -->
+</html>

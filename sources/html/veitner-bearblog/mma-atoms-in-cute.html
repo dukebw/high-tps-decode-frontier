@@ -1,0 +1,778 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!-- Powered by Bear Blog -->
+
+<head>
+  
+  
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5">
+  
+  <title>MMA Atoms in CuTe | simons blog</title>
+  <link rel="canonical" href="https://veitner.bearblog.dev/mma-atoms-in-cute/">
+  
+    
+
+    <meta name="veitner" content="look-for-the-bear-necessities">
+    <meta name="token" content="ypBBWmJapEfGNoKEXTtu">
+
+    
+<!-- Primary Meta Tags -->
+<meta name="title" content="MMA Atoms in CuTe">
+<meta name="description" content="Introduction
+MMA Atoms are fundamental building blocks of CuTe kernels and therefore have a dedicated section in the CuTe docs as well. In this blogpost we ...">
+
+<!-- Open Graph / Facebook -->
+<meta property="og:site_name" content="simons blog">
+<meta property="og:title" content="MMA Atoms in CuTe">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://veitner.bearblog.dev/mma-atoms-in-cute/">
+<meta property="og:description" content="Introduction
+MMA Atoms are fundamental building blocks of CuTe kernels and therefore have a dedicated section in the CuTe docs as well. In this blogpost we ...">
+<meta property="og:image" content="/static/og-image.png">
+
+
+<!-- Twitter -->
+<meta property="twitter:card" content="summary">
+<meta property="twitter:url" content="https://veitner.bearblog.dev/mma-atoms-in-cute/">
+<meta property="twitter:title" content="MMA Atoms in CuTe">
+<meta property="twitter:description" content="Introduction
+MMA Atoms are fundamental building blocks of CuTe kernels and therefore have a dedicated section in the CuTe docs as well. In this blogpost we ...">
+<meta property="twitter:image" content="/static/og-image.png">
+
+
+
+<!-- Microdata -->
+<script type="application/ld+json">
+  {
+    "@context": "http://schema.org",
+    "@type": "article",
+    "name": "MMA Atoms in CuTe",
+    "headline": "MMA Atoms in CuTe",
+    "url": "https://veitner.bearblog.dev/mma-atoms-in-cute/",
+    "description": "Introduction
+MMA Atoms are fundamental building blocks of CuTe kernels and therefore have a dedicated section in the CuTe docs as well. In this blogpost we ...",
+    "image": "/static/og-image.png"
+  }
+</script>
+    <link rel="alternate" type="application/atom+xml" href="/feed/" title="simons blog">
+    <link rel="alternate" type="application/rss+xml" href="/feed/?type=rss" title="simons blog">
+
+  
+    
+
+    
+    <style>pre { line-height: 125%; }
+td.linenos .normal { color: #666666; background-color: transparent; padding-left: 5px; padding-right: 5px; }
+span.linenos { color: #666666; background-color: transparent; padding-left: 5px; padding-right: 5px; }
+td.linenos .special { color: #000000; background-color: #ffffc0; padding-left: 5px; padding-right: 5px; }
+span.linenos.special { color: #000000; background-color: #ffffc0; padding-left: 5px; padding-right: 5px; }
+.highlight .hll { background-color: #ffffcc }
+.highlight { background: #f0f0f0; }
+.highlight .c { color: #60A0B0; font-style: italic } /* Comment */
+.highlight .err { border: 1px solid #F00 } /* Error */
+.highlight .k { color: #007020; font-weight: bold } /* Keyword */
+.highlight .o { color: #666 } /* Operator */
+.highlight .ch { color: #60A0B0; font-style: italic } /* Comment.Hashbang */
+.highlight .cm { color: #60A0B0; font-style: italic } /* Comment.Multiline */
+.highlight .cp { color: #007020 } /* Comment.Preproc */
+.highlight .cpf { color: #60A0B0; font-style: italic } /* Comment.PreprocFile */
+.highlight .c1 { color: #60A0B0; font-style: italic } /* Comment.Single */
+.highlight .cs { color: #60A0B0; background-color: #FFF0F0 } /* Comment.Special */
+.highlight .gd { color: #A00000 } /* Generic.Deleted */
+.highlight .ge { font-style: italic } /* Generic.Emph */
+.highlight .ges { font-weight: bold; font-style: italic } /* Generic.EmphStrong */
+.highlight .gr { color: #F00 } /* Generic.Error */
+.highlight .gh { color: #000080; font-weight: bold } /* Generic.Heading */
+.highlight .gi { color: #00A000 } /* Generic.Inserted */
+.highlight .go { color: #888 } /* Generic.Output */
+.highlight .gp { color: #C65D09; font-weight: bold } /* Generic.Prompt */
+.highlight .gs { font-weight: bold } /* Generic.Strong */
+.highlight .gu { color: #800080; font-weight: bold } /* Generic.Subheading */
+.highlight .gt { color: #04D } /* Generic.Traceback */
+.highlight .kc { color: #007020; font-weight: bold } /* Keyword.Constant */
+.highlight .kd { color: #007020; font-weight: bold } /* Keyword.Declaration */
+.highlight .kn { color: #007020; font-weight: bold } /* Keyword.Namespace */
+.highlight .kp { color: #007020 } /* Keyword.Pseudo */
+.highlight .kr { color: #007020; font-weight: bold } /* Keyword.Reserved */
+.highlight .kt { color: #902000 } /* Keyword.Type */
+.highlight .m { color: #40A070 } /* Literal.Number */
+.highlight .s { color: #4070A0 } /* Literal.String */
+.highlight .na { color: #4070A0 } /* Name.Attribute */
+.highlight .nb { color: #007020 } /* Name.Builtin */
+.highlight .nc { color: #0E84B5; font-weight: bold } /* Name.Class */
+.highlight .no { color: #60ADD5 } /* Name.Constant */
+.highlight .nd { color: #555; font-weight: bold } /* Name.Decorator */
+.highlight .ni { color: #D55537; font-weight: bold } /* Name.Entity */
+.highlight .ne { color: #007020 } /* Name.Exception */
+.highlight .nf { color: #06287E } /* Name.Function */
+.highlight .nl { color: #002070; font-weight: bold } /* Name.Label */
+.highlight .nn { color: #0E84B5; font-weight: bold } /* Name.Namespace */
+.highlight .nt { color: #062873; font-weight: bold } /* Name.Tag */
+.highlight .nv { color: #BB60D5 } /* Name.Variable */
+.highlight .ow { color: #007020; font-weight: bold } /* Operator.Word */
+.highlight .w { color: #BBB } /* Text.Whitespace */
+.highlight .mb { color: #40A070 } /* Literal.Number.Bin */
+.highlight .mf { color: #40A070 } /* Literal.Number.Float */
+.highlight .mh { color: #40A070 } /* Literal.Number.Hex */
+.highlight .mi { color: #40A070 } /* Literal.Number.Integer */
+.highlight .mo { color: #40A070 } /* Literal.Number.Oct */
+.highlight .sa { color: #4070A0 } /* Literal.String.Affix */
+.highlight .sb { color: #4070A0 } /* Literal.String.Backtick */
+.highlight .sc { color: #4070A0 } /* Literal.String.Char */
+.highlight .dl { color: #4070A0 } /* Literal.String.Delimiter */
+.highlight .sd { color: #4070A0; font-style: italic } /* Literal.String.Doc */
+.highlight .s2 { color: #4070A0 } /* Literal.String.Double */
+.highlight .se { color: #4070A0; font-weight: bold } /* Literal.String.Escape */
+.highlight .sh { color: #4070A0 } /* Literal.String.Heredoc */
+.highlight .si { color: #70A0D0; font-style: italic } /* Literal.String.Interpol */
+.highlight .sx { color: #C65D09 } /* Literal.String.Other */
+.highlight .sr { color: #235388 } /* Literal.String.Regex */
+.highlight .s1 { color: #4070A0 } /* Literal.String.Single */
+.highlight .ss { color: #517918 } /* Literal.String.Symbol */
+.highlight .bp { color: #007020 } /* Name.Builtin.Pseudo */
+.highlight .fm { color: #06287E } /* Name.Function.Magic */
+.highlight .vc { color: #BB60D5 } /* Name.Variable.Class */
+.highlight .vg { color: #BB60D5 } /* Name.Variable.Global */
+.highlight .vi { color: #BB60D5 } /* Name.Variable.Instance */
+.highlight .vm { color: #BB60D5 } /* Name.Variable.Magic */
+.highlight .il { color: #40A070 } /* Literal.Number.Integer.Long */
+</style>
+  
+  
+  
+    
+        <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20100%20100'%3E%3Ctext%20y='.9em'%20font-size='90'%3E🐼%3C/text%3E%3C/svg%3E">
+    
+
+
+
+  <style>
+      
+      
+    
+:root {
+    --width: 720px;
+    --font-main: Verdana, sans-serif;
+    --font-secondary: Verdana, sans-serif;
+    --font-scale: 1em;
+    --background-color: #fff;
+    --heading-color: #222;
+    --text-color: #444;
+    --link-color: #3273dc;
+    --visited-color:  #8b6fcb;
+    --code-background-color: #f2f2f2;
+    --code-color: #222;
+    --blockquote-color: #222;
+}
+
+@media (prefers-color-scheme: dark) {
+    :root {
+        --background-color: #01242e;
+        --heading-color: #eee;
+        --text-color: #ddd;
+        --link-color: #8cc2dd;
+        --visited-color:  #8b6fcb;
+        --code-background-color: #000;
+        --code-color: #ddd;
+        --blockquote-color: #ccc;
+    }
+}
+
+body {
+    font-family: var(--font-secondary);
+    font-size: var(--font-scale);
+    margin: auto;
+    padding: 20px;
+    max-width: var(--width);
+    text-align: left;
+    background-color: var(--background-color);
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    line-height: 1.5;
+    color: var(--text-color);
+}
+
+h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-main);
+    color: var(--heading-color);
+}
+
+a {
+    color: var(--link-color);
+    cursor: pointer;
+    text-decoration: none;
+}
+
+a:hover {
+    text-decoration: underline; 
+}
+
+nav a {
+    margin-right: 8px;
+}
+
+strong, b {
+    color: var(--heading-color);
+}
+
+button {
+    margin: 0;
+    cursor: pointer;
+}
+
+time {
+ 	font-family: monospace;
+  	font-style: normal;
+  	font-size: 15px;
+}
+
+main {
+    line-height: 1.6;
+}
+
+table {
+    width: 100%;
+}
+
+hr {
+    border: 0;
+    border-top: 1px dashed;
+}
+
+img {
+    max-width: 100%;
+}
+
+code {
+    font-family: monospace;
+    padding: 2px;
+    background-color: var(--code-background-color);
+    color: var(--code-color);
+    border-radius: 3px;
+}
+
+blockquote {
+    border-left: 1px solid #999;
+    color: var(--code-color);
+    padding-left: 20px;
+    font-style: italic;
+}
+
+footer {
+    padding: 25px 0;
+    text-align: center;
+}
+
+.title:hover {
+    text-decoration: none;
+}
+
+.title h1 {
+    font-size: 1.5em;
+}
+
+.inline {
+    width: auto !important;
+}
+
+.highlight, .code {
+    padding: 1px 15px;
+    background-color: var(--code-background-color);
+    color: var(--code-color);
+    border-radius: 3px;
+    margin-block-start: 1em;
+    margin-block-end: 1em;
+    overflow-x: auto;
+}
+
+/* blog post list */
+ul.blog-posts {
+    list-style-type: none;
+    padding: unset;
+}
+
+ul.blog-posts li {
+    display: flex;
+}
+
+ul.blog-posts li span {
+    flex: 0 0 130px;
+}
+
+ul.blog-posts li a:visited {
+    color: var(--visited-color);
+}
+    .upvote-button {
+        padding: 0;
+        margin: 0;
+        border: 0;
+        background-color: inherit;
+        color: inherit;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+    .upvote-button.upvoted {
+        color: salmon;
+    }
+    .upvote-count {
+        margin-top: -3px;
+    }
+
+      
+  </style>
+</head>
+
+<body class="post " onload="(function() { document.cookie = `timezone=${Intl.DateTimeFormat().resolvedOptions().timeZone};path=/`; })()">
+  
+  <header>
+    <a class="title" href="/">
+      <h1>
+        simons blog
+      </h1>
+    </a>
+    <nav>
+      <p><a href='/'>Home</a> <a href='/blog/'>Blog</a></p>
+
+    </nav>
+  </header>
+  <main>
+    
+
+    
+
+    
+        <h1>MMA Atoms in CuTe</h1>
+
+        <p>
+            <i>
+                <time datetime="2025-10-20T17:53Z">
+    20 Oct, 2025
+</time>
+            </i>
+        </p>
+    
+
+    <h2 id=introduction>Introduction</h2><p><code>MMA Atoms</code> are fundamental building blocks of <code>CuTe</code> kernels and therefore have a dedicated section in the <code>CuTe</code> docs as well. In this blogpost we offer a different angle on the same topic taking a different "route of explanation". For better understanding we take one of the examples that is used in the <code>CuTe</code> docs as well.</p>
+<h2 id=understanding-mma-atoms>Understanding MMA Atoms</h2><p>The following program will print a <code>LaTeX</code> file to the screen that can be in turn used to generate a visualization of the <code>MMA Atom</code>.</p>
+<div class="highlight"><pre><span></span><span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;cute/tensor.hpp&gt;</span>
+
+<span class="kt">int</span><span class="w"> </span><span class="nf">main</span><span class="p">()</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="k">using</span><span class="w"> </span><span class="k">namespace</span><span class="w"> </span><span class="nn">cute</span><span class="p">;</span>
+
+<span class="w">    </span><span class="n">MMA_Atom</span><span class="w"> </span><span class="n">mma</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">MMA_Atom</span><span class="o">&lt;</span><span class="n">SM70_8x8x4_F32F16F16F32_NT</span><span class="o">&gt;</span><span class="p">{};</span>
+<span class="w">    </span><span class="n">print_latex</span><span class="p">(</span><span class="n">mma</span><span class="p">);</span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span>
+<span class="p">}</span>
+</pre></div>
+<p><img src="https://bear-images.sfo2.cdn.digitaloceanspaces.com/veitner/mma-1.webp" alt="MMA 1" /></p>
+<p>To make sense of this it is useful to first look at the code:</p>
+<p>In <code>cutlass/include/cute/arch/mma_sm70.hpp</code> we can find:</p>
+<div class="highlight"><pre><span></span><span class="k">struct</span><span class="w"> </span><span class="nc">SM70_8x8x4_F32F16F16F32_NT</span>
+<span class="p">{</span>
+<span class="w">  </span><span class="k">using</span><span class="w"> </span><span class="n">DRegisters</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kt">float</span><span class="p">[</span><span class="mi">8</span><span class="p">];</span>
+<span class="w">  </span><span class="k">using</span><span class="w"> </span><span class="n">ARegisters</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kt">uint32_t</span><span class="p">[</span><span class="mi">2</span><span class="p">];</span>
+<span class="w">  </span><span class="k">using</span><span class="w"> </span><span class="n">BRegisters</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kt">uint32_t</span><span class="p">[</span><span class="mi">2</span><span class="p">];</span>
+<span class="w">  </span><span class="k">using</span><span class="w"> </span><span class="n">CRegisters</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kt">float</span><span class="p">[</span><span class="mi">8</span><span class="p">];</span>
+
+<span class="w">  </span><span class="c1">// Register asm fma</span>
+<span class="w">  </span><span class="n">CUTE_HOST_DEVICE</span><span class="w"> </span><span class="k">static</span><span class="w"> </span><span class="kt">void</span>
+<span class="w">  </span><span class="n">fma</span><span class="p">(</span><span class="kt">float</span><span class="w">         </span><span class="o">&amp;</span><span class="w"> </span><span class="n">d0</span><span class="p">,</span><span class="w"> </span><span class="kt">float</span><span class="w">         </span><span class="o">&amp;</span><span class="w"> </span><span class="n">d1</span><span class="p">,</span><span class="w"> </span><span class="kt">float</span><span class="w">      </span><span class="o">&amp;</span><span class="w"> </span><span class="n">d2</span><span class="p">,</span><span class="w"> </span><span class="kt">float</span><span class="w">      </span><span class="o">&amp;</span><span class="w"> </span><span class="n">d3</span><span class="p">,</span>
+<span class="w">      </span><span class="kt">float</span><span class="w">         </span><span class="o">&amp;</span><span class="w"> </span><span class="n">d4</span><span class="p">,</span><span class="w"> </span><span class="kt">float</span><span class="w">         </span><span class="o">&amp;</span><span class="w"> </span><span class="n">d5</span><span class="p">,</span><span class="w"> </span><span class="kt">float</span><span class="w">      </span><span class="o">&amp;</span><span class="w"> </span><span class="n">d6</span><span class="p">,</span><span class="w"> </span><span class="kt">float</span><span class="w">      </span><span class="o">&amp;</span><span class="w"> </span><span class="n">d7</span><span class="p">,</span>
+<span class="w">      </span><span class="kt">uint32_t</span><span class="w"> </span><span class="k">const</span><span class="o">&amp;</span><span class="w"> </span><span class="n">a0</span><span class="p">,</span><span class="w"> </span><span class="kt">uint32_t</span><span class="w"> </span><span class="k">const</span><span class="o">&amp;</span><span class="w"> </span><span class="n">a1</span><span class="p">,</span>
+<span class="w">      </span><span class="kt">uint32_t</span><span class="w"> </span><span class="k">const</span><span class="o">&amp;</span><span class="w"> </span><span class="n">b0</span><span class="p">,</span><span class="w"> </span><span class="kt">uint32_t</span><span class="w"> </span><span class="k">const</span><span class="o">&amp;</span><span class="w"> </span><span class="n">b1</span><span class="p">,</span>
+<span class="w">      </span><span class="kt">float</span><span class="w">    </span><span class="k">const</span><span class="o">&amp;</span><span class="w"> </span><span class="n">c0</span><span class="p">,</span><span class="w"> </span><span class="kt">float</span><span class="w">    </span><span class="k">const</span><span class="o">&amp;</span><span class="w"> </span><span class="n">c1</span><span class="p">,</span><span class="w"> </span><span class="kt">float</span><span class="w"> </span><span class="k">const</span><span class="o">&amp;</span><span class="w"> </span><span class="n">c2</span><span class="p">,</span><span class="w"> </span><span class="kt">float</span><span class="w"> </span><span class="k">const</span><span class="o">&amp;</span><span class="w"> </span><span class="n">c3</span><span class="p">,</span>
+<span class="w">      </span><span class="kt">float</span><span class="w">    </span><span class="k">const</span><span class="o">&amp;</span><span class="w"> </span><span class="n">c4</span><span class="p">,</span><span class="w"> </span><span class="kt">float</span><span class="w">    </span><span class="k">const</span><span class="o">&amp;</span><span class="w"> </span><span class="n">c5</span><span class="p">,</span><span class="w"> </span><span class="kt">float</span><span class="w"> </span><span class="k">const</span><span class="o">&amp;</span><span class="w"> </span><span class="n">c6</span><span class="p">,</span><span class="w"> </span><span class="kt">float</span><span class="w"> </span><span class="k">const</span><span class="o">&amp;</span><span class="w"> </span><span class="n">c7</span><span class="p">)</span>
+<span class="w">  </span><span class="p">{</span>
+<span class="cp">#if defined(CUTE_ARCH_MMA_SM70_ENABLED)</span>
+<span class="w">    </span><span class="k">asm</span><span class="w"> </span><span class="k">volatile</span><span class="p">(</span><span class="s">&quot;mma.sync.aligned.m8n8k4.col.row.f32.f16.f16.f32&quot;</span>
+<span class="w">                 </span><span class="s">&quot;{%0,  %1,  %2,  %3,  %4,  %5,  %6,  %7},&quot;</span>
+<span class="w">                 </span><span class="s">&quot;{%8,  %9},&quot;</span>
+<span class="w">                 </span><span class="s">&quot;{%10, %11},&quot;</span>
+<span class="w">                 </span><span class="s">&quot;{%12, %13, %14, %15, %16, %17, %18, %19};&quot;</span>
+<span class="w">        </span><span class="o">:</span><span class="w"> </span><span class="s">&quot;=f&quot;</span><span class="p">(</span><span class="n">d0</span><span class="p">),</span><span class="w"> </span><span class="s">&quot;=f&quot;</span><span class="p">(</span><span class="n">d1</span><span class="p">),</span><span class="w"> </span><span class="s">&quot;=f&quot;</span><span class="p">(</span><span class="n">d2</span><span class="p">),</span><span class="w"> </span><span class="s">&quot;=f&quot;</span><span class="p">(</span><span class="n">d3</span><span class="p">),</span>
+<span class="w">          </span><span class="s">&quot;=f&quot;</span><span class="p">(</span><span class="n">d4</span><span class="p">),</span><span class="w"> </span><span class="s">&quot;=f&quot;</span><span class="p">(</span><span class="n">d5</span><span class="p">),</span><span class="w"> </span><span class="s">&quot;=f&quot;</span><span class="p">(</span><span class="n">d6</span><span class="p">),</span><span class="w"> </span><span class="s">&quot;=f&quot;</span><span class="p">(</span><span class="n">d7</span><span class="p">)</span>
+<span class="w">        </span><span class="o">:</span><span class="w">  </span><span class="s">&quot;r&quot;</span><span class="p">(</span><span class="n">a0</span><span class="p">),</span><span class="w">  </span><span class="s">&quot;r&quot;</span><span class="p">(</span><span class="n">a1</span><span class="p">),</span>
+<span class="w">           </span><span class="s">&quot;r&quot;</span><span class="p">(</span><span class="n">b0</span><span class="p">),</span><span class="w">  </span><span class="s">&quot;r&quot;</span><span class="p">(</span><span class="n">b1</span><span class="p">),</span>
+<span class="w">           </span><span class="s">&quot;f&quot;</span><span class="p">(</span><span class="n">c0</span><span class="p">),</span><span class="w">  </span><span class="s">&quot;f&quot;</span><span class="p">(</span><span class="n">c1</span><span class="p">),</span><span class="w">  </span><span class="s">&quot;f&quot;</span><span class="p">(</span><span class="n">c2</span><span class="p">),</span><span class="w">  </span><span class="s">&quot;f&quot;</span><span class="p">(</span><span class="n">c3</span><span class="p">),</span>
+<span class="w">           </span><span class="s">&quot;f&quot;</span><span class="p">(</span><span class="n">c4</span><span class="p">),</span><span class="w">  </span><span class="s">&quot;f&quot;</span><span class="p">(</span><span class="n">c5</span><span class="p">),</span><span class="w">  </span><span class="s">&quot;f&quot;</span><span class="p">(</span><span class="n">c6</span><span class="p">),</span><span class="w">  </span><span class="s">&quot;f&quot;</span><span class="p">(</span><span class="n">c7</span><span class="p">));</span>
+<span class="cp">#else</span>
+<span class="w">    </span><span class="n">CUTE_INVALID_CONTROL_PATH</span><span class="p">(</span><span class="s">&quot;Attempting to use SM70_8x8x4_F32F16F16F32_NT without CUTE_ARCH_MMA_SM70_ENABLED&quot;</span><span class="p">);</span>
+<span class="cp">#endif</span>
+<span class="w">  </span><span class="p">}</span>
+<span class="p">};</span>
+</pre></div>
+<p>We see that this essentially a wrapper around a <code>PTX</code> instruction which can be understood as follows:</p>
+<div class="highlight"><pre><span></span>mma.sync.aligned.m8n8k4.col.row.f32.f16.f16.f32
+
+- A: 8 x 4 -&gt; Float 16, column major
+- B: 4 x 8 -&gt; Float 16, row major (same as 8 x 4 in column major)
+- C: 8 x 8 -&gt; Float 32
+- D: 8 x 8 -&gt; Float 32
+</pre></div>
+<p>Looking at section <a href='https://docs.nvidia.com/cuda/parallel-thread-execution/#warp-level-matrix-fragment-mma-884-f16'>9.7.14.5.1</a> we see that <code>8</code> threads will perform one such <code>MMA</code> and that the values for <code>A</code> and <code>B</code> should be provided as <em>a vector expression containing two <code>.f16x2</code> registers</em>.</p>
+<p>This is exactly what we can see in the above PTX instruction which gets passed <code>8 * 8 / 8 = 8</code> values for <code>D/C</code> and <code>8 * 4 / 8 / 2 = 2</code> values for <code>A/B</code>.</p>
+<p>In PTX docs we can furthermore find Layout for our <code>MMA</code>  instruction. Note that PTX docs informs us that
+<em>Elements of 4 matrices need to be distributed across the threads in a warp. The following table shows distribution of matrices for MMA operations.</em></p>
+<div class="highlight"><pre><span></span>MMA computation 1: Threads 0-3, Threads 16-19
+MMA computation 2: Threads 4-7, Threads 20-23
+MMA computation 3: Threads 8-11, Threads 24-27
+MMA computation 4: Threads 12-15, Threads 28-31
+</pre></div>
+<h3 id=a-layout>A Layout</h3><p>See Figure 47 in PTX docs.</p>
+<p>Note that the above picture for <code>MMA computation 1</code> is equivalent to the situation we see above in our picture. We can derive the TV Layout:</p>
+<p>To derive Thread Layout we note that it consists for one computation of 8 threads which can be split up into two groups. So we have two modes for the thread layout and need to derive the shapes and strides for each mode.</p>
+<div class="highlight"><pre><span></span>(T0, a0) -&gt; (T1, a0)
+</pre></div>
+<p>takes <code>8</code> steps. We have 4 elements <code>(T0, a0), (T1, a0), (T2, a0), (T3, a0)</code> in this group.</p>
+<div class="highlight"><pre><span></span>(T0, a0) -&gt; (T16, a0)
+</pre></div>
+<p>takes <code>4</code> steps. We have 2 elements <code>(T0, a0), (T16, a0)</code> in this group.</p>
+<p>The value layout is simple because each thread has just <code>4</code> values which have a stride of 1 in between. This gives us <code>((4, 2), 4):((8,4),1)</code> for the TV Layout of A.</p>
+<h3 id=b-layout>B Layout</h3><p>See Figure 48 in PTX docs.</p>
+<p>Unsurprisingly this again agrees with what we see above.
+Note that equivalently we may interpret B has a <code>8 x 4</code> matrix in column major. To see why that is true consider:</p>
+<div class="highlight"><pre><span></span>1) M: N x K in column major
+2) M^T K x N in row major
+
+Coordinate mapping:
+for (i, j) in {0, ..., N-1} x {0, ..., K-1}
+(i, j) -&gt; j * N + i
+(j, i) -&gt; j * N + i
+</pre></div>
+<p>We than can use same TV Layout as above for A.</p>
+<h3 id=c-layout>C Layout</h3><p><img src="https://bear-images.sfo2.cdn.digitaloceanspaces.com/veitner/layout-c.webp" alt="Layout C" /></p>
+<p>Once more we see that MMA computation 1 matches the above depiction.</p>
+<h3 id=where-do-the-layouts-come-from>Where do the Layouts come from?</h3><p>In <code>cutlass/include/cute/atom/mma_atom.hpp</code> we find:</p>
+<div class="highlight"><pre><span></span><span class="k">template</span><span class="w"> </span><span class="o">&lt;</span><span class="k">class</span><span class="w"> </span><span class="nc">MMAOperation</span><span class="o">&gt;</span>
+<span class="k">struct</span><span class="w"> </span><span class="nc">MMA_Atom</span><span class="o">&lt;</span><span class="n">MMAOperation</span><span class="o">&gt;</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="n">MMA_Atom</span><span class="o">&lt;</span><span class="n">MMA_Traits</span><span class="o">&lt;</span><span class="n">MMAOperation</span><span class="o">&gt;&gt;</span>
+<span class="p">{};</span>
+</pre></div>
+<p>in <code>cutlass/include/cute/atom/mma_traits_sm70.hpp</code> we find</p>
+<div class="highlight"><pre><span></span><span class="k">namespace</span><span class="w"> </span><span class="p">{</span>
+<span class="c1">// Logical thread id to thread idx (quadpair)</span>
+<span class="k">using</span><span class="w"> </span><span class="n">SM70_QuadPair</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">Layout</span><span class="o">&lt;</span><span class="n">Shape</span><span class="w"> </span><span class="o">&lt;</span><span class="n">_4</span><span class="p">,</span><span class="w"> </span><span class="n">_2</span><span class="o">&gt;</span><span class="p">,</span>
+<span class="w">                             </span><span class="n">Stride</span><span class="o">&lt;</span><span class="n">_1</span><span class="p">,</span><span class="n">_16</span><span class="o">&gt;&gt;</span><span class="p">;</span>
+<span class="c1">// (T8,V4) -&gt; (M8,K4)</span>
+<span class="k">using</span><span class="w"> </span><span class="n">SM70_8x4_Row</span><span class="w">  </span><span class="o">=</span><span class="w"> </span><span class="n">Layout</span><span class="o">&lt;</span><span class="n">Shape</span><span class="w"> </span><span class="o">&lt;</span><span class="n">_8</span><span class="p">,</span><span class="n">_4</span><span class="o">&gt;</span><span class="p">,</span>
+<span class="w">                             </span><span class="n">Stride</span><span class="o">&lt;</span><span class="n">_1</span><span class="p">,</span><span class="n">_8</span><span class="o">&gt;&gt;</span><span class="p">;</span>
+<span class="c1">// (T8,V4) -&gt; (M8,K4)</span>
+<span class="k">using</span><span class="w"> </span><span class="n">SM70_8x4_Col</span><span class="w">  </span><span class="o">=</span><span class="w"> </span><span class="n">Layout</span><span class="o">&lt;</span><span class="n">Shape</span><span class="w"> </span><span class="o">&lt;</span><span class="n">Shape</span><span class="w"> </span><span class="o">&lt;</span><span class="n">_4</span><span class="p">,</span><span class="n">_2</span><span class="o">&gt;</span><span class="p">,</span><span class="n">_4</span><span class="o">&gt;</span><span class="p">,</span>
+<span class="w">                             </span><span class="n">Stride</span><span class="o">&lt;</span><span class="n">Stride</span><span class="o">&lt;</span><span class="n">_8</span><span class="p">,</span><span class="n">_4</span><span class="o">&gt;</span><span class="p">,</span><span class="n">_1</span><span class="o">&gt;&gt;</span><span class="p">;</span>
+<span class="c1">// (T8,V8) -&gt; (M8,N8)</span>
+<span class="k">using</span><span class="w"> </span><span class="n">SM70_8x8_16b</span><span class="w">  </span><span class="o">=</span><span class="w"> </span><span class="n">Layout</span><span class="o">&lt;</span><span class="n">Shape</span><span class="w"> </span><span class="o">&lt;</span><span class="n">_8</span><span class="p">,</span><span class="n">_8</span><span class="o">&gt;</span><span class="p">,</span>
+<span class="w">                             </span><span class="n">Stride</span><span class="o">&lt;</span><span class="n">_1</span><span class="p">,</span><span class="n">_8</span><span class="o">&gt;&gt;</span><span class="p">;</span>
+<span class="c1">// (T8,V8) -&gt; (M8,N8)</span>
+<span class="k">using</span><span class="w"> </span><span class="n">SM70_8x8_32b</span><span class="w">  </span><span class="o">=</span><span class="w"> </span><span class="n">Layout</span><span class="o">&lt;</span><span class="n">Shape</span><span class="w"> </span><span class="o">&lt;</span><span class="n">Shape</span><span class="w"> </span><span class="o">&lt;</span><span class="n">_2</span><span class="p">,</span><span class="w"> </span><span class="n">_2</span><span class="p">,</span><span class="n">_2</span><span class="o">&gt;</span><span class="p">,</span><span class="n">Shape</span><span class="w"> </span><span class="o">&lt;</span><span class="n">_2</span><span class="p">,</span><span class="n">_2</span><span class="p">,</span><span class="w"> </span><span class="n">_2</span><span class="o">&gt;&gt;</span><span class="p">,</span>
+<span class="w">                             </span><span class="n">Stride</span><span class="o">&lt;</span><span class="n">Stride</span><span class="o">&lt;</span><span class="n">_1</span><span class="p">,</span><span class="n">_16</span><span class="p">,</span><span class="n">_4</span><span class="o">&gt;</span><span class="p">,</span><span class="n">Stride</span><span class="o">&lt;</span><span class="n">_8</span><span class="p">,</span><span class="n">_2</span><span class="p">,</span><span class="n">_32</span><span class="o">&gt;&gt;&gt;</span><span class="p">;</span>
+<span class="p">}</span><span class="w"> </span>
+<span class="p">...</span>
+<span class="k">template</span><span class="w"> </span><span class="o">&lt;&gt;</span>
+<span class="k">struct</span><span class="w"> </span><span class="nc">MMA_Traits</span><span class="o">&lt;</span><span class="n">SM70_8x8x4_F32F16F16F32_NT</span><span class="o">&gt;</span>
+<span class="p">{</span>
+<span class="w">  </span><span class="k">using</span><span class="w"> </span><span class="n">ValTypeD</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kt">float</span><span class="p">;</span>
+<span class="w">  </span><span class="k">using</span><span class="w"> </span><span class="n">ValTypeA</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">half_t</span><span class="p">;</span>
+<span class="w">  </span><span class="k">using</span><span class="w"> </span><span class="n">ValTypeB</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">half_t</span><span class="p">;</span>
+<span class="w">  </span><span class="k">using</span><span class="w"> </span><span class="n">ValTypeC</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kt">float</span><span class="p">;</span>
+
+<span class="w">  </span><span class="k">using</span><span class="w"> </span><span class="n">Shape_MNK</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">Shape</span><span class="o">&lt;</span><span class="n">_8</span><span class="p">,</span><span class="n">_8</span><span class="p">,</span><span class="n">_4</span><span class="o">&gt;</span><span class="p">;</span>
+<span class="w">  </span><span class="k">using</span><span class="w"> </span><span class="n">ThrID</span><span class="w">   </span><span class="o">=</span><span class="w"> </span><span class="n">SM70_QuadPair</span><span class="p">;</span>
+<span class="w">  </span><span class="k">using</span><span class="w"> </span><span class="n">ALayout</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">SM70_8x4_Col</span><span class="p">;</span>
+<span class="w">  </span><span class="k">using</span><span class="w"> </span><span class="n">BLayout</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">SM70_8x4_Col</span><span class="p">;</span>
+<span class="w">  </span><span class="k">using</span><span class="w"> </span><span class="n">CLayout</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">SM70_8x8_32b</span><span class="p">;</span>
+<span class="p">};</span>
+</pre></div>
+<p>we see that this is where the Layout information is hardcoded into the trait for the operation. Note that it although <code>B</code> has same TV Layout as <code>A</code> we display it's transpose above in the picture. We explained above why the two representations (i.e. <code>4 x 8</code> row major and <code>8 x 4</code> column major) are equivalent.  Note that the trait also contains information about the value types of the matrices as well as the general problem shape. The <code>ThrId</code> is needed for mapping within one MMA computation group. Within one group we have a total of 8 threads. They are spitted into two groups and within each group we have a stride of 1 (from 0 to 1 etc) whereas to go from one group to the other we have a stride of 16 (from 0 to 16 etc).</p>
+<h3 id=visualization>Visualization</h3><p>Code for visualization can be found in <code>cutlass/include/cute/util/print_latex.hpp</code>.</p>
+<div class="highlight"><pre><span></span><span class="k">template</span><span class="w"> </span><span class="o">&lt;</span><span class="k">class</span><span class="w"> </span><span class="nc">LayoutC</span><span class="p">,</span><span class="w"> </span><span class="k">class</span><span class="w"> </span><span class="nc">LayoutA</span><span class="p">,</span><span class="w"> </span><span class="k">class</span><span class="w"> </span><span class="nc">LayoutB</span><span class="p">,</span><span class="w"> </span><span class="k">class</span><span class="w"> </span><span class="nc">Tile_MNK</span><span class="p">,</span>
+<span class="w">          </span><span class="k">class</span><span class="w"> </span><span class="nc">TikzColorFn</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">TikzColor_TV</span><span class="o">&gt;</span>
+<span class="n">CUTE_HOST_DEVICE</span>
+<span class="kt">void</span>
+<span class="n">print_latex_mma</span><span class="p">(</span><span class="n">LayoutC</span><span class="w"> </span><span class="k">const</span><span class="o">&amp;</span><span class="w"> </span><span class="n">C</span><span class="p">,</span><span class="w">         </span><span class="c1">// (tid,vid) -&gt; (m,n) coord</span>
+<span class="w">                </span><span class="n">LayoutA</span><span class="w"> </span><span class="k">const</span><span class="o">&amp;</span><span class="w"> </span><span class="n">A</span><span class="p">,</span><span class="w">         </span><span class="c1">// (tid,vid) -&gt; (m,k) coord</span>
+<span class="w">                </span><span class="n">LayoutB</span><span class="w"> </span><span class="k">const</span><span class="o">&amp;</span><span class="w"> </span><span class="n">B</span><span class="p">,</span><span class="w">         </span><span class="c1">// (tid,vid) -&gt; (n,k) coord</span>
+<span class="w">                </span><span class="n">Tile_MNK</span><span class="w"> </span><span class="k">const</span><span class="o">&amp;</span><span class="w"> </span><span class="n">tile_mnk</span><span class="p">,</span><span class="w"> </span><span class="c1">// (M,N,K)</span>
+<span class="w">                </span><span class="n">TikzColorFn</span><span class="w"> </span><span class="n">color</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{})</span><span class="w">   </span><span class="c1">// lambda(tid,vid) -&gt; tikz color string</span>
+<span class="p">{</span>
+<span class="w">  </span><span class="n">CUTE_STATIC_ASSERT_V</span><span class="p">(</span><span class="n">rank</span><span class="p">(</span><span class="n">C</span><span class="p">)</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">Int</span><span class="o">&lt;</span><span class="mi">2</span><span class="o">&gt;</span><span class="p">{});</span>
+<span class="w">  </span><span class="n">CUTE_STATIC_ASSERT_V</span><span class="p">(</span><span class="n">rank</span><span class="p">(</span><span class="n">A</span><span class="p">)</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">Int</span><span class="o">&lt;</span><span class="mi">2</span><span class="o">&gt;</span><span class="p">{});</span>
+<span class="w">  </span><span class="n">CUTE_STATIC_ASSERT_V</span><span class="p">(</span><span class="n">rank</span><span class="p">(</span><span class="n">B</span><span class="p">)</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">Int</span><span class="o">&lt;</span><span class="mi">2</span><span class="o">&gt;</span><span class="p">{});</span>
+
+<span class="w">  </span><span class="c1">// Commented prints</span>
+<span class="w">  </span><span class="n">printf</span><span class="p">(</span><span class="s">&quot;%% LayoutC: &quot;</span><span class="p">);</span><span class="w"> </span><span class="n">print</span><span class="p">(</span><span class="n">C</span><span class="p">);</span><span class="w"> </span><span class="n">printf</span><span class="p">(</span><span class="s">&quot;</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">);</span>
+<span class="w">  </span><span class="n">printf</span><span class="p">(</span><span class="s">&quot;%% LayoutA: &quot;</span><span class="p">);</span><span class="w"> </span><span class="n">print</span><span class="p">(</span><span class="n">A</span><span class="p">);</span><span class="w"> </span><span class="n">printf</span><span class="p">(</span><span class="s">&quot;</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">);</span>
+<span class="w">  </span><span class="n">printf</span><span class="p">(</span><span class="s">&quot;%% LayoutB: &quot;</span><span class="p">);</span><span class="w"> </span><span class="n">print</span><span class="p">(</span><span class="n">B</span><span class="p">);</span><span class="w"> </span><span class="n">printf</span><span class="p">(</span><span class="s">&quot;</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">);</span>
+<span class="w">  </span><span class="c1">// Header</span>
+<span class="w">  </span><span class="n">printf</span><span class="p">(</span><span class="s">&quot;</span><span class="se">\\</span><span class="s">documentclass[convert]{standalone}</span><span class="se">\n</span><span class="s">&quot;</span>
+<span class="w">         </span><span class="s">&quot;</span><span class="se">\\</span><span class="s">usepackage{tikz}</span><span class="se">\n\n</span><span class="s">&quot;</span>
+<span class="w">         </span><span class="s">&quot;</span><span class="se">\\</span><span class="s">begin{document}</span><span class="se">\n</span><span class="s">&quot;</span>
+<span class="w">         </span><span class="s">&quot;</span><span class="se">\\</span><span class="s">begin{tikzpicture}[x={(0cm,-1cm)},y={(1cm,0cm)},every node/.style={minimum size=1cm, outer sep=0pt}]</span><span class="se">\n\n</span><span class="s">&quot;</span><span class="p">);</span>
+
+<span class="w">  </span><span class="k">auto</span><span class="w"> </span><span class="p">[</span><span class="n">M</span><span class="p">,</span><span class="w"> </span><span class="n">N</span><span class="p">,</span><span class="w"> </span><span class="n">K</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">product_each</span><span class="p">(</span><span class="n">shape</span><span class="p">(</span><span class="n">tile_mnk</span><span class="p">));</span>
+<span class="w">  </span><span class="n">Tensor</span><span class="w"> </span><span class="n">filled</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">make_tensor</span><span class="o">&lt;</span><span class="kt">bool</span><span class="o">&gt;</span><span class="p">(</span><span class="n">make_shape</span><span class="p">(</span><span class="n">M</span><span class="p">,</span><span class="w"> </span><span class="n">N</span><span class="p">,</span><span class="w"> </span><span class="n">K</span><span class="p">));</span>
+<span class="w">  </span><span class="n">clear</span><span class="p">(</span><span class="n">filled</span><span class="p">);</span>
+
+<span class="w">  </span><span class="c1">// C starting at 0,0</span>
+<span class="w">  </span><span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">tid</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span><span class="w"> </span><span class="n">tid</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="n">size</span><span class="o">&lt;</span><span class="mi">0</span><span class="o">&gt;</span><span class="p">(</span><span class="n">C</span><span class="p">);</span><span class="w"> </span><span class="o">++</span><span class="n">tid</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">vid</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span><span class="w"> </span><span class="n">vid</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="n">size</span><span class="o">&lt;</span><span class="mi">1</span><span class="o">&gt;</span><span class="p">(</span><span class="n">C</span><span class="p">);</span><span class="w"> </span><span class="o">++</span><span class="n">vid</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="k">auto</span><span class="w"> </span><span class="p">[</span><span class="n">m</span><span class="p">,</span><span class="w"> </span><span class="n">n</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">C</span><span class="p">(</span><span class="n">tid</span><span class="p">,</span><span class="w"> </span><span class="n">vid</span><span class="p">);</span>
+<span class="w">      </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="k">not</span><span class="w"> </span><span class="n">filled</span><span class="p">(</span><span class="n">m</span><span class="p">,</span><span class="w"> </span><span class="n">n</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">))</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="n">filled</span><span class="p">(</span><span class="n">m</span><span class="p">,</span><span class="w"> </span><span class="n">n</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nb">true</span><span class="p">;</span>
+<span class="w">        </span><span class="n">printf</span><span class="p">(</span><span class="s">&quot;</span><span class="se">\\</span><span class="s">node[fill=%s] at (%d,%d) {</span><span class="se">\\</span><span class="s">shortstack{T%d </span><span class="se">\\\\</span><span class="s"> V%d}};</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span>
+<span class="w">               </span><span class="n">color</span><span class="p">(</span><span class="n">tid</span><span class="p">,</span><span class="w"> </span><span class="n">vid</span><span class="p">),</span>
+<span class="w">               </span><span class="kt">int</span><span class="p">(</span><span class="n">m</span><span class="p">),</span><span class="w"> </span><span class="kt">int</span><span class="p">(</span><span class="n">n</span><span class="p">),</span>
+<span class="w">               </span><span class="n">tid</span><span class="p">,</span><span class="w"> </span><span class="n">vid</span><span class="p">);</span>
+<span class="w">      </span><span class="p">}</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">  </span><span class="p">}</span>
+<span class="w">  </span><span class="c1">// Grid</span>
+<span class="w">  </span><span class="n">printf</span><span class="p">(</span><span class="s">&quot;</span><span class="se">\\</span><span class="s">draw[color=black,thick,shift={(-0.5,-0.5)}] (%d,%d) grid (%d,%d);</span><span class="se">\n\n</span><span class="s">&quot;</span><span class="p">,</span>
+<span class="w">          </span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="p">(</span><span class="n">M</span><span class="p">),</span><span class="w"> </span><span class="kt">int</span><span class="p">(</span><span class="n">N</span><span class="p">));</span>
+
+<span class="w">  </span><span class="n">clear</span><span class="p">(</span><span class="n">filled</span><span class="p">);</span>
+
+<span class="w">  </span><span class="c1">// A starting at 0,-K-1</span>
+<span class="w">  </span><span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">tid</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span><span class="w"> </span><span class="n">tid</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="n">size</span><span class="o">&lt;</span><span class="mi">0</span><span class="o">&gt;</span><span class="p">(</span><span class="n">A</span><span class="p">);</span><span class="w"> </span><span class="o">++</span><span class="n">tid</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">vid</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span><span class="w"> </span><span class="n">vid</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="n">size</span><span class="o">&lt;</span><span class="mi">1</span><span class="o">&gt;</span><span class="p">(</span><span class="n">A</span><span class="p">);</span><span class="w"> </span><span class="o">++</span><span class="n">vid</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="k">auto</span><span class="w"> </span><span class="p">[</span><span class="n">m</span><span class="p">,</span><span class="w"> </span><span class="n">k</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">A</span><span class="p">(</span><span class="n">tid</span><span class="p">,</span><span class="w"> </span><span class="n">vid</span><span class="p">);</span>
+<span class="w">      </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="k">not</span><span class="w"> </span><span class="n">filled</span><span class="p">(</span><span class="n">m</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="n">k</span><span class="p">))</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="n">filled</span><span class="p">(</span><span class="n">m</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="n">k</span><span class="p">)</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nb">true</span><span class="p">;</span>
+<span class="w">        </span><span class="n">printf</span><span class="p">(</span><span class="s">&quot;</span><span class="se">\\</span><span class="s">node[fill=%s] at (%d,%d) {</span><span class="se">\\</span><span class="s">shortstack{T%d </span><span class="se">\\\\</span><span class="s"> V%d}};</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span>
+<span class="w">               </span><span class="n">color</span><span class="p">(</span><span class="n">tid</span><span class="p">,</span><span class="w"> </span><span class="n">vid</span><span class="p">),</span>
+<span class="w">               </span><span class="kt">int</span><span class="p">(</span><span class="n">m</span><span class="p">),</span><span class="w"> </span><span class="kt">int</span><span class="p">(</span><span class="n">k</span><span class="o">-</span><span class="n">K</span><span class="mi">-1</span><span class="p">),</span>
+<span class="w">               </span><span class="n">tid</span><span class="p">,</span><span class="w"> </span><span class="n">vid</span><span class="p">);</span>
+<span class="w">      </span><span class="p">}</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">  </span><span class="p">}</span>
+<span class="w">  </span><span class="c1">// Grid</span>
+<span class="w">  </span><span class="n">printf</span><span class="p">(</span><span class="s">&quot;</span><span class="se">\\</span><span class="s">draw[color=black,thick,shift={(-0.5,-0.5)}] (%d,%d) grid (%d,%d);</span><span class="se">\n\n</span><span class="s">&quot;</span><span class="p">,</span>
+<span class="w">         </span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="o">-</span><span class="kt">int</span><span class="p">(</span><span class="n">K</span><span class="p">)</span><span class="mi">-1</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="p">(</span><span class="n">M</span><span class="p">),</span><span class="w"> </span><span class="mi">-1</span><span class="p">);</span>
+<span class="w">  </span><span class="c1">// A labels</span>
+<span class="w">  </span><span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">m</span><span class="w"> </span><span class="o">=</span><span class="w">  </span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="n">k</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">-1</span><span class="p">;</span><span class="w"> </span><span class="n">m</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="n">M</span><span class="p">;</span><span class="w"> </span><span class="o">++</span><span class="n">m</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="n">printf</span><span class="p">(</span><span class="s">&quot;</span><span class="se">\\</span><span class="s">node at (%d,%d) {</span><span class="se">\\</span><span class="s">Large{</span><span class="se">\\</span><span class="s">texttt{%d}}};</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">m</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="p">(</span><span class="n">k</span><span class="o">-</span><span class="n">K</span><span class="mi">-1</span><span class="p">),</span><span class="w"> </span><span class="n">m</span><span class="p">);</span>
+<span class="w">  </span><span class="p">}</span>
+<span class="w">  </span><span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">m</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">-1</span><span class="p">,</span><span class="w"> </span><span class="n">k</span><span class="w"> </span><span class="o">=</span><span class="w">  </span><span class="mi">0</span><span class="p">;</span><span class="w"> </span><span class="n">k</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="n">K</span><span class="p">;</span><span class="w"> </span><span class="o">++</span><span class="n">k</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="n">printf</span><span class="p">(</span><span class="s">&quot;</span><span class="se">\\</span><span class="s">node at (%d,%d) {</span><span class="se">\\</span><span class="s">Large{</span><span class="se">\\</span><span class="s">texttt{%d}}};</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">m</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="p">(</span><span class="n">k</span><span class="o">-</span><span class="n">K</span><span class="mi">-1</span><span class="p">),</span><span class="w"> </span><span class="n">k</span><span class="p">);</span>
+<span class="w">  </span><span class="p">}</span>
+
+<span class="w">  </span><span class="n">clear</span><span class="p">(</span><span class="n">filled</span><span class="p">);</span>
+
+<span class="w">  </span><span class="c1">// B starting at -K-1,0</span>
+<span class="w">  </span><span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">tid</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span><span class="w"> </span><span class="n">tid</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="n">size</span><span class="o">&lt;</span><span class="mi">0</span><span class="o">&gt;</span><span class="p">(</span><span class="n">B</span><span class="p">);</span><span class="w"> </span><span class="o">++</span><span class="n">tid</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">vid</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span><span class="w"> </span><span class="n">vid</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="n">size</span><span class="o">&lt;</span><span class="mi">1</span><span class="o">&gt;</span><span class="p">(</span><span class="n">B</span><span class="p">);</span><span class="w"> </span><span class="o">++</span><span class="n">vid</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="k">auto</span><span class="w"> </span><span class="p">[</span><span class="n">n</span><span class="p">,</span><span class="w"> </span><span class="n">k</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">B</span><span class="p">(</span><span class="n">tid</span><span class="p">,</span><span class="w"> </span><span class="n">vid</span><span class="p">);</span>
+<span class="w">      </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="k">not</span><span class="w"> </span><span class="n">filled</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="n">n</span><span class="p">,</span><span class="w"> </span><span class="n">k</span><span class="p">))</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="n">filled</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="n">n</span><span class="p">,</span><span class="w"> </span><span class="n">k</span><span class="p">)</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nb">true</span><span class="p">;</span>
+<span class="w">        </span><span class="n">printf</span><span class="p">(</span><span class="s">&quot;</span><span class="se">\\</span><span class="s">node[fill=%s] at (%d,%d) {</span><span class="se">\\</span><span class="s">shortstack{T%d </span><span class="se">\\\\</span><span class="s"> V%d}};</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span>
+<span class="w">               </span><span class="n">color</span><span class="p">(</span><span class="n">tid</span><span class="p">,</span><span class="w"> </span><span class="n">vid</span><span class="p">),</span>
+<span class="w">               </span><span class="kt">int</span><span class="p">(</span><span class="n">k</span><span class="p">)</span><span class="o">-</span><span class="kt">int</span><span class="p">(</span><span class="n">K</span><span class="p">)</span><span class="mi">-1</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="p">(</span><span class="n">n</span><span class="p">),</span>
+<span class="w">               </span><span class="n">tid</span><span class="p">,</span><span class="w"> </span><span class="n">vid</span><span class="p">);</span>
+<span class="w">      </span><span class="p">}</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">  </span><span class="p">}</span>
+<span class="w">  </span><span class="c1">// Grid</span>
+<span class="w">  </span><span class="n">printf</span><span class="p">(</span><span class="s">&quot;</span><span class="se">\\</span><span class="s">draw[color=black,thick,shift={(-0.5,-0.5)}] (%d,%d) grid (%d,%d);</span><span class="se">\n\n</span><span class="s">&quot;</span><span class="p">,</span>
+<span class="w">         </span><span class="o">-</span><span class="kt">int</span><span class="p">(</span><span class="n">K</span><span class="p">)</span><span class="mi">-1</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="mi">-1</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="p">(</span><span class="n">N</span><span class="p">));</span>
+<span class="w">  </span><span class="c1">// B labels</span>
+<span class="w">  </span><span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">n</span><span class="w"> </span><span class="o">=</span><span class="w">  </span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="n">k</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">-1</span><span class="p">;</span><span class="w"> </span><span class="n">n</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="n">N</span><span class="p">;</span><span class="w"> </span><span class="o">++</span><span class="n">n</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="n">printf</span><span class="p">(</span><span class="s">&quot;</span><span class="se">\\</span><span class="s">node at (%d,%d) {</span><span class="se">\\</span><span class="s">Large{</span><span class="se">\\</span><span class="s">texttt{%d}}};</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="p">(</span><span class="n">k</span><span class="o">-</span><span class="n">K</span><span class="mi">-1</span><span class="p">),</span><span class="w"> </span><span class="n">n</span><span class="p">,</span><span class="w"> </span><span class="n">n</span><span class="p">);</span>
+<span class="w">  </span><span class="p">}</span>
+<span class="w">  </span><span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">n</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">-1</span><span class="p">,</span><span class="w"> </span><span class="n">k</span><span class="w"> </span><span class="o">=</span><span class="w">  </span><span class="mi">0</span><span class="p">;</span><span class="w"> </span><span class="n">k</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="n">K</span><span class="p">;</span><span class="w"> </span><span class="o">++</span><span class="n">k</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="n">printf</span><span class="p">(</span><span class="s">&quot;</span><span class="se">\\</span><span class="s">node at (%d,%d) {</span><span class="se">\\</span><span class="s">Large{</span><span class="se">\\</span><span class="s">texttt{%d}}};</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="p">(</span><span class="n">k</span><span class="o">-</span><span class="n">K</span><span class="mi">-1</span><span class="p">),</span><span class="w"> </span><span class="n">n</span><span class="p">,</span><span class="w"> </span><span class="n">k</span><span class="p">);</span>
+<span class="w">  </span><span class="p">}</span>
+
+<span class="w">  </span><span class="c1">// Footer</span>
+<span class="w">  </span><span class="n">printf</span><span class="p">(</span><span class="s">&quot;</span><span class="se">\\</span><span class="s">end{tikzpicture}</span><span class="se">\n</span><span class="s">&quot;</span>
+<span class="w">         </span><span class="s">&quot;</span><span class="se">\\</span><span class="s">end{document}</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">);</span>
+<span class="p">}</span>
+</pre></div>
+<p>We see that</p>
+<div class="highlight"><pre><span></span><span class="k">auto</span><span class="w"> </span><span class="p">[</span><span class="n">n</span><span class="p">,</span><span class="w"> </span><span class="n">k</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">B</span><span class="p">(</span><span class="n">tid</span><span class="p">,</span><span class="w"> </span><span class="n">vid</span><span class="p">);</span>
+<span class="p">...</span>
+<span class="n">printf</span><span class="p">(</span><span class="s">&quot;</span><span class="se">\\</span><span class="s">node[fill=%s] at (%d,%d) {</span><span class="se">\\</span><span class="s">shortstack{T%d </span><span class="se">\\\\</span><span class="s"> V%d}};</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span>
+<span class="w">               </span><span class="n">color</span><span class="p">(</span><span class="n">tid</span><span class="p">,</span><span class="w"> </span><span class="n">vid</span><span class="p">),</span>
+<span class="w">               </span><span class="kt">int</span><span class="p">(</span><span class="n">k</span><span class="p">)</span><span class="o">-</span><span class="kt">int</span><span class="p">(</span><span class="n">K</span><span class="p">)</span><span class="mi">-1</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="p">(</span><span class="n">n</span><span class="p">),</span>
+<span class="w">               </span><span class="n">tid</span><span class="p">,</span><span class="w"> </span><span class="n">vid</span><span class="p">);</span>
+</pre></div>
+<p>so the Layout gives us <code>(n, k)</code> coordinate, but we display it in the equivalent view as <code>(k, n)</code> row major.</p>
+<h2 id=conclusion>Conclusion</h2><p>I hope this can serve as a helpful complementary guide to the CUTLASS explanation of MMA Atoms. The same principles of analysis can of course be applied to other MMA Atoms.
+If you like to exchange ideas on similar topics feel free to connect to me on <a href='https://www.linkedin.com/in/simon-veitner-174a681b6/'>Linkedin</a>.</p>
+
+
+    
+
+    
+        
+
+        
+            <form id="upvote-form" action="/upvote/" method="post" style="display: inline">
+    <small>
+        <input hidden name="uid" value="ypBBWmJapEfGNoKEXTtu" style="display:none">
+        <input hidden name="title" value="MMA Atoms in CuTe" style="display:none">
+
+        <button
+            class="upvote-button"
+            aria-label="Toast this post"
+            title="Toast this post"
+        >
+            <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" class="css-i6dzq1">
+                <polyline points="17 11 12 6 7 11"></polyline>
+                <polyline points="17 18 12 13 7 18"></polyline>
+            </svg>
+            <small class="upvote-count" aria-hidden="true">&nbsp;</small>
+        </button>
+    </small>        
+</form>
+
+<script>
+    const $upvoteButton = document.querySelector('.upvote-button');
+    const $upvoteCount =  document.querySelector('.upvote-count')
+
+    fetch('/upvote-info/ypBBWmJapEfGNoKEXTtu/').then(response => response.json()).then(data => {
+        $upvoteCount.innerText = data.upvote_count;
+        if (data.upvoted) {
+            $upvoteButton.disabled = true
+            $upvoteButton.style.color = "salmon"
+            $upvoteButton.ariaLabel = "Toasted"
+            $upvoteButton.title = "Toasted"
+        }
+        $upvoteButton.ariaLabel += ` (${data.upvote_count})`
+    });
+
+    let moved = false;
+    let pageLoaded = Date.now();
+
+    document.addEventListener('touchmove', () => moved = true);
+    document.addEventListener('mousemove', () => moved = true);
+
+    document.querySelector('#upvote-form').addEventListener('submit', (e) => {
+        e.preventDefault();
+
+        if (moved) {
+            document.querySelector('input[name="title"]').value = "";
+        }
+        if (Date.now() - pageLoaded < 2000 || !moved) {
+            return;
+        }
+
+        fetch(e.target.action, {
+            method: 'post',
+            body: new FormData(e.target),
+        });
+        
+        $upvoteButton.disabled = true
+        $upvoteButton.style.color = "salmon"
+        $upvoteButton.ariaLabel = "Toasted"
+        $upvoteButton.title = "Toasted"
+        const newUpvoteCount = `${(parseInt($upvoteCount.innerHTML.split(" ")[0]) + 1)}`
+        $upvoteCount.innerHTML = newUpvoteCount
+        $upvoteButton.ariaLabel += ` (${newUpvoteCount})`
+    });
+</script>
+        
+
+        
+            <script>
+            window.addEventListener("load", () => {
+                if (navigator.webdriver !== true) {
+                    const sendHit = score => {
+                        const params = new URLSearchParams({
+                            blog: "veitner",
+                            token: "ypBBWmJapEfGNoKEXTtu",
+                            referrer: document.referrer.includes("veitner.bearblog.dev") ? "" : document.referrer,
+                            title: "",
+                            score: score
+                        });
+                        new Image().src = `/hit/?${params.toString()}`;
+                    };
+
+                    document.addEventListener('touchmove', () => sendHit(100), { once: true });
+                    document.addEventListener('mousemove', () => sendHit(100), { once: true });
+                }
+            });
+            </script>
+        
+    
+
+
+  </main>
+  <footer>
+    
+    
+    <span>
+        Powered by <a href="https://bearblog.dev">Bear <span role="img" class="bear" aria-label="ASCII bear logo">ʕ•ᴥ•ʔ</span></a>
+    </span>
+
+  </footer>
+
+  
+  <script>
+        (() => {
+          "use strict";
+          const times = document.querySelectorAll('time');
+          const format_string = "d M, Y" || "d M, Y"
+
+          times.forEach(time => {
+              time.innerText = formatDate(time.dateTime, format_string)
+          });
+
+          function formatDate(dateStr, formatStr) {
+            const date = new Date(dateStr);
+            const day = date.getDate();
+            const month = date.getMonth();
+            const year = date.getFullYear();
+            const weekday = date.getDay();
+            const hours = date.getHours();
+            const minutes = date.getMinutes();
+            const monthsFull = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+            const monthsShort = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+            const daysFull = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+            const daysShort = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+            
+            function getOrdinal(n) {
+                const s = ['th', 'st', 'nd', 'rd'];
+                const v = n % 100;
+                return s[(v - 20) % 10] || s[v] || s[0];
+            }
+            
+            const map = {
+                'd': () => day.toString().padStart(2, '0'),
+                'm': () => (month + 1).toString().padStart(2, '0'),
+                'Y': () => year.toString(),
+                'y': () => year.toString().slice(-2),
+                'F': () => monthsFull[month],
+                'j': () => day.toString(),
+                'D': () => daysShort[weekday],
+                'l': () => daysFull[weekday],
+                'S': () => getOrdinal(day),
+                'M': () => monthsShort[month],
+                'H': () => hours.toString().padStart(2, '0'),
+                'h': () => {
+                    let h = hours % 12;
+                    h = h === 0 ? 12 : h;
+                    return h.toString().padStart(2, '0');
+                },
+                'g': () => {
+                    let h = hours % 12;
+                    return h === 0 ? '12' : h.toString();
+                },
+                'i': () => minutes.toString().padStart(2, '0'),
+                'a': () => hours < 12 ? 'am' : 'pm',
+                'A': () => hours < 12 ? 'AM' : 'PM',
+            };
+            
+            let result = '';
+            for (let char of formatStr) {
+                result += map[char] ? map[char]() : char;
+            }
+            return result;
+        }
+        })();
+    </script>
+    
+</body>
+<!-- ID: veitner -->
+<!-- 🐻 -->
+</html>

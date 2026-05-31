@@ -1,0 +1,738 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!-- Powered by Bear Blog -->
+
+<head>
+  
+  
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5">
+  
+  <title>Simple reduction in CuTeDSL | simons blog</title>
+  <link rel="canonical" href="https://veitner.bearblog.dev/simple-reduction-in-cutedsl/">
+  
+    
+
+    <meta name="veitner" content="look-for-the-bear-necessities">
+    <meta name="token" content="FTNJJWdRQRirvoHpZeqL">
+
+    
+<!-- Primary Meta Tags -->
+<meta name="title" content="Simple reduction in CuTeDSL">
+<meta name="description" content="Not long ago the Quack library showed that CuTeDSL can not only be used for GEMM kernels but to implement highly efficient memory bound kernels.
+In this blo...">
+
+<!-- Open Graph / Facebook -->
+<meta property="og:site_name" content="simons blog">
+<meta property="og:title" content="Simple reduction in CuTeDSL">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://veitner.bearblog.dev/simple-reduction-in-cutedsl/">
+<meta property="og:description" content="Not long ago the Quack library showed that CuTeDSL can not only be used for GEMM kernels but to implement highly efficient memory bound kernels.
+In this blo...">
+<meta property="og:image" content="/static/og-image.png">
+
+
+<!-- Twitter -->
+<meta property="twitter:card" content="summary">
+<meta property="twitter:url" content="https://veitner.bearblog.dev/simple-reduction-in-cutedsl/">
+<meta property="twitter:title" content="Simple reduction in CuTeDSL">
+<meta property="twitter:description" content="Not long ago the Quack library showed that CuTeDSL can not only be used for GEMM kernels but to implement highly efficient memory bound kernels.
+In this blo...">
+<meta property="twitter:image" content="/static/og-image.png">
+
+
+
+<!-- Microdata -->
+<script type="application/ld+json">
+  {
+    "@context": "http://schema.org",
+    "@type": "article",
+    "name": "Simple reduction in CuTeDSL",
+    "headline": "Simple reduction in CuTeDSL",
+    "url": "https://veitner.bearblog.dev/simple-reduction-in-cutedsl/",
+    "description": "Not long ago the Quack library showed that CuTeDSL can not only be used for GEMM kernels but to implement highly efficient memory bound kernels.
+In this blo...",
+    "image": "/static/og-image.png"
+  }
+</script>
+    <link rel="alternate" type="application/atom+xml" href="/feed/" title="simons blog">
+    <link rel="alternate" type="application/rss+xml" href="/feed/?type=rss" title="simons blog">
+
+  
+    
+
+    
+    <style>pre { line-height: 125%; }
+td.linenos .normal { color: #666666; background-color: transparent; padding-left: 5px; padding-right: 5px; }
+span.linenos { color: #666666; background-color: transparent; padding-left: 5px; padding-right: 5px; }
+td.linenos .special { color: #000000; background-color: #ffffc0; padding-left: 5px; padding-right: 5px; }
+span.linenos.special { color: #000000; background-color: #ffffc0; padding-left: 5px; padding-right: 5px; }
+.highlight .hll { background-color: #ffffcc }
+.highlight { background: #f0f0f0; }
+.highlight .c { color: #60A0B0; font-style: italic } /* Comment */
+.highlight .err { border: 1px solid #F00 } /* Error */
+.highlight .k { color: #007020; font-weight: bold } /* Keyword */
+.highlight .o { color: #666 } /* Operator */
+.highlight .ch { color: #60A0B0; font-style: italic } /* Comment.Hashbang */
+.highlight .cm { color: #60A0B0; font-style: italic } /* Comment.Multiline */
+.highlight .cp { color: #007020 } /* Comment.Preproc */
+.highlight .cpf { color: #60A0B0; font-style: italic } /* Comment.PreprocFile */
+.highlight .c1 { color: #60A0B0; font-style: italic } /* Comment.Single */
+.highlight .cs { color: #60A0B0; background-color: #FFF0F0 } /* Comment.Special */
+.highlight .gd { color: #A00000 } /* Generic.Deleted */
+.highlight .ge { font-style: italic } /* Generic.Emph */
+.highlight .ges { font-weight: bold; font-style: italic } /* Generic.EmphStrong */
+.highlight .gr { color: #F00 } /* Generic.Error */
+.highlight .gh { color: #000080; font-weight: bold } /* Generic.Heading */
+.highlight .gi { color: #00A000 } /* Generic.Inserted */
+.highlight .go { color: #888 } /* Generic.Output */
+.highlight .gp { color: #C65D09; font-weight: bold } /* Generic.Prompt */
+.highlight .gs { font-weight: bold } /* Generic.Strong */
+.highlight .gu { color: #800080; font-weight: bold } /* Generic.Subheading */
+.highlight .gt { color: #04D } /* Generic.Traceback */
+.highlight .kc { color: #007020; font-weight: bold } /* Keyword.Constant */
+.highlight .kd { color: #007020; font-weight: bold } /* Keyword.Declaration */
+.highlight .kn { color: #007020; font-weight: bold } /* Keyword.Namespace */
+.highlight .kp { color: #007020 } /* Keyword.Pseudo */
+.highlight .kr { color: #007020; font-weight: bold } /* Keyword.Reserved */
+.highlight .kt { color: #902000 } /* Keyword.Type */
+.highlight .m { color: #40A070 } /* Literal.Number */
+.highlight .s { color: #4070A0 } /* Literal.String */
+.highlight .na { color: #4070A0 } /* Name.Attribute */
+.highlight .nb { color: #007020 } /* Name.Builtin */
+.highlight .nc { color: #0E84B5; font-weight: bold } /* Name.Class */
+.highlight .no { color: #60ADD5 } /* Name.Constant */
+.highlight .nd { color: #555; font-weight: bold } /* Name.Decorator */
+.highlight .ni { color: #D55537; font-weight: bold } /* Name.Entity */
+.highlight .ne { color: #007020 } /* Name.Exception */
+.highlight .nf { color: #06287E } /* Name.Function */
+.highlight .nl { color: #002070; font-weight: bold } /* Name.Label */
+.highlight .nn { color: #0E84B5; font-weight: bold } /* Name.Namespace */
+.highlight .nt { color: #062873; font-weight: bold } /* Name.Tag */
+.highlight .nv { color: #BB60D5 } /* Name.Variable */
+.highlight .ow { color: #007020; font-weight: bold } /* Operator.Word */
+.highlight .w { color: #BBB } /* Text.Whitespace */
+.highlight .mb { color: #40A070 } /* Literal.Number.Bin */
+.highlight .mf { color: #40A070 } /* Literal.Number.Float */
+.highlight .mh { color: #40A070 } /* Literal.Number.Hex */
+.highlight .mi { color: #40A070 } /* Literal.Number.Integer */
+.highlight .mo { color: #40A070 } /* Literal.Number.Oct */
+.highlight .sa { color: #4070A0 } /* Literal.String.Affix */
+.highlight .sb { color: #4070A0 } /* Literal.String.Backtick */
+.highlight .sc { color: #4070A0 } /* Literal.String.Char */
+.highlight .dl { color: #4070A0 } /* Literal.String.Delimiter */
+.highlight .sd { color: #4070A0; font-style: italic } /* Literal.String.Doc */
+.highlight .s2 { color: #4070A0 } /* Literal.String.Double */
+.highlight .se { color: #4070A0; font-weight: bold } /* Literal.String.Escape */
+.highlight .sh { color: #4070A0 } /* Literal.String.Heredoc */
+.highlight .si { color: #70A0D0; font-style: italic } /* Literal.String.Interpol */
+.highlight .sx { color: #C65D09 } /* Literal.String.Other */
+.highlight .sr { color: #235388 } /* Literal.String.Regex */
+.highlight .s1 { color: #4070A0 } /* Literal.String.Single */
+.highlight .ss { color: #517918 } /* Literal.String.Symbol */
+.highlight .bp { color: #007020 } /* Name.Builtin.Pseudo */
+.highlight .fm { color: #06287E } /* Name.Function.Magic */
+.highlight .vc { color: #BB60D5 } /* Name.Variable.Class */
+.highlight .vg { color: #BB60D5 } /* Name.Variable.Global */
+.highlight .vi { color: #BB60D5 } /* Name.Variable.Instance */
+.highlight .vm { color: #BB60D5 } /* Name.Variable.Magic */
+.highlight .il { color: #40A070 } /* Literal.Number.Integer.Long */
+</style>
+  
+  
+  
+    
+        <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20100%20100'%3E%3Ctext%20y='.9em'%20font-size='90'%3E🐼%3C/text%3E%3C/svg%3E">
+    
+
+
+
+  <style>
+      
+      
+    
+:root {
+    --width: 720px;
+    --font-main: Verdana, sans-serif;
+    --font-secondary: Verdana, sans-serif;
+    --font-scale: 1em;
+    --background-color: #fff;
+    --heading-color: #222;
+    --text-color: #444;
+    --link-color: #3273dc;
+    --visited-color:  #8b6fcb;
+    --code-background-color: #f2f2f2;
+    --code-color: #222;
+    --blockquote-color: #222;
+}
+
+@media (prefers-color-scheme: dark) {
+    :root {
+        --background-color: #01242e;
+        --heading-color: #eee;
+        --text-color: #ddd;
+        --link-color: #8cc2dd;
+        --visited-color:  #8b6fcb;
+        --code-background-color: #000;
+        --code-color: #ddd;
+        --blockquote-color: #ccc;
+    }
+}
+
+body {
+    font-family: var(--font-secondary);
+    font-size: var(--font-scale);
+    margin: auto;
+    padding: 20px;
+    max-width: var(--width);
+    text-align: left;
+    background-color: var(--background-color);
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    line-height: 1.5;
+    color: var(--text-color);
+}
+
+h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-main);
+    color: var(--heading-color);
+}
+
+a {
+    color: var(--link-color);
+    cursor: pointer;
+    text-decoration: none;
+}
+
+a:hover {
+    text-decoration: underline; 
+}
+
+nav a {
+    margin-right: 8px;
+}
+
+strong, b {
+    color: var(--heading-color);
+}
+
+button {
+    margin: 0;
+    cursor: pointer;
+}
+
+time {
+ 	font-family: monospace;
+  	font-style: normal;
+  	font-size: 15px;
+}
+
+main {
+    line-height: 1.6;
+}
+
+table {
+    width: 100%;
+}
+
+hr {
+    border: 0;
+    border-top: 1px dashed;
+}
+
+img {
+    max-width: 100%;
+}
+
+code {
+    font-family: monospace;
+    padding: 2px;
+    background-color: var(--code-background-color);
+    color: var(--code-color);
+    border-radius: 3px;
+}
+
+blockquote {
+    border-left: 1px solid #999;
+    color: var(--code-color);
+    padding-left: 20px;
+    font-style: italic;
+}
+
+footer {
+    padding: 25px 0;
+    text-align: center;
+}
+
+.title:hover {
+    text-decoration: none;
+}
+
+.title h1 {
+    font-size: 1.5em;
+}
+
+.inline {
+    width: auto !important;
+}
+
+.highlight, .code {
+    padding: 1px 15px;
+    background-color: var(--code-background-color);
+    color: var(--code-color);
+    border-radius: 3px;
+    margin-block-start: 1em;
+    margin-block-end: 1em;
+    overflow-x: auto;
+}
+
+/* blog post list */
+ul.blog-posts {
+    list-style-type: none;
+    padding: unset;
+}
+
+ul.blog-posts li {
+    display: flex;
+}
+
+ul.blog-posts li span {
+    flex: 0 0 130px;
+}
+
+ul.blog-posts li a:visited {
+    color: var(--visited-color);
+}
+    .upvote-button {
+        padding: 0;
+        margin: 0;
+        border: 0;
+        background-color: inherit;
+        color: inherit;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+    .upvote-button.upvoted {
+        color: salmon;
+    }
+    .upvote-count {
+        margin-top: -3px;
+    }
+
+      
+  </style>
+</head>
+
+<body class="post " onload="(function() { document.cookie = `timezone=${Intl.DateTimeFormat().resolvedOptions().timeZone};path=/`; })()">
+  
+  <header>
+    <a class="title" href="/">
+      <h1>
+        simons blog
+      </h1>
+    </a>
+    <nav>
+      <p><a href='/'>Home</a> <a href='/blog/'>Blog</a></p>
+
+    </nav>
+  </header>
+  <main>
+    
+
+    
+
+    
+        <h1>Simple reduction in CuTeDSL</h1>
+
+        <p>
+            <i>
+                <time datetime="2025-10-27T19:01Z">
+    27 Oct, 2025
+</time>
+            </i>
+        </p>
+    
+
+    <p>Not long ago the <a href='https://github.com/Dao-AILab/quack'>Quack library</a> showed that CuTeDSL can not only be used for GEMM kernels but to implement highly efficient memory bound kernels.
+In this blogpost I want to show a very simple RMSNorm kernel to showcase how to perform reduction in CuTeDSL. I take RMSNorm as an example.</p>
+<h3 id=rmsnorm>RMSNorm</h3><p>RMSNorm performs following task:</p>
+<p>Given a matrix <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>X</mi><mo>&#x02208;</mo><msub><mi>N</mi><mi>t</mi></msub><mi>&#x000D7;</mi><msub><mi>N</mi><mi>h</mi></msub></mrow></math> where <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msub><mi>N</mi><mi>t</mi></msub></mrow></math> is <code>number_of_tokens</code> and <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msub><mi>N</mi><mi>h</mi></msub></mrow></math> the hidden dimension we want to perform row wise normalization. We do that by taking the row wise mean of the squared of each elements and use that to normalize each element in the row by that factor. We'll further multiply each entry with a weighting factor <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msub><mi>N</mi><mi>h</mi></msub></mrow></math>.</p>
+<p>In formula:</p>
+<math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><mrow><msub><mi>y</mi><mi>i</mi></msub><mo>&#x0003D;</mo><mfrac><mrow><msub><mi>x</mi><mi>i</mi></msub></mrow><mrow><mrow><mi mathvariant="normal">R</mi><mi mathvariant="normal">M</mi><mi mathvariant="normal">S</mi></mrow><mo stretchy="false">&#x00028;</mo><mi>x</mi><mo stretchy="false">&#x00029;</mo></mrow></mfrac><mo>&#x0002A;</mo><msub><mi>w</mi><mi>i</mi></msub><mo>&#x0002C;</mo><mspace width="1em" /><mtext>where</mtext><mspace width="1em" /><mtext>RMS</mtext><mo stretchy="false">&#x00028;</mo><mi>x</mi><mo stretchy="false">&#x00029;</mo><mo>&#x0003D;</mo><msqrt><mrow><mi>&#x003F5;</mi><mo>&#x0002B;</mo><mfrac><mrow><mn>1</mn></mrow><mrow><mi>n</mi></mrow></mfrac><msubsup><mo>&#x02211;</mo><mrow><mi>i</mi><mo>&#x0003D;</mo><mn>1</mn></mrow><mrow><mi>n</mi></mrow></msubsup><msubsup><mi>x</mi><mi>i</mi><mn>2</mn></msubsup></mrow></msqrt></mrow></math><p>Clearly this is a memory bound kernel that involves reduction, one of the fundamental algorithms in GPU programming. Below we will show how to implement a baseline in the CuTeDSL.</p>
+<h2 id=the-kernel>The kernel</h2><p>Before implementing the kernel we should calculate the RMSNorm in Pytorch aswell to check our implementation for correctness:</p>
+<div class="highlight"><pre><span></span>    <span class="n">x</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="n">num_tokens</span><span class="p">,</span> <span class="n">hidden_dim</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="s2">&quot;cuda&quot;</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>    
+    <span class="n">w</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="n">hidden_dim</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="s2">&quot;cuda&quot;</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+    <span class="n">y</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">num_tokens</span><span class="p">,</span> <span class="n">hidden_dim</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="s2">&quot;cuda&quot;</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+
+    <span class="n">rms_norm</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">RMSNorm</span><span class="p">(</span><span class="n">hidden_dim</span><span class="p">,</span> <span class="n">eps</span><span class="o">=</span><span class="n">eps</span><span class="p">)</span>
+    <span class="n">rms_norm</span><span class="o">.</span><span class="n">weight</span><span class="o">.</span><span class="n">data</span> <span class="o">=</span> <span class="n">w</span> 
+    <span class="n">y_ref</span> <span class="o">=</span> <span class="n">rms_norm</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+</pre></div>
+<p>The CuTe kernel can than be invoked as follows:</p>
+<div class="highlight"><pre><span></span>    <span class="n">mX</span> <span class="o">=</span> <span class="n">from_dlpack</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">assumed_align</span><span class="o">=</span><span class="mi">16</span><span class="p">)</span>
+    <span class="n">mW</span> <span class="o">=</span> <span class="n">from_dlpack</span><span class="p">(</span><span class="n">w</span><span class="p">,</span> <span class="n">assumed_align</span><span class="o">=</span><span class="mi">16</span><span class="p">)</span>
+    <span class="n">mY</span> <span class="o">=</span> <span class="n">from_dlpack</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="n">assumed_align</span><span class="o">=</span><span class="mi">16</span><span class="p">)</span>
+
+    <span class="n">rms_norm_</span><span class="p">(</span><span class="n">mX</span><span class="p">,</span> <span class="n">mW</span><span class="p">,</span> <span class="n">mY</span><span class="p">,</span> <span class="n">num_tokens</span><span class="p">,</span> <span class="n">hidden_dim</span><span class="p">,</span> <span class="n">eps</span><span class="p">)</span>
+</pre></div>
+<p>and we can check for correctness as follows:</p>
+<div class="highlight"><pre><span></span><span class="n">torch</span><span class="o">.</span><span class="n">testing</span><span class="o">.</span><span class="n">assert_close</span><span class="p">(</span><span class="n">y_ref</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span>
+</pre></div>
+<p>We invoke the kernel as follows:</p>
+<div class="highlight"><pre><span></span><span class="nd">@cute</span><span class="o">.</span><span class="n">jit</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">rms_norm_</span><span class="p">(</span><span class="n">mX</span><span class="p">:</span> <span class="n">cute</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">mW</span><span class="p">:</span> <span class="n">cute</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">mY</span><span class="p">:</span> <span class="n">cute</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> 
+              <span class="n">num_tokens</span><span class="p">:</span> <span class="n">cutlass</span><span class="o">.</span><span class="n">Constexpr</span><span class="p">,</span> <span class="n">hidden_dim</span><span class="p">:</span> <span class="n">cutlass</span><span class="o">.</span><span class="n">Constexpr</span><span class="p">,</span> <span class="n">epsilon</span><span class="p">:</span> <span class="n">cutlass</span><span class="o">.</span><span class="n">Constexpr</span>
+<span class="p">):</span>
+  <span class="n">threads_per_block</span> <span class="o">=</span> <span class="mi">256</span>
+  <span class="n">rms_norm_kernel</span><span class="p">(</span><span class="n">mX</span><span class="p">,</span> <span class="n">mW</span><span class="p">,</span> <span class="n">mY</span><span class="p">,</span> <span class="n">threads_per_block</span><span class="p">,</span> <span class="n">num_tokens</span><span class="p">,</span> <span class="n">hidden_dim</span><span class="p">,</span> <span class="n">epsilon</span><span class="p">)</span><span class="o">.</span><span class="n">launch</span><span class="p">(</span>
+    <span class="n">grid</span><span class="o">=</span><span class="p">(</span><span class="n">num_tokens</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">),</span>
+    <span class="n">block</span><span class="o">=</span><span class="p">(</span><span class="n">threads_per_block</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">)</span>
+  <span class="p">)</span>
+</pre></div>
+<p>Note that here I chose a value for <code>threads_in_block</code> that was obtained by experimenting a little bit. We launch one block for each token we have. Below you will understand on why we do that and how we can cover the full hidden dimension even when it gets large.</p>
+<div class="highlight"><pre><span></span><span class="nd">@cute</span><span class="o">.</span><span class="n">kernel</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">rms_norm_kernel</span><span class="p">(</span><span class="n">mX</span><span class="p">:</span> <span class="n">cute</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">mW</span><span class="p">:</span> <span class="n">cute</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">mY</span><span class="p">:</span> <span class="n">cute</span><span class="o">.</span><span class="n">tensor</span><span class="p">,</span> <span class="n">threads_per_block</span><span class="p">:</span> <span class="n">cutlass</span><span class="o">.</span><span class="n">Constexpr</span><span class="p">,</span> 
+                    <span class="n">num_tokens</span><span class="p">:</span> <span class="n">cutlass</span><span class="o">.</span><span class="n">Constexpr</span><span class="p">,</span> <span class="n">hidden_dim</span><span class="p">:</span> <span class="n">cutlass</span><span class="o">.</span><span class="n">Constexpr</span><span class="p">,</span> <span class="n">epsilon</span><span class="p">:</span> <span class="n">cutlass</span><span class="o">.</span><span class="n">Constexpr</span>
+<span class="p">):</span>
+  <span class="n">allocator</span> <span class="o">=</span> <span class="n">cutlass</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">SmemAllocator</span><span class="p">()</span>
+  <span class="n">layout</span> <span class="o">=</span> <span class="n">cute</span><span class="o">.</span><span class="n">make_layout</span><span class="p">((</span><span class="n">threads_per_block</span><span class="p">))</span>
+  <span class="n">scalar_layout</span> <span class="o">=</span> <span class="n">cute</span><span class="o">.</span><span class="n">make_layout</span><span class="p">((</span><span class="mi">1</span><span class="p">))</span>
+
+  <span class="n">sdata</span> <span class="o">=</span> <span class="n">allocator</span><span class="o">.</span><span class="n">allocate_tensor</span><span class="p">(</span><span class="n">cutlass</span><span class="o">.</span><span class="n">Float32</span><span class="p">,</span> <span class="n">layout</span><span class="o">=</span><span class="n">layout</span><span class="p">,</span> <span class="n">byte_alignment</span><span class="o">=</span><span class="mi">16</span><span class="p">,</span> <span class="n">swizzle</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+  <span class="n">squared_reduce</span> <span class="o">=</span> <span class="n">allocator</span><span class="o">.</span><span class="n">allocate_tensor</span><span class="p">(</span><span class="n">cutlass</span><span class="o">.</span><span class="n">Float32</span><span class="p">,</span> <span class="n">layout</span><span class="o">=</span><span class="n">scalar_layout</span><span class="p">)</span>
+</pre></div>
+<p>The first step in the kernel is to allocate tensors in shared memory dynamically.</p>
+<div class="highlight"><pre><span></span>  <span class="n">tidx</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">cute</span><span class="o">.</span><span class="n">arch</span><span class="o">.</span><span class="n">thread_idx</span><span class="p">()</span>
+  <span class="n">bidx</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">cute</span><span class="o">.</span><span class="n">arch</span><span class="o">.</span><span class="n">block_idx</span><span class="p">()</span>
+   
+  <span class="n">block_sum</span> <span class="o">=</span> <span class="mf">0.0</span>
+  <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">tidx</span><span class="p">,</span> <span class="n">hidden_dim</span><span class="p">,</span> <span class="n">threads_per_block</span><span class="p">,</span> <span class="n">unroll_full</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+    <span class="n">x_</span> <span class="o">=</span> <span class="n">mX</span><span class="p">[(</span><span class="n">bidx</span><span class="p">,</span> <span class="n">i</span><span class="p">)]</span>
+    <span class="n">block_sum</span> <span class="o">+=</span> <span class="n">x_</span> <span class="o">*</span> <span class="n">x_</span> 
+  
+  <span class="n">sdata</span><span class="p">[</span><span class="n">tidx</span><span class="p">]</span> <span class="o">=</span> <span class="n">block_sum</span>
+  <span class="n">cute</span><span class="o">.</span><span class="n">arch</span><span class="o">.</span><span class="n">sync_threads</span><span class="p">()</span>
+</pre></div>
+<p>Here we see how we cover the whole <code>hidden_dim</code>. Each thread handles multiple values and we read the values out in a grid stride fashion. For example if the <code>hidden_dim = 1024</code> thread <code>0</code> will read out the entries at <code>0, 256, 512, 768</code>. We'll than accumulate the squared entries into <code>block_sum</code> and save that in the <code>sdata</code> tensor which was initialized above to contain exactly <code>threads_per_block</code> entries. After that we will always have a tensor with <code>256</code> entries where each entry contains the above calculated sum. For example in the setting I described above <code>sdata[0]</code> would contain <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msubsup><mi>x</mi><mn>0</mn><mn>2</mn></msubsup><mo>&#x0002B;</mo><msubsup><mi>x</mi><mrow><mn>256</mn></mrow><mn>2</mn></msubsup><mo>&#x0002B;</mo><msubsup><mi>x</mi><mrow><mn>512</mn></mrow><mn>2</mn></msubsup><mo>&#x0002B;</mo><msubsup><mi>x</mi><mrow><mn>768</mn></mrow><mn>2</mn></msubsup></mrow></math>.</p>
+<p>Obviously we now need to reduce <code>sdata</code> to obtain the full expression we want to use to normalize. We'll use usual algorithm to perform parallel reduction:</p>
+<ul>
+<li>Divide the active threads into two parts. Accumulate the values of the right half into the entries of the left half</li>
+<li>Repeat until we are left with one active thread.</li>
+</ul>
+<p>In code:</p>
+<div class="highlight"><pre><span></span>  <span class="k">if</span> <span class="n">tidx</span> <span class="o">&lt;</span> <span class="mi">128</span><span class="p">:</span>
+    <span class="n">sdata</span><span class="p">[</span><span class="n">tidx</span><span class="p">]</span> <span class="o">+=</span> <span class="n">sdata</span><span class="p">[</span><span class="n">tidx</span> <span class="o">+</span> <span class="mi">128</span><span class="p">]</span>
+  <span class="n">cute</span><span class="o">.</span><span class="n">arch</span><span class="o">.</span><span class="n">sync_threads</span><span class="p">()</span>
+  
+  <span class="k">if</span> <span class="n">tidx</span> <span class="o">&lt;</span> <span class="mi">64</span><span class="p">:</span>
+    <span class="n">sdata</span><span class="p">[</span><span class="n">tidx</span><span class="p">]</span> <span class="o">+=</span> <span class="n">sdata</span><span class="p">[</span><span class="n">tidx</span> <span class="o">+</span> <span class="mi">64</span><span class="p">]</span>
+  <span class="n">cute</span><span class="o">.</span><span class="n">arch</span><span class="o">.</span><span class="n">sync_threads</span><span class="p">()</span>
+  
+  <span class="k">if</span> <span class="n">tidx</span> <span class="o">&lt;</span> <span class="mi">32</span><span class="p">:</span>
+    <span class="n">sdata</span><span class="p">[</span><span class="n">tidx</span><span class="p">]</span> <span class="o">+=</span> <span class="n">sdata</span><span class="p">[</span><span class="n">tidx</span> <span class="o">+</span> <span class="mi">32</span><span class="p">]</span>
+    <span class="n">res</span> <span class="o">=</span> <span class="n">cute</span><span class="o">.</span><span class="n">arch</span><span class="o">.</span><span class="n">warp_reduction_sum</span><span class="p">(</span><span class="n">sdata</span><span class="p">[</span><span class="n">tidx</span><span class="p">],</span> <span class="n">threads_in_group</span><span class="o">=</span><span class="mi">32</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">tidx</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+      <span class="n">squared_reduce</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">cute</span><span class="o">.</span><span class="n">math</span><span class="o">.</span><span class="n">rsqrt</span><span class="p">(</span><span class="n">res</span><span class="o">/</span><span class="n">hidden_dim</span> <span class="o">+</span> <span class="n">epsilon</span><span class="p">,</span> <span class="n">fastmath</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+  <span class="n">cute</span><span class="o">.</span><span class="n">arch</span><span class="o">.</span><span class="n">sync_threads</span><span class="p">()</span>
+</pre></div>
+<p>Note that here we first have <code>128</code> active threads, than <code>64</code> and than only one warp which contains <code>32</code> threads. Note that within a warp we don't need any thread synchronization because all threads in a warp a scheduled at the same time. The <code>warp_reduction_sum</code> can be used to efficiently reduce the final <code>32</code> values via warp shuffle instructions. You can read the code <a href='https://github.com/NVIDIA/cutlass/blob/main/python/CuTeDSL/cutlass/cute/arch/nvvm_wrappers.py#L348'>here</a> to understand it better. After we are done with the reduction we save the reciprocate square root via efficient PTX wrapper into our "scalar" shared memory tensor.</p>
+<div class="highlight"><pre><span></span>  <span class="n">rms</span> <span class="o">=</span> <span class="n">squared_reduce</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+  <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">tidx</span><span class="p">,</span> <span class="n">hidden_dim</span><span class="p">,</span> <span class="n">threads_per_block</span><span class="p">,</span> <span class="n">unroll_full</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+    <span class="n">mY</span><span class="p">[(</span><span class="n">bidx</span><span class="p">,</span> <span class="n">i</span><span class="p">)]</span> <span class="o">=</span> <span class="n">mX</span><span class="p">[(</span><span class="n">bidx</span><span class="p">,</span> <span class="n">i</span><span class="p">)]</span> <span class="o">*</span> <span class="n">rms</span> <span class="o">*</span> <span class="n">mW</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> 
+</pre></div>
+<p>The final step is to write away the values via the same approach as before.</p>
+<h2 id=code>Code</h2><p>The full code is really small so I share it here instead of creating a repo for it. You can see that it includes a small section that benchmarks performance using cutlass testing utility.</p>
+<div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">cutlass</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">cutlass.cute</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">cute</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">cutlass.cute.runtime</span><span class="w"> </span><span class="kn">import</span> <span class="n">from_dlpack</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">math</span><span class="w"> </span><span class="kn">import</span> <span class="n">ceil</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">torch.nn</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">nn</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">benchmark</span><span class="p">(</span><span class="nb">callable</span><span class="p">,</span> <span class="n">mX</span><span class="p">,</span> <span class="n">mW</span><span class="p">,</span> <span class="n">mY</span><span class="p">,</span>  
+              <span class="n">num_tokens</span><span class="p">,</span> <span class="n">hidden_dim</span><span class="p">,</span> <span class="n">epsilon</span><span class="p">):</span>
+    <span class="n">avg_time_us</span> <span class="o">=</span> <span class="n">cute</span><span class="o">.</span><span class="n">testing</span><span class="o">.</span><span class="n">benchmark</span><span class="p">(</span>
+        <span class="nb">callable</span><span class="p">,</span>
+        <span class="n">kernel_arguments</span><span class="o">=</span><span class="n">cute</span><span class="o">.</span><span class="n">testing</span><span class="o">.</span><span class="n">JitArguments</span><span class="p">(</span><span class="n">mX</span><span class="p">,</span> <span class="n">mW</span><span class="p">,</span> <span class="n">mY</span><span class="p">),</span>
+        <span class="n">warmup_iterations</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span>
+        <span class="n">iterations</span><span class="o">=</span><span class="mi">1000</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="c1"># Calculate metrics</span>
+    <span class="c1"># ----------------</span>
+    <span class="n">dtype</span> <span class="o">=</span> <span class="n">mX</span><span class="o">.</span><span class="n">element_type</span>
+
+    <span class="c1"># Calculate total bytes transferred:</span>
+    <span class="c1"># - 1 Read and 1 Write</span>
+    <span class="c1"># - Each element is dtype.width bits</span>
+    <span class="n">bytes_per_element</span> <span class="o">=</span> <span class="n">dtype</span><span class="o">.</span><span class="n">width</span> <span class="o">//</span> <span class="mi">8</span>
+    <span class="n">total_bytes</span> <span class="o">=</span> <span class="n">hidden_dim</span> <span class="o">*</span> <span class="n">num_tokens</span> <span class="o">*</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">bytes_per_element</span>
+
+    <span class="c1"># Calculate achieved bandwidth</span>
+    <span class="n">achieved_bandwidth</span> <span class="o">=</span> <span class="n">total_bytes</span> <span class="o">/</span> <span class="p">(</span><span class="n">avg_time_us</span> <span class="o">*</span> <span class="mi">1000</span><span class="p">)</span>  <span class="c1"># GB/s</span>
+
+    <span class="c1"># Print results</span>
+    <span class="c1"># ------------</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Performance Metrics:&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;-------------------&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Kernel execution time: </span><span class="si">{</span><span class="n">avg_time_us</span><span class="si">:</span><span class="s2">.4f</span><span class="si">}</span><span class="s2"> us&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Memory throughput: </span><span class="si">{</span><span class="n">achieved_bandwidth</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2"> GB/s&quot;</span><span class="p">)</span>
+
+<span class="nd">@cute</span><span class="o">.</span><span class="n">kernel</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">rms_norm_kernel</span><span class="p">(</span><span class="n">mX</span><span class="p">:</span> <span class="n">cute</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">mW</span><span class="p">:</span> <span class="n">cute</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">mY</span><span class="p">:</span> <span class="n">cute</span><span class="o">.</span><span class="n">tensor</span><span class="p">,</span> <span class="n">threads_per_block</span><span class="p">:</span> <span class="n">cutlass</span><span class="o">.</span><span class="n">Constexpr</span><span class="p">,</span> 
+                    <span class="n">num_tokens</span><span class="p">:</span> <span class="n">cutlass</span><span class="o">.</span><span class="n">Constexpr</span><span class="p">,</span> <span class="n">hidden_dim</span><span class="p">:</span> <span class="n">cutlass</span><span class="o">.</span><span class="n">Constexpr</span><span class="p">,</span> <span class="n">epsilon</span><span class="p">:</span> <span class="n">cutlass</span><span class="o">.</span><span class="n">Constexpr</span>
+<span class="p">):</span>
+  <span class="n">allocator</span> <span class="o">=</span> <span class="n">cutlass</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">SmemAllocator</span><span class="p">()</span>
+  <span class="n">layout</span> <span class="o">=</span> <span class="n">cute</span><span class="o">.</span><span class="n">make_layout</span><span class="p">((</span><span class="n">threads_per_block</span><span class="p">))</span>
+  <span class="n">scalar_layout</span> <span class="o">=</span> <span class="n">cute</span><span class="o">.</span><span class="n">make_layout</span><span class="p">((</span><span class="mi">1</span><span class="p">))</span>
+
+  <span class="n">sdata</span> <span class="o">=</span> <span class="n">allocator</span><span class="o">.</span><span class="n">allocate_tensor</span><span class="p">(</span><span class="n">cutlass</span><span class="o">.</span><span class="n">Float32</span><span class="p">,</span> <span class="n">layout</span><span class="o">=</span><span class="n">layout</span><span class="p">,</span> <span class="n">byte_alignment</span><span class="o">=</span><span class="mi">16</span><span class="p">,</span> <span class="n">swizzle</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+  <span class="n">squared_reduce</span> <span class="o">=</span> <span class="n">allocator</span><span class="o">.</span><span class="n">allocate_tensor</span><span class="p">(</span><span class="n">cutlass</span><span class="o">.</span><span class="n">Float32</span><span class="p">,</span> <span class="n">layout</span><span class="o">=</span><span class="n">scalar_layout</span><span class="p">)</span>
+
+  <span class="n">tidx</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">cute</span><span class="o">.</span><span class="n">arch</span><span class="o">.</span><span class="n">thread_idx</span><span class="p">()</span>
+  <span class="n">bidx</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">cute</span><span class="o">.</span><span class="n">arch</span><span class="o">.</span><span class="n">block_idx</span><span class="p">()</span>
+   
+  <span class="n">block_sum</span> <span class="o">=</span> <span class="mf">0.0</span>
+  <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">tidx</span><span class="p">,</span> <span class="n">hidden_dim</span><span class="p">,</span> <span class="n">threads_per_block</span><span class="p">,</span> <span class="n">unroll_full</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+    <span class="n">x_</span> <span class="o">=</span> <span class="n">mX</span><span class="p">[(</span><span class="n">bidx</span><span class="p">,</span> <span class="n">i</span><span class="p">)]</span>
+    <span class="n">block_sum</span> <span class="o">+=</span> <span class="n">x_</span> <span class="o">*</span> <span class="n">x_</span> 
+  
+  <span class="n">sdata</span><span class="p">[</span><span class="n">tidx</span><span class="p">]</span> <span class="o">=</span> <span class="n">block_sum</span>
+  <span class="n">cute</span><span class="o">.</span><span class="n">arch</span><span class="o">.</span><span class="n">sync_threads</span><span class="p">()</span>
+
+  <span class="k">if</span> <span class="n">tidx</span> <span class="o">&lt;</span> <span class="mi">128</span><span class="p">:</span>
+    <span class="n">sdata</span><span class="p">[</span><span class="n">tidx</span><span class="p">]</span> <span class="o">+=</span> <span class="n">sdata</span><span class="p">[</span><span class="n">tidx</span> <span class="o">+</span> <span class="mi">128</span><span class="p">]</span>
+  <span class="n">cute</span><span class="o">.</span><span class="n">arch</span><span class="o">.</span><span class="n">sync_threads</span><span class="p">()</span>
+  
+  <span class="k">if</span> <span class="n">tidx</span> <span class="o">&lt;</span> <span class="mi">64</span><span class="p">:</span>
+    <span class="n">sdata</span><span class="p">[</span><span class="n">tidx</span><span class="p">]</span> <span class="o">+=</span> <span class="n">sdata</span><span class="p">[</span><span class="n">tidx</span> <span class="o">+</span> <span class="mi">64</span><span class="p">]</span>
+  <span class="n">cute</span><span class="o">.</span><span class="n">arch</span><span class="o">.</span><span class="n">sync_threads</span><span class="p">()</span>
+  
+  <span class="k">if</span> <span class="n">tidx</span> <span class="o">&lt;</span> <span class="mi">32</span><span class="p">:</span>
+    <span class="n">sdata</span><span class="p">[</span><span class="n">tidx</span><span class="p">]</span> <span class="o">+=</span> <span class="n">sdata</span><span class="p">[</span><span class="n">tidx</span> <span class="o">+</span> <span class="mi">32</span><span class="p">]</span>
+    <span class="n">res</span> <span class="o">=</span> <span class="n">cute</span><span class="o">.</span><span class="n">arch</span><span class="o">.</span><span class="n">warp_reduction_sum</span><span class="p">(</span><span class="n">sdata</span><span class="p">[</span><span class="n">tidx</span><span class="p">],</span> <span class="n">threads_in_group</span><span class="o">=</span><span class="mi">32</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">tidx</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+      <span class="n">squared_reduce</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">cute</span><span class="o">.</span><span class="n">math</span><span class="o">.</span><span class="n">rsqrt</span><span class="p">(</span><span class="n">res</span><span class="o">/</span><span class="n">hidden_dim</span> <span class="o">+</span> <span class="n">epsilon</span><span class="p">,</span> <span class="n">fastmath</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+  <span class="n">cute</span><span class="o">.</span><span class="n">arch</span><span class="o">.</span><span class="n">sync_threads</span><span class="p">()</span>
+  
+  <span class="n">rms</span> <span class="o">=</span> <span class="n">squared_reduce</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+  <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">tidx</span><span class="p">,</span> <span class="n">hidden_dim</span><span class="p">,</span> <span class="n">threads_per_block</span><span class="p">,</span> <span class="n">unroll_full</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+    <span class="n">mY</span><span class="p">[(</span><span class="n">bidx</span><span class="p">,</span> <span class="n">i</span><span class="p">)]</span> <span class="o">=</span> <span class="n">mX</span><span class="p">[(</span><span class="n">bidx</span><span class="p">,</span> <span class="n">i</span><span class="p">)]</span> <span class="o">*</span> <span class="n">rms</span> <span class="o">*</span> <span class="n">mW</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> 
+
+<span class="nd">@cute</span><span class="o">.</span><span class="n">jit</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">rms_norm_</span><span class="p">(</span><span class="n">mX</span><span class="p">:</span> <span class="n">cute</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">mW</span><span class="p">:</span> <span class="n">cute</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">mY</span><span class="p">:</span> <span class="n">cute</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> 
+              <span class="n">num_tokens</span><span class="p">:</span> <span class="n">cutlass</span><span class="o">.</span><span class="n">Constexpr</span><span class="p">,</span> <span class="n">hidden_dim</span><span class="p">:</span> <span class="n">cutlass</span><span class="o">.</span><span class="n">Constexpr</span><span class="p">,</span> <span class="n">epsilon</span><span class="p">:</span> <span class="n">cutlass</span><span class="o">.</span><span class="n">Constexpr</span>
+<span class="p">):</span>
+  <span class="n">threads_per_block</span> <span class="o">=</span> <span class="mi">256</span>
+  <span class="n">rms_norm_kernel</span><span class="p">(</span><span class="n">mX</span><span class="p">,</span> <span class="n">mW</span><span class="p">,</span> <span class="n">mY</span><span class="p">,</span> <span class="n">threads_per_block</span><span class="p">,</span> <span class="n">num_tokens</span><span class="p">,</span> <span class="n">hidden_dim</span><span class="p">,</span> <span class="n">epsilon</span><span class="p">)</span><span class="o">.</span><span class="n">launch</span><span class="p">(</span>
+    <span class="n">grid</span><span class="o">=</span><span class="p">(</span><span class="n">num_tokens</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">),</span>
+    <span class="n">block</span><span class="o">=</span><span class="p">(</span><span class="n">threads_per_block</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">)</span>
+  <span class="p">)</span>
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+    <span class="n">num_tokens</span> <span class="o">=</span> <span class="mi">65536</span>
+    <span class="n">hidden_dim</span> <span class="o">=</span> <span class="mi">1024</span> 
+    <span class="n">eps</span> <span class="o">=</span> <span class="mf">1e-5</span>
+
+    <span class="n">x</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="n">num_tokens</span><span class="p">,</span> <span class="n">hidden_dim</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="s2">&quot;cuda&quot;</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>    
+    <span class="n">w</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="n">hidden_dim</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="s2">&quot;cuda&quot;</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+    <span class="n">y</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">num_tokens</span><span class="p">,</span> <span class="n">hidden_dim</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="s2">&quot;cuda&quot;</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+
+    <span class="n">rms_norm</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">RMSNorm</span><span class="p">(</span><span class="n">hidden_dim</span><span class="p">,</span> <span class="n">eps</span><span class="o">=</span><span class="n">eps</span><span class="p">)</span>
+    <span class="n">rms_norm</span><span class="o">.</span><span class="n">weight</span><span class="o">.</span><span class="n">data</span> <span class="o">=</span> <span class="n">w</span> 
+    <span class="n">y_ref</span> <span class="o">=</span> <span class="n">rms_norm</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+
+    <span class="n">mX</span> <span class="o">=</span> <span class="n">from_dlpack</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">assumed_align</span><span class="o">=</span><span class="mi">16</span><span class="p">)</span>
+    <span class="n">mW</span> <span class="o">=</span> <span class="n">from_dlpack</span><span class="p">(</span><span class="n">w</span><span class="p">,</span> <span class="n">assumed_align</span><span class="o">=</span><span class="mi">16</span><span class="p">)</span>
+    <span class="n">mY</span> <span class="o">=</span> <span class="n">from_dlpack</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="n">assumed_align</span><span class="o">=</span><span class="mi">16</span><span class="p">)</span>
+
+    <span class="n">rms_norm_</span><span class="p">(</span><span class="n">mX</span><span class="p">,</span> <span class="n">mW</span><span class="p">,</span> <span class="n">mY</span><span class="p">,</span> <span class="n">num_tokens</span><span class="p">,</span> <span class="n">hidden_dim</span><span class="p">,</span> <span class="n">eps</span><span class="p">)</span>
+    <span class="n">torch</span><span class="o">.</span><span class="n">testing</span><span class="o">.</span><span class="n">assert_close</span><span class="p">(</span><span class="n">y_ref</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span>
+
+    <span class="n">compiled</span> <span class="o">=</span> <span class="n">cute</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="n">rms_norm_</span><span class="p">,</span> <span class="n">mX</span><span class="p">,</span> <span class="n">mW</span><span class="p">,</span> <span class="n">mY</span><span class="p">,</span> <span class="n">num_tokens</span><span class="p">,</span> <span class="n">hidden_dim</span><span class="p">,</span> <span class="n">eps</span><span class="p">)</span>
+    <span class="n">benchmark</span><span class="p">(</span><span class="n">compiled</span><span class="p">,</span> <span class="n">mX</span><span class="p">,</span> <span class="n">mW</span><span class="p">,</span> <span class="n">mY</span><span class="p">,</span> <span class="n">num_tokens</span><span class="p">,</span> <span class="n">hidden_dim</span><span class="p">,</span> <span class="n">eps</span><span class="p">)</span>
+</pre></div>
+<p>Note that I didn't perform full set of "tricks" to obtain maximum performance as this serves more of an educational example. For example we might additionally add vectorized loads or obtain other tricks that I implemented in <a href='https://veitner.bearblog.dev/making-rmsnorm-really-fast/'>CUDA</a>. For best performance you should anyway use the Quack library.</p>
+<p>However even the above fairly optimized archives pretty good performance for some test cases on my consumer GPU. For example for <code>hidden_dim = 1024</code> it archives <code>87%</code> of GPU utilization. To archive peak performance you can take a look at further optimisations the Quack library employed.</p>
+<h2 id=conclusion>Conclusion</h2><p>I hope this blogpost showed that low level control CuTeDSL offers gives us the ability to also implement tasks like reduction or potentially scan etc. in it. If you want to exchange further ideas feel free to connect with me on <a href='https://www.linkedin.com/in/simon-veitner-174a681b6/'>LinkedIn</a>.</p>
+
+
+    
+
+    
+        
+
+        
+            <form id="upvote-form" action="/upvote/" method="post" style="display: inline">
+    <small>
+        <input hidden name="uid" value="FTNJJWdRQRirvoHpZeqL" style="display:none">
+        <input hidden name="title" value="Simple reduction in CuTeDSL" style="display:none">
+
+        <button
+            class="upvote-button"
+            aria-label="Toast this post"
+            title="Toast this post"
+        >
+            <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" class="css-i6dzq1">
+                <polyline points="17 11 12 6 7 11"></polyline>
+                <polyline points="17 18 12 13 7 18"></polyline>
+            </svg>
+            <small class="upvote-count" aria-hidden="true">&nbsp;</small>
+        </button>
+    </small>        
+</form>
+
+<script>
+    const $upvoteButton = document.querySelector('.upvote-button');
+    const $upvoteCount =  document.querySelector('.upvote-count')
+
+    fetch('/upvote-info/FTNJJWdRQRirvoHpZeqL/').then(response => response.json()).then(data => {
+        $upvoteCount.innerText = data.upvote_count;
+        if (data.upvoted) {
+            $upvoteButton.disabled = true
+            $upvoteButton.style.color = "salmon"
+            $upvoteButton.ariaLabel = "Toasted"
+            $upvoteButton.title = "Toasted"
+        }
+        $upvoteButton.ariaLabel += ` (${data.upvote_count})`
+    });
+
+    let moved = false;
+    let pageLoaded = Date.now();
+
+    document.addEventListener('touchmove', () => moved = true);
+    document.addEventListener('mousemove', () => moved = true);
+
+    document.querySelector('#upvote-form').addEventListener('submit', (e) => {
+        e.preventDefault();
+
+        if (moved) {
+            document.querySelector('input[name="title"]').value = "";
+        }
+        if (Date.now() - pageLoaded < 2000 || !moved) {
+            return;
+        }
+
+        fetch(e.target.action, {
+            method: 'post',
+            body: new FormData(e.target),
+        });
+        
+        $upvoteButton.disabled = true
+        $upvoteButton.style.color = "salmon"
+        $upvoteButton.ariaLabel = "Toasted"
+        $upvoteButton.title = "Toasted"
+        const newUpvoteCount = `${(parseInt($upvoteCount.innerHTML.split(" ")[0]) + 1)}`
+        $upvoteCount.innerHTML = newUpvoteCount
+        $upvoteButton.ariaLabel += ` (${newUpvoteCount})`
+    });
+</script>
+        
+
+        
+            <script>
+            window.addEventListener("load", () => {
+                if (navigator.webdriver !== true) {
+                    const sendHit = score => {
+                        const params = new URLSearchParams({
+                            blog: "veitner",
+                            token: "FTNJJWdRQRirvoHpZeqL",
+                            referrer: document.referrer.includes("veitner.bearblog.dev") ? "" : document.referrer,
+                            title: "",
+                            score: score
+                        });
+                        new Image().src = `/hit/?${params.toString()}`;
+                    };
+
+                    document.addEventListener('touchmove', () => sendHit(100), { once: true });
+                    document.addEventListener('mousemove', () => sendHit(100), { once: true });
+                }
+            });
+            </script>
+        
+    
+
+
+  </main>
+  <footer>
+    
+    
+    <span>
+        Powered by <a href="https://bearblog.dev">Bear <span role="img" class="bear" aria-label="ASCII bear logo">ʕ•ᴥ•ʔ</span></a>
+    </span>
+
+  </footer>
+
+  
+  <script>
+        (() => {
+          "use strict";
+          const times = document.querySelectorAll('time');
+          const format_string = "d M, Y" || "d M, Y"
+
+          times.forEach(time => {
+              time.innerText = formatDate(time.dateTime, format_string)
+          });
+
+          function formatDate(dateStr, formatStr) {
+            const date = new Date(dateStr);
+            const day = date.getDate();
+            const month = date.getMonth();
+            const year = date.getFullYear();
+            const weekday = date.getDay();
+            const hours = date.getHours();
+            const minutes = date.getMinutes();
+            const monthsFull = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+            const monthsShort = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+            const daysFull = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+            const daysShort = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+            
+            function getOrdinal(n) {
+                const s = ['th', 'st', 'nd', 'rd'];
+                const v = n % 100;
+                return s[(v - 20) % 10] || s[v] || s[0];
+            }
+            
+            const map = {
+                'd': () => day.toString().padStart(2, '0'),
+                'm': () => (month + 1).toString().padStart(2, '0'),
+                'Y': () => year.toString(),
+                'y': () => year.toString().slice(-2),
+                'F': () => monthsFull[month],
+                'j': () => day.toString(),
+                'D': () => daysShort[weekday],
+                'l': () => daysFull[weekday],
+                'S': () => getOrdinal(day),
+                'M': () => monthsShort[month],
+                'H': () => hours.toString().padStart(2, '0'),
+                'h': () => {
+                    let h = hours % 12;
+                    h = h === 0 ? 12 : h;
+                    return h.toString().padStart(2, '0');
+                },
+                'g': () => {
+                    let h = hours % 12;
+                    return h === 0 ? '12' : h.toString();
+                },
+                'i': () => minutes.toString().padStart(2, '0'),
+                'a': () => hours < 12 ? 'am' : 'pm',
+                'A': () => hours < 12 ? 'AM' : 'PM',
+            };
+            
+            let result = '';
+            for (let char of formatStr) {
+                result += map[char] ? map[char]() : char;
+            }
+            return result;
+        }
+        })();
+    </script>
+    
+</body>
+<!-- ID: veitner -->
+<!-- 🐻 -->
+</html>

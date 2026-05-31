@@ -1,0 +1,1374 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!-- Powered by Bear Blog -->
+
+<head>
+  
+  
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5">
+  
+  <title>Blackwell Pipelining with CuTeDSL | simons blog</title>
+  <link rel="canonical" href="https://veitner.bearblog.dev/blackwell-pipelining-with-cutedsl/">
+  
+    
+
+    <meta name="veitner" content="look-for-the-bear-necessities">
+    <meta name="token" content="TZLevDvrhWSrwsAPWrWo">
+
+    
+<!-- Primary Meta Tags -->
+<meta name="title" content="Blackwell Pipelining with CuTeDSL">
+<meta name="description" content="Introduction
+
+ Blackwell Pipelining with CuTeDSL
+When writing code for modern GPU architectures one frequently can overlap certain workloads due to the as...">
+
+<!-- Open Graph / Facebook -->
+<meta property="og:site_name" content="simons blog">
+<meta property="og:title" content="Blackwell Pipelining with CuTeDSL">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://veitner.bearblog.dev/blackwell-pipelining-with-cutedsl/">
+<meta property="og:description" content="Introduction
+
+ Blackwell Pipelining with CuTeDSL
+When writing code for modern GPU architectures one frequently can overlap certain workloads due to the as...">
+<meta property="og:image" content="/static/og-image.png">
+
+
+<!-- Twitter -->
+<meta property="twitter:card" content="summary">
+<meta property="twitter:url" content="https://veitner.bearblog.dev/blackwell-pipelining-with-cutedsl/">
+<meta property="twitter:title" content="Blackwell Pipelining with CuTeDSL">
+<meta property="twitter:description" content="Introduction
+
+ Blackwell Pipelining with CuTeDSL
+When writing code for modern GPU architectures one frequently can overlap certain workloads due to the as...">
+<meta property="twitter:image" content="/static/og-image.png">
+
+
+
+<!-- Microdata -->
+<script type="application/ld+json">
+  {
+    "@context": "http://schema.org",
+    "@type": "article",
+    "name": "Blackwell Pipelining with CuTeDSL",
+    "headline": "Blackwell Pipelining with CuTeDSL",
+    "url": "https://veitner.bearblog.dev/blackwell-pipelining-with-cutedsl/",
+    "description": "Introduction
+
+ Blackwell Pipelining with CuTeDSL
+When writing code for modern GPU architectures one frequently can overlap certain workloads due to the as...",
+    "image": "/static/og-image.png"
+  }
+</script>
+    <link rel="alternate" type="application/atom+xml" href="/feed/" title="simons blog">
+    <link rel="alternate" type="application/rss+xml" href="/feed/?type=rss" title="simons blog">
+
+  
+    
+
+    
+    <style>pre { line-height: 125%; }
+td.linenos .normal { color: #666666; background-color: transparent; padding-left: 5px; padding-right: 5px; }
+span.linenos { color: #666666; background-color: transparent; padding-left: 5px; padding-right: 5px; }
+td.linenos .special { color: #000000; background-color: #ffffc0; padding-left: 5px; padding-right: 5px; }
+span.linenos.special { color: #000000; background-color: #ffffc0; padding-left: 5px; padding-right: 5px; }
+.highlight .hll { background-color: #ffffcc }
+.highlight { background: #f0f0f0; }
+.highlight .c { color: #60A0B0; font-style: italic } /* Comment */
+.highlight .err { border: 1px solid #F00 } /* Error */
+.highlight .k { color: #007020; font-weight: bold } /* Keyword */
+.highlight .o { color: #666 } /* Operator */
+.highlight .ch { color: #60A0B0; font-style: italic } /* Comment.Hashbang */
+.highlight .cm { color: #60A0B0; font-style: italic } /* Comment.Multiline */
+.highlight .cp { color: #007020 } /* Comment.Preproc */
+.highlight .cpf { color: #60A0B0; font-style: italic } /* Comment.PreprocFile */
+.highlight .c1 { color: #60A0B0; font-style: italic } /* Comment.Single */
+.highlight .cs { color: #60A0B0; background-color: #FFF0F0 } /* Comment.Special */
+.highlight .gd { color: #A00000 } /* Generic.Deleted */
+.highlight .ge { font-style: italic } /* Generic.Emph */
+.highlight .ges { font-weight: bold; font-style: italic } /* Generic.EmphStrong */
+.highlight .gr { color: #F00 } /* Generic.Error */
+.highlight .gh { color: #000080; font-weight: bold } /* Generic.Heading */
+.highlight .gi { color: #00A000 } /* Generic.Inserted */
+.highlight .go { color: #888 } /* Generic.Output */
+.highlight .gp { color: #C65D09; font-weight: bold } /* Generic.Prompt */
+.highlight .gs { font-weight: bold } /* Generic.Strong */
+.highlight .gu { color: #800080; font-weight: bold } /* Generic.Subheading */
+.highlight .gt { color: #04D } /* Generic.Traceback */
+.highlight .kc { color: #007020; font-weight: bold } /* Keyword.Constant */
+.highlight .kd { color: #007020; font-weight: bold } /* Keyword.Declaration */
+.highlight .kn { color: #007020; font-weight: bold } /* Keyword.Namespace */
+.highlight .kp { color: #007020 } /* Keyword.Pseudo */
+.highlight .kr { color: #007020; font-weight: bold } /* Keyword.Reserved */
+.highlight .kt { color: #902000 } /* Keyword.Type */
+.highlight .m { color: #40A070 } /* Literal.Number */
+.highlight .s { color: #4070A0 } /* Literal.String */
+.highlight .na { color: #4070A0 } /* Name.Attribute */
+.highlight .nb { color: #007020 } /* Name.Builtin */
+.highlight .nc { color: #0E84B5; font-weight: bold } /* Name.Class */
+.highlight .no { color: #60ADD5 } /* Name.Constant */
+.highlight .nd { color: #555; font-weight: bold } /* Name.Decorator */
+.highlight .ni { color: #D55537; font-weight: bold } /* Name.Entity */
+.highlight .ne { color: #007020 } /* Name.Exception */
+.highlight .nf { color: #06287E } /* Name.Function */
+.highlight .nl { color: #002070; font-weight: bold } /* Name.Label */
+.highlight .nn { color: #0E84B5; font-weight: bold } /* Name.Namespace */
+.highlight .nt { color: #062873; font-weight: bold } /* Name.Tag */
+.highlight .nv { color: #BB60D5 } /* Name.Variable */
+.highlight .ow { color: #007020; font-weight: bold } /* Operator.Word */
+.highlight .w { color: #BBB } /* Text.Whitespace */
+.highlight .mb { color: #40A070 } /* Literal.Number.Bin */
+.highlight .mf { color: #40A070 } /* Literal.Number.Float */
+.highlight .mh { color: #40A070 } /* Literal.Number.Hex */
+.highlight .mi { color: #40A070 } /* Literal.Number.Integer */
+.highlight .mo { color: #40A070 } /* Literal.Number.Oct */
+.highlight .sa { color: #4070A0 } /* Literal.String.Affix */
+.highlight .sb { color: #4070A0 } /* Literal.String.Backtick */
+.highlight .sc { color: #4070A0 } /* Literal.String.Char */
+.highlight .dl { color: #4070A0 } /* Literal.String.Delimiter */
+.highlight .sd { color: #4070A0; font-style: italic } /* Literal.String.Doc */
+.highlight .s2 { color: #4070A0 } /* Literal.String.Double */
+.highlight .se { color: #4070A0; font-weight: bold } /* Literal.String.Escape */
+.highlight .sh { color: #4070A0 } /* Literal.String.Heredoc */
+.highlight .si { color: #70A0D0; font-style: italic } /* Literal.String.Interpol */
+.highlight .sx { color: #C65D09 } /* Literal.String.Other */
+.highlight .sr { color: #235388 } /* Literal.String.Regex */
+.highlight .s1 { color: #4070A0 } /* Literal.String.Single */
+.highlight .ss { color: #517918 } /* Literal.String.Symbol */
+.highlight .bp { color: #007020 } /* Name.Builtin.Pseudo */
+.highlight .fm { color: #06287E } /* Name.Function.Magic */
+.highlight .vc { color: #BB60D5 } /* Name.Variable.Class */
+.highlight .vg { color: #BB60D5 } /* Name.Variable.Global */
+.highlight .vi { color: #BB60D5 } /* Name.Variable.Instance */
+.highlight .vm { color: #BB60D5 } /* Name.Variable.Magic */
+.highlight .il { color: #40A070 } /* Literal.Number.Integer.Long */
+</style>
+  
+  
+  
+    
+        <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20100%20100'%3E%3Ctext%20y='.9em'%20font-size='90'%3E🐼%3C/text%3E%3C/svg%3E">
+    
+
+
+
+  <style>
+      
+      
+    
+:root {
+    --width: 720px;
+    --font-main: Verdana, sans-serif;
+    --font-secondary: Verdana, sans-serif;
+    --font-scale: 1em;
+    --background-color: #fff;
+    --heading-color: #222;
+    --text-color: #444;
+    --link-color: #3273dc;
+    --visited-color:  #8b6fcb;
+    --code-background-color: #f2f2f2;
+    --code-color: #222;
+    --blockquote-color: #222;
+}
+
+@media (prefers-color-scheme: dark) {
+    :root {
+        --background-color: #01242e;
+        --heading-color: #eee;
+        --text-color: #ddd;
+        --link-color: #8cc2dd;
+        --visited-color:  #8b6fcb;
+        --code-background-color: #000;
+        --code-color: #ddd;
+        --blockquote-color: #ccc;
+    }
+}
+
+body {
+    font-family: var(--font-secondary);
+    font-size: var(--font-scale);
+    margin: auto;
+    padding: 20px;
+    max-width: var(--width);
+    text-align: left;
+    background-color: var(--background-color);
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    line-height: 1.5;
+    color: var(--text-color);
+}
+
+h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-main);
+    color: var(--heading-color);
+}
+
+a {
+    color: var(--link-color);
+    cursor: pointer;
+    text-decoration: none;
+}
+
+a:hover {
+    text-decoration: underline; 
+}
+
+nav a {
+    margin-right: 8px;
+}
+
+strong, b {
+    color: var(--heading-color);
+}
+
+button {
+    margin: 0;
+    cursor: pointer;
+}
+
+time {
+ 	font-family: monospace;
+  	font-style: normal;
+  	font-size: 15px;
+}
+
+main {
+    line-height: 1.6;
+}
+
+table {
+    width: 100%;
+}
+
+hr {
+    border: 0;
+    border-top: 1px dashed;
+}
+
+img {
+    max-width: 100%;
+}
+
+code {
+    font-family: monospace;
+    padding: 2px;
+    background-color: var(--code-background-color);
+    color: var(--code-color);
+    border-radius: 3px;
+}
+
+blockquote {
+    border-left: 1px solid #999;
+    color: var(--code-color);
+    padding-left: 20px;
+    font-style: italic;
+}
+
+footer {
+    padding: 25px 0;
+    text-align: center;
+}
+
+.title:hover {
+    text-decoration: none;
+}
+
+.title h1 {
+    font-size: 1.5em;
+}
+
+.inline {
+    width: auto !important;
+}
+
+.highlight, .code {
+    padding: 1px 15px;
+    background-color: var(--code-background-color);
+    color: var(--code-color);
+    border-radius: 3px;
+    margin-block-start: 1em;
+    margin-block-end: 1em;
+    overflow-x: auto;
+}
+
+/* blog post list */
+ul.blog-posts {
+    list-style-type: none;
+    padding: unset;
+}
+
+ul.blog-posts li {
+    display: flex;
+}
+
+ul.blog-posts li span {
+    flex: 0 0 130px;
+}
+
+ul.blog-posts li a:visited {
+    color: var(--visited-color);
+}
+    .upvote-button {
+        padding: 0;
+        margin: 0;
+        border: 0;
+        background-color: inherit;
+        color: inherit;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+    .upvote-button.upvoted {
+        color: salmon;
+    }
+    .upvote-count {
+        margin-top: -3px;
+    }
+
+      
+  </style>
+</head>
+
+<body class="post " onload="(function() { document.cookie = `timezone=${Intl.DateTimeFormat().resolvedOptions().timeZone};path=/`; })()">
+  
+  <header>
+    <a class="title" href="/">
+      <h1>
+        simons blog
+      </h1>
+    </a>
+    <nav>
+      <p><a href='/'>Home</a> <a href='/blog/'>Blog</a></p>
+
+    </nav>
+  </header>
+  <main>
+    
+
+    
+
+    
+        <h1>Blackwell Pipelining with CuTeDSL</h1>
+
+        <p>
+            <i>
+                <time datetime="2025-12-23T18:36Z">
+    23 Dec, 2025
+</time>
+            </i>
+        </p>
+    
+
+    <h2 id=introduction>Introduction</h2><p>Blackwell Pipelining with CuTeDSL
+When writing code for modern GPU architectures one frequently can overlap certain workloads due to the asynchronous instructions we can leverage. For example it is commonly known from the Hopper architecture that we can overlap TMA (i.e. memory transfer) with MMA (i.e. computation). On Blackwell we can introduce another level of overlapping namely we can now have TMA -> MMA -> Epilogue overlap. In this blogpost I show how it is done in CuTeDSL.</p>
+<h2 id=pipelines>Pipelines</h2><p>In <a href='https://github.com/NVIDIA/cutlass/blob/main/examples/python/CuTeDSL/blackwell/dense_blockscaled_gemm_persistent.py'>persistent blockscaled example</a> to synchronize between different asynchronous workloads we use multiple pipelines namely:</p>
+<p><strong>AB Pipeline</strong></p>
+<div class="highlight"><pre><span></span><span class="n">ab_pipeline_producer_group</span> <span class="o">=</span> <span class="n">pipeline</span><span class="o">.</span><span class="n">CooperativeGroup</span><span class="p">(</span><span class="n">pipeline</span><span class="o">.</span><span class="n">Agent</span><span class="o">.</span><span class="n">Thread</span><span class="p">)</span>
+<span class="n">num_tma_producer</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_mcast_ctas_a</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_mcast_ctas_b</span> <span class="o">-</span> <span class="mi">1</span>
+<span class="n">ab_pipeline_consumer_group</span> <span class="o">=</span> <span class="n">pipeline</span><span class="o">.</span><span class="n">CooperativeGroup</span><span class="p">(</span>
+	<span class="n">pipeline</span><span class="o">.</span><span class="n">Agent</span><span class="o">.</span><span class="n">Thread</span><span class="p">,</span> <span class="n">num_tma_producer</span>
+<span class="p">)</span>
+<span class="n">ab_pipeline</span> <span class="o">=</span> <span class="n">pipeline</span><span class="o">.</span><span class="n">PipelineTmaUmma</span><span class="o">.</span><span class="n">create</span><span class="p">(</span>
+	<span class="n">barrier_storage</span><span class="o">=</span><span class="n">storage</span><span class="o">.</span><span class="n">ab_full_mbar_ptr</span><span class="o">.</span><span class="n">data_ptr</span><span class="p">(),</span>
+	<span class="n">num_stages</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">num_ab_stage</span><span class="p">,</span>
+	<span class="n">producer_group</span><span class="o">=</span><span class="n">ab_pipeline_producer_group</span><span class="p">,</span>
+	<span class="n">consumer_group</span><span class="o">=</span><span class="n">ab_pipeline_consumer_group</span><span class="p">,</span>
+	<span class="n">tx_count</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">num_tma_load_bytes</span><span class="p">,</span>
+	<span class="n">cta_layout_vmnk</span><span class="o">=</span><span class="n">cluster_layout_vmnk</span><span class="p">,</span>
+	<span class="n">defer_sync</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+<span class="p">)</span>
+</pre></div>
+<p><strong>Acc Pipeline</strong></p>
+<div class="highlight"><pre><span></span><span class="n">acc_pipeline_producer_group</span> <span class="o">=</span> <span class="n">pipeline</span><span class="o">.</span><span class="n">CooperativeGroup</span><span class="p">(</span><span class="n">pipeline</span><span class="o">.</span><span class="n">Agent</span><span class="o">.</span><span class="n">Thread</span><span class="p">)</span>
+<span class="n">num_acc_consumer_threads</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">epilog_warp_id</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span>
+	<span class="mi">2</span> <span class="k">if</span> <span class="n">use_2cta_instrs</span> <span class="k">else</span> <span class="mi">1</span>
+<span class="p">)</span>
+<span class="n">acc_pipeline_consumer_group</span> <span class="o">=</span> <span class="n">pipeline</span><span class="o">.</span><span class="n">CooperativeGroup</span><span class="p">(</span>
+	<span class="n">pipeline</span><span class="o">.</span><span class="n">Agent</span><span class="o">.</span><span class="n">Thread</span><span class="p">,</span> <span class="n">num_acc_consumer_threads</span>
+<span class="p">)</span>
+<span class="n">acc_pipeline</span> <span class="o">=</span> <span class="n">pipeline</span><span class="o">.</span><span class="n">PipelineUmmaAsync</span><span class="o">.</span><span class="n">create</span><span class="p">(</span>
+	<span class="n">barrier_storage</span><span class="o">=</span><span class="n">storage</span><span class="o">.</span><span class="n">acc_full_mbar_ptr</span><span class="o">.</span><span class="n">data_ptr</span><span class="p">(),</span>
+	<span class="n">num_stages</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">num_acc_stage</span><span class="p">,</span>
+	<span class="n">producer_group</span><span class="o">=</span><span class="n">acc_pipeline_producer_group</span><span class="p">,</span>
+	<span class="n">consumer_group</span><span class="o">=</span><span class="n">acc_pipeline_consumer_group</span><span class="p">,</span>
+	<span class="n">cta_layout_vmnk</span><span class="o">=</span><span class="n">cluster_layout_vmnk</span><span class="p">,</span>
+	<span class="n">defer_sync</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+<span class="p">)</span>
+</pre></div>
+<p><strong>C Pipeline</strong></p>
+<div class="highlight"><pre><span></span><span class="c1"># Threads/warps participating in tma store pipeline</span>
+<span class="n">c_producer_group</span> <span class="o">=</span> <span class="n">pipeline</span><span class="o">.</span><span class="n">CooperativeGroup</span><span class="p">(</span>
+	<span class="n">pipeline</span><span class="o">.</span><span class="n">Agent</span><span class="o">.</span><span class="n">Thread</span><span class="p">,</span>
+	<span class="mi">32</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">epilog_warp_id</span><span class="p">),</span>
+<span class="p">)</span>
+<span class="n">c_pipeline</span> <span class="o">=</span> <span class="n">pipeline</span><span class="o">.</span><span class="n">PipelineTmaStore</span><span class="o">.</span><span class="n">create</span><span class="p">(</span>
+	<span class="n">num_stages</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">num_c_stage</span><span class="p">,</span>
+	<span class="n">producer_group</span><span class="o">=</span><span class="n">c_producer_group</span><span class="p">,</span>
+<span class="p">)</span>
+</pre></div>
+<p>Blackwell can overlap the following processes:</p>
+<ul>
+<li>Loading Tiles from GMEM to SMEM via TMA and computation of the MMA into TMEM (this is job of AB Pipeline)</li>
+<li>Computation of the MMA into TMEM and storing of the results to RMEM (this is job of the Acc Pipeline)</li>
+<li>Potentially we can introduce another level of asynchronous  operation which is the job of the C Pipeline (i.e. we can store the result in a staged way by issuing a copy and immediately continuing with the next tile while the copy is busy)
+This approach lets us overlap independent operations: loading the next tile while tensor cores compute the current one, or storing a completed result while tensor cores have already moved on to the next.</li>
+</ul>
+<h2 id=codepipelinetmaummacode><code>PipelineTmaUmma</code></h2><p>For this Pipeline the producer is the <code>TMA</code> and the consumer is the <code>Umma</code> as we can read <a href='https://github.com/NVIDIA/cutlass/blob/main/python/CuTeDSL/cutlass/pipeline/sm100.py#L33C1-L38C1'>here</a></p>
+<div class="highlight"><pre><span></span><span class="k">class</span><span class="w"> </span><span class="nc">PipelineTmaUmma</span><span class="p">(</span><span class="n">PipelineAsync</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    PipelineTmaUmma is used for TMA producers and UMMA consumers (e.g. Blackwell mainloops).</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+</pre></div>
+<p>The docstring of <code>PipelineAsync</code> contains valuable table:</p>
+<div class="highlight"><pre><span></span>+-----------+-----------+-----------+-----------+-----------+-----------+
+| Barrier   | State     | p.acquire | p.commit  | c.wait    | c.release |
++===========+===========+===========+===========+===========+===========+
+| empty_bar | empty     | &lt;Return&gt;  | n/a       | n/a       | -         |
++-----------+-----------+-----------+-----------+-----------+-----------+
+| empty_bar | wait      | &lt;Block&gt;   | n/a       | n/a       | -&gt; empty  |
++-----------+-----------+-----------+-----------+-----------+-----------+
+| full_bar  | wait      | n/a       | -&gt; full   | &lt;Block &gt;  | n/a       |
++-----------+-----------+-----------+-----------+-----------+-----------+
+| full_bar  | full      | n/a       | -         | &lt;Return&gt;  | n/a       |
++-----------+-----------+-----------+-----------+-----------+-----------+
+
+Where:
+
+- p: producer
+- c: consumer
+- &lt;Block&gt;: This action is blocked until transition to a state allow it to proceed by other side
+- e.g. ``p.acquire()`` is blocked until ``empty_bar`` transition to ``empty`` state by ``c.release()``
+</pre></div>
+<p>which we will frequently use in our analysis below. Come back to it if you feel lost.</p>
+<p>We initialize their corresponding <code>CooperativeGroups</code> as follows:</p>
+<div class="highlight"><pre><span></span><span class="n">ab_pipeline_producer_group</span> <span class="o">=</span> <span class="n">pipeline</span><span class="o">.</span><span class="n">CooperativeGroup</span><span class="p">(</span><span class="n">pipeline</span><span class="o">.</span><span class="n">Agent</span><span class="o">.</span><span class="n">Thread</span><span class="p">)</span>
+<span class="n">num_tma_producer</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_mcast_ctas_a</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_mcast_ctas_b</span> <span class="o">-</span> <span class="mi">1</span>
+<span class="n">ab_pipeline_consumer_group</span> <span class="o">=</span> <span class="n">pipeline</span><span class="o">.</span><span class="n">CooperativeGroup</span><span class="p">(</span>
+	<span class="n">pipeline</span><span class="o">.</span><span class="n">Agent</span><span class="o">.</span><span class="n">Thread</span><span class="p">,</span> <span class="n">num_tma_producer</span>
+<span class="p">)</span>
+</pre></div>
+<p>We can learn about parameters for <code>CooperativeGroup</code> in the corresponding <a href='https://github.com/NVIDIA/cutlass/blob/main/python/CuTeDSL/cutlass/pipeline/helpers.py#L54'>code</a>:</p>
+<div class="highlight"><pre><span></span><span class="k">class</span><span class="w"> </span><span class="nc">CooperativeGroup</span><span class="p">:</span>
+	<span class="o">...</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">agent</span><span class="p">:</span> <span class="n">Agent</span><span class="p">,</span> <span class="n">size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="n">alignment</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">alignment</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+		<span class="o">...</span>
+        <span class="c1"># Size indicates how many threads are participating in this CooperativeGroup</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">size</span> <span class="o">=</span> <span class="n">size</span>
+        <span class="c1"># Agent indicates the type of thread group</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">agent</span> <span class="o">=</span> <span class="n">agent</span>
+</pre></div>
+<p>We see that producer group only has one thread participating in the <code>CooperativeGroup</code>. In the consumer we may have multiple threads in the <code>CooperativeGroup</code> depending if we use multicast for TMA operation.</p>
+<div class="highlight"><pre><span></span><span class="n">ab_pipeline</span> <span class="o">=</span> <span class="n">pipeline</span><span class="o">.</span><span class="n">PipelineTmaUmma</span><span class="o">.</span><span class="n">create</span><span class="p">(</span>
+	<span class="n">barrier_storage</span><span class="o">=</span><span class="n">storage</span><span class="o">.</span><span class="n">ab_full_mbar_ptr</span><span class="o">.</span><span class="n">data_ptr</span><span class="p">(),</span>
+	<span class="n">num_stages</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">num_ab_stage</span><span class="p">,</span>
+	<span class="n">producer_group</span><span class="o">=</span><span class="n">ab_pipeline_producer_group</span><span class="p">,</span>
+	<span class="n">consumer_group</span><span class="o">=</span><span class="n">ab_pipeline_consumer_group</span><span class="p">,</span>
+	<span class="n">tx_count</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">num_tma_load_bytes</span><span class="p">,</span>
+	<span class="n">cta_layout_vmnk</span><span class="o">=</span><span class="n">cluster_layout_vmnk</span><span class="p">,</span>
+	<span class="n">defer_sync</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+<span class="p">)</span>
+</pre></div>
+<p>We initialize the corresponding pipeline with the <code>mbar pointer</code>, the number of stages, the above defined groups, the total number of bytes we load with the <code>TMA</code> and the layout for the <code>CTA</code>. Note that we only provide the full bar pointer and the empty bar pointer is inferred from that by shifting by the number of stages. Two barriers are needed for proper synchronization as you can infer from the diagram above.</p>
+<div class="highlight"><pre><span></span><span class="n">sync_object_full</span> <span class="o">=</span> <span class="n">PipelineAsync</span><span class="o">.</span><span class="n">_make_sync_object</span><span class="p">(</span>
+	<span class="n">barrier_storage</span><span class="o">.</span><span class="n">align</span><span class="p">(</span><span class="n">min_align</span><span class="o">=</span><span class="mi">8</span><span class="p">),</span> <span class="n">num_stages</span><span class="p">,</span> <span class="n">producer</span>
+<span class="p">)</span>
+<span class="n">sync_object_empty</span> <span class="o">=</span> <span class="n">PipelineAsync</span><span class="o">.</span><span class="n">_make_sync_object</span><span class="p">(</span>
+	<span class="n">barrier_storage</span><span class="o">.</span><span class="n">align</span><span class="p">(</span><span class="n">min_align</span><span class="o">=</span><span class="mi">8</span><span class="p">)</span> <span class="o">+</span> <span class="n">num_stages</span><span class="p">,</span> <span class="n">num_stages</span><span class="p">,</span> <span class="n">consumer</span>
+<span class="p">)</span>
+</pre></div>
+<p>Note that based on the <code>PipelineOp</code> we will select appropriate operations. See the relevant code:</p>
+<div class="highlight"><pre><span></span><span class="c1"># pipeline/sm100.py</span>
+<span class="c1">####</span>
+<span class="n">producer_type</span> <span class="o">=</span> <span class="n">PipelineOp</span><span class="o">.</span><span class="n">TmaLoad</span>
+<span class="n">consumer_type</span> <span class="o">=</span> <span class="n">PipelineOp</span><span class="o">.</span><span class="n">TCGen05Mma</span>
+
+<span class="n">producer</span> <span class="o">=</span> <span class="p">(</span><span class="n">producer_type</span><span class="p">,</span> <span class="n">producer_group</span><span class="p">)</span>
+<span class="n">consumer</span> <span class="o">=</span> <span class="p">(</span><span class="n">consumer_type</span><span class="p">,</span> <span class="n">consumer_group</span><span class="p">)</span>
+<span class="c1">####</span>
+
+<span class="c1"># pipeline/helpers.py</span>
+<span class="c1">####</span>
+<span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">op_type</span> <span class="ow">is</span> <span class="n">PipelineOp</span><span class="o">.</span><span class="n">AsyncThread</span><span class="p">:</span>
+	<span class="bp">self</span><span class="o">.</span><span class="n">arrive_mbarrier</span><span class="p">(</span><span class="n">index</span><span class="p">,</span> <span class="n">dst</span><span class="p">,</span> <span class="n">loc</span><span class="o">=</span><span class="n">loc</span><span class="p">,</span> <span class="n">ip</span><span class="o">=</span><span class="n">ip</span><span class="p">)</span>
+<span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">op_type</span> <span class="ow">is</span> <span class="n">PipelineOp</span><span class="o">.</span><span class="n">TCGen05Mma</span><span class="p">:</span>
+	<span class="k">assert</span> <span class="n">cta_group</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">,</span> <span class="p">(</span>
+		<span class="s2">&quot;Error: CTA group must be provided for TCGen05Mma.&quot;</span>
+	<span class="p">)</span>
+	<span class="bp">self</span><span class="o">.</span><span class="n">arrive_tcgen05mma</span><span class="p">(</span><span class="n">index</span><span class="p">,</span> <span class="n">dst</span><span class="p">,</span> <span class="n">cta_group</span><span class="p">,</span> <span class="n">loc</span><span class="o">=</span><span class="n">loc</span><span class="p">,</span> <span class="n">ip</span><span class="o">=</span><span class="n">ip</span><span class="p">)</span>
+<span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">op_type</span> <span class="ow">in</span> <span class="p">[</span><span class="n">PipelineOp</span><span class="o">.</span><span class="n">TmaLoad</span><span class="p">]:</span>
+	<span class="bp">self</span><span class="o">.</span><span class="n">arrive_and_expect_tx</span><span class="p">(</span><span class="n">index</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">tx_count</span><span class="p">)</span>
+<span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">op_type</span> <span class="ow">is</span> <span class="n">PipelineOp</span><span class="o">.</span><span class="n">AsyncLoad</span><span class="p">:</span>
+	<span class="bp">self</span><span class="o">.</span><span class="n">arrive_cp_async_mbarrier</span><span class="p">(</span><span class="n">index</span><span class="p">,</span> <span class="n">loc</span><span class="o">=</span><span class="n">loc</span><span class="p">,</span> <span class="n">ip</span><span class="o">=</span><span class="n">ip</span><span class="p">)</span>
+<span class="k">else</span><span class="p">:</span>
+	<span class="k">assert</span> <span class="kc">False</span><span class="p">,</span> <span class="p">(</span>
+		<span class="sa">f</span><span class="s2">&quot;Error: MbarrierArray is not supported for PipelineOp: </span><span class="si">{</span><span class="n">_get_pipeline_op</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">op_type</span><span class="p">)</span><span class="si">}</span><span class="s2">.&quot;</span>
+	<span class="p">)</span>
+<span class="c1">####</span>
+</pre></div>
+<p>We can see distinction between the two arrive ops</p>
+<p>TMA uses arrive op arrive and expect.</p>
+<div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">arrive_and_expect_tx</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">index</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">tx_count</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+	<span class="k">with</span> <span class="n">cute</span><span class="o">.</span><span class="n">arch</span><span class="o">.</span><span class="n">elect_one</span><span class="p">():</span>
+		<span class="n">cute</span><span class="o">.</span><span class="n">arch</span><span class="o">.</span><span class="n">mbarrier_arrive_and_expect_tx</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">get_barrier</span><span class="p">(</span><span class="n">index</span><span class="p">),</span> <span class="n">tx_count</span><span class="p">)</span>
+</pre></div>
+<p>The producer on the other hand will use</p>
+<div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">arrive_tcgen05mma</span><span class="p">(</span>
+	<span class="bp">self</span><span class="p">,</span>
+	<span class="n">index</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+	<span class="n">mask</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span>
+	<span class="n">cta_group</span><span class="p">:</span> <span class="n">cute</span><span class="o">.</span><span class="n">nvgpu</span><span class="o">.</span><span class="n">tcgen05</span><span class="o">.</span><span class="n">CtaGroup</span><span class="p">,</span>
+	<span class="o">*</span><span class="p">,</span>
+	<span class="n">loc</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+	<span class="n">ip</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+	<span class="k">if</span> <span class="n">mask</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+		<span class="k">with</span> <span class="n">cute</span><span class="o">.</span><span class="n">arch</span><span class="o">.</span><span class="n">elect_one</span><span class="p">(</span><span class="n">loc</span><span class="o">=</span><span class="n">loc</span><span class="p">,</span> <span class="n">ip</span><span class="o">=</span><span class="n">ip</span><span class="p">):</span>
+			<span class="n">cute</span><span class="o">.</span><span class="n">nvgpu</span><span class="o">.</span><span class="n">tcgen05</span><span class="o">.</span><span class="n">commit</span><span class="p">(</span>
+				<span class="bp">self</span><span class="o">.</span><span class="n">get_barrier</span><span class="p">(</span><span class="n">index</span><span class="p">,</span> <span class="n">loc</span><span class="o">=</span><span class="n">loc</span><span class="p">,</span> <span class="n">ip</span><span class="o">=</span><span class="n">ip</span><span class="p">),</span> <span class="n">loc</span><span class="o">=</span><span class="n">loc</span><span class="p">,</span> <span class="n">ip</span><span class="o">=</span><span class="n">ip</span>
+			<span class="p">)</span>
+	<span class="k">else</span><span class="p">:</span>
+		<span class="k">with</span> <span class="n">cute</span><span class="o">.</span><span class="n">arch</span><span class="o">.</span><span class="n">elect_one</span><span class="p">(</span><span class="n">loc</span><span class="o">=</span><span class="n">loc</span><span class="p">,</span> <span class="n">ip</span><span class="o">=</span><span class="n">ip</span><span class="p">):</span>
+			<span class="n">cute</span><span class="o">.</span><span class="n">nvgpu</span><span class="o">.</span><span class="n">tcgen05</span><span class="o">.</span><span class="n">commit</span><span class="p">(</span>
+				<span class="bp">self</span><span class="o">.</span><span class="n">get_barrier</span><span class="p">(</span><span class="n">index</span><span class="p">,</span> <span class="n">loc</span><span class="o">=</span><span class="n">loc</span><span class="p">,</span> <span class="n">ip</span><span class="o">=</span><span class="n">ip</span><span class="p">),</span>
+				<span class="n">mask</span><span class="p">,</span>
+				<span class="n">cta_group</span><span class="p">,</span>
+				<span class="n">loc</span><span class="o">=</span><span class="n">loc</span><span class="p">,</span>
+				<span class="n">ip</span><span class="o">=</span><span class="n">ip</span><span class="p">,</span>
+			<span class="p">)</span>
+</pre></div>
+<p>To communicate arrive.</p>
+<p>The number of <code>TMA</code> load bytes is defined above and simply counts all the bytes we transfer within one stage (see the <code>slice_</code> operation on the staged layout below).</p>
+<div class="highlight"><pre><span></span><span class="n">a_smem_layout</span> <span class="o">=</span> <span class="n">cute</span><span class="o">.</span><span class="n">slice_</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">a_smem_layout_staged</span><span class="p">,</span> <span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="mi">0</span><span class="p">))</span>
+<span class="o">...</span>
+<span class="n">b_smem_layout</span> <span class="o">=</span> <span class="n">cute</span><span class="o">.</span><span class="n">slice_</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">b_smem_layout_staged</span><span class="p">,</span> <span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="mi">0</span><span class="p">))</span>
+<span class="o">...</span>
+<span class="n">sfa_smem_layout</span> <span class="o">=</span> <span class="n">cute</span><span class="o">.</span><span class="n">slice_</span><span class="p">(</span>
+	<span class="bp">self</span><span class="o">.</span><span class="n">sfa_smem_layout_staged</span><span class="p">,</span> <span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+<span class="p">)</span>
+<span class="o">...</span>
+<span class="n">sfb_smem_layout</span> <span class="o">=</span> <span class="n">cute</span><span class="o">.</span><span class="n">slice_</span><span class="p">(</span>
+	<span class="bp">self</span><span class="o">.</span><span class="n">sfb_smem_layout_staged</span><span class="p">,</span> <span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+<span class="p">)</span>
+<span class="o">...</span>
+<span class="n">a_copy_size</span> <span class="o">=</span> <span class="n">cute</span><span class="o">.</span><span class="n">size_in_bytes</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">a_dtype</span><span class="p">,</span> <span class="n">a_smem_layout</span><span class="p">)</span>
+<span class="n">b_copy_size</span> <span class="o">=</span> <span class="n">cute</span><span class="o">.</span><span class="n">size_in_bytes</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">b_dtype</span><span class="p">,</span> <span class="n">b_smem_layout</span><span class="p">)</span>
+<span class="n">sfa_copy_size</span> <span class="o">=</span> <span class="n">cute</span><span class="o">.</span><span class="n">size_in_bytes</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">sf_dtype</span><span class="p">,</span> <span class="n">sfa_smem_layout</span><span class="p">)</span>
+<span class="n">sfb_copy_size</span> <span class="o">=</span> <span class="n">cute</span><span class="o">.</span><span class="n">size_in_bytes</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">sf_dtype</span><span class="p">,</span> <span class="n">sfb_smem_layout</span><span class="p">)</span>
+<span class="bp">self</span><span class="o">.</span><span class="n">num_tma_load_bytes</span> <span class="o">=</span> <span class="p">(</span>
+	<span class="n">a_copy_size</span> <span class="o">+</span> <span class="n">b_copy_size</span> <span class="o">+</span> <span class="n">sfa_copy_size</span> <span class="o">+</span> <span class="n">sfb_copy_size</span>
+<span class="p">)</span> <span class="o">*</span> <span class="n">atom_thr_size</span>
+</pre></div>
+<p>Let us now see the whole pipeline in action and its usage.</p>
+<div class="highlight"><pre><span></span><span class="k">if</span> <span class="n">warp_idx</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">tma_warp_id</span><span class="p">:</span>
+	<span class="c1">#</span>
+	<span class="c1"># Persistent tile scheduling loop</span>
+	<span class="c1">#</span>
+	<span class="n">tile_sched</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">StaticPersistentTileScheduler</span><span class="o">.</span><span class="n">create</span><span class="p">(</span>
+		<span class="n">tile_sched_params</span><span class="p">,</span> <span class="n">cute</span><span class="o">.</span><span class="n">arch</span><span class="o">.</span><span class="n">block_idx</span><span class="p">(),</span> <span class="n">cute</span><span class="o">.</span><span class="n">arch</span><span class="o">.</span><span class="n">grid_dim</span><span class="p">()</span>
+	<span class="p">)</span>
+	<span class="n">work_tile</span> <span class="o">=</span> <span class="n">tile_sched</span><span class="o">.</span><span class="n">initial_work_tile_info</span><span class="p">()</span>
+
+	<span class="n">ab_producer_state</span> <span class="o">=</span> <span class="n">pipeline</span><span class="o">.</span><span class="n">make_pipeline_state</span><span class="p">(</span>
+		<span class="n">pipeline</span><span class="o">.</span><span class="n">PipelineUserType</span><span class="o">.</span><span class="n">Producer</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_ab_stage</span>
+	<span class="p">)</span>
+
+	<span class="k">while</span> <span class="n">work_tile</span><span class="o">.</span><span class="n">is_valid_tile</span><span class="p">:</span>
+		<span class="c1"># Get tile coord from tile scheduler</span>
+		<span class="n">cur_tile_coord</span> <span class="o">=</span> <span class="n">work_tile</span><span class="o">.</span><span class="n">tile_idx</span>
+		<span class="n">mma_tile_coord_mnl</span> <span class="o">=</span> <span class="p">(</span>
+			<span class="n">cur_tile_coord</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">//</span> <span class="n">cute</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="n">tiled_mma</span><span class="o">.</span><span class="n">thr_id</span><span class="o">.</span><span class="n">shape</span><span class="p">),</span>
+			<span class="n">cur_tile_coord</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span>
+			<span class="n">cur_tile_coord</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span>
+		<span class="p">)</span>
+
+		<span class="c1">#</span>
+		<span class="c1"># Slice to per mma tile index</span>
+		<span class="c1">#</span>
+		<span class="c1"># ((atom_v, rest_v), RestK)</span>
+		<span class="n">tAgA_slice</span> <span class="o">=</span> <span class="n">tAgA</span><span class="p">[</span>
+			<span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="n">mma_tile_coord_mnl</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="kc">None</span><span class="p">,</span> <span class="n">mma_tile_coord_mnl</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
+		<span class="p">]</span>
+		<span class="c1"># ((atom_v, rest_v), RestK)</span>
+		<span class="n">tBgB_slice</span> <span class="o">=</span> <span class="n">tBgB</span><span class="p">[</span>
+			<span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="n">mma_tile_coord_mnl</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="kc">None</span><span class="p">,</span> <span class="n">mma_tile_coord_mnl</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
+		<span class="p">]</span>
+
+		<span class="c1"># ((atom_v, rest_v), RestK)</span>
+		<span class="n">tAgSFA_slice</span> <span class="o">=</span> <span class="n">tAgSFA</span><span class="p">[</span>
+			<span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="n">mma_tile_coord_mnl</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="kc">None</span><span class="p">,</span> <span class="n">mma_tile_coord_mnl</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
+		<span class="p">]</span>
+
+		<span class="n">slice_n</span> <span class="o">=</span> <span class="n">mma_tile_coord_mnl</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+		<span class="k">if</span> <span class="n">cutlass</span><span class="o">.</span><span class="n">const_expr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cta_tile_shape_mnk</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="mi">64</span><span class="p">):</span>
+			<span class="n">slice_n</span> <span class="o">=</span> <span class="n">mma_tile_coord_mnl</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">//</span> <span class="mi">2</span>
+		<span class="c1"># ((atom_v, rest_v), RestK)</span>
+		<span class="n">tBgSFB_slice</span> <span class="o">=</span> <span class="n">tBgSFB</span><span class="p">[</span>
+			<span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="n">slice_n</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="n">mma_tile_coord_mnl</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
+		<span class="p">]</span>
+
+		<span class="c1"># Peek (try_wait) AB buffer empty for k_tile = prefetch_k_tile_cnt</span>
+		<span class="n">ab_producer_state</span><span class="o">.</span><span class="n">reset_count</span><span class="p">()</span>
+		<span class="n">peek_ab_empty_status</span> <span class="o">=</span> <span class="n">cutlass</span><span class="o">.</span><span class="n">Boolean</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+		<span class="k">if</span> <span class="n">ab_producer_state</span><span class="o">.</span><span class="n">count</span> <span class="o">&lt;</span> <span class="n">k_tile_cnt</span><span class="p">:</span>
+			<span class="n">peek_ab_empty_status</span> <span class="o">=</span> <span class="n">ab_pipeline</span><span class="o">.</span><span class="n">producer_try_acquire</span><span class="p">(</span>
+				<span class="n">ab_producer_state</span>
+			<span class="p">)</span>
+		<span class="c1">#</span>
+		<span class="c1"># Tma load loop</span>
+		<span class="c1">#</span>
+		<span class="k">for</span> <span class="n">k_tile</span> <span class="ow">in</span> <span class="n">cutlass</span><span class="o">.</span><span class="n">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">k_tile_cnt</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">unroll</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+			<span class="c1"># Conditionally wait for AB buffer empty</span>
+			<span class="n">ab_pipeline</span><span class="o">.</span><span class="n">producer_acquire</span><span class="p">(</span>
+				<span class="n">ab_producer_state</span><span class="p">,</span> <span class="n">peek_ab_empty_status</span>
+			<span class="p">)</span>
+
+			<span class="c1"># TMA load A/B/SFA/SFB</span>
+			<span class="n">cute</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span>
+				<span class="n">tma_atom_a</span><span class="p">,</span>
+				<span class="n">tAgA_slice</span><span class="p">[(</span><span class="kc">None</span><span class="p">,</span> <span class="n">ab_producer_state</span><span class="o">.</span><span class="n">count</span><span class="p">)],</span>
+				<span class="n">tAsA</span><span class="p">[(</span><span class="kc">None</span><span class="p">,</span> <span class="n">ab_producer_state</span><span class="o">.</span><span class="n">index</span><span class="p">)],</span>
+				<span class="n">tma_bar_ptr</span><span class="o">=</span><span class="n">ab_pipeline</span><span class="o">.</span><span class="n">producer_get_barrier</span><span class="p">(</span><span class="n">ab_producer_state</span><span class="p">),</span>
+				<span class="n">mcast_mask</span><span class="o">=</span><span class="n">a_full_mcast_mask</span><span class="p">,</span>
+			<span class="p">)</span>
+			<span class="n">cute</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span>
+				<span class="n">tma_atom_b</span><span class="p">,</span>
+				<span class="n">tBgB_slice</span><span class="p">[(</span><span class="kc">None</span><span class="p">,</span> <span class="n">ab_producer_state</span><span class="o">.</span><span class="n">count</span><span class="p">)],</span>
+				<span class="n">tBsB</span><span class="p">[(</span><span class="kc">None</span><span class="p">,</span> <span class="n">ab_producer_state</span><span class="o">.</span><span class="n">index</span><span class="p">)],</span>
+				<span class="n">tma_bar_ptr</span><span class="o">=</span><span class="n">ab_pipeline</span><span class="o">.</span><span class="n">producer_get_barrier</span><span class="p">(</span><span class="n">ab_producer_state</span><span class="p">),</span>
+				<span class="n">mcast_mask</span><span class="o">=</span><span class="n">b_full_mcast_mask</span><span class="p">,</span>
+			<span class="p">)</span>
+			<span class="n">cute</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span>
+				<span class="n">tma_atom_sfa</span><span class="p">,</span>
+				<span class="n">tAgSFA_slice</span><span class="p">[(</span><span class="kc">None</span><span class="p">,</span> <span class="n">ab_producer_state</span><span class="o">.</span><span class="n">count</span><span class="p">)],</span>
+				<span class="n">tAsSFA</span><span class="p">[(</span><span class="kc">None</span><span class="p">,</span> <span class="n">ab_producer_state</span><span class="o">.</span><span class="n">index</span><span class="p">)],</span>
+				<span class="n">tma_bar_ptr</span><span class="o">=</span><span class="n">ab_pipeline</span><span class="o">.</span><span class="n">producer_get_barrier</span><span class="p">(</span><span class="n">ab_producer_state</span><span class="p">),</span>
+				<span class="n">mcast_mask</span><span class="o">=</span><span class="n">sfa_full_mcast_mask</span><span class="p">,</span>
+			<span class="p">)</span>
+			<span class="n">cute</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span>
+				<span class="n">tma_atom_sfb</span><span class="p">,</span>
+				<span class="n">tBgSFB_slice</span><span class="p">[(</span><span class="kc">None</span><span class="p">,</span> <span class="n">ab_producer_state</span><span class="o">.</span><span class="n">count</span><span class="p">)],</span>
+				<span class="n">tBsSFB</span><span class="p">[(</span><span class="kc">None</span><span class="p">,</span> <span class="n">ab_producer_state</span><span class="o">.</span><span class="n">index</span><span class="p">)],</span>
+				<span class="n">tma_bar_ptr</span><span class="o">=</span><span class="n">ab_pipeline</span><span class="o">.</span><span class="n">producer_get_barrier</span><span class="p">(</span><span class="n">ab_producer_state</span><span class="p">),</span>
+				<span class="n">mcast_mask</span><span class="o">=</span><span class="n">sfb_full_mcast_mask</span><span class="p">,</span>
+			<span class="p">)</span>
+
+			<span class="c1"># Peek (try_wait) AB buffer empty for k_tile = prefetch_k_tile_cnt + k_tile + 1</span>
+			<span class="n">ab_producer_state</span><span class="o">.</span><span class="n">advance</span><span class="p">()</span>
+			<span class="n">peek_ab_empty_status</span> <span class="o">=</span> <span class="n">cutlass</span><span class="o">.</span><span class="n">Boolean</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+			<span class="k">if</span> <span class="n">ab_producer_state</span><span class="o">.</span><span class="n">count</span> <span class="o">&lt;</span> <span class="n">k_tile_cnt</span><span class="p">:</span>
+				<span class="n">peek_ab_empty_status</span> <span class="o">=</span> <span class="n">ab_pipeline</span><span class="o">.</span><span class="n">producer_try_acquire</span><span class="p">(</span>
+					<span class="n">ab_producer_state</span>
+				<span class="p">)</span>
+
+		<span class="c1">#</span>
+		<span class="c1"># Advance to next tile</span>
+		<span class="c1">#</span>
+		<span class="n">tile_sched</span><span class="o">.</span><span class="n">advance_to_next_work</span><span class="p">()</span>
+		<span class="n">work_tile</span> <span class="o">=</span> <span class="n">tile_sched</span><span class="o">.</span><span class="n">get_current_work</span><span class="p">()</span>
+
+	<span class="c1">#</span>
+	<span class="c1"># Wait A/B buffer empty</span>
+	<span class="c1">#</span>
+	<span class="n">ab_pipeline</span><span class="o">.</span><span class="n">producer_tail</span><span class="p">(</span><span class="n">ab_producer_state</span><span class="p">)</span>
+</pre></div>
+<p>Before start to copy the tiles we initialize the pipeline state.</p>
+<div class="highlight"><pre><span></span><span class="n">ab_producer_state</span> <span class="o">=</span> <span class="n">pipeline</span><span class="o">.</span><span class="n">make_pipeline_state</span><span class="p">(</span>
+	<span class="n">pipeline</span><span class="o">.</span><span class="n">PipelineUserType</span><span class="o">.</span><span class="n">Producer</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_ab_stage</span>
+<span class="p">)</span>
+</pre></div>
+<p>This will create a Pipeline state:</p>
+<div class="highlight"><pre><span></span><span class="n">PipelineState</span><span class="p">(</span>
+	<span class="n">stages</span><span class="p">,</span>
+	<span class="n">Int32</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">loc</span><span class="o">=</span><span class="n">loc</span><span class="p">,</span> <span class="n">ip</span><span class="o">=</span><span class="n">ip</span><span class="p">),</span>
+	<span class="n">Int32</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">loc</span><span class="o">=</span><span class="n">loc</span><span class="p">,</span> <span class="n">ip</span><span class="o">=</span><span class="n">ip</span><span class="p">),</span>
+	<span class="n">Int32</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">loc</span><span class="o">=</span><span class="n">loc</span><span class="p">,</span> <span class="n">ip</span><span class="o">=</span><span class="n">ip</span><span class="p">),</span>
+<span class="p">)</span>
+</pre></div>
+<p>with the given number of stages, the count and index equal to zero and the phase bit flipped on.  The index will keep track of the current index in the circular buffer. Once the end of the buffer is reached we start from the beginning again. Once the end of the buffer is reached we start from the beginning again in a circular fashion.</p>
+<p>We'll than start to process all valid tiles for the current SM. Note that the tile scheduler will give us information which tile in <code>M</code> and <code>N</code> direction we are currently processing. The <code>K</code> dimension needs to be looped over. Before we start doing so we perform a <code>producer_try_aquire</code>.</p>
+<div class="highlight"><pre><span></span><span class="k">while</span> <span class="n">work_tile</span><span class="o">.</span><span class="n">is_valid_tile</span><span class="p">:</span>
+	<span class="c1"># Get coordinate for current tile, slice the tensor in GMEM</span>
+	<span class="c1"># to get the current tile in M and N direction </span>
+	<span class="c1"># for each of the tensors we want </span>
+	<span class="c1"># to transfer via TMA onto SMEM</span>
+	<span class="o">...</span>
+
+	<span class="c1"># Peek (try_wait) AB buffer empty for k_tile = prefetch_k_tile_cnt</span>
+	<span class="n">ab_producer_state</span><span class="o">.</span><span class="n">reset_count</span><span class="p">()</span>
+	<span class="n">peek_ab_empty_status</span> <span class="o">=</span> <span class="n">cutlass</span><span class="o">.</span><span class="n">Boolean</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+	<span class="k">if</span> <span class="n">ab_producer_state</span><span class="o">.</span><span class="n">count</span> <span class="o">&lt;</span> <span class="n">k_tile_cnt</span><span class="p">:</span>
+		<span class="n">peek_ab_empty_status</span> <span class="o">=</span> <span class="n">ab_pipeline</span><span class="o">.</span><span class="n">producer_try_acquire</span><span class="p">(</span>
+			<span class="n">ab_producer_state</span>
+		<span class="p">)</span>
+</pre></div>
+<p><code>producer_try_aquire</code> will simply return boolean telling us if the current position in the buffer is available.</p>
+<p>We are now processing the <code>K</code> tiles. We start with <code>producer_aquire</code>. After being done with the copies (which we provide with the barrier for the current state) we advance the states and get the status of the next position in the buffer.</p>
+<div class="highlight"><pre><span></span>		<span class="c1"># Tma load loop</span>
+		<span class="c1">#</span>
+		<span class="k">for</span> <span class="n">k_tile</span> <span class="ow">in</span> <span class="n">cutlass</span><span class="o">.</span><span class="n">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">k_tile_cnt</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">unroll</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+			<span class="c1"># Conditionally wait for AB buffer empty</span>
+			<span class="n">ab_pipeline</span><span class="o">.</span><span class="n">producer_acquire</span><span class="p">(</span>
+				<span class="n">ab_producer_state</span><span class="p">,</span> <span class="n">peek_ab_empty_status</span>
+			<span class="p">)</span>
+
+			<span class="c1"># TMA load A/B/SFA/SFB</span>
+			<span class="n">cute</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span>
+				<span class="n">tma_atom_a</span><span class="p">,</span>
+				<span class="n">tAgA_slice</span><span class="p">[(</span><span class="kc">None</span><span class="p">,</span> <span class="n">ab_producer_state</span><span class="o">.</span><span class="n">count</span><span class="p">)],</span>
+				<span class="n">tAsA</span><span class="p">[(</span><span class="kc">None</span><span class="p">,</span> <span class="n">ab_producer_state</span><span class="o">.</span><span class="n">index</span><span class="p">)],</span>
+				<span class="n">tma_bar_ptr</span><span class="o">=</span><span class="n">ab_pipeline</span><span class="o">.</span><span class="n">producer_get_barrier</span><span class="p">(</span><span class="n">ab_producer_state</span><span class="p">),</span>
+				<span class="n">mcast_mask</span><span class="o">=</span><span class="n">a_full_mcast_mask</span><span class="p">,</span>
+			<span class="p">)</span>
+			<span class="o">...</span>
+
+			<span class="c1"># Peek (try_wait) AB buffer empty for k_tile = prefetch_k_tile_cnt + k_tile + 1</span>
+			<span class="n">ab_producer_state</span><span class="o">.</span><span class="n">advance</span><span class="p">()</span>
+			<span class="n">peek_ab_empty_status</span> <span class="o">=</span> <span class="n">cutlass</span><span class="o">.</span><span class="n">Boolean</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+			<span class="k">if</span> <span class="n">ab_producer_state</span><span class="o">.</span><span class="n">count</span> <span class="o">&lt;</span> <span class="n">k_tile_cnt</span><span class="p">:</span>
+				<span class="n">peek_ab_empty_status</span> <span class="o">=</span> <span class="n">ab_pipeline</span><span class="o">.</span><span class="n">producer_try_acquire</span><span class="p">(</span>
+					<span class="n">ab_producer_state</span>
+				<span class="p">)</span>
+</pre></div>
+<ul>
+<li><code>producer_aquire</code> will be blocking operation until the consumer releases the corresponding section of the circular buffer.
+Under the hood it will look like this:</li>
+</ul>
+<div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">producer_acquire</span><span class="p">(</span>
+	<span class="bp">self</span><span class="p">,</span> <span class="n">state</span><span class="p">:</span> <span class="n">PipelineState</span><span class="p">,</span> <span class="n">try_acquire_token</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Boolean</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+<span class="p">):</span>
+<span class="w">	</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">	TMA producer commit conditionally waits on buffer empty and sets the transaction barrier for leader threadblocks.</span>
+<span class="sd">	&quot;&quot;&quot;</span>
+	<span class="n">if_generate</span><span class="p">(</span>
+		<span class="n">try_acquire_token</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">try_acquire_token</span> <span class="o">==</span> <span class="mi">0</span><span class="p">,</span>
+		<span class="k">lambda</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">sync_object_empty</span><span class="o">.</span><span class="n">wait</span><span class="p">(</span><span class="n">state</span><span class="o">.</span><span class="n">index</span><span class="p">,</span> <span class="n">state</span><span class="o">.</span><span class="n">phase</span><span class="p">),</span>
+	<span class="p">)</span>
+	<span class="n">if_generate</span><span class="p">(</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">is_leader_cta</span><span class="p">,</span>
+		<span class="k">lambda</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">sync_object_full</span><span class="o">.</span><span class="n">arrive</span><span class="p">(</span><span class="n">state</span><span class="o">.</span><span class="n">index</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">producer_mask</span><span class="p">),</span>
+	<span class="p">)</span>
+</pre></div>
+<ul>
+<li><code>copy</code> will internally signal via <code>tma_bar_ptr</code> the producer when it's finished by arriving on its barrier.</li>
+<li><code>advance</code> will increase count, flip phase and increase index with warp around.</li>
+<li>At the end we (potentially) prefetch like above. Note we may schedule multiple copies via this mechanism. As long as the producer is not busy on a position in the circular buffer we can keep running through that until we reach a block.</li>
+</ul>
+<div class="highlight"><pre><span></span>	<span class="c1">#</span>
+	<span class="c1"># Advance to next tile</span>
+	<span class="c1">#</span>
+	<span class="n">tile_sched</span><span class="o">.</span><span class="n">advance_to_next_work</span><span class="p">()</span>
+	<span class="n">work_tile</span> <span class="o">=</span> <span class="n">tile_sched</span><span class="o">.</span><span class="n">get_current_work</span><span class="p">()</span>
+
+<span class="c1">#</span>
+<span class="c1"># Wait A/B buffer empty</span>
+<span class="c1">#</span>
+<span class="n">ab_pipeline</span><span class="o">.</span><span class="n">producer_tail</span><span class="p">(</span><span class="n">ab_producer_state</span><span class="p">)</span>
+</pre></div>
+<p>At the end this is some bookkeeping to avoid dangling pointers.</p>
+<p>We know analysed the <code>Producer</code> part of the <code>ab_pipeline</code>. Let us check how it's used in the consumer.</p>
+<p>Below I stripped down the MMA section to only contain the parts relevant for the current pipeline.</p>
+<div class="highlight"><pre><span></span><span class="c1"># Specialized MMA warp</span>
+<span class="c1">#</span>
+<span class="k">if</span> <span class="n">warp_idx</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">mma_warp_id</span><span class="p">:</span>
+	<span class="c1"># Setup tensors in TMEM, tile scheduler etc</span>
+	<span class="o">...</span>
+	<span class="n">ab_consumer_state</span> <span class="o">=</span> <span class="n">pipeline</span><span class="o">.</span><span class="n">make_pipeline_state</span><span class="p">(</span>
+		<span class="n">pipeline</span><span class="o">.</span><span class="n">PipelineUserType</span><span class="o">.</span><span class="n">Consumer</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_ab_stage</span>
+	<span class="p">)</span>
+
+	<span class="k">while</span> <span class="n">work_tile</span><span class="o">.</span><span class="n">is_valid_tile</span><span class="p">:</span>
+		<span class="c1"># Get tile coord from tile scheduler</span>
+		<span class="n">cur_tile_coord</span> <span class="o">=</span> <span class="n">work_tile</span><span class="o">.</span><span class="n">tile_idx</span>
+		<span class="n">mma_tile_coord_mnl</span> <span class="o">=</span> <span class="p">(</span>
+			<span class="n">cur_tile_coord</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">//</span> <span class="n">cute</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="n">tiled_mma</span><span class="o">.</span><span class="n">thr_id</span><span class="o">.</span><span class="n">shape</span><span class="p">),</span>
+			<span class="n">cur_tile_coord</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span>
+			<span class="n">cur_tile_coord</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span>
+		<span class="p">)</span>
+
+		<span class="c1"># Set TMEM buffer for current tile</span>
+
+		<span class="c1"># Peek (try_wait) AB buffer full for k_tile = 0</span>
+		<span class="n">ab_consumer_state</span><span class="o">.</span><span class="n">reset_count</span><span class="p">()</span>
+		<span class="n">peek_ab_full_status</span> <span class="o">=</span> <span class="n">cutlass</span><span class="o">.</span><span class="n">Boolean</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+		<span class="k">if</span> <span class="n">ab_consumer_state</span><span class="o">.</span><span class="n">count</span> <span class="o">&lt;</span> <span class="n">k_tile_cnt</span> <span class="ow">and</span> <span class="n">is_leader_cta</span><span class="p">:</span>
+			<span class="n">peek_ab_full_status</span> <span class="o">=</span> <span class="n">ab_pipeline</span><span class="o">.</span><span class="n">consumer_try_wait</span><span class="p">(</span>
+				<span class="n">ab_consumer_state</span>
+			<span class="p">)</span>
+		<span class="c1">#</span>
+		<span class="c1"># Wait for accumulator buffer empty</span>
+		<span class="c1">#</span>
+		<span class="o">...</span>
+		<span class="c1"># Handling of special cases, clear accumulator for MMA</span>
+		<span class="o">...</span>
+		<span class="c1">#</span>
+		<span class="c1"># Mma mainloop</span>
+		<span class="c1">#</span>
+		<span class="k">for</span> <span class="n">k_tile</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">k_tile_cnt</span><span class="p">):</span>
+			<span class="k">if</span> <span class="n">is_leader_cta</span><span class="p">:</span>
+				<span class="c1"># Conditionally wait for AB buffer full</span>
+				<span class="n">ab_pipeline</span><span class="o">.</span><span class="n">consumer_wait</span><span class="p">(</span>
+					<span class="n">ab_consumer_state</span><span class="p">,</span> <span class="n">peek_ab_full_status</span>
+				<span class="p">)</span>
+
+				<span class="c1">#  Copy SFA/SFB from smem to tmem</span>
+				<span class="n">s2t_stage_coord</span> <span class="o">=</span> <span class="p">(</span>
+					<span class="kc">None</span><span class="p">,</span>
+					<span class="kc">None</span><span class="p">,</span>
+					<span class="kc">None</span><span class="p">,</span>
+					<span class="kc">None</span><span class="p">,</span>
+					<span class="n">ab_consumer_state</span><span class="o">.</span><span class="n">index</span><span class="p">,</span>
+				<span class="p">)</span>
+				<span class="n">tCsSFA_compact_s2t_staged</span> <span class="o">=</span> <span class="n">tCsSFA_compact_s2t</span><span class="p">[</span><span class="n">s2t_stage_coord</span><span class="p">]</span>
+				<span class="n">tCsSFB_compact_s2t_staged</span> <span class="o">=</span> <span class="n">tCsSFB_compact_s2t</span><span class="p">[</span><span class="n">s2t_stage_coord</span><span class="p">]</span>
+				<span class="n">cute</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span>
+					<span class="n">tiled_copy_s2t_sfa</span><span class="p">,</span>
+					<span class="n">tCsSFA_compact_s2t_staged</span><span class="p">,</span>
+					<span class="n">tCtSFA_compact_s2t</span><span class="p">,</span>
+				<span class="p">)</span>
+				<span class="n">cute</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span>
+					<span class="n">tiled_copy_s2t_sfb</span><span class="p">,</span>
+					<span class="n">tCsSFB_compact_s2t_staged</span><span class="p">,</span>
+					<span class="n">tCtSFB_compact_s2t</span><span class="p">,</span>
+				<span class="p">)</span>
+
+				<span class="c1"># tCtAcc += tCrA * tCrSFA * tCrB * tCrSFB</span>
+				<span class="n">num_kblocks</span> <span class="o">=</span> <span class="n">cute</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="n">tCrA</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
+				<span class="k">for</span> <span class="n">kblock_idx</span> <span class="ow">in</span> <span class="n">cutlass</span><span class="o">.</span><span class="n">range</span><span class="p">(</span><span class="n">num_kblocks</span><span class="p">,</span> <span class="n">unroll_full</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+					<span class="n">kblock_coord</span> <span class="o">=</span> <span class="p">(</span>
+						<span class="kc">None</span><span class="p">,</span>
+						<span class="kc">None</span><span class="p">,</span>
+						<span class="n">kblock_idx</span><span class="p">,</span>
+						<span class="n">ab_consumer_state</span><span class="o">.</span><span class="n">index</span><span class="p">,</span>
+					<span class="p">)</span>
+
+					<span class="c1"># Set SFA/SFB tensor to tiled_mma</span>
+					<span class="n">sf_kblock_coord</span> <span class="o">=</span> <span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="n">kblock_idx</span><span class="p">)</span>
+					<span class="n">tiled_mma</span><span class="o">.</span><span class="n">set</span><span class="p">(</span>
+						<span class="n">tcgen05</span><span class="o">.</span><span class="n">Field</span><span class="o">.</span><span class="n">SFA</span><span class="p">,</span>
+						<span class="n">tCtSFA</span><span class="p">[</span><span class="n">sf_kblock_coord</span><span class="p">]</span><span class="o">.</span><span class="n">iterator</span><span class="p">,</span>
+					<span class="p">)</span>
+					<span class="n">tiled_mma</span><span class="o">.</span><span class="n">set</span><span class="p">(</span>
+						<span class="n">tcgen05</span><span class="o">.</span><span class="n">Field</span><span class="o">.</span><span class="n">SFB</span><span class="p">,</span>
+						<span class="n">tCtSFB_mma</span><span class="p">[</span><span class="n">sf_kblock_coord</span><span class="p">]</span><span class="o">.</span><span class="n">iterator</span><span class="p">,</span>
+					<span class="p">)</span>
+
+					<span class="n">cute</span><span class="o">.</span><span class="n">gemm</span><span class="p">(</span>
+						<span class="n">tiled_mma</span><span class="p">,</span>
+						<span class="n">tCtAcc</span><span class="p">,</span>
+						<span class="n">tCrA</span><span class="p">[</span><span class="n">kblock_coord</span><span class="p">],</span>
+						<span class="n">tCrB</span><span class="p">[</span><span class="n">kblock_coord</span><span class="p">],</span>
+						<span class="n">tCtAcc</span><span class="p">,</span>
+					<span class="p">)</span>
+
+					<span class="c1"># Enable accumulate on tCtAcc after first kblock</span>
+					<span class="n">tiled_mma</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">tcgen05</span><span class="o">.</span><span class="n">Field</span><span class="o">.</span><span class="n">ACCUMULATE</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
+
+				<span class="c1"># Async arrive AB buffer empty</span>
+				<span class="n">ab_pipeline</span><span class="o">.</span><span class="n">consumer_release</span><span class="p">(</span><span class="n">ab_consumer_state</span><span class="p">)</span>
+
+			<span class="c1"># Peek (try_wait) AB buffer full for k_tile = k_tile + 1</span>
+			<span class="n">ab_consumer_state</span><span class="o">.</span><span class="n">advance</span><span class="p">()</span>
+			<span class="n">peek_ab_full_status</span> <span class="o">=</span> <span class="n">cutlass</span><span class="o">.</span><span class="n">Boolean</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+			<span class="k">if</span> <span class="n">ab_consumer_state</span><span class="o">.</span><span class="n">count</span> <span class="o">&lt;</span> <span class="n">k_tile_cnt</span><span class="p">:</span>
+				<span class="k">if</span> <span class="n">is_leader_cta</span><span class="p">:</span>
+					<span class="n">peek_ab_full_status</span> <span class="o">=</span> <span class="n">ab_pipeline</span><span class="o">.</span><span class="n">consumer_try_wait</span><span class="p">(</span>
+						<span class="n">ab_consumer_state</span>
+					<span class="p">)</span>
+
+	<span class="o">...</span>
+</pre></div>
+<p>We see that the pattern mirrors the producer logic closely.</p>
+<p>We first perform initialization</p>
+<div class="highlight"><pre><span></span><span class="n">ab_consumer_state</span> <span class="o">=</span> <span class="n">pipeline</span><span class="o">.</span><span class="n">make_pipeline_state</span><span class="p">(</span>
+	<span class="n">pipeline</span><span class="o">.</span><span class="n">PipelineUserType</span><span class="o">.</span><span class="n">Consumer</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_ab_stage</span>
+<span class="p">)</span>
+</pre></div>
+<div class="highlight"><pre><span></span><span class="n">PipelineState</span><span class="p">(</span>
+	<span class="n">stages</span><span class="p">,</span>
+	<span class="n">Int32</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">loc</span><span class="o">=</span><span class="n">loc</span><span class="p">,</span> <span class="n">ip</span><span class="o">=</span><span class="n">ip</span><span class="p">),</span>
+	<span class="n">Int32</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">loc</span><span class="o">=</span><span class="n">loc</span><span class="p">,</span> <span class="n">ip</span><span class="o">=</span><span class="n">ip</span><span class="p">),</span>
+	<span class="n">Int32</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">loc</span><span class="o">=</span><span class="n">loc</span><span class="p">,</span> <span class="n">ip</span><span class="o">=</span><span class="n">ip</span><span class="p">),</span>
+<span class="p">)</span>
+</pre></div>
+<p>It is kind of obvious that the phase bit is flipped off initially because we first need to produce something before we can consume it.</p>
+<p>We'll than perform same non blocking check if next slot is free</p>
+<div class="highlight"><pre><span></span><span class="c1"># Peek (try_wait) AB buffer full for k_tile = 0</span>
+		<span class="n">ab_consumer_state</span><span class="o">.</span><span class="n">reset_count</span><span class="p">()</span>
+		<span class="n">peek_ab_full_status</span> <span class="o">=</span> <span class="n">cutlass</span><span class="o">.</span><span class="n">Boolean</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+		<span class="k">if</span> <span class="n">ab_consumer_state</span><span class="o">.</span><span class="n">count</span> <span class="o">&lt;</span> <span class="n">k_tile_cnt</span> <span class="ow">and</span> <span class="n">is_leader_cta</span><span class="p">:</span>
+			<span class="n">peek_ab_full_status</span> <span class="o">=</span> <span class="n">ab_pipeline</span><span class="o">.</span><span class="n">consumer_try_wait</span><span class="p">(</span>
+				<span class="n">ab_consumer_state</span>
+			<span class="p">)</span>
+</pre></div>
+<p>and than within the loop and for the leader CTA we do:</p>
+<div class="highlight"><pre><span></span><span class="n">ab_pipeline</span><span class="o">.</span><span class="n">consumer_wait</span><span class="p">(</span>
+	<span class="n">ab_consumer_state</span><span class="p">,</span> <span class="n">peek_ab_full_status</span>
+<span class="p">)</span>
+</pre></div>
+<p>which will wait be blocked until the TMA copy from above finishes and we have transferred the tile for current position in the circular buffer to <code>SMEM</code>.</p>
+<p>We'll than perform the MMA op and after doing so signalling the producer via</p>
+<div class="highlight"><pre><span></span><span class="n">ab_pipeline</span><span class="o">.</span><span class="n">consumer_release</span><span class="p">(</span><span class="n">ab_consumer_state</span><span class="p">)</span>
+</pre></div>
+<p>that the current slot of the circular buffer can be used for loading a new tile. Note that we must wait for the MMA to finish to perform the release because:</p>
+<div class="highlight"><pre><span></span><span class="c1"># (MMA, MMA_M, MMA_K, STAGE)</span>
+<span class="n">tCrA</span> <span class="o">=</span> <span class="n">tiled_mma</span><span class="o">.</span><span class="n">make_fragment_A</span><span class="p">(</span><span class="n">sA</span><span class="p">)</span>
+<span class="c1"># (MMA, MMA_N, MMA_K, STAGE)</span>
+<span class="n">tCrB</span> <span class="o">=</span> <span class="n">tiled_mma</span><span class="o">.</span><span class="n">make_fragment_B</span><span class="p">(</span><span class="n">sB</span><span class="p">)</span>
+</pre></div>
+<p>After that we make a peek again to perform non blocking lookup for the next position in the circular buffer.</p>
+<p>That's it with analysis of the first Pipeline. We have seen that it is necessary to properly synchronize between the TMA Loads for the MMA inputs and the MMA operation (which uses them).</p>
+<h2 id=codepipelineummaasynccode><code>PipelineUmmaAsync</code></h2><p>From the init of pipeline we can identify producer and consumer of this pipeline:</p>
+<div class="highlight"><pre><span></span><span class="c1"># Initialize acc_pipeline (barrier) and states</span>
+<span class="n">acc_pipeline_producer_group</span> <span class="o">=</span> <span class="n">pipeline</span><span class="o">.</span><span class="n">CooperativeGroup</span><span class="p">(</span><span class="n">pipeline</span><span class="o">.</span><span class="n">Agent</span><span class="o">.</span><span class="n">Thread</span><span class="p">)</span>
+<span class="n">num_acc_consumer_threads</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">epilog_warp_id</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span>
+	<span class="mi">2</span> <span class="k">if</span> <span class="n">use_2cta_instrs</span> <span class="k">else</span> <span class="mi">1</span>
+<span class="p">)</span>
+<span class="n">acc_pipeline_consumer_group</span> <span class="o">=</span> <span class="n">pipeline</span><span class="o">.</span><span class="n">CooperativeGroup</span><span class="p">(</span>
+	<span class="n">pipeline</span><span class="o">.</span><span class="n">Agent</span><span class="o">.</span><span class="n">Thread</span><span class="p">,</span> <span class="n">num_acc_consumer_threads</span>
+<span class="p">)</span>
+<span class="n">acc_pipeline</span> <span class="o">=</span> <span class="n">pipeline</span><span class="o">.</span><span class="n">PipelineUmmaAsync</span><span class="o">.</span><span class="n">create</span><span class="p">(</span>
+	<span class="n">barrier_storage</span><span class="o">=</span><span class="n">storage</span><span class="o">.</span><span class="n">acc_full_mbar_ptr</span><span class="o">.</span><span class="n">data_ptr</span><span class="p">(),</span>
+	<span class="n">num_stages</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">num_acc_stage</span><span class="p">,</span>
+	<span class="n">producer_group</span><span class="o">=</span><span class="n">acc_pipeline_producer_group</span><span class="p">,</span>
+	<span class="n">consumer_group</span><span class="o">=</span><span class="n">acc_pipeline_consumer_group</span><span class="p">,</span>
+	<span class="n">cta_layout_vmnk</span><span class="o">=</span><span class="n">cluster_layout_vmnk</span><span class="p">,</span>
+	<span class="n">defer_sync</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+<span class="p">)</span>
+</pre></div>
+<p>Producer will be <code>UMMA</code> and consumer will be the epilogue (note that each warp uses respectively 1 or 2 threads depending on the fact if we use 2 <code>CTA</code> instruction).</p>
+<p>We can also read that off from the implementation inside the <code>create</code></p>
+<div class="highlight"><pre><span></span><span class="n">producer_type</span> <span class="o">=</span> <span class="n">PipelineOp</span><span class="o">.</span><span class="n">TCGen05Mma</span>
+<span class="n">consumer_type</span> <span class="o">=</span> <span class="n">PipelineOp</span><span class="o">.</span><span class="n">AsyncThread</span>
+
+<span class="n">producer</span> <span class="o">=</span> <span class="p">(</span><span class="n">producer_type</span><span class="p">,</span> <span class="n">producer_group</span><span class="p">)</span>
+<span class="n">consumer</span> <span class="o">=</span> <span class="p">(</span><span class="n">consumer_type</span><span class="p">,</span> <span class="n">consumer_group</span><span class="p">)</span>
+</pre></div>
+<p>Let us see this pipeline in action:</p>
+<div class="highlight"><pre><span></span><span class="c1">#</span>
+<span class="c1"># Specialized MMA warp</span>
+<span class="c1">#</span>
+<span class="k">if</span> <span class="n">warp_idx</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">mma_warp_id</span><span class="p">:</span>
+	<span class="o">...</span>
+	<span class="n">acc_producer_state</span> <span class="o">=</span> <span class="n">pipeline</span><span class="o">.</span><span class="n">make_pipeline_state</span><span class="p">(</span>
+		<span class="n">pipeline</span><span class="o">.</span><span class="n">PipelineUserType</span><span class="o">.</span><span class="n">Producer</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_acc_stage</span>
+	<span class="p">)</span>
+
+	<span class="k">while</span> <span class="n">work_tile</span><span class="o">.</span><span class="n">is_valid_tile</span><span class="p">:</span>
+		<span class="c1"># Get tile coord from tile scheduler</span>
+		<span class="n">cur_tile_coord</span> <span class="o">=</span> <span class="n">work_tile</span><span class="o">.</span><span class="n">tile_idx</span>
+		<span class="n">mma_tile_coord_mnl</span> <span class="o">=</span> <span class="p">(</span>
+			<span class="n">cur_tile_coord</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">//</span> <span class="n">cute</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="n">tiled_mma</span><span class="o">.</span><span class="n">thr_id</span><span class="o">.</span><span class="n">shape</span><span class="p">),</span>
+			<span class="n">cur_tile_coord</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span>
+			<span class="n">cur_tile_coord</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span>
+		<span class="p">)</span>
+
+		<span class="c1"># Get accumulator stage index</span>
+		<span class="k">if</span> <span class="n">cutlass</span><span class="o">.</span><span class="n">const_expr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">overlapping_accum</span><span class="p">):</span>
+			<span class="n">acc_stage_index</span> <span class="o">=</span> <span class="n">acc_producer_state</span><span class="o">.</span><span class="n">phase</span> <span class="o">^</span> <span class="mi">1</span>
+		<span class="k">else</span><span class="p">:</span>
+			<span class="n">acc_stage_index</span> <span class="o">=</span> <span class="n">acc_producer_state</span><span class="o">.</span><span class="n">index</span>
+
+		<span class="c1"># Set tensor memory buffer for current tile</span>
+		<span class="c1"># (MMA, MMA_M, MMA_N)</span>
+		<span class="n">tCtAcc</span> <span class="o">=</span> <span class="n">tCtAcc_base</span><span class="p">[(</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="n">acc_stage_index</span><span class="p">)]</span>
+
+		<span class="o">...</span>
+		<span class="c1">#</span>
+		<span class="c1"># Wait for accumulator buffer empty</span>
+		<span class="c1">#</span>
+		<span class="k">if</span> <span class="n">is_leader_cta</span><span class="p">:</span>
+			<span class="n">acc_pipeline</span><span class="o">.</span><span class="n">producer_acquire</span><span class="p">(</span><span class="n">acc_producer_state</span><span class="p">)</span>
+
+		<span class="o">...</span>
+
+		<span class="c1">#</span>
+		<span class="c1"># Reset the ACCUMULATE field for each tile</span>
+		<span class="c1">#</span>
+		<span class="n">tiled_mma</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">tcgen05</span><span class="o">.</span><span class="n">Field</span><span class="o">.</span><span class="n">ACCUMULATE</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
+
+		<span class="c1">#</span>
+		<span class="c1"># Mma mainloop</span>
+		<span class="c1">#</span>
+		<span class="o">...</span>
+
+		<span class="c1">#</span>
+		<span class="c1"># Async arrive accumulator buffer full</span>
+		<span class="c1">#</span>
+		<span class="k">if</span> <span class="n">is_leader_cta</span><span class="p">:</span>
+			<span class="n">acc_pipeline</span><span class="o">.</span><span class="n">producer_commit</span><span class="p">(</span><span class="n">acc_producer_state</span><span class="p">)</span>
+		<span class="n">acc_producer_state</span><span class="o">.</span><span class="n">advance</span><span class="p">()</span>
+
+		<span class="c1">#</span>
+		<span class="c1"># Advance to next tile</span>
+		<span class="c1">#</span>
+		<span class="n">tile_sched</span><span class="o">.</span><span class="n">advance_to_next_work</span><span class="p">()</span>
+		<span class="n">work_tile</span> <span class="o">=</span> <span class="n">tile_sched</span><span class="o">.</span><span class="n">get_current_work</span><span class="p">()</span>
+
+	<span class="c1">#</span>
+	<span class="c1"># Wait for accumulator buffer empty</span>
+	<span class="c1">#</span>
+	<span class="n">acc_pipeline</span><span class="o">.</span><span class="n">producer_tail</span><span class="p">(</span><span class="n">acc_producer_state</span><span class="p">)</span>
+</pre></div>
+<p>We see that pipelining logic is similar to  the above example. We have initially a <code>producer_acquire</code> on the leader CTA. This be blocking in case that the current stage is not marked as empty.</p>
+<p>We'll than perform MMA operation and <code>producer_commit</code> to signal we are ready with this operation. This tells the consumer that the accumulated result is ready and corresponding result can be stored.</p>
+<p>At the end we have again bookkeeping <code>producer_tail</code> to avoid dangling pointers and clean up after our workload is finished.</p>
+<p>Let's look at corresponding consumer logic</p>
+<div class="highlight"><pre><span></span><span class="c1"># Specialized epilogue warps</span>
+<span class="c1">#</span>
+<span class="k">if</span> <span class="n">warp_idx</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">mma_warp_id</span><span class="p">:</span>
+	<span class="o">...</span>
+
+	<span class="n">acc_consumer_state</span> <span class="o">=</span> <span class="n">pipeline</span><span class="o">.</span><span class="n">make_pipeline_state</span><span class="p">(</span>
+		<span class="n">pipeline</span><span class="o">.</span><span class="n">PipelineUserType</span><span class="o">.</span><span class="n">Consumer</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_acc_stage</span>
+	<span class="p">)</span>
+
+	<span class="o">...</span>
+
+	<span class="k">while</span> <span class="n">work_tile</span><span class="o">.</span><span class="n">is_valid_tile</span><span class="p">:</span>
+		<span class="c1"># Get tile coord from tile scheduler</span>
+		<span class="n">cur_tile_coord</span> <span class="o">=</span> <span class="n">work_tile</span><span class="o">.</span><span class="n">tile_idx</span>
+		<span class="n">mma_tile_coord_mnl</span> <span class="o">=</span> <span class="p">(</span>
+			<span class="n">cur_tile_coord</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">//</span> <span class="n">cute</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="n">tiled_mma</span><span class="o">.</span><span class="n">thr_id</span><span class="o">.</span><span class="n">shape</span><span class="p">),</span>
+			<span class="n">cur_tile_coord</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span>
+			<span class="n">cur_tile_coord</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span>
+		<span class="p">)</span>
+
+		<span class="c1">#</span>
+		<span class="c1"># Slice to per mma tile index</span>
+		<span class="c1">#</span>
+		<span class="c1"># ((ATOM_V, REST_V), EPI_M, EPI_N)</span>
+		<span class="n">bSG_gC</span> <span class="o">=</span> <span class="n">bSG_gC_partitioned</span><span class="p">[</span>
+			<span class="p">(</span>
+				<span class="kc">None</span><span class="p">,</span>
+				<span class="kc">None</span><span class="p">,</span>
+				<span class="kc">None</span><span class="p">,</span>
+				<span class="o">*</span><span class="n">mma_tile_coord_mnl</span><span class="p">,</span>
+			<span class="p">)</span>
+		<span class="p">]</span>
+
+		<span class="c1"># Get accumulator stage index</span>
+		<span class="k">if</span> <span class="n">cutlass</span><span class="o">.</span><span class="n">const_expr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">overlapping_accum</span><span class="p">):</span>
+			<span class="n">acc_stage_index</span> <span class="o">=</span> <span class="n">acc_consumer_state</span><span class="o">.</span><span class="n">phase</span>
+			<span class="n">reverse_subtile</span> <span class="o">=</span> <span class="n">cutlass</span><span class="o">.</span><span class="n">Boolean</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span> <span class="k">if</span> <span class="n">acc_stage_index</span> <span class="o">==</span> <span class="mi">0</span> <span class="k">else</span> <span class="n">cutlass</span><span class="o">.</span><span class="n">Boolean</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
+		<span class="k">else</span><span class="p">:</span>
+			<span class="n">acc_stage_index</span> <span class="o">=</span> <span class="n">acc_consumer_state</span><span class="o">.</span><span class="n">index</span>
+
+		<span class="c1"># Set tensor memory buffer for current tile</span>
+		<span class="c1"># (T2R, T2R_M, T2R_N, EPI_M, EPI_M)</span>
+		<span class="n">tTR_tAcc</span> <span class="o">=</span> <span class="n">tTR_tAcc_base</span><span class="p">[</span>
+			<span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="n">acc_stage_index</span><span class="p">)</span>
+		<span class="p">]</span>
+
+		<span class="c1">#</span>
+		<span class="c1"># Wait for accumulator buffer full</span>
+		<span class="c1">#</span>
+		<span class="n">acc_pipeline</span><span class="o">.</span><span class="n">consumer_wait</span><span class="p">(</span><span class="n">acc_consumer_state</span><span class="p">)</span>
+
+		<span class="n">tTR_tAcc</span> <span class="o">=</span> <span class="n">cute</span><span class="o">.</span><span class="n">group_modes</span><span class="p">(</span><span class="n">tTR_tAcc</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="n">cute</span><span class="o">.</span><span class="n">rank</span><span class="p">(</span><span class="n">tTR_tAcc</span><span class="p">))</span>
+		<span class="n">bSG_gC</span> <span class="o">=</span> <span class="n">cute</span><span class="o">.</span><span class="n">group_modes</span><span class="p">(</span><span class="n">bSG_gC</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">cute</span><span class="o">.</span><span class="n">rank</span><span class="p">(</span><span class="n">bSG_gC</span><span class="p">))</span>
+
+		<span class="c1">#</span>
+		<span class="c1"># Store accumulator to global memory in subtiles</span>
+		<span class="c1">#</span>
+		<span class="n">subtile_cnt</span> <span class="o">=</span> <span class="n">cute</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="n">tTR_tAcc</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="p">[</span><span class="mi">3</span><span class="p">])</span>
+		<span class="n">num_prev_subtiles</span> <span class="o">=</span> <span class="n">tile_sched</span><span class="o">.</span><span class="n">num_tiles_executed</span> <span class="o">*</span> <span class="n">subtile_cnt</span>
+		<span class="k">for</span> <span class="n">subtile_idx</span> <span class="ow">in</span> <span class="n">cutlass</span><span class="o">.</span><span class="n">range</span><span class="p">(</span><span class="n">subtile_cnt</span><span class="p">):</span>
+			<span class="n">real_subtile_idx</span> <span class="o">=</span> <span class="n">subtile_idx</span>
+			<span class="k">if</span> <span class="n">cutlass</span><span class="o">.</span><span class="n">const_expr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">overlapping_accum</span><span class="p">):</span>
+				<span class="k">if</span> <span class="n">reverse_subtile</span><span class="p">:</span>
+					<span class="n">real_subtile_idx</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cta_tile_shape_mnk</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">//</span> <span class="bp">self</span><span class="o">.</span><span class="n">epi_tile_n</span> <span class="o">-</span> <span class="mi">1</span> <span class="o">-</span> <span class="n">subtile_idx</span>
+			<span class="c1">#</span>
+			<span class="c1"># Load accumulator from tensor memory buffer to register</span>
+			<span class="c1">#</span>
+			<span class="n">tTR_tAcc_mn</span> <span class="o">=</span> <span class="n">tTR_tAcc</span><span class="p">[(</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="n">real_subtile_idx</span><span class="p">)]</span>
+			<span class="n">cute</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">tiled_copy_t2r</span><span class="p">,</span> <span class="n">tTR_tAcc_mn</span><span class="p">,</span> <span class="n">tTR_rAcc</span><span class="p">)</span>
+
+			<span class="c1">#</span>
+			<span class="c1"># Async arrive accumulator buffer empty ealier when overlapping_accum is enabled</span>
+			<span class="c1">#</span>
+			<span class="k">if</span> <span class="n">cutlass</span><span class="o">.</span><span class="n">const_expr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">overlapping_accum</span><span class="p">):</span>
+				<span class="k">if</span> <span class="n">subtile_idx</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">iter_acc_early_release_in_epilogue</span><span class="p">:</span>
+					<span class="c1"># Fence for TMEM load</span>
+					<span class="n">cute</span><span class="o">.</span><span class="n">arch</span><span class="o">.</span><span class="n">fence_view_async_tmem_load</span><span class="p">()</span>
+					<span class="k">with</span> <span class="n">cute</span><span class="o">.</span><span class="n">arch</span><span class="o">.</span><span class="n">elect_one</span><span class="p">():</span>
+						<span class="n">acc_pipeline</span><span class="o">.</span><span class="n">consumer_release</span><span class="p">(</span><span class="n">acc_consumer_state</span><span class="p">)</span>
+					<span class="n">acc_consumer_state</span><span class="o">.</span><span class="n">advance</span><span class="p">()</span>
+
+			<span class="c1">#</span>
+			<span class="c1"># Convert to C type</span>
+			<span class="c1">#</span>
+			<span class="n">acc_vec</span> <span class="o">=</span> <span class="n">tiled_copy_r2s</span><span class="o">.</span><span class="n">retile</span><span class="p">(</span><span class="n">tTR_rAcc</span><span class="p">)</span><span class="o">.</span><span class="n">load</span><span class="p">()</span>
+			<span class="n">acc_vec</span> <span class="o">=</span> <span class="n">epilogue_op</span><span class="p">(</span><span class="n">acc_vec</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">c_dtype</span><span class="p">))</span>
+			<span class="n">tRS_rC</span><span class="o">.</span><span class="n">store</span><span class="p">(</span><span class="n">acc_vec</span><span class="p">)</span>
+
+			<span class="c1">#</span>
+			<span class="c1"># Store C to shared memory</span>
+			<span class="c1">#</span>
+			<span class="n">c_buffer</span> <span class="o">=</span> <span class="p">(</span><span class="n">num_prev_subtiles</span> <span class="o">+</span> <span class="n">real_subtile_idx</span><span class="p">)</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_c_stage</span>
+			<span class="n">cute</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span>
+				<span class="n">tiled_copy_r2s</span><span class="p">,</span>
+				<span class="n">tRS_rC</span><span class="p">,</span>
+				<span class="n">tRS_sC</span><span class="p">[(</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="n">c_buffer</span><span class="p">)],</span>
+			<span class="p">)</span>
+			<span class="c1"># Fence and barrier to make sure shared memory store is visible to TMA store</span>
+			<span class="n">cute</span><span class="o">.</span><span class="n">arch</span><span class="o">.</span><span class="n">fence_proxy</span><span class="p">(</span>
+				<span class="n">cute</span><span class="o">.</span><span class="n">arch</span><span class="o">.</span><span class="n">ProxyKind</span><span class="o">.</span><span class="n">async_shared</span><span class="p">,</span>
+				<span class="n">space</span><span class="o">=</span><span class="n">cute</span><span class="o">.</span><span class="n">arch</span><span class="o">.</span><span class="n">SharedSpace</span><span class="o">.</span><span class="n">shared_cta</span><span class="p">,</span>
+			<span class="p">)</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">epilog_sync_barrier</span><span class="o">.</span><span class="n">arrive_and_wait</span><span class="p">()</span>
+
+			<span class="c1">#</span>
+			<span class="c1"># TMA store C to global memory</span>
+			<span class="c1">#</span>
+			<span class="k">if</span> <span class="n">warp_idx</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">epilog_warp_id</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span>
+				<span class="n">cute</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span>
+					<span class="n">tma_atom_c</span><span class="p">,</span>
+					<span class="n">bSG_sC</span><span class="p">[(</span><span class="kc">None</span><span class="p">,</span> <span class="n">c_buffer</span><span class="p">)],</span>
+					<span class="n">bSG_gC</span><span class="p">[(</span><span class="kc">None</span><span class="p">,</span> <span class="n">real_subtile_idx</span><span class="p">)],</span>
+				<span class="p">)</span>
+				<span class="c1"># Fence and barrier to make sure shared memory store is visible to TMA store</span>
+				<span class="n">c_pipeline</span><span class="o">.</span><span class="n">producer_commit</span><span class="p">()</span>
+				<span class="n">c_pipeline</span><span class="o">.</span><span class="n">producer_acquire</span><span class="p">()</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">epilog_sync_barrier</span><span class="o">.</span><span class="n">arrive_and_wait</span><span class="p">()</span>
+
+		<span class="c1">#</span>
+		<span class="c1"># Async arrive accumulator buffer empty</span>
+		<span class="c1">#</span>
+		<span class="k">if</span> <span class="n">cutlass</span><span class="o">.</span><span class="n">const_expr</span><span class="p">(</span><span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">overlapping_accum</span><span class="p">):</span>
+			<span class="k">with</span> <span class="n">cute</span><span class="o">.</span><span class="n">arch</span><span class="o">.</span><span class="n">elect_one</span><span class="p">():</span>
+				<span class="n">acc_pipeline</span><span class="o">.</span><span class="n">consumer_release</span><span class="p">(</span><span class="n">acc_consumer_state</span><span class="p">)</span>
+			<span class="n">acc_consumer_state</span><span class="o">.</span><span class="n">advance</span><span class="p">()</span>
+
+		<span class="c1">#</span>
+		<span class="c1"># Advance to next tile</span>
+		<span class="c1">#</span>
+		<span class="n">tile_sched</span><span class="o">.</span><span class="n">advance_to_next_work</span><span class="p">()</span>
+		<span class="n">work_tile</span> <span class="o">=</span> <span class="n">tile_sched</span><span class="o">.</span><span class="n">get_current_work</span><span class="p">()</span>
+
+	<span class="c1">#</span>
+	<span class="c1"># Dealloc the tensor memory buffer</span>
+	<span class="c1">#</span>
+	<span class="n">tmem</span><span class="o">.</span><span class="n">relinquish_alloc_permit</span><span class="p">()</span>
+	<span class="bp">self</span><span class="o">.</span><span class="n">epilog_sync_barrier</span><span class="o">.</span><span class="n">arrive_and_wait</span><span class="p">()</span>
+	<span class="n">tmem</span><span class="o">.</span><span class="n">free</span><span class="p">(</span><span class="n">acc_tmem_ptr</span><span class="p">)</span>
+	<span class="c1">#</span>
+	<span class="c1"># Wait for C store complete</span>
+	<span class="c1">#</span>
+	<span class="n">c_pipeline</span><span class="o">.</span><span class="n">producer_tail</span><span class="p">()</span>
+</pre></div>
+<p>Initially we <code>consumer_wait</code> on accumulator buffer to wait until its ready to be processed.. We'll than store the result from <code>TMEM</code> to <code>RMEM</code>. In case of <code>overlapping_accumulator</code> (which is turned on by default for 2 CTA case and otherwise not) we immediately perform a fence operation and perform a <code>consumer_release</code> (i.e. signal that the next producer can start to produce result with MMA) perform the <code>RMEM -&gt; SMEM</code> store. Note that in case of overlapping accumulator we only have one stage and assign the position in the buffer via the inverse (i.e. <code>^ 1</code> ) of the phase bit. In case where we don't overlap we have two stages and wait for the <code>consumer_release</code> after we performed the transfer from <code>SMEM -&gt; GMEM</code> via the TMA.</p>
+<p>To summarize the second pipeline: It is used to synchronize between the the computation of the <code>UMMA</code> and the corresponding store for the result of this computation. Note that the pattern is similar to the above producer/consumer pattern, except that the we have changed definitions of what the producer and what the consumer does.</p>
+<h2 id=codepipelinetmastorecode><code>PipelineTmaStore</code></h2><div class="highlight"><pre><span></span><span class="c1"># Threads/warps participating in tma store pipeline</span>
+<span class="n">c_producer_group</span> <span class="o">=</span> <span class="n">pipeline</span><span class="o">.</span><span class="n">CooperativeGroup</span><span class="p">(</span>
+	<span class="n">pipeline</span><span class="o">.</span><span class="n">Agent</span><span class="o">.</span><span class="n">Thread</span><span class="p">,</span>
+	<span class="mi">32</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">epilog_warp_id</span><span class="p">),</span>
+<span class="p">)</span>
+<span class="n">c_pipeline</span> <span class="o">=</span> <span class="n">pipeline</span><span class="o">.</span><span class="n">PipelineTmaStore</span><span class="o">.</span><span class="n">create</span><span class="p">(</span>
+	<span class="n">num_stages</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">num_c_stage</span><span class="p">,</span>
+	<span class="n">producer_group</span><span class="o">=</span><span class="n">c_producer_group</span><span class="p">,</span>
+<span class="p">)</span>
+</pre></div>
+<p>Here we only have a producer:</p>
+<div class="highlight"><pre><span></span><span class="nd">@dataclass</span><span class="p">(</span><span class="n">frozen</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">PipelineTmaStore</span><span class="p">(</span><span class="n">PipelineAsync</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    PipelineTmaStore is used for synchronizing TMA stores in the epilogue. It does not use mbarriers.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+</pre></div>
+<p>As we saw above this pipeline is only used to commit the TMA store and than wait for its completion until the buffer is ready to be reused. Note that we have at least 2 <code>c</code> stages so we can continue with the next subtile until the buffer is cleared at the previous stage. This gives us another level of asynchronous options. Compared to simple TMEM -> RMEM -> GMEM way of doing the store it gave a good performance boost in my experiments.</p>
+<div class="highlight"><pre><span></span><span class="k">if</span> <span class="n">warp_idx</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">epilog_warp_id</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span>
+	<span class="n">cute</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span>
+		<span class="n">tma_atom_c</span><span class="p">,</span>
+		<span class="n">bSG_sC</span><span class="p">[(</span><span class="kc">None</span><span class="p">,</span> <span class="n">c_buffer</span><span class="p">)],</span>
+		<span class="n">bSG_gC</span><span class="p">[(</span><span class="kc">None</span><span class="p">,</span> <span class="n">real_subtile_idx</span><span class="p">)],</span>
+	<span class="p">)</span>
+	<span class="c1"># Fence and barrier to make sure shared memory store is visible to TMA store</span>
+	<span class="n">c_pipeline</span><span class="o">.</span><span class="n">producer_commit</span><span class="p">()</span>
+	<span class="n">c_pipeline</span><span class="o">.</span><span class="n">producer_acquire</span><span class="p">()</span>
+<span class="bp">self</span><span class="o">.</span><span class="n">epilog_sync_barrier</span><span class="o">.</span><span class="n">arrive_and_wait</span><span class="p">()</span>
+</pre></div>
+<h2 id=conclusion>Conclusion</h2><p>As we saw pipelining is important to understand internals of performant Blackwell kernels. By carefully examining the pattern it can be however understood and symmetries between different types of pipelines are interesting to observe and discover.</p>
+<p>If you want to perform your own experiments on Blackwell GPUs you may consider <a href='https://verda.com/'>Verda</a>. I performed all the experiments on their platform and the experience is very good.</p>
+<p>To exchange ideas on GPU programming or ML in in general I'd be happy to connect on my <a href='https://www.linkedin.com/in/simon-veitner-174a681b6/'>Linkedin</a>.</p>
+
+
+    
+
+    
+        
+
+        
+            <form id="upvote-form" action="/upvote/" method="post" style="display: inline">
+    <small>
+        <input hidden name="uid" value="TZLevDvrhWSrwsAPWrWo" style="display:none">
+        <input hidden name="title" value="Blackwell Pipelining with CuTeDSL" style="display:none">
+
+        <button
+            class="upvote-button"
+            aria-label="Toast this post"
+            title="Toast this post"
+        >
+            <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" class="css-i6dzq1">
+                <polyline points="17 11 12 6 7 11"></polyline>
+                <polyline points="17 18 12 13 7 18"></polyline>
+            </svg>
+            <small class="upvote-count" aria-hidden="true">&nbsp;</small>
+        </button>
+    </small>        
+</form>
+
+<script>
+    const $upvoteButton = document.querySelector('.upvote-button');
+    const $upvoteCount =  document.querySelector('.upvote-count')
+
+    fetch('/upvote-info/TZLevDvrhWSrwsAPWrWo/').then(response => response.json()).then(data => {
+        $upvoteCount.innerText = data.upvote_count;
+        if (data.upvoted) {
+            $upvoteButton.disabled = true
+            $upvoteButton.style.color = "salmon"
+            $upvoteButton.ariaLabel = "Toasted"
+            $upvoteButton.title = "Toasted"
+        }
+        $upvoteButton.ariaLabel += ` (${data.upvote_count})`
+    });
+
+    let moved = false;
+    let pageLoaded = Date.now();
+
+    document.addEventListener('touchmove', () => moved = true);
+    document.addEventListener('mousemove', () => moved = true);
+
+    document.querySelector('#upvote-form').addEventListener('submit', (e) => {
+        e.preventDefault();
+
+        if (moved) {
+            document.querySelector('input[name="title"]').value = "";
+        }
+        if (Date.now() - pageLoaded < 2000 || !moved) {
+            return;
+        }
+
+        fetch(e.target.action, {
+            method: 'post',
+            body: new FormData(e.target),
+        });
+        
+        $upvoteButton.disabled = true
+        $upvoteButton.style.color = "salmon"
+        $upvoteButton.ariaLabel = "Toasted"
+        $upvoteButton.title = "Toasted"
+        const newUpvoteCount = `${(parseInt($upvoteCount.innerHTML.split(" ")[0]) + 1)}`
+        $upvoteCount.innerHTML = newUpvoteCount
+        $upvoteButton.ariaLabel += ` (${newUpvoteCount})`
+    });
+</script>
+        
+
+        
+            <script>
+            window.addEventListener("load", () => {
+                if (navigator.webdriver !== true) {
+                    const sendHit = score => {
+                        const params = new URLSearchParams({
+                            blog: "veitner",
+                            token: "TZLevDvrhWSrwsAPWrWo",
+                            referrer: document.referrer.includes("veitner.bearblog.dev") ? "" : document.referrer,
+                            title: "",
+                            score: score
+                        });
+                        new Image().src = `/hit/?${params.toString()}`;
+                    };
+
+                    document.addEventListener('touchmove', () => sendHit(100), { once: true });
+                    document.addEventListener('mousemove', () => sendHit(100), { once: true });
+                }
+            });
+            </script>
+        
+    
+
+
+  </main>
+  <footer>
+    
+    
+    <span>
+        Powered by <a href="https://bearblog.dev">Bear <span role="img" class="bear" aria-label="ASCII bear logo">ʕ•ᴥ•ʔ</span></a>
+    </span>
+
+  </footer>
+
+  
+  <script>
+        (() => {
+          "use strict";
+          const times = document.querySelectorAll('time');
+          const format_string = "d M, Y" || "d M, Y"
+
+          times.forEach(time => {
+              time.innerText = formatDate(time.dateTime, format_string)
+          });
+
+          function formatDate(dateStr, formatStr) {
+            const date = new Date(dateStr);
+            const day = date.getDate();
+            const month = date.getMonth();
+            const year = date.getFullYear();
+            const weekday = date.getDay();
+            const hours = date.getHours();
+            const minutes = date.getMinutes();
+            const monthsFull = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+            const monthsShort = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+            const daysFull = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+            const daysShort = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+            
+            function getOrdinal(n) {
+                const s = ['th', 'st', 'nd', 'rd'];
+                const v = n % 100;
+                return s[(v - 20) % 10] || s[v] || s[0];
+            }
+            
+            const map = {
+                'd': () => day.toString().padStart(2, '0'),
+                'm': () => (month + 1).toString().padStart(2, '0'),
+                'Y': () => year.toString(),
+                'y': () => year.toString().slice(-2),
+                'F': () => monthsFull[month],
+                'j': () => day.toString(),
+                'D': () => daysShort[weekday],
+                'l': () => daysFull[weekday],
+                'S': () => getOrdinal(day),
+                'M': () => monthsShort[month],
+                'H': () => hours.toString().padStart(2, '0'),
+                'h': () => {
+                    let h = hours % 12;
+                    h = h === 0 ? 12 : h;
+                    return h.toString().padStart(2, '0');
+                },
+                'g': () => {
+                    let h = hours % 12;
+                    return h === 0 ? '12' : h.toString();
+                },
+                'i': () => minutes.toString().padStart(2, '0'),
+                'a': () => hours < 12 ? 'am' : 'pm',
+                'A': () => hours < 12 ? 'AM' : 'PM',
+            };
+            
+            let result = '';
+            for (let char of formatStr) {
+                result += map[char] ? map[char]() : char;
+            }
+            return result;
+        }
+        })();
+    </script>
+    
+</body>
+<!-- ID: veitner -->
+<!-- 🐻 -->
+</html>

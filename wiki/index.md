@@ -24,6 +24,7 @@ This wiki is organized primarily around research questions, with source notes an
 - [Model-performance ramp plan: DeepSeek V4 Flash, kernel depth, Blackwell](source-notes/model-performance-ramp-plan-deepseek-v4-flash-kernel-depth-blackwell.md)
 - [FlashAttention Papers 1-4](source-notes/flashattention-series.md)
 - [Dao-AILab QuACK CuTe Kernels README](source-notes/dao-ailab-quack-readme.md): CuTe DSL kernel library (memory-bound LLM kernels at near speed-of-light, Blackwell GEMM + block-scaled epilogues; no attention).
+- [Simon Veitner BearBlog CUDA/CuTeDSL Posts](source-notes/veitner-bearblog-cuda-cutedsl-posts.md): Complete 65-post snapshot covering CUDA, CuTeDSL, QuACK, Hopper, Blackwell/B200, NVFP4, and block-scaled GEMM material.
 - [Sparse attention for video diffusion: FA4 follow-on ramp](source-notes/sparse-attention-video-diffusion-fa4-follow-on-ramp.md)
 - [SemiAnalysisAI InferenceX README](source-notes/semianalysisai-inferencex-readme.md)
 - [InferenceMAX: Open Source Inference Benchmarking](source-notes/inferencemax-open-source-inference-benchmarking.md)

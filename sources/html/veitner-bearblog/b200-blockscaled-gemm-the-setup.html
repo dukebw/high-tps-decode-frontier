@@ -1,0 +1,1238 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!-- Powered by Bear Blog -->
+
+<head>
+  
+  
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5">
+  
+  <title>B200 Blockscaled GEMM - The setup | simons blog</title>
+  <link rel="canonical" href="https://veitner.bearblog.dev/b200-blockscaled-gemm-the-setup/">
+  
+    
+
+    <meta name="veitner" content="look-for-the-bear-necessities">
+    <meta name="token" content="EZqNLrsbcJwAryhRFtVc">
+
+    
+<!-- Primary Meta Tags -->
+<meta name="title" content="B200 Blockscaled GEMM - The setup">
+<meta name="description" content="Introduction
+
+This continues top down analysis of blockscaled GEMM example from CuTeDSL. In this blogpost I analyze the setup of the kernel, i.e. how are l...">
+
+<!-- Open Graph / Facebook -->
+<meta property="og:site_name" content="simons blog">
+<meta property="og:title" content="B200 Blockscaled GEMM - The setup">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://veitner.bearblog.dev/b200-blockscaled-gemm-the-setup/">
+<meta property="og:description" content="Introduction
+
+This continues top down analysis of blockscaled GEMM example from CuTeDSL. In this blogpost I analyze the setup of the kernel, i.e. how are l...">
+<meta property="og:image" content="/static/og-image.png">
+
+
+<!-- Twitter -->
+<meta property="twitter:card" content="summary">
+<meta property="twitter:url" content="https://veitner.bearblog.dev/b200-blockscaled-gemm-the-setup/">
+<meta property="twitter:title" content="B200 Blockscaled GEMM - The setup">
+<meta property="twitter:description" content="Introduction
+
+This continues top down analysis of blockscaled GEMM example from CuTeDSL. In this blogpost I analyze the setup of the kernel, i.e. how are l...">
+<meta property="twitter:image" content="/static/og-image.png">
+
+
+
+<!-- Microdata -->
+<script type="application/ld+json">
+  {
+    "@context": "http://schema.org",
+    "@type": "article",
+    "name": "B200 Blockscaled GEMM - The setup",
+    "headline": "B200 Blockscaled GEMM - The setup",
+    "url": "https://veitner.bearblog.dev/b200-blockscaled-gemm-the-setup/",
+    "description": "Introduction
+
+This continues top down analysis of blockscaled GEMM example from CuTeDSL. In this blogpost I analyze the setup of the kernel, i.e. how are l...",
+    "image": "/static/og-image.png"
+  }
+</script>
+    <link rel="alternate" type="application/atom+xml" href="/feed/" title="simons blog">
+    <link rel="alternate" type="application/rss+xml" href="/feed/?type=rss" title="simons blog">
+
+  
+    
+
+    
+    <style>pre { line-height: 125%; }
+td.linenos .normal { color: #666666; background-color: transparent; padding-left: 5px; padding-right: 5px; }
+span.linenos { color: #666666; background-color: transparent; padding-left: 5px; padding-right: 5px; }
+td.linenos .special { color: #000000; background-color: #ffffc0; padding-left: 5px; padding-right: 5px; }
+span.linenos.special { color: #000000; background-color: #ffffc0; padding-left: 5px; padding-right: 5px; }
+.highlight .hll { background-color: #ffffcc }
+.highlight { background: #f0f0f0; }
+.highlight .c { color: #60A0B0; font-style: italic } /* Comment */
+.highlight .err { border: 1px solid #F00 } /* Error */
+.highlight .k { color: #007020; font-weight: bold } /* Keyword */
+.highlight .o { color: #666 } /* Operator */
+.highlight .ch { color: #60A0B0; font-style: italic } /* Comment.Hashbang */
+.highlight .cm { color: #60A0B0; font-style: italic } /* Comment.Multiline */
+.highlight .cp { color: #007020 } /* Comment.Preproc */
+.highlight .cpf { color: #60A0B0; font-style: italic } /* Comment.PreprocFile */
+.highlight .c1 { color: #60A0B0; font-style: italic } /* Comment.Single */
+.highlight .cs { color: #60A0B0; background-color: #FFF0F0 } /* Comment.Special */
+.highlight .gd { color: #A00000 } /* Generic.Deleted */
+.highlight .ge { font-style: italic } /* Generic.Emph */
+.highlight .ges { font-weight: bold; font-style: italic } /* Generic.EmphStrong */
+.highlight .gr { color: #F00 } /* Generic.Error */
+.highlight .gh { color: #000080; font-weight: bold } /* Generic.Heading */
+.highlight .gi { color: #00A000 } /* Generic.Inserted */
+.highlight .go { color: #888 } /* Generic.Output */
+.highlight .gp { color: #C65D09; font-weight: bold } /* Generic.Prompt */
+.highlight .gs { font-weight: bold } /* Generic.Strong */
+.highlight .gu { color: #800080; font-weight: bold } /* Generic.Subheading */
+.highlight .gt { color: #04D } /* Generic.Traceback */
+.highlight .kc { color: #007020; font-weight: bold } /* Keyword.Constant */
+.highlight .kd { color: #007020; font-weight: bold } /* Keyword.Declaration */
+.highlight .kn { color: #007020; font-weight: bold } /* Keyword.Namespace */
+.highlight .kp { color: #007020 } /* Keyword.Pseudo */
+.highlight .kr { color: #007020; font-weight: bold } /* Keyword.Reserved */
+.highlight .kt { color: #902000 } /* Keyword.Type */
+.highlight .m { color: #40A070 } /* Literal.Number */
+.highlight .s { color: #4070A0 } /* Literal.String */
+.highlight .na { color: #4070A0 } /* Name.Attribute */
+.highlight .nb { color: #007020 } /* Name.Builtin */
+.highlight .nc { color: #0E84B5; font-weight: bold } /* Name.Class */
+.highlight .no { color: #60ADD5 } /* Name.Constant */
+.highlight .nd { color: #555; font-weight: bold } /* Name.Decorator */
+.highlight .ni { color: #D55537; font-weight: bold } /* Name.Entity */
+.highlight .ne { color: #007020 } /* Name.Exception */
+.highlight .nf { color: #06287E } /* Name.Function */
+.highlight .nl { color: #002070; font-weight: bold } /* Name.Label */
+.highlight .nn { color: #0E84B5; font-weight: bold } /* Name.Namespace */
+.highlight .nt { color: #062873; font-weight: bold } /* Name.Tag */
+.highlight .nv { color: #BB60D5 } /* Name.Variable */
+.highlight .ow { color: #007020; font-weight: bold } /* Operator.Word */
+.highlight .w { color: #BBB } /* Text.Whitespace */
+.highlight .mb { color: #40A070 } /* Literal.Number.Bin */
+.highlight .mf { color: #40A070 } /* Literal.Number.Float */
+.highlight .mh { color: #40A070 } /* Literal.Number.Hex */
+.highlight .mi { color: #40A070 } /* Literal.Number.Integer */
+.highlight .mo { color: #40A070 } /* Literal.Number.Oct */
+.highlight .sa { color: #4070A0 } /* Literal.String.Affix */
+.highlight .sb { color: #4070A0 } /* Literal.String.Backtick */
+.highlight .sc { color: #4070A0 } /* Literal.String.Char */
+.highlight .dl { color: #4070A0 } /* Literal.String.Delimiter */
+.highlight .sd { color: #4070A0; font-style: italic } /* Literal.String.Doc */
+.highlight .s2 { color: #4070A0 } /* Literal.String.Double */
+.highlight .se { color: #4070A0; font-weight: bold } /* Literal.String.Escape */
+.highlight .sh { color: #4070A0 } /* Literal.String.Heredoc */
+.highlight .si { color: #70A0D0; font-style: italic } /* Literal.String.Interpol */
+.highlight .sx { color: #C65D09 } /* Literal.String.Other */
+.highlight .sr { color: #235388 } /* Literal.String.Regex */
+.highlight .s1 { color: #4070A0 } /* Literal.String.Single */
+.highlight .ss { color: #517918 } /* Literal.String.Symbol */
+.highlight .bp { color: #007020 } /* Name.Builtin.Pseudo */
+.highlight .fm { color: #06287E } /* Name.Function.Magic */
+.highlight .vc { color: #BB60D5 } /* Name.Variable.Class */
+.highlight .vg { color: #BB60D5 } /* Name.Variable.Global */
+.highlight .vi { color: #BB60D5 } /* Name.Variable.Instance */
+.highlight .vm { color: #BB60D5 } /* Name.Variable.Magic */
+.highlight .il { color: #40A070 } /* Literal.Number.Integer.Long */
+</style>
+  
+  
+  
+    
+        <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20100%20100'%3E%3Ctext%20y='.9em'%20font-size='90'%3E🐼%3C/text%3E%3C/svg%3E">
+    
+
+
+
+  <style>
+      
+      
+    
+:root {
+    --width: 720px;
+    --font-main: Verdana, sans-serif;
+    --font-secondary: Verdana, sans-serif;
+    --font-scale: 1em;
+    --background-color: #fff;
+    --heading-color: #222;
+    --text-color: #444;
+    --link-color: #3273dc;
+    --visited-color:  #8b6fcb;
+    --code-background-color: #f2f2f2;
+    --code-color: #222;
+    --blockquote-color: #222;
+}
+
+@media (prefers-color-scheme: dark) {
+    :root {
+        --background-color: #01242e;
+        --heading-color: #eee;
+        --text-color: #ddd;
+        --link-color: #8cc2dd;
+        --visited-color:  #8b6fcb;
+        --code-background-color: #000;
+        --code-color: #ddd;
+        --blockquote-color: #ccc;
+    }
+}
+
+body {
+    font-family: var(--font-secondary);
+    font-size: var(--font-scale);
+    margin: auto;
+    padding: 20px;
+    max-width: var(--width);
+    text-align: left;
+    background-color: var(--background-color);
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    line-height: 1.5;
+    color: var(--text-color);
+}
+
+h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-main);
+    color: var(--heading-color);
+}
+
+a {
+    color: var(--link-color);
+    cursor: pointer;
+    text-decoration: none;
+}
+
+a:hover {
+    text-decoration: underline; 
+}
+
+nav a {
+    margin-right: 8px;
+}
+
+strong, b {
+    color: var(--heading-color);
+}
+
+button {
+    margin: 0;
+    cursor: pointer;
+}
+
+time {
+ 	font-family: monospace;
+  	font-style: normal;
+  	font-size: 15px;
+}
+
+main {
+    line-height: 1.6;
+}
+
+table {
+    width: 100%;
+}
+
+hr {
+    border: 0;
+    border-top: 1px dashed;
+}
+
+img {
+    max-width: 100%;
+}
+
+code {
+    font-family: monospace;
+    padding: 2px;
+    background-color: var(--code-background-color);
+    color: var(--code-color);
+    border-radius: 3px;
+}
+
+blockquote {
+    border-left: 1px solid #999;
+    color: var(--code-color);
+    padding-left: 20px;
+    font-style: italic;
+}
+
+footer {
+    padding: 25px 0;
+    text-align: center;
+}
+
+.title:hover {
+    text-decoration: none;
+}
+
+.title h1 {
+    font-size: 1.5em;
+}
+
+.inline {
+    width: auto !important;
+}
+
+.highlight, .code {
+    padding: 1px 15px;
+    background-color: var(--code-background-color);
+    color: var(--code-color);
+    border-radius: 3px;
+    margin-block-start: 1em;
+    margin-block-end: 1em;
+    overflow-x: auto;
+}
+
+/* blog post list */
+ul.blog-posts {
+    list-style-type: none;
+    padding: unset;
+}
+
+ul.blog-posts li {
+    display: flex;
+}
+
+ul.blog-posts li span {
+    flex: 0 0 130px;
+}
+
+ul.blog-posts li a:visited {
+    color: var(--visited-color);
+}
+    .upvote-button {
+        padding: 0;
+        margin: 0;
+        border: 0;
+        background-color: inherit;
+        color: inherit;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+    .upvote-button.upvoted {
+        color: salmon;
+    }
+    .upvote-count {
+        margin-top: -3px;
+    }
+
+      
+  </style>
+</head>
+
+<body class="post " onload="(function() { document.cookie = `timezone=${Intl.DateTimeFormat().resolvedOptions().timeZone};path=/`; })()">
+  
+  <header>
+    <a class="title" href="/">
+      <h1>
+        simons blog
+      </h1>
+    </a>
+    <nav>
+      <p><a href='/'>Home</a> <a href='/blog/'>Blog</a></p>
+
+    </nav>
+  </header>
+  <main>
+    
+
+    
+
+    
+        <h1>B200 Blockscaled GEMM - The setup</h1>
+
+        <p>
+            <i>
+                <time datetime="2025-12-06T18:58Z">
+    06 Dec, 2025
+</time>
+            </i>
+        </p>
+    
+
+    <h2 id=introduction>Introduction</h2><p>This continues top down analysis of <a href='https://github.com/NVIDIA/cutlass/blob/main/examples/python/CuTeDSL/blackwell/dense_blockscaled_gemm_persistent.py#L322'>blockscaled GEMM</a> example from <code>CuTeDSL</code>. In this blogpost I analyze the setup of the kernel, i.e. how are layouts calculated, how are MMA ops setup etc. You may find my <a href='https://veitner.bearblog.dev/scale-tensor-construction-in-cutedsl/'>previous blogpost</a> helpful before diving into this one.</p>
+<h2 id=code__call__code><code>__call__</code></h2><p>Initial setup. Last time we analysed in depth how <a href='https://veitner.bearblog.dev/scale-tensor-construction-in-cutedsl/'>scaled tensors</a> are constructed. TLDR: We determine the atom via datatype and than use <code>tile_to_shape</code> to match the size to their "non scaling factor" counterparts.</p>
+<div class="highlight"><pre><span></span>        <span class="c1"># Setup static attributes before smem/grid/tma computation</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">a_dtype</span><span class="p">:</span> <span class="n">Type</span><span class="p">[</span><span class="n">cutlass</span><span class="o">.</span><span class="n">Numeric</span><span class="p">]</span> <span class="o">=</span> <span class="n">a_tensor</span><span class="o">.</span><span class="n">element_type</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">b_dtype</span><span class="p">:</span> <span class="n">Type</span><span class="p">[</span><span class="n">cutlass</span><span class="o">.</span><span class="n">Numeric</span><span class="p">]</span> <span class="o">=</span> <span class="n">b_tensor</span><span class="o">.</span><span class="n">element_type</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sf_dtype</span><span class="p">:</span> <span class="n">Type</span><span class="p">[</span><span class="n">cutlass</span><span class="o">.</span><span class="n">Numeric</span><span class="p">]</span> <span class="o">=</span> <span class="n">sf_dtype</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">c_dtype</span><span class="p">:</span> <span class="n">Type</span><span class="p">[</span><span class="n">cutlass</span><span class="o">.</span><span class="n">Numeric</span><span class="p">]</span> <span class="o">=</span> <span class="n">c_tensor</span><span class="o">.</span><span class="n">element_type</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">a_major_mode</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">LayoutEnum</span><span class="o">.</span><span class="n">from_tensor</span><span class="p">(</span><span class="n">a_tensor</span><span class="p">)</span><span class="o">.</span><span class="n">mma_major_mode</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">b_major_mode</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">LayoutEnum</span><span class="o">.</span><span class="n">from_tensor</span><span class="p">(</span><span class="n">b_tensor</span><span class="p">)</span><span class="o">.</span><span class="n">mma_major_mode</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">c_layout</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">LayoutEnum</span><span class="o">.</span><span class="n">from_tensor</span><span class="p">(</span><span class="n">c_tensor</span><span class="p">)</span>
+
+        <span class="c1"># Check if input data types are compatible with MMA instruction</span>
+        <span class="k">if</span> <span class="n">cutlass</span><span class="o">.</span><span class="n">const_expr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">a_dtype</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">b_dtype</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Type must match: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">a_dtype</span><span class="si">}</span><span class="s2"> != </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">b_dtype</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="c1"># Setup attributes that dependent on gemm inputs</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_setup_attributes</span><span class="p">()</span>
+
+        <span class="c1"># Setup sfa/sfb tensor by filling A/B tensor to scale factor atom layout</span>
+        <span class="c1"># ((Atom_M, Rest_M),(Atom_K, Rest_K),RestL)</span>
+        <span class="n">sfa_layout</span> <span class="o">=</span> <span class="n">blockscaled_utils</span><span class="o">.</span><span class="n">tile_atom_to_shape_SF</span><span class="p">(</span>
+            <span class="n">a_tensor</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">sf_vec_size</span>
+        <span class="p">)</span>
+        <span class="n">sfa_tensor</span> <span class="o">=</span> <span class="n">cute</span><span class="o">.</span><span class="n">make_tensor</span><span class="p">(</span><span class="n">sfa_ptr</span><span class="p">,</span> <span class="n">sfa_layout</span><span class="p">)</span>
+
+        <span class="c1"># ((Atom_N, Rest_N),(Atom_K, Rest_K),RestL)</span>
+        <span class="n">sfb_layout</span> <span class="o">=</span> <span class="n">blockscaled_utils</span><span class="o">.</span><span class="n">tile_atom_to_shape_SF</span><span class="p">(</span>
+            <span class="n">b_tensor</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">sf_vec_size</span>
+        <span class="p">)</span>
+        <span class="n">sfb_tensor</span> <span class="o">=</span> <span class="n">cute</span><span class="o">.</span><span class="n">make_tensor</span><span class="p">(</span><span class="n">sfb_ptr</span><span class="p">,</span> <span class="n">sfb_layout</span><span class="p">)</span>
+</pre></div>
+<p>Let us now take closer look at <code>_setup_attributes</code> function.</p>
+<p>From docstring we can get a feeling on how many different parts are handled in this helper function. We will below analyze step by step.</p>
+<div class="highlight"><pre><span></span>    <span class="k">def</span><span class="w"> </span><span class="nf">_setup_attributes</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Set up configurations that are dependent on GEMM inputs</span>
+
+<span class="sd">        This method configures various attributes based on the input tensor properties</span>
+<span class="sd">        (data types, leading dimensions) and kernel settings:</span>
+<span class="sd">        - Configuring tiled MMA</span>
+<span class="sd">        - Computing MMA/cluster/tile shapes</span>
+<span class="sd">        - Computing cluster layout</span>
+<span class="sd">        - Computing multicast CTAs for A/B/SFA/SFB</span>
+<span class="sd">        - Computing epilogue subtile</span>
+<span class="sd">        - Setting up A/B/SFA/SFB/C stage counts in shared memory</span>
+<span class="sd">        - Computing A/B/SFA/SFB/C shared memory layout</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+</pre></div>
+<p>For the <code>mma_inst_shape_mn</code> it is simply the attributes from <code>mma_tiler</code>. For the <code>sfb</code> we will slightly modify the instruction shape. In case of <code>2 CTA</code> invocation of the kernel we adjust the <code>M</code> tiler to half of its original value.</p>
+<div class="highlight"><pre><span></span>        <span class="c1"># Compute mma instruction shapes</span>
+        <span class="c1"># (MMA_Tile_Shape_M, MMA_Tile_Shape_N, MMA_Inst_Shape_K)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mma_inst_shape_mn</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">mma_tiler</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">mma_tiler</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span>
+        <span class="p">)</span>
+        <span class="c1"># (CTA_Tile_Shape_M, Round_Up(MMA_Tile_Shape_N, 128), MMA_Inst_Shape_K)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mma_inst_shape_mn_sfb</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">mma_inst_shape_mn</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">//</span> <span class="p">(</span><span class="mi">2</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">use_2cta_instrs</span> <span class="k">else</span> <span class="mi">1</span><span class="p">),</span>
+            <span class="n">cute</span><span class="o">.</span><span class="n">round_up</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mma_inst_shape_mn</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="mi">128</span><span class="p">),</span>
+        <span class="p">)</span>
+</pre></div>
+<p><code>cute.round_up</code> boils in the above code snipped essentially down to:</p>
+<div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">round_up</span><span class="p">(</span><span class="n">a</span><span class="p">:</span> <span class="n">IntTuple</span><span class="p">,</span> <span class="n">b</span><span class="p">:</span> <span class="n">IntTuple</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">IntTuple</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Rounds up elements of a using elements of b.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="o">...</span>
+    <span class="k">return</span> <span class="p">((</span><span class="n">a</span> <span class="o">+</span> <span class="n">b</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">//</span> <span class="n">b</span><span class="p">)</span> <span class="o">*</span> <span class="n">b</span>
+</pre></div>
+<p>IMO the docstring is little bit cryptic.  In math notation it means <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>&#x02308;</mi><mfrac><mrow><mi>a</mi></mrow><mrow><mi>b</mi></mrow></mfrac><mi>&#x02309;</mi><mi>&#x000B7;</mi><mi>b</mi></mrow></math>. That means we consider how often we can fit <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>b</mi></mrow></math> into <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>a</mi></mrow></math>, than round this up to the next integer and use it to rescale <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>b</mi></mrow></math>. For example if we had <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>b</mi><mi>N</mi><mo>&#x0003D;</mo><mn>128</mn></mrow></math> we would have <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>&#x02308;</mi><mfrac><mrow><mi>b</mi><mi>N</mi></mrow><mrow><mn>128</mn></mrow></mfrac><mi>&#x02309;</mi><mi>b</mi><mo>&#x0003D;</mo><mn>128</mn></mrow></math>. A different case could be <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>b</mi><mi>N</mi><mo>&#x0003D;</mo><mn>192</mn></mrow></math> we for which we had <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>&#x02308;</mi><mfrac><mrow><mn>192</mn></mrow><mrow><mn>128</mn></mrow></mfrac><mi>&#x02309;</mi><mn>128</mn><mo>&#x0003D;</mo><mn>256</mn></mrow></math>.</p>
+<p>Next step is to setup <code>tiled_mma</code> for both. We immediately see that irrespective if we set <code>2 CTA</code> instruction the <code>SFB</code> will use <code>cute.nvgpu.tcgen05.CtaGroup.ONE</code> as parameter. From above we know that in this case we will also have scaled down the corresponding tile dimension <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>b</mi><mi>M</mi></mrow></math> by a factor of to in order to account for that.</p>
+<div class="highlight"><pre><span></span>        <span class="n">tiled_mma</span> <span class="o">=</span> <span class="n">sm100_utils</span><span class="o">.</span><span class="n">make_blockscaled_trivial_tiled_mma</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">a_dtype</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">a_major_mode</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">b_major_mode</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">sf_dtype</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">sf_vec_size</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">cta_group</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">mma_inst_shape_mn</span><span class="p">,</span>
+        <span class="p">)</span>
+
+        <span class="n">tiled_mma_sfb</span> <span class="o">=</span> <span class="n">sm100_utils</span><span class="o">.</span><span class="n">make_blockscaled_trivial_tiled_mma</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">a_dtype</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">a_major_mode</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">b_major_mode</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">sf_dtype</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">sf_vec_size</span><span class="p">,</span>
+            <span class="n">cute</span><span class="o">.</span><span class="n">nvgpu</span><span class="o">.</span><span class="n">tcgen05</span><span class="o">.</span><span class="n">CtaGroup</span><span class="o">.</span><span class="n">ONE</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">mma_inst_shape_mn_sfb</span><span class="p">,</span>
+        <span class="p">)</span>
+</pre></div>
+<p><code>make_blockscaled_trivial_tiled_mma</code> indeed constructs a trivial tiled mma. It is nothing special going on here. Based on datatype we select corresponding <code>MMAOp</code>. Note that instruction shape into <code>K</code> mode is fixed at <code>64</code> which agrees with table in <a href='https://docs.nvidia.com/cuda/parallel-thread-execution/#tcgen05-matrix-shape'>PTX docs</a>.</p>
+<div class="highlight"><pre><span></span><span class="nd">@dsl_user_op</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">make_blockscaled_trivial_tiled_mma</span><span class="p">(</span>
+    <span class="n">ab_dtype</span><span class="p">:</span> <span class="n">Type</span><span class="p">[</span><span class="n">Numeric</span><span class="p">],</span>
+    <span class="n">a_leading_mode</span><span class="p">:</span> <span class="n">OperandMajorMode</span><span class="p">,</span>
+    <span class="n">b_leading_mode</span><span class="p">:</span> <span class="n">OperandMajorMode</span><span class="p">,</span>
+    <span class="n">sf_dtype</span><span class="p">:</span> <span class="n">Type</span><span class="p">[</span><span class="n">Numeric</span><span class="p">],</span>
+    <span class="n">sf_vec_size</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+    <span class="n">cta_group</span><span class="p">:</span> <span class="n">CtaGroup</span><span class="p">,</span>
+    <span class="n">mma_tiler_mn</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">],</span>
+    <span class="n">a_source</span><span class="p">:</span> <span class="n">OperandSource</span> <span class="o">=</span> <span class="n">OperandSource</span><span class="o">.</span><span class="n">SMEM</span><span class="p">,</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">loc</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">ip</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">cute</span><span class="o">.</span><span class="n">TiledMma</span><span class="p">:</span>
+	<span class="o">...</span>
+    <span class="k">if</span> <span class="n">ab_dtype</span> <span class="ow">in</span> <span class="p">{</span><span class="n">Float8E4M3FN</span><span class="p">,</span> <span class="n">Float8E5M2</span><span class="p">}:</span>
+        <span class="n">mma_op</span> <span class="o">=</span> <span class="n">MmaMXF8Op</span><span class="p">(</span>
+            <span class="n">ab_dtype</span><span class="p">,</span>
+            <span class="p">(</span><span class="o">*</span><span class="n">mma_tiler_mn</span><span class="p">,</span> <span class="mi">32</span><span class="p">),</span>
+            <span class="n">cta_group</span><span class="p">,</span>
+            <span class="n">a_source</span><span class="p">,</span>
+            <span class="n">a_leading_mode</span><span class="p">,</span>
+            <span class="n">b_leading_mode</span><span class="p">,</span>
+        <span class="p">)</span>
+    <span class="k">elif</span> <span class="n">ab_dtype</span> <span class="o">==</span> <span class="n">Float4E2M1FN</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">sf_vec_size</span> <span class="o">==</span> <span class="mi">32</span><span class="p">:</span>
+            <span class="n">mma_op</span> <span class="o">=</span> <span class="n">MmaMXF4Op</span><span class="p">(</span>
+                <span class="p">(</span><span class="o">*</span><span class="n">mma_tiler_mn</span><span class="p">,</span> <span class="mi">64</span><span class="p">),</span>
+                <span class="n">cta_group</span><span class="p">,</span>
+                <span class="n">a_source</span><span class="p">,</span>
+            <span class="p">)</span>
+        <span class="k">elif</span> <span class="n">sf_vec_size</span> <span class="o">==</span> <span class="mi">16</span><span class="p">:</span>
+            <span class="n">mma_op</span> <span class="o">=</span> <span class="n">MmaMXF4NVF4Op</span><span class="p">(</span>
+                <span class="n">sf_dtype</span><span class="p">,</span>
+                <span class="p">(</span><span class="o">*</span><span class="n">mma_tiler_mn</span><span class="p">,</span> <span class="mi">64</span><span class="p">),</span>
+                <span class="n">cta_group</span><span class="p">,</span>
+                <span class="n">a_source</span><span class="p">,</span>
+            <span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;unsupported sf_vec_size, got </span><span class="si">{</span><span class="n">sf_vec_size</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;unsupported ab_dtype, got </span><span class="si">{</span><span class="n">ab_dtype</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">cute</span><span class="o">.</span><span class="n">make_tiled_mma</span><span class="p">(</span>
+        <span class="n">cute</span><span class="o">.</span><span class="n">make_mma_atom</span><span class="p">(</span><span class="n">mma_op</span><span class="p">,</span> <span class="n">loc</span><span class="o">=</span><span class="n">loc</span><span class="p">,</span> <span class="n">ip</span><span class="o">=</span><span class="n">ip</span><span class="p">),</span> <span class="n">loc</span><span class="o">=</span><span class="n">loc</span><span class="p">,</span> <span class="n">ip</span><span class="o">=</span><span class="n">ip</span>
+    <span class="p">)</span>
+</pre></div>
+<p>We use <code>tiled_mma</code> to obtain the full <code>mma_tiler</code>. The size of <code>thr_id.shape</code> will be 1 or 2 depending if we use <code>2 CTA</code> instruction. If we use <code>2 CTA</code> instruction two <code>CTAs</code> will collaboratively compute <code>MMA</code> for one tile and therefore we will scale the <code>CTA</code> level tile accordingly.</p>
+<div class="highlight"><pre><span></span>        <span class="c1"># Compute mma/cluster/tile shapes</span>
+        <span class="n">mma_inst_shape_k</span> <span class="o">=</span> <span class="n">cute</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="n">tiled_mma</span><span class="o">.</span><span class="n">shape_mnk</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
+        <span class="n">mma_inst_tile_k</span> <span class="o">=</span> <span class="mi">4</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mma_tiler</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">mma_inst_shape_mn</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">mma_inst_shape_mn</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span>
+            <span class="n">mma_inst_shape_k</span> <span class="o">*</span> <span class="n">mma_inst_tile_k</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mma_tiler_sfb</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">mma_inst_shape_mn_sfb</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">mma_inst_shape_mn_sfb</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span>
+            <span class="n">mma_inst_shape_k</span> <span class="o">*</span> <span class="n">mma_inst_tile_k</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cta_tile_shape_mnk</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">mma_tiler</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">//</span> <span class="n">cute</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="n">tiled_mma</span><span class="o">.</span><span class="n">thr_id</span><span class="o">.</span><span class="n">shape</span><span class="p">),</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">mma_tiler</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">mma_tiler</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cta_tile_shape_mnk_sfb</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">mma_tiler_sfb</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">//</span> <span class="n">cute</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="n">tiled_mma</span><span class="o">.</span><span class="n">thr_id</span><span class="o">.</span><span class="n">shape</span><span class="p">),</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">mma_tiler_sfb</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">mma_tiler_sfb</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span>
+        <span class="p">)</span>
+</pre></div>
+<p>Similar we will rescale cluster layout depending if we use <code>2 CTA</code> instruction. We furthermore save information if we use multicast for TMA transfer of <code>a/b</code> depending on the cluster dimension in the direction of corresponding Major mode.</p>
+<div class="highlight"><pre><span></span>        <span class="c1"># Compute cluster layout</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cluster_layout_vmnk</span> <span class="o">=</span> <span class="n">cute</span><span class="o">.</span><span class="n">tiled_divide</span><span class="p">(</span>
+            <span class="n">cute</span><span class="o">.</span><span class="n">make_layout</span><span class="p">((</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">cluster_shape_mn</span><span class="p">,</span> <span class="mi">1</span><span class="p">)),</span>
+            <span class="p">(</span><span class="n">tiled_mma</span><span class="o">.</span><span class="n">thr_id</span><span class="o">.</span><span class="n">shape</span><span class="p">,),</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cluster_layout_sfb_vmnk</span> <span class="o">=</span> <span class="n">cute</span><span class="o">.</span><span class="n">tiled_divide</span><span class="p">(</span>
+            <span class="n">cute</span><span class="o">.</span><span class="n">make_layout</span><span class="p">((</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">cluster_shape_mn</span><span class="p">,</span> <span class="mi">1</span><span class="p">)),</span>
+            <span class="p">(</span><span class="n">tiled_mma_sfb</span><span class="o">.</span><span class="n">thr_id</span><span class="o">.</span><span class="n">shape</span><span class="p">,),</span>
+        <span class="p">)</span>
+
+        <span class="c1"># Compute number of multicast CTAs for A/B</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">num_mcast_ctas_a</span> <span class="o">=</span> <span class="n">cute</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cluster_layout_vmnk</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">num_mcast_ctas_b</span> <span class="o">=</span> <span class="n">cute</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cluster_layout_vmnk</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">num_mcast_ctas_sfb</span> <span class="o">=</span> <span class="n">cute</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cluster_layout_sfb_vmnk</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">is_a_mcast</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_mcast_ctas_a</span> <span class="o">&gt;</span> <span class="mi">1</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">is_b_mcast</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_mcast_ctas_b</span> <span class="o">&gt;</span> <span class="mi">1</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">is_sfb_mcast</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_mcast_ctas_sfb</span> <span class="o">&gt;</span> <span class="mi">1</span>
+</pre></div>
+<p>In Epilogue we will transfer in tiles. Tiles are determined here:</p>
+<div class="highlight"><pre><span></span>        <span class="c1"># Compute epilogue subtile</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">epi_tile</span> <span class="o">=</span> <span class="n">sm100_utils</span><span class="o">.</span><span class="n">compute_epilogue_tile_shape</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">cta_tile_shape_mnk</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">use_2cta_instrs</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">c_layout</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">c_dtype</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">epi_tile_n</span> <span class="o">=</span> <span class="n">cute</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">epi_tile</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+</pre></div>
+<p>Let us analyse corresponding helper function to understand how it is determined.</p>
+<p>From the signature we see that this is heuristic to choose good epi tile. We perform direct calculation, so we can safely ignore the parameters <code>layout_c</code> and <code>elem_ty_c</code>.</p>
+<div class="highlight"><pre><span></span><span class="nd">@dsl_user_op</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">compute_epilogue_tile_shape</span><span class="p">(</span>
+    <span class="n">cta_tile_shape</span><span class="p">:</span> <span class="n">cute</span><span class="o">.</span><span class="n">Shape</span><span class="p">,</span>
+    <span class="n">use_2cta_instrs</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
+    <span class="n">layout_d</span><span class="p">:</span> <span class="n">LayoutEnum</span><span class="p">,</span>
+    <span class="n">elem_ty_d</span><span class="p">:</span> <span class="n">Type</span><span class="p">[</span><span class="n">Numeric</span><span class="p">],</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">layout_c</span><span class="p">:</span> <span class="n">LayoutEnum</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">elem_ty_c</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">Type</span><span class="p">[</span><span class="n">Numeric</span><span class="p">],</span> <span class="kc">None</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">loc</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">ip</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">cute</span><span class="o">.</span><span class="n">Tile</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Attempts to compute a reasonable epilogue tile based on block tile shape or allows the user to provide one.</span>
+
+<span class="sd">    :param cta_tile_shape: A tuple or list representing the dimensions of the CTA tile, where</span>
+<span class="sd">        cta_tile_shape[0] corresponds to the height (M) and cta_tile_shape[1]</span>
+<span class="sd">        corresponds to the width (N) of the tile.</span>
+<span class="sd">    :type cta_tile_shape: cute.Shape</span>
+<span class="sd">    :param use_2cta_instrs: A flag indicating whether the configuration is for a 2SM setup.</span>
+<span class="sd">    :type use_2cta_instrs: bool</span>
+<span class="sd">    :param layout_d: The layout enum of the output tensor D.</span>
+<span class="sd">    :type layout_d: LayoutEnum</span>
+<span class="sd">    :param elem_ty_d: The element type of output tensor D.</span>
+<span class="sd">    :type elem_ty_d: Type[Numeric]</span>
+<span class="sd">    :param layout_c: The layout enum of the input tensor C. Defaults to None.</span>
+<span class="sd">    :type layout_c: LayoutEnum, optional</span>
+<span class="sd">    :param elem_ty_c: The element type for input tensor C. Defaults to None.</span>
+<span class="sd">    :type elem_ty_c: Union[Type[Numeric], None], optional</span>
+
+<span class="sd">    :return: Returns epilog tiler, which is used in subsequent epilog partitions.</span>
+<span class="sd">    :rtype: cute.Tile</span>
+
+<span class="sd">    :raises ValueError: If the computed tile cute.size does not meet minimum requirements based on CTA dimensions.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+</pre></div>
+<div class="highlight"><pre><span></span>    <span class="n">cta_m</span><span class="p">,</span> <span class="n">cta_n</span> <span class="o">=</span> <span class="n">cta_tile_shape</span><span class="p">[:</span><span class="mi">2</span><span class="p">]</span>
+    <span class="p">(</span><span class="n">warp_m</span><span class="p">,</span> <span class="n">warp_n</span><span class="p">)</span> <span class="o">=</span> <span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span> <span class="k">if</span> <span class="p">(</span><span class="n">cta_m</span> <span class="o">==</span> <span class="mi">64</span> <span class="ow">and</span> <span class="n">use_2cta_instrs</span><span class="p">)</span> <span class="k">else</span> <span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="n">disable_source</span> <span class="o">=</span> <span class="n">elem_ty_c</span> <span class="o">==</span> <span class="kc">None</span>
+    <span class="n">max_bits</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">elem_ty_d</span><span class="o">.</span><span class="n">width</span> <span class="k">if</span> <span class="n">disable_source</span> <span class="k">else</span> <span class="nb">max</span><span class="p">(</span><span class="n">elem_ty_c</span><span class="o">.</span><span class="n">width</span><span class="p">,</span> <span class="n">elem_ty_d</span><span class="o">.</span><span class="n">width</span><span class="p">)</span>
+    <span class="p">)</span>
+</pre></div>
+<p>Note from above</p>
+<div class="highlight"><pre><span></span>        <span class="bp">self</span><span class="o">.</span><span class="n">cta_tile_shape_mnk</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">mma_tiler</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">//</span> <span class="n">cute</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="n">tiled_mma</span><span class="o">.</span><span class="n">thr_id</span><span class="o">.</span><span class="n">shape</span><span class="p">),</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">mma_tiler</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">mma_tiler</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span>
+        <span class="p">)</span>
+</pre></div>
+<p>and we furthermore have:</p>
+<div class="highlight"><pre><span></span><span class="bp">self</span><span class="o">.</span><span class="n">use_2cta_instrs</span> <span class="o">=</span> <span class="n">mma_tiler_mn</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="mi">256</span>
+</pre></div>
+<p>So effectively we will always choose <code>(warp_m, warp_n) = (4,1)</code> for our kernel. <code>disable_source</code> is <code>True</code> so we will calculate <code>max_bits</code> as the number of bits in one element of the <code>d</code> Tensor. Let's consider case where we accumulate into <code>Float16</code>, than we obviously have <code>max_bits = 16</code>.</p>
+<p>So for <code>NVFP4</code> we have:</p>
+<div class="highlight"><pre><span></span>(warp_m, warp_n) = (4, 1)
+max_bits = 16
+</pre></div>
+<div class="highlight"><pre><span></span>    <span class="n">dp_full</span> <span class="o">=</span> <span class="mi">32</span>
+    <span class="n">tile_m</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">cta_m</span><span class="p">,</span> <span class="n">dp_full</span> <span class="o">*</span> <span class="n">warp_m</span><span class="p">)</span>
+    <span class="n">n_perf</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">if</span> <span class="n">disable_source</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">max_bits</span> <span class="o">==</span> <span class="mi">4</span><span class="p">:</span>
+            <span class="n">compute_elts</span> <span class="o">=</span> <span class="mi">8192</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">compute_elts</span> <span class="o">=</span> <span class="mi">4096</span>
+        <span class="n">n_perf</span> <span class="o">=</span> <span class="n">compute_elts</span> <span class="o">//</span> <span class="n">tile_m</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">max_bits</span> <span class="o">==</span> <span class="mi">32</span><span class="p">:</span>
+            <span class="n">n_perf</span> <span class="o">=</span> <span class="mi">16</span> <span class="k">if</span> <span class="p">(</span><span class="n">cta_m</span> <span class="o">&gt;</span> <span class="mi">64</span> <span class="ow">and</span> <span class="n">cta_n</span> <span class="o">&lt;=</span> <span class="mi">128</span><span class="p">)</span> <span class="k">else</span> <span class="mi">32</span>
+        <span class="k">elif</span> <span class="n">max_bits</span> <span class="o">==</span> <span class="mi">16</span><span class="p">:</span>
+            <span class="n">n_perf</span> <span class="o">=</span> <span class="mi">32</span> <span class="k">if</span> <span class="n">cta_n</span> <span class="o">&lt;=</span> <span class="mi">128</span> <span class="k">else</span> <span class="mi">64</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">n_perf</span> <span class="o">=</span> <span class="mi">64</span>
+</pre></div>
+<p>The <code>tile_m = min(128, 32 * 4) = 128</code>, we'll than select <code>n_perf = 4096 // 128 = 32</code>.</p>
+<div class="highlight"><pre><span></span>    <span class="n">d_is_m_major</span> <span class="o">=</span> <span class="n">layout_d</span><span class="o">.</span><span class="n">is_m_major_c</span><span class="p">()</span>
+    <span class="n">c_is_m_major</span> <span class="o">=</span> <span class="kc">True</span> <span class="k">if</span> <span class="n">layout_c</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">layout_c</span><span class="o">.</span><span class="n">is_m_major_c</span><span class="p">()</span>
+
+    <span class="n">n_min_d</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="mi">8</span> <span class="o">*</span> <span class="n">warp_n</span>
+        <span class="k">if</span> <span class="n">d_is_m_major</span>
+        <span class="k">else</span> <span class="p">(</span><span class="mi">128</span> <span class="o">*</span> <span class="n">warp_n</span> <span class="k">if</span> <span class="n">elem_ty_d</span><span class="o">.</span><span class="n">width</span> <span class="o">==</span> <span class="mi">6</span> <span class="k">else</span> <span class="mi">128</span> <span class="o">//</span> <span class="n">elem_ty_d</span><span class="o">.</span><span class="n">width</span> <span class="o">*</span> <span class="n">warp_n</span><span class="p">)</span>
+    <span class="p">)</span>
+    <span class="n">n_min_c</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="mi">8</span> <span class="o">*</span> <span class="n">warp_n</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">c_is_m_major</span> <span class="ow">or</span> <span class="n">disable_source</span><span class="p">)</span>
+        <span class="k">else</span> <span class="p">(</span><span class="mi">128</span> <span class="o">*</span> <span class="n">warp_n</span> <span class="k">if</span> <span class="n">elem_ty_c</span><span class="o">.</span><span class="n">width</span> <span class="o">==</span> <span class="mi">6</span> <span class="k">else</span> <span class="mi">128</span> <span class="o">//</span> <span class="n">elem_ty_c</span><span class="o">.</span><span class="n">width</span> <span class="o">*</span> <span class="n">warp_n</span><span class="p">)</span>
+    <span class="p">)</span>
+    <span class="n">tile_n</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">cta_n</span><span class="p">,</span> <span class="nb">max</span><span class="p">(</span><span class="n">n_perf</span><span class="p">,</span> <span class="n">n_min_c</span><span class="p">,</span> <span class="n">n_min_d</span><span class="p">))</span>
+</pre></div>
+<p>If we use <code>NVFP4</code> <code>d</code> will be <code>N</code> major. So we set <code>n_min_d = 128 // 16 * 1 = 8</code>. This is number of elements that fits into <code>128</code> bit instruction.</p>
+<p><code>tile_n = min(cta_n, max(n_perf, n_min_c, n_min_d)) = n_perf = 32</code>.</p>
+<p><code>tile_n_layout</code> is first set to <code>(n_perf, 1) : (1, cta_n)</code> which than gets coalesced. Note that coalescing will remove the second mode because it won't change the associated layout function so we end up with two layouts:</p>
+<div class="highlight"><pre><span></span>128:1, 32:1
+</pre></div>
+<p>the corresponding code is</p>
+<div class="highlight"><pre><span></span>    <span class="n">tile_m_layout</span> <span class="o">=</span> <span class="n">cute</span><span class="o">.</span><span class="n">make_layout</span><span class="p">(</span><span class="n">tile_m</span><span class="p">,</span> <span class="n">loc</span><span class="o">=</span><span class="n">loc</span><span class="p">,</span> <span class="n">ip</span><span class="o">=</span><span class="n">ip</span><span class="p">)</span>
+    <span class="n">tile_n_layout</span> <span class="o">=</span> <span class="n">cute</span><span class="o">.</span><span class="n">make_layout</span><span class="p">(</span>
+        <span class="p">(</span><span class="n">tile_n</span> <span class="o">//</span> <span class="n">warp_n</span><span class="p">,</span> <span class="n">warp_n</span><span class="p">),</span> <span class="n">stride</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">cta_n</span> <span class="o">//</span> <span class="n">warp_n</span><span class="p">),</span> <span class="n">loc</span><span class="o">=</span><span class="n">loc</span><span class="p">,</span> <span class="n">ip</span><span class="o">=</span><span class="n">ip</span>
+    <span class="p">)</span>
+    <span class="k">return</span> <span class="p">(</span><span class="n">tile_m_layout</span><span class="p">,</span> <span class="n">cute</span><span class="o">.</span><span class="n">coalesce</span><span class="p">(</span><span class="n">tile_n_layout</span><span class="p">,</span> <span class="n">loc</span><span class="o">=</span><span class="n">loc</span><span class="p">,</span> <span class="n">ip</span><span class="o">=</span><span class="n">ip</span><span class="p">))</span>
+</pre></div>
+<p>Note that now we derived by hand that the <code>epi_tile</code> for setting of matrices in <code>NVFP4</code> and <code>Float16</code> will get selected to be <code>128:1, 32:1</code> irrespective of the <code>mma_tiler_mn</code> or cluster shape we choose. This is the heuristic that is used by default.</p>
+<p>Next part is calculation of stages</p>
+<div class="highlight"><pre><span></span>        <span class="bp">self</span><span class="o">.</span><span class="n">num_acc_stage</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_ab_stage</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_c_stage</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_compute_stages</span><span class="p">(</span>
+            <span class="n">tiled_mma</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">mma_tiler</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">a_dtype</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">b_dtype</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">epi_tile</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">c_dtype</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">c_layout</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">sf_dtype</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">sf_vec_size</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">smem_capacity</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">occupancy</span><span class="p">,</span>
+        <span class="p">)</span>
+</pre></div>
+<p>We see that we provide this function with the <code>tiled_mma</code>, corresponding tiler, the datatypes, tiler for the epilogue, information about the scaling factors and finally the <code>SMEM</code> capacity for our problem.</p>
+<div class="highlight"><pre><span></span>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_compute_stages</span><span class="p">(</span>
+        <span class="n">tiled_mma</span><span class="p">:</span> <span class="n">cute</span><span class="o">.</span><span class="n">TiledMma</span><span class="p">,</span>
+        <span class="n">mma_tiler_mnk</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">],</span>
+        <span class="n">a_dtype</span><span class="p">:</span> <span class="n">Type</span><span class="p">[</span><span class="n">cutlass</span><span class="o">.</span><span class="n">Numeric</span><span class="p">],</span>
+        <span class="n">b_dtype</span><span class="p">:</span> <span class="n">Type</span><span class="p">[</span><span class="n">cutlass</span><span class="o">.</span><span class="n">Numeric</span><span class="p">],</span>
+        <span class="n">epi_tile</span><span class="p">:</span> <span class="n">cute</span><span class="o">.</span><span class="n">Tile</span><span class="p">,</span>
+        <span class="n">c_dtype</span><span class="p">:</span> <span class="n">Type</span><span class="p">[</span><span class="n">cutlass</span><span class="o">.</span><span class="n">Numeric</span><span class="p">],</span>
+        <span class="n">c_layout</span><span class="p">:</span> <span class="n">utils</span><span class="o">.</span><span class="n">LayoutEnum</span><span class="p">,</span>
+        <span class="n">sf_dtype</span><span class="p">:</span> <span class="n">Type</span><span class="p">[</span><span class="n">cutlass</span><span class="o">.</span><span class="n">Numeric</span><span class="p">],</span>
+        <span class="n">sf_vec_size</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="n">smem_capacity</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="n">occupancy</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]:</span>
+</pre></div>
+<div class="highlight"><pre><span></span>        <span class="c1"># ACC stages</span>
+        <span class="n">num_acc_stage</span> <span class="o">=</span> <span class="mi">1</span> <span class="k">if</span> <span class="n">mma_tiler_mnk</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="mi">256</span> <span class="k">else</span> <span class="mi">2</span>
+
+        <span class="c1"># Default C stages</span>
+        <span class="n">num_c_stage</span> <span class="o">=</span> <span class="mi">2</span>
+
+        <span class="c1"># Calculate smem layout and size for one stage of A, B, SFA, SFB and C</span>
+        <span class="n">a_smem_layout_stage_one</span> <span class="o">=</span> <span class="n">sm100_utils</span><span class="o">.</span><span class="n">make_smem_layout_a</span><span class="p">(</span>
+            <span class="n">tiled_mma</span><span class="p">,</span>
+            <span class="n">mma_tiler_mnk</span><span class="p">,</span>
+            <span class="n">a_dtype</span><span class="p">,</span>
+            <span class="mi">1</span><span class="p">,</span>  <span class="c1"># a tmp 1 stage is provided</span>
+        <span class="p">)</span>
+        <span class="n">b_smem_layout_staged_one</span> <span class="o">=</span> <span class="n">sm100_utils</span><span class="o">.</span><span class="n">make_smem_layout_b</span><span class="p">(</span>
+            <span class="n">tiled_mma</span><span class="p">,</span>
+            <span class="n">mma_tiler_mnk</span><span class="p">,</span>
+            <span class="n">b_dtype</span><span class="p">,</span>
+            <span class="mi">1</span><span class="p">,</span>  <span class="c1"># a tmp 1 stage is provided</span>
+        <span class="p">)</span>
+        <span class="n">sfa_smem_layout_staged_one</span> <span class="o">=</span> <span class="n">blockscaled_utils</span><span class="o">.</span><span class="n">make_smem_layout_sfa</span><span class="p">(</span>
+            <span class="n">tiled_mma</span><span class="p">,</span>
+            <span class="n">mma_tiler_mnk</span><span class="p">,</span>
+            <span class="n">sf_vec_size</span><span class="p">,</span>
+            <span class="mi">1</span><span class="p">,</span>  <span class="c1"># a tmp 1 stage is provided</span>
+        <span class="p">)</span>
+        <span class="n">sfb_smem_layout_staged_one</span> <span class="o">=</span> <span class="n">blockscaled_utils</span><span class="o">.</span><span class="n">make_smem_layout_sfb</span><span class="p">(</span>
+            <span class="n">tiled_mma</span><span class="p">,</span>
+            <span class="n">mma_tiler_mnk</span><span class="p">,</span>
+            <span class="n">sf_vec_size</span><span class="p">,</span>
+            <span class="mi">1</span><span class="p">,</span>  <span class="c1"># a tmp 1 stage is provided</span>
+        <span class="p">)</span>
+
+        <span class="n">c_smem_layout_staged_one</span> <span class="o">=</span> <span class="n">sm100_utils</span><span class="o">.</span><span class="n">make_smem_layout_epi</span><span class="p">(</span>
+            <span class="n">c_dtype</span><span class="p">,</span>
+            <span class="n">c_layout</span><span class="p">,</span>
+            <span class="n">epi_tile</span><span class="p">,</span>
+            <span class="mi">1</span><span class="p">,</span>
+        <span class="p">)</span>
+</pre></div>
+<p>Let us quickly review <code>make_smem_layout_{a|b|sfa|sfb}</code></p>
+<p>The docstring essentially describes what we are doing:</p>
+<ul>
+<li><code>tiled_mma.partition_shape_A</code> perform partitioning, i.e. composing with TV Layout for <code>MMA</code> and than being able to slice into it to get work for each thread</li>
+<li><code>get_smem_layout_atom_ab</code> is determining of corresponding Swizzle mode to avoid bank conflicts.</li>
+<li><code>make_smem_layout_atom</code> will create appropriate atom based on swizzling mode.</li>
+<li>We'll than can append the number of stages. Here we just append <code>1</code> stage because the number of stages will be calculated later.</li>
+<li>At the end we use <code>tile_to_shape</code> to cover our target shape with the above created Swizzle atom</li>
+</ul>
+<div class="highlight"><pre><span></span><span class="nd">@dsl_user_op</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">make_smem_layout_a</span><span class="p">(</span>
+    <span class="n">tiled_mma</span><span class="p">:</span> <span class="n">cute</span><span class="o">.</span><span class="n">TiledMma</span><span class="p">,</span>
+    <span class="n">mma_tiler_mnk</span><span class="p">:</span> <span class="n">cute</span><span class="o">.</span><span class="n">Tile</span><span class="p">,</span>
+    <span class="n">a_dtype</span><span class="p">:</span> <span class="n">Type</span><span class="p">[</span><span class="n">Numeric</span><span class="p">],</span>
+    <span class="n">num_stages</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">is_k_major</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">loc</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">ip</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Union</span><span class="p">[</span><span class="n">cute</span><span class="o">.</span><span class="n">Layout</span><span class="p">,</span> <span class="n">cute</span><span class="o">.</span><span class="n">ComposedLayout</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;This function helps with:</span>
+
+<span class="sd">    1. Get the partitioned shape of the A tensor based on the tiled_mma &amp; MMA tiler.</span>
+<span class="sd">    2. Select the heuristic SMEM layout atom based on the A tensor&#39;s majorness, the data type, and the major mode size.</span>
+<span class="sd">    3. cute.Tile the SMEM layout atom to the MMA tile shape.</span>
+<span class="sd">    4. Stage the SMEM layout based on the number of stages.</span>
+
+<span class="sd">    :param tiled_mma: The tiled MMA used to partition tensor A</span>
+<span class="sd">    :type tiled_mma: cute.TiledMma</span>
+<span class="sd">    :param mma_tiler_mnk: The MMA tile shape</span>
+<span class="sd">    :type mma_tiler_mnk: cute.cute.Tile</span>
+<span class="sd">    :param a_dtype: The element type for tensor A</span>
+<span class="sd">    :type a_dtype: Type[Numeric]</span>
+<span class="sd">    :param num_stages: The number of pipeline stages for tensor A</span>
+<span class="sd">    :type num_stages: int</span>
+
+<span class="sd">    :return: SMEM layout for tensor A</span>
+<span class="sd">    :rtype: Union[cute.Layout, cute.ComposedLayout]</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">is_k_major</span> <span class="o">=</span> <span class="p">(</span><span class="n">tiled_mma</span><span class="o">.</span><span class="n">op</span><span class="o">.</span><span class="n">a_major_mode</span> <span class="o">==</span> <span class="n">OperandMajorMode</span><span class="o">.</span><span class="n">K</span><span class="p">)</span> <span class="k">if</span> <span class="n">is_k_major</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">is_k_major</span>
+    <span class="n">a_major_mode</span> <span class="o">=</span> <span class="n">OperandMajorMode</span><span class="o">.</span><span class="n">K</span> <span class="k">if</span> <span class="n">is_k_major</span> <span class="k">else</span> <span class="n">OperandMajorMode</span><span class="o">.</span><span class="n">MN</span>
+    <span class="n">a_smem_shape</span> <span class="o">=</span> <span class="n">tiled_mma</span><span class="o">.</span><span class="n">partition_shape_A</span><span class="p">(</span>
+        <span class="n">cute</span><span class="o">.</span><span class="n">dice</span><span class="p">(</span><span class="n">mma_tiler_mnk</span><span class="p">,</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="n">loc</span><span class="o">=</span><span class="n">loc</span><span class="p">,</span> <span class="n">ip</span><span class="o">=</span><span class="n">ip</span><span class="p">),</span> <span class="n">loc</span><span class="o">=</span><span class="n">loc</span><span class="p">,</span> <span class="n">ip</span><span class="o">=</span><span class="n">ip</span>
+    <span class="p">)</span>
+    <span class="n">a_smem_shape_mn_k</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">cute</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="n">a_smem_shape</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span> <span class="n">loc</span><span class="o">=</span><span class="n">loc</span><span class="p">,</span> <span class="n">ip</span><span class="o">=</span><span class="n">ip</span><span class="p">)</span> <span class="o">*</span> <span class="n">a_smem_shape</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span>
+        <span class="n">cute</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="n">a_smem_shape</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">],</span> <span class="n">loc</span><span class="o">=</span><span class="n">loc</span><span class="p">,</span> <span class="n">ip</span><span class="o">=</span><span class="n">ip</span><span class="p">)</span> <span class="o">*</span> <span class="n">a_smem_shape</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span>
+    <span class="p">)</span>
+    <span class="n">smem_layout_atom_kind</span> <span class="o">=</span> <span class="n">get_smem_layout_atom_ab</span><span class="p">(</span>
+        <span class="n">a_major_mode</span><span class="p">,</span> <span class="n">a_dtype</span><span class="p">,</span> <span class="n">a_smem_shape_mn_k</span><span class="p">,</span> <span class="n">loc</span><span class="o">=</span><span class="n">loc</span><span class="p">,</span> <span class="n">ip</span><span class="o">=</span><span class="n">ip</span>
+    <span class="p">)</span>
+    <span class="n">a_smem_layout_atom</span> <span class="o">=</span> <span class="n">make_smem_layout_atom</span><span class="p">(</span>
+        <span class="n">smem_layout_atom_kind</span><span class="p">,</span> <span class="n">a_dtype</span><span class="p">,</span> <span class="n">loc</span><span class="o">=</span><span class="n">loc</span><span class="p">,</span> <span class="n">ip</span><span class="o">=</span><span class="n">ip</span>
+    <span class="p">)</span>
+
+    <span class="n">a_smem_shape</span> <span class="o">=</span> <span class="n">cute</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">a_smem_shape</span><span class="p">,</span> <span class="n">num_stages</span><span class="p">,</span> <span class="n">loc</span><span class="o">=</span><span class="n">loc</span><span class="p">,</span> <span class="n">ip</span><span class="o">=</span><span class="n">ip</span><span class="p">)</span>
+    <span class="n">order</span> <span class="o">=</span> <span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">is_k_major</span> <span class="k">else</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">tile_to_mma_shape</span><span class="p">(</span>
+        <span class="n">a_smem_layout_atom</span><span class="p">,</span> <span class="n">a_smem_shape</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="n">order</span><span class="p">,</span> <span class="n">loc</span><span class="o">=</span><span class="n">loc</span><span class="p">,</span> <span class="n">ip</span><span class="o">=</span><span class="n">ip</span>
+    <span class="p">)</span>
+</pre></div>
+<p>B is similar but uses the <code>partition_B</code> function of <code>tiled_mma</code>.</p>
+<p>For the scaled factors we have the <code>Blockscaled</code> atoms and use <code>tile_to_shape</code> to cover whole tile with it. We furthermore calculate <code>MMA_Inst_Shape_K</code> based on <code>inst_shape_k</code> which we saw already above. At the end we append stages.</p>
+<div class="highlight"><pre><span></span><span class="nd">@dsl_user_op</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">make_smem_layout_sfa</span><span class="p">(</span>
+    <span class="n">tiled_mma</span><span class="p">:</span> <span class="n">cute</span><span class="o">.</span><span class="n">TiledMma</span><span class="p">,</span>
+    <span class="n">mma_tiler_mnk</span><span class="p">:</span> <span class="n">cute</span><span class="o">.</span><span class="n">Tile</span><span class="p">,</span>
+    <span class="n">sf_vec_size</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+    <span class="n">num_stages</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">loc</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">ip</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">cute</span><span class="o">.</span><span class="n">Layout</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Make smem layout for SFA based on:</span>
+
+<span class="sd">    1. BlockScaledBasicChunk</span>
+<span class="sd">    2. MMA tiler shape</span>
+<span class="sd">    3. Scale factor vector size</span>
+<span class="sd">    4. Number of stages</span>
+
+<span class="sd">    :param tiled_mma: The tiled MMA</span>
+<span class="sd">    :type tiled_mma: cute.TiledMma</span>
+<span class="sd">    :param mma_tiler_mnk: The mma tiler shape</span>
+<span class="sd">    :type mma_tiler_mnk: cute.Tile</span>
+<span class="sd">    :param sf_vec_size: The scale factor vector size</span>
+<span class="sd">    :type sf_vec_size: int</span>
+<span class="sd">    :param num_stages: The number of stages</span>
+<span class="sd">    :type num_stages: int</span>
+
+<span class="sd">    :return: Smem layout for SFA</span>
+<span class="sd">    :rtype: cute.Layout</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># (CTA_Tile_Shape_M, MMA_Tile_Shape_K)</span>
+    <span class="n">sfa_tile_shape</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">mma_tiler_mnk</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">//</span> <span class="n">cute</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="n">tiled_mma</span><span class="o">.</span><span class="n">thr_id</span><span class="o">.</span><span class="n">shape</span><span class="p">),</span>
+        <span class="n">mma_tiler_mnk</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span>
+    <span class="p">)</span>
+
+    <span class="c1"># ((Atom_M, Rest_M),(Atom_K, Rest_K))</span>
+    <span class="n">smem_layout</span> <span class="o">=</span> <span class="n">cute</span><span class="o">.</span><span class="n">tile_to_shape</span><span class="p">(</span>
+        <span class="n">BlockScaledBasicChunk</span><span class="p">(</span><span class="n">sf_vec_size</span><span class="p">)</span><span class="o">.</span><span class="n">layout</span><span class="p">,</span>
+        <span class="n">sfa_tile_shape</span><span class="p">,</span>
+        <span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>
+    <span class="p">)</span>
+
+    <span class="n">mma_tile_inst_k</span> <span class="o">=</span> <span class="mi">4</span>
+    <span class="c1"># (CTA_Tile_Shape_M, MMA_Inst_Shape_K)</span>
+    <span class="n">sfa_tile_shape</span> <span class="o">=</span> <span class="n">cute</span><span class="o">.</span><span class="n">shape_div</span><span class="p">(</span><span class="n">sfa_tile_shape</span><span class="p">,</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">mma_tile_inst_k</span><span class="p">))</span>
+    <span class="c1"># ((Atom_Inst_M, Atom_Inst_K), MMA_M, MMA_K))</span>
+    <span class="n">smem_layout</span> <span class="o">=</span> <span class="n">cute</span><span class="o">.</span><span class="n">tiled_divide</span><span class="p">(</span><span class="n">smem_layout</span><span class="p">,</span> <span class="n">sfa_tile_shape</span><span class="p">)</span>
+
+    <span class="n">atom_m</span> <span class="o">=</span> <span class="mi">128</span>
+    <span class="n">tiler_inst</span> <span class="o">=</span> <span class="p">((</span><span class="n">atom_m</span><span class="p">,</span> <span class="n">sf_vec_size</span><span class="p">),)</span>
+    <span class="c1"># (((Atom_Inst_M, Rest_M),(Atom_Inst_K, Rest_K)), MMA_M, MMA_K)</span>
+    <span class="n">smem_layout</span> <span class="o">=</span> <span class="n">cute</span><span class="o">.</span><span class="n">logical_divide</span><span class="p">(</span><span class="n">smem_layout</span><span class="p">,</span> <span class="n">tiler_inst</span><span class="p">)</span>
+
+    <span class="c1"># (((Atom_Inst_M, Rest_M),(Atom_Inst_K, Rest_K)), MMA_M, MMA_K, STAGE)</span>
+    <span class="n">sfa_smem_layout_staged</span> <span class="o">=</span> <span class="n">cute</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+        <span class="n">smem_layout</span><span class="p">,</span>
+        <span class="n">cute</span><span class="o">.</span><span class="n">make_layout</span><span class="p">(</span>
+            <span class="n">num_stages</span><span class="p">,</span> <span class="n">stride</span><span class="o">=</span><span class="n">cute</span><span class="o">.</span><span class="n">cosize</span><span class="p">(</span><span class="n">cute</span><span class="o">.</span><span class="n">filter_zeros</span><span class="p">(</span><span class="n">smem_layout</span><span class="p">))</span>
+        <span class="p">),</span>
+    <span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">sfa_smem_layout_staged</span>
+</pre></div>
+<p>The code for <code>sfb</code> is similar.</p>
+<p>Similar to what we do for <code>a</code> and <code>b</code> we construct <code>SMEM</code> layout for epi tile.</p>
+<div class="highlight"><pre><span></span><span class="nd">@dsl_user_op</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">make_smem_layout_epi</span><span class="p">(</span>
+    <span class="n">epi_dtype</span><span class="p">:</span> <span class="n">Type</span><span class="p">[</span><span class="n">Numeric</span><span class="p">],</span>
+    <span class="n">epi_layout</span><span class="p">:</span> <span class="n">LayoutEnum</span><span class="p">,</span>
+    <span class="n">epi_tile</span><span class="p">:</span> <span class="n">cute</span><span class="o">.</span><span class="n">Tile</span><span class="p">,</span>
+    <span class="n">epi_stage</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">loc</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">ip</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Union</span><span class="p">[</span><span class="n">cute</span><span class="o">.</span><span class="n">Layout</span><span class="p">,</span> <span class="n">cute</span><span class="o">.</span><span class="n">ComposedLayout</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;This function helps:</span>
+
+<span class="sd">    1. Select the heuristic SMEM layout atom based on the epilog tile shape,</span>
+<span class="sd">       the epilog tensor&#39;s majorness, and the element type.</span>
+<span class="sd">    2. cute.Tile the SMEM layout atom to the epilog tile shape.</span>
+<span class="sd">    3. Stage the SMEM layout based on the number of stages.</span>
+
+<span class="sd">    :param epi_dtype: The element type for the epilog tensor.</span>
+<span class="sd">    :type epi_dtype: Type[Numeric]</span>
+<span class="sd">    :param epi_layout: The layout enum for the epilog tensor.</span>
+<span class="sd">    :type epi_layout: LayoutEnum</span>
+<span class="sd">    :param epi_tile: The epilogue tile shape.</span>
+<span class="sd">    :type epi_tile: cute.cute.Tile</span>
+<span class="sd">    :param epi_stage: The stage of the epilog tensor.</span>
+<span class="sd">    :type epi_stage: int</span>
+
+<span class="sd">    :return: SMEM layout for epilog tensors (usually C &amp; D which are processed in the epilog)</span>
+<span class="sd">    :rtype: Union[cute.Layout, cute.ComposedLayout]</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">epilog_shape</span> <span class="o">=</span> <span class="n">cute</span><span class="o">.</span><span class="n">product_each</span><span class="p">(</span>
+        <span class="n">cute</span><span class="o">.</span><span class="n">shape</span><span class="p">(</span><span class="n">epi_tile</span><span class="p">,</span> <span class="n">loc</span><span class="o">=</span><span class="n">loc</span><span class="p">,</span> <span class="n">ip</span><span class="o">=</span><span class="n">ip</span><span class="p">),</span> <span class="n">loc</span><span class="o">=</span><span class="n">loc</span><span class="p">,</span> <span class="n">ip</span><span class="o">=</span><span class="n">ip</span>
+    <span class="p">)</span>
+
+    <span class="n">smem_atom_kind</span> <span class="o">=</span> <span class="n">get_smem_layout_atom_epi</span><span class="p">(</span>
+        <span class="n">epi_layout</span><span class="p">,</span> <span class="n">epi_dtype</span><span class="p">,</span> <span class="n">epi_tile</span><span class="p">,</span> <span class="n">loc</span><span class="o">=</span><span class="n">loc</span><span class="p">,</span> <span class="n">ip</span><span class="o">=</span><span class="n">ip</span>
+    <span class="p">)</span>
+    <span class="n">c_smem_layout_atom</span> <span class="o">=</span> <span class="n">make_smem_layout_atom</span><span class="p">(</span>
+        <span class="n">smem_atom_kind</span><span class="p">,</span> <span class="n">epi_dtype</span><span class="p">,</span> <span class="n">loc</span><span class="o">=</span><span class="n">loc</span><span class="p">,</span> <span class="n">ip</span><span class="o">=</span><span class="n">ip</span>
+    <span class="p">)</span>
+
+    <span class="n">epilog_shape</span> <span class="o">=</span> <span class="n">cute</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">epilog_shape</span><span class="p">,</span> <span class="n">epi_stage</span><span class="p">,</span> <span class="n">loc</span><span class="o">=</span><span class="n">loc</span><span class="p">,</span> <span class="n">ip</span><span class="o">=</span><span class="n">ip</span><span class="p">)</span>
+    <span class="n">epi_smem_layout_staged</span> <span class="o">=</span> <span class="n">cute</span><span class="o">.</span><span class="n">tile_to_shape</span><span class="p">(</span>
+        <span class="n">c_smem_layout_atom</span><span class="p">,</span>
+        <span class="n">epilog_shape</span><span class="p">,</span>
+        <span class="n">order</span><span class="o">=</span><span class="p">((</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">epi_layout</span><span class="o">.</span><span class="n">is_n_major_c</span><span class="p">()</span> <span class="k">else</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">)),</span>
+        <span class="n">loc</span><span class="o">=</span><span class="n">loc</span><span class="p">,</span>
+        <span class="n">ip</span><span class="o">=</span><span class="n">ip</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">epi_smem_layout_staged</span>
+</pre></div>
+<p>TMA always transfer <code>1</code> stage, so the above calculated "1 stage layouts" can be used to determine number of bytes transferred in one stage. The stages are chosen such that we will utilize maximum of <code>SMEM</code>.</p>
+<div class="highlight"><pre><span></span>        <span class="n">ab_bytes_per_stage</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">cute</span><span class="o">.</span><span class="n">size_in_bytes</span><span class="p">(</span><span class="n">a_dtype</span><span class="p">,</span> <span class="n">a_smem_layout_stage_one</span><span class="p">)</span>
+            <span class="o">+</span> <span class="n">cute</span><span class="o">.</span><span class="n">size_in_bytes</span><span class="p">(</span><span class="n">b_dtype</span><span class="p">,</span> <span class="n">b_smem_layout_staged_one</span><span class="p">)</span>
+            <span class="o">+</span> <span class="n">cute</span><span class="o">.</span><span class="n">size_in_bytes</span><span class="p">(</span><span class="n">sf_dtype</span><span class="p">,</span> <span class="n">sfa_smem_layout_staged_one</span><span class="p">)</span>
+            <span class="o">+</span> <span class="n">cute</span><span class="o">.</span><span class="n">size_in_bytes</span><span class="p">(</span><span class="n">sf_dtype</span><span class="p">,</span> <span class="n">sfb_smem_layout_staged_one</span><span class="p">)</span>
+        <span class="p">)</span>
+        <span class="n">mbar_helpers_bytes</span> <span class="o">=</span> <span class="mi">1024</span>
+        <span class="n">c_bytes_per_stage</span> <span class="o">=</span> <span class="n">cute</span><span class="o">.</span><span class="n">size_in_bytes</span><span class="p">(</span><span class="n">c_dtype</span><span class="p">,</span> <span class="n">c_smem_layout_staged_one</span><span class="p">)</span>
+        <span class="n">c_bytes</span> <span class="o">=</span> <span class="n">c_bytes_per_stage</span> <span class="o">*</span> <span class="n">num_c_stage</span>
+
+        <span class="c1"># Calculate A/B/SFA/SFB stages:</span>
+        <span class="c1"># Start with total smem per CTA (capacity / occupancy)</span>
+        <span class="c1"># Subtract reserved bytes and initial C stages bytes</span>
+        <span class="c1"># Divide remaining by bytes needed per A/B/SFA/SFB stage</span>
+        <span class="n">num_ab_stage</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">smem_capacity</span> <span class="o">//</span> <span class="n">occupancy</span> <span class="o">-</span> <span class="p">(</span><span class="n">mbar_helpers_bytes</span> <span class="o">+</span> <span class="n">c_bytes</span><span class="p">)</span>
+        <span class="p">)</span> <span class="o">//</span> <span class="n">ab_bytes_per_stage</span>
+
+        <span class="c1"># Refine epilogue stages:</span>
+        <span class="c1"># Calculate remaining smem after allocating for A/B/SFA/SFB stages and reserved bytes</span>
+        <span class="c1"># Add remaining unused smem to epilogue</span>
+        <span class="n">num_c_stage</span> <span class="o">+=</span> <span class="p">(</span>
+            <span class="n">smem_capacity</span>
+            <span class="o">-</span> <span class="n">occupancy</span> <span class="o">*</span> <span class="n">ab_bytes_per_stage</span> <span class="o">*</span> <span class="n">num_ab_stage</span>
+            <span class="o">-</span> <span class="n">occupancy</span> <span class="o">*</span> <span class="p">(</span><span class="n">mbar_helpers_bytes</span> <span class="o">+</span> <span class="n">c_bytes</span><span class="p">)</span>
+        <span class="p">)</span> <span class="o">//</span> <span class="p">(</span><span class="n">occupancy</span> <span class="o">*</span> <span class="n">c_bytes_per_stage</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">num_acc_stage</span><span class="p">,</span> <span class="n">num_ab_stage</span><span class="p">,</span> <span class="n">num_c_stage</span>
+</pre></div>
+<p>Recalculate SMEM layouts (same as above) but this time provide correct number of stages.</p>
+<div class="highlight"><pre><span></span>        <span class="c1"># Compute A/B/SFA/SFB/C shared memory layout</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">a_smem_layout_staged</span> <span class="o">=</span> <span class="n">sm100_utils</span><span class="o">.</span><span class="n">make_smem_layout_a</span><span class="p">(</span>
+            <span class="n">tiled_mma</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">mma_tiler</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">a_dtype</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">num_ab_stage</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">b_smem_layout_staged</span> <span class="o">=</span> <span class="n">sm100_utils</span><span class="o">.</span><span class="n">make_smem_layout_b</span><span class="p">(</span>
+            <span class="n">tiled_mma</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">mma_tiler</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">b_dtype</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">num_ab_stage</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sfa_smem_layout_staged</span> <span class="o">=</span> <span class="n">blockscaled_utils</span><span class="o">.</span><span class="n">make_smem_layout_sfa</span><span class="p">(</span>
+            <span class="n">tiled_mma</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">mma_tiler</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">sf_vec_size</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">num_ab_stage</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sfb_smem_layout_staged</span> <span class="o">=</span> <span class="n">blockscaled_utils</span><span class="o">.</span><span class="n">make_smem_layout_sfb</span><span class="p">(</span>
+            <span class="n">tiled_mma</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">mma_tiler</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">sf_vec_size</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">num_ab_stage</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">c_smem_layout_staged</span> <span class="o">=</span> <span class="n">sm100_utils</span><span class="o">.</span><span class="n">make_smem_layout_epi</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">c_dtype</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">c_layout</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">epi_tile</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">num_c_stage</span><span class="p">,</span>
+        <span class="p">)</span>
+</pre></div>
+<p>Further kernel settings.</p>
+<div class="highlight"><pre><span></span>        <span class="c1"># Overlap and double buffer accumulator when num_acc_stage == 1 for cta_tile_n = 256 case</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">overlapping_accum</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_acc_stage</span> <span class="o">==</span> <span class="mi">1</span>
+
+        <span class="c1"># Compute number of TMEM columns for SFA/SFB/Accumulator</span>
+        <span class="n">sf_atom_mn</span> <span class="o">=</span> <span class="mi">32</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">num_sfa_tmem_cols</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cta_tile_shape_mnk</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">//</span> <span class="n">sf_atom_mn</span><span class="p">)</span> <span class="o">*</span> <span class="n">mma_inst_tile_k</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">num_sfb_tmem_cols</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cta_tile_shape_mnk_sfb</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">//</span> <span class="n">sf_atom_mn</span><span class="p">)</span> <span class="o">*</span> <span class="n">mma_inst_tile_k</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">num_sf_tmem_cols</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_sfa_tmem_cols</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_sfb_tmem_cols</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">num_accumulator_tmem_cols</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cta_tile_shape_mnk</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_acc_stage</span> <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">overlapping_accum</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">cta_tile_shape_mnk</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">*</span> <span class="mi">2</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_sf_tmem_cols</span>
+
+        <span class="c1"># Only when overlapping_accum is enabled, we need to release accumulator buffer early in epilogue</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">iter_acc_early_release_in_epilogue</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_sf_tmem_cols</span> <span class="o">//</span> <span class="bp">self</span><span class="o">.</span><span class="n">epi_tile_n</span>
+</pre></div>
+<p>This concludes our discussion of the long <code>_setup_attributes</code> function and we return back to <code>__call__</code>.</p>
+<p>Here we construct the <code>tiled_mma</code>. We use separate <code>tiled_mma</code> for <code>sfb</code>. See the above discussion for the parameters. Note the <code>atom_thr_size</code> is either 1 or 2 depending if we use <code>2 CTA</code> instruction.</p>
+<div class="highlight"><pre><span></span>        <span class="n">tiled_mma</span> <span class="o">=</span> <span class="n">sm100_utils</span><span class="o">.</span><span class="n">make_blockscaled_trivial_tiled_mma</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">a_dtype</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">a_major_mode</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">b_major_mode</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">sf_dtype</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">sf_vec_size</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">cta_group</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">mma_inst_shape_mn</span><span class="p">,</span>
+        <span class="p">)</span>
+
+        <span class="n">tiled_mma_sfb</span> <span class="o">=</span> <span class="n">sm100_utils</span><span class="o">.</span><span class="n">make_blockscaled_trivial_tiled_mma</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">a_dtype</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">a_major_mode</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">b_major_mode</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">sf_dtype</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">sf_vec_size</span><span class="p">,</span>
+            <span class="n">cute</span><span class="o">.</span><span class="n">nvgpu</span><span class="o">.</span><span class="n">tcgen05</span><span class="o">.</span><span class="n">CtaGroup</span><span class="o">.</span><span class="n">ONE</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">mma_inst_shape_mn_sfb</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="n">atom_thr_size</span> <span class="o">=</span> <span class="n">cute</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="n">tiled_mma</span><span class="o">.</span><span class="n">thr_id</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+</pre></div>
+<p>Setup of the <code>TMA</code> units based on the <code>SMEM</code> layouts. Under the hood this helper function will figure out appropriate PTX instruction for <code>TMA</code> transfer based on the kernel settings.</p>
+<div class="highlight"><pre><span></span>        <span class="c1"># Setup TMA load for A</span>
+        <span class="n">a_op</span> <span class="o">=</span> <span class="n">sm100_utils</span><span class="o">.</span><span class="n">cluster_shape_to_tma_atom_A</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">cluster_shape_mn</span><span class="p">,</span> <span class="n">tiled_mma</span><span class="o">.</span><span class="n">thr_id</span>
+        <span class="p">)</span>
+        <span class="n">a_smem_layout</span> <span class="o">=</span> <span class="n">cute</span><span class="o">.</span><span class="n">slice_</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">a_smem_layout_staged</span><span class="p">,</span> <span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="mi">0</span><span class="p">))</span>
+        <span class="n">tma_atom_a</span><span class="p">,</span> <span class="n">tma_tensor_a</span> <span class="o">=</span> <span class="n">cute</span><span class="o">.</span><span class="n">nvgpu</span><span class="o">.</span><span class="n">make_tiled_tma_atom_A</span><span class="p">(</span>
+            <span class="n">a_op</span><span class="p">,</span>
+            <span class="n">a_tensor</span><span class="p">,</span>
+            <span class="n">a_smem_layout</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">mma_tiler</span><span class="p">,</span>
+            <span class="n">tiled_mma</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">cluster_layout_vmnk</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span>
+        <span class="p">)</span>
+
+        <span class="c1"># Setup TMA load for B</span>
+        <span class="n">b_op</span> <span class="o">=</span> <span class="n">sm100_utils</span><span class="o">.</span><span class="n">cluster_shape_to_tma_atom_B</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">cluster_shape_mn</span><span class="p">,</span> <span class="n">tiled_mma</span><span class="o">.</span><span class="n">thr_id</span>
+        <span class="p">)</span>
+        <span class="n">b_smem_layout</span> <span class="o">=</span> <span class="n">cute</span><span class="o">.</span><span class="n">slice_</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">b_smem_layout_staged</span><span class="p">,</span> <span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="mi">0</span><span class="p">))</span>
+        <span class="n">tma_atom_b</span><span class="p">,</span> <span class="n">tma_tensor_b</span> <span class="o">=</span> <span class="n">cute</span><span class="o">.</span><span class="n">nvgpu</span><span class="o">.</span><span class="n">make_tiled_tma_atom_B</span><span class="p">(</span>
+            <span class="n">b_op</span><span class="p">,</span>
+            <span class="n">b_tensor</span><span class="p">,</span>
+            <span class="n">b_smem_layout</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">mma_tiler</span><span class="p">,</span>
+            <span class="n">tiled_mma</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">cluster_layout_vmnk</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span>
+        <span class="p">)</span>
+</pre></div>
+<p>Afterwards same is done for <code>SFA</code> and <code>SFB</code>, however for <code>SFB</code> we will provide the <code>tiled_mma_sfb</code> to the construction function. The <code>bN = 192</code> case deserves some extra attention. See the code.</p>
+<p>Determine size of TMA loads per atom and scale by number of atoms. Also sets up the <code>TMA</code> for the accumulator. All based on "one stage" layouts, because TMA transfers always one stage at a time. Use <code>TileScheduler</code> to figure out correct grid. Potentially we will write another post on the <code>TileScheduler</code> on its own to keep this blogpost to a reasonable size.</p>
+<div class="highlight"><pre><span></span>        <span class="n">a_copy_size</span> <span class="o">=</span> <span class="n">cute</span><span class="o">.</span><span class="n">size_in_bytes</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">a_dtype</span><span class="p">,</span> <span class="n">a_smem_layout</span><span class="p">)</span>
+        <span class="n">b_copy_size</span> <span class="o">=</span> <span class="n">cute</span><span class="o">.</span><span class="n">size_in_bytes</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">b_dtype</span><span class="p">,</span> <span class="n">b_smem_layout</span><span class="p">)</span>
+        <span class="n">sfa_copy_size</span> <span class="o">=</span> <span class="n">cute</span><span class="o">.</span><span class="n">size_in_bytes</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">sf_dtype</span><span class="p">,</span> <span class="n">sfa_smem_layout</span><span class="p">)</span>
+        <span class="n">sfb_copy_size</span> <span class="o">=</span> <span class="n">cute</span><span class="o">.</span><span class="n">size_in_bytes</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">sf_dtype</span><span class="p">,</span> <span class="n">sfb_smem_layout</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">num_tma_load_bytes</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">a_copy_size</span> <span class="o">+</span> <span class="n">b_copy_size</span> <span class="o">+</span> <span class="n">sfa_copy_size</span> <span class="o">+</span> <span class="n">sfb_copy_size</span>
+        <span class="p">)</span> <span class="o">*</span> <span class="n">atom_thr_size</span>
+
+        <span class="c1"># Setup TMA store for C</span>
+        <span class="n">epi_smem_layout</span> <span class="o">=</span> <span class="n">cute</span><span class="o">.</span><span class="n">slice_</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">c_smem_layout_staged</span><span class="p">,</span> <span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="mi">0</span><span class="p">))</span>
+        <span class="n">tma_atom_c</span><span class="p">,</span> <span class="n">tma_tensor_c</span> <span class="o">=</span> <span class="n">cpasync</span><span class="o">.</span><span class="n">make_tiled_tma_atom</span><span class="p">(</span>
+            <span class="n">cpasync</span><span class="o">.</span><span class="n">CopyBulkTensorTileS2GOp</span><span class="p">(),</span>
+            <span class="n">c_tensor</span><span class="p">,</span>
+            <span class="n">epi_smem_layout</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">epi_tile</span><span class="p">,</span>
+        <span class="p">)</span>
+</pre></div>
+<p>Afterwards there is only setting up <code>SharedStorage</code> left and we launch the kernel.</p>
+<h2 id=conclusion>Conclusion</h2><p>I hope this blogpost helped to understand setup of various setup steps we make before launching the kernel. As we saw it is far from trivial but can be understood when analysed in small steps in Top Down approach.
+If you like to exchange ideas I am happy to connect on <a href='https://www.linkedin.com/in/simon-veitner-174a681b6/'>Linkedin</a>. If you want to perform experiments on the B200 yourself I recommend <a href='https://verda.com/'>Verda</a> for good access to B200 GPUs.</p>
+
+
+    
+
+    
+        
+
+        
+            <form id="upvote-form" action="/upvote/" method="post" style="display: inline">
+    <small>
+        <input hidden name="uid" value="EZqNLrsbcJwAryhRFtVc" style="display:none">
+        <input hidden name="title" value="B200 Blockscaled GEMM - The setup" style="display:none">
+
+        <button
+            class="upvote-button"
+            aria-label="Toast this post"
+            title="Toast this post"
+        >
+            <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" class="css-i6dzq1">
+                <polyline points="17 11 12 6 7 11"></polyline>
+                <polyline points="17 18 12 13 7 18"></polyline>
+            </svg>
+            <small class="upvote-count" aria-hidden="true">&nbsp;</small>
+        </button>
+    </small>        
+</form>
+
+<script>
+    const $upvoteButton = document.querySelector('.upvote-button');
+    const $upvoteCount =  document.querySelector('.upvote-count')
+
+    fetch('/upvote-info/EZqNLrsbcJwAryhRFtVc/').then(response => response.json()).then(data => {
+        $upvoteCount.innerText = data.upvote_count;
+        if (data.upvoted) {
+            $upvoteButton.disabled = true
+            $upvoteButton.style.color = "salmon"
+            $upvoteButton.ariaLabel = "Toasted"
+            $upvoteButton.title = "Toasted"
+        }
+        $upvoteButton.ariaLabel += ` (${data.upvote_count})`
+    });
+
+    let moved = false;
+    let pageLoaded = Date.now();
+
+    document.addEventListener('touchmove', () => moved = true);
+    document.addEventListener('mousemove', () => moved = true);
+
+    document.querySelector('#upvote-form').addEventListener('submit', (e) => {
+        e.preventDefault();
+
+        if (moved) {
+            document.querySelector('input[name="title"]').value = "";
+        }
+        if (Date.now() - pageLoaded < 2000 || !moved) {
+            return;
+        }
+
+        fetch(e.target.action, {
+            method: 'post',
+            body: new FormData(e.target),
+        });
+        
+        $upvoteButton.disabled = true
+        $upvoteButton.style.color = "salmon"
+        $upvoteButton.ariaLabel = "Toasted"
+        $upvoteButton.title = "Toasted"
+        const newUpvoteCount = `${(parseInt($upvoteCount.innerHTML.split(" ")[0]) + 1)}`
+        $upvoteCount.innerHTML = newUpvoteCount
+        $upvoteButton.ariaLabel += ` (${newUpvoteCount})`
+    });
+</script>
+        
+
+        
+            <script>
+            window.addEventListener("load", () => {
+                if (navigator.webdriver !== true) {
+                    const sendHit = score => {
+                        const params = new URLSearchParams({
+                            blog: "veitner",
+                            token: "EZqNLrsbcJwAryhRFtVc",
+                            referrer: document.referrer.includes("veitner.bearblog.dev") ? "" : document.referrer,
+                            title: "",
+                            score: score
+                        });
+                        new Image().src = `/hit/?${params.toString()}`;
+                    };
+
+                    document.addEventListener('touchmove', () => sendHit(100), { once: true });
+                    document.addEventListener('mousemove', () => sendHit(100), { once: true });
+                }
+            });
+            </script>
+        
+    
+
+
+  </main>
+  <footer>
+    
+    
+    <span>
+        Powered by <a href="https://bearblog.dev">Bear <span role="img" class="bear" aria-label="ASCII bear logo">ʕ•ᴥ•ʔ</span></a>
+    </span>
+
+  </footer>
+
+  
+  <script>
+        (() => {
+          "use strict";
+          const times = document.querySelectorAll('time');
+          const format_string = "d M, Y" || "d M, Y"
+
+          times.forEach(time => {
+              time.innerText = formatDate(time.dateTime, format_string)
+          });
+
+          function formatDate(dateStr, formatStr) {
+            const date = new Date(dateStr);
+            const day = date.getDate();
+            const month = date.getMonth();
+            const year = date.getFullYear();
+            const weekday = date.getDay();
+            const hours = date.getHours();
+            const minutes = date.getMinutes();
+            const monthsFull = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+            const monthsShort = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+            const daysFull = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+            const daysShort = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+            
+            function getOrdinal(n) {
+                const s = ['th', 'st', 'nd', 'rd'];
+                const v = n % 100;
+                return s[(v - 20) % 10] || s[v] || s[0];
+            }
+            
+            const map = {
+                'd': () => day.toString().padStart(2, '0'),
+                'm': () => (month + 1).toString().padStart(2, '0'),
+                'Y': () => year.toString(),
+                'y': () => year.toString().slice(-2),
+                'F': () => monthsFull[month],
+                'j': () => day.toString(),
+                'D': () => daysShort[weekday],
+                'l': () => daysFull[weekday],
+                'S': () => getOrdinal(day),
+                'M': () => monthsShort[month],
+                'H': () => hours.toString().padStart(2, '0'),
+                'h': () => {
+                    let h = hours % 12;
+                    h = h === 0 ? 12 : h;
+                    return h.toString().padStart(2, '0');
+                },
+                'g': () => {
+                    let h = hours % 12;
+                    return h === 0 ? '12' : h.toString();
+                },
+                'i': () => minutes.toString().padStart(2, '0'),
+                'a': () => hours < 12 ? 'am' : 'pm',
+                'A': () => hours < 12 ? 'AM' : 'PM',
+            };
+            
+            let result = '';
+            for (let char of formatStr) {
+                result += map[char] ? map[char]() : char;
+            }
+            return result;
+        }
+        })();
+    </script>
+    
+</body>
+<!-- ID: veitner -->
+<!-- 🐻 -->
+</html>

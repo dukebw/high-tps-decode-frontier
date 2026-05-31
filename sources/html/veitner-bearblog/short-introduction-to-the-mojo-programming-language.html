@@ -1,0 +1,778 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!-- Powered by Bear Blog -->
+
+<head>
+  
+  
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5">
+  
+  <title>Short introduction to the Mojo programming language | simons blog</title>
+  <link rel="canonical" href="https://veitner.bearblog.dev/short-introduction-to-the-mojo-programming-language/">
+  
+    
+
+    <meta name="veitner" content="look-for-the-bear-necessities">
+    <meta name="token" content="ezijiwUJrvYujEvQDrsf">
+
+    
+<!-- Primary Meta Tags -->
+<meta name="title" content="Short introduction to the Mojo programming language">
+<meta name="description" content="Introduction
+
+Mojo is a new programming language that is designed to solve a variety of AI development challenges that no other language can, because Mojo ...">
+
+<!-- Open Graph / Facebook -->
+<meta property="og:site_name" content="simons blog">
+<meta property="og:title" content="Short introduction to the Mojo programming language">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://veitner.bearblog.dev/short-introduction-to-the-mojo-programming-language/">
+<meta property="og:description" content="Introduction
+
+Mojo is a new programming language that is designed to solve a variety of AI development challenges that no other language can, because Mojo ...">
+<meta property="og:image" content="/static/og-image.png">
+
+
+<!-- Twitter -->
+<meta property="twitter:card" content="summary">
+<meta property="twitter:url" content="https://veitner.bearblog.dev/short-introduction-to-the-mojo-programming-language/">
+<meta property="twitter:title" content="Short introduction to the Mojo programming language">
+<meta property="twitter:description" content="Introduction
+
+Mojo is a new programming language that is designed to solve a variety of AI development challenges that no other language can, because Mojo ...">
+<meta property="twitter:image" content="/static/og-image.png">
+
+
+
+<!-- Microdata -->
+<script type="application/ld+json">
+  {
+    "@context": "http://schema.org",
+    "@type": "article",
+    "name": "Short introduction to the Mojo programming language",
+    "headline": "Short introduction to the Mojo programming language",
+    "url": "https://veitner.bearblog.dev/short-introduction-to-the-mojo-programming-language/",
+    "description": "Introduction
+
+Mojo is a new programming language that is designed to solve a variety of AI development challenges that no other language can, because Mojo ...",
+    "image": "/static/og-image.png"
+  }
+</script>
+    <link rel="alternate" type="application/atom+xml" href="/feed/" title="simons blog">
+    <link rel="alternate" type="application/rss+xml" href="/feed/?type=rss" title="simons blog">
+
+  
+    
+
+    
+    <style>pre { line-height: 125%; }
+td.linenos .normal { color: #666666; background-color: transparent; padding-left: 5px; padding-right: 5px; }
+span.linenos { color: #666666; background-color: transparent; padding-left: 5px; padding-right: 5px; }
+td.linenos .special { color: #000000; background-color: #ffffc0; padding-left: 5px; padding-right: 5px; }
+span.linenos.special { color: #000000; background-color: #ffffc0; padding-left: 5px; padding-right: 5px; }
+.highlight .hll { background-color: #ffffcc }
+.highlight { background: #f0f0f0; }
+.highlight .c { color: #60A0B0; font-style: italic } /* Comment */
+.highlight .err { border: 1px solid #F00 } /* Error */
+.highlight .k { color: #007020; font-weight: bold } /* Keyword */
+.highlight .o { color: #666 } /* Operator */
+.highlight .ch { color: #60A0B0; font-style: italic } /* Comment.Hashbang */
+.highlight .cm { color: #60A0B0; font-style: italic } /* Comment.Multiline */
+.highlight .cp { color: #007020 } /* Comment.Preproc */
+.highlight .cpf { color: #60A0B0; font-style: italic } /* Comment.PreprocFile */
+.highlight .c1 { color: #60A0B0; font-style: italic } /* Comment.Single */
+.highlight .cs { color: #60A0B0; background-color: #FFF0F0 } /* Comment.Special */
+.highlight .gd { color: #A00000 } /* Generic.Deleted */
+.highlight .ge { font-style: italic } /* Generic.Emph */
+.highlight .ges { font-weight: bold; font-style: italic } /* Generic.EmphStrong */
+.highlight .gr { color: #F00 } /* Generic.Error */
+.highlight .gh { color: #000080; font-weight: bold } /* Generic.Heading */
+.highlight .gi { color: #00A000 } /* Generic.Inserted */
+.highlight .go { color: #888 } /* Generic.Output */
+.highlight .gp { color: #C65D09; font-weight: bold } /* Generic.Prompt */
+.highlight .gs { font-weight: bold } /* Generic.Strong */
+.highlight .gu { color: #800080; font-weight: bold } /* Generic.Subheading */
+.highlight .gt { color: #04D } /* Generic.Traceback */
+.highlight .kc { color: #007020; font-weight: bold } /* Keyword.Constant */
+.highlight .kd { color: #007020; font-weight: bold } /* Keyword.Declaration */
+.highlight .kn { color: #007020; font-weight: bold } /* Keyword.Namespace */
+.highlight .kp { color: #007020 } /* Keyword.Pseudo */
+.highlight .kr { color: #007020; font-weight: bold } /* Keyword.Reserved */
+.highlight .kt { color: #902000 } /* Keyword.Type */
+.highlight .m { color: #40A070 } /* Literal.Number */
+.highlight .s { color: #4070A0 } /* Literal.String */
+.highlight .na { color: #4070A0 } /* Name.Attribute */
+.highlight .nb { color: #007020 } /* Name.Builtin */
+.highlight .nc { color: #0E84B5; font-weight: bold } /* Name.Class */
+.highlight .no { color: #60ADD5 } /* Name.Constant */
+.highlight .nd { color: #555; font-weight: bold } /* Name.Decorator */
+.highlight .ni { color: #D55537; font-weight: bold } /* Name.Entity */
+.highlight .ne { color: #007020 } /* Name.Exception */
+.highlight .nf { color: #06287E } /* Name.Function */
+.highlight .nl { color: #002070; font-weight: bold } /* Name.Label */
+.highlight .nn { color: #0E84B5; font-weight: bold } /* Name.Namespace */
+.highlight .nt { color: #062873; font-weight: bold } /* Name.Tag */
+.highlight .nv { color: #BB60D5 } /* Name.Variable */
+.highlight .ow { color: #007020; font-weight: bold } /* Operator.Word */
+.highlight .w { color: #BBB } /* Text.Whitespace */
+.highlight .mb { color: #40A070 } /* Literal.Number.Bin */
+.highlight .mf { color: #40A070 } /* Literal.Number.Float */
+.highlight .mh { color: #40A070 } /* Literal.Number.Hex */
+.highlight .mi { color: #40A070 } /* Literal.Number.Integer */
+.highlight .mo { color: #40A070 } /* Literal.Number.Oct */
+.highlight .sa { color: #4070A0 } /* Literal.String.Affix */
+.highlight .sb { color: #4070A0 } /* Literal.String.Backtick */
+.highlight .sc { color: #4070A0 } /* Literal.String.Char */
+.highlight .dl { color: #4070A0 } /* Literal.String.Delimiter */
+.highlight .sd { color: #4070A0; font-style: italic } /* Literal.String.Doc */
+.highlight .s2 { color: #4070A0 } /* Literal.String.Double */
+.highlight .se { color: #4070A0; font-weight: bold } /* Literal.String.Escape */
+.highlight .sh { color: #4070A0 } /* Literal.String.Heredoc */
+.highlight .si { color: #70A0D0; font-style: italic } /* Literal.String.Interpol */
+.highlight .sx { color: #C65D09 } /* Literal.String.Other */
+.highlight .sr { color: #235388 } /* Literal.String.Regex */
+.highlight .s1 { color: #4070A0 } /* Literal.String.Single */
+.highlight .ss { color: #517918 } /* Literal.String.Symbol */
+.highlight .bp { color: #007020 } /* Name.Builtin.Pseudo */
+.highlight .fm { color: #06287E } /* Name.Function.Magic */
+.highlight .vc { color: #BB60D5 } /* Name.Variable.Class */
+.highlight .vg { color: #BB60D5 } /* Name.Variable.Global */
+.highlight .vi { color: #BB60D5 } /* Name.Variable.Instance */
+.highlight .vm { color: #BB60D5 } /* Name.Variable.Magic */
+.highlight .il { color: #40A070 } /* Literal.Number.Integer.Long */
+</style>
+  
+  
+  
+    
+        <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20100%20100'%3E%3Ctext%20y='.9em'%20font-size='90'%3E🐼%3C/text%3E%3C/svg%3E">
+    
+
+
+
+  <style>
+      
+      
+    
+:root {
+    --width: 720px;
+    --font-main: Verdana, sans-serif;
+    --font-secondary: Verdana, sans-serif;
+    --font-scale: 1em;
+    --background-color: #fff;
+    --heading-color: #222;
+    --text-color: #444;
+    --link-color: #3273dc;
+    --visited-color:  #8b6fcb;
+    --code-background-color: #f2f2f2;
+    --code-color: #222;
+    --blockquote-color: #222;
+}
+
+@media (prefers-color-scheme: dark) {
+    :root {
+        --background-color: #01242e;
+        --heading-color: #eee;
+        --text-color: #ddd;
+        --link-color: #8cc2dd;
+        --visited-color:  #8b6fcb;
+        --code-background-color: #000;
+        --code-color: #ddd;
+        --blockquote-color: #ccc;
+    }
+}
+
+body {
+    font-family: var(--font-secondary);
+    font-size: var(--font-scale);
+    margin: auto;
+    padding: 20px;
+    max-width: var(--width);
+    text-align: left;
+    background-color: var(--background-color);
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    line-height: 1.5;
+    color: var(--text-color);
+}
+
+h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-main);
+    color: var(--heading-color);
+}
+
+a {
+    color: var(--link-color);
+    cursor: pointer;
+    text-decoration: none;
+}
+
+a:hover {
+    text-decoration: underline; 
+}
+
+nav a {
+    margin-right: 8px;
+}
+
+strong, b {
+    color: var(--heading-color);
+}
+
+button {
+    margin: 0;
+    cursor: pointer;
+}
+
+time {
+ 	font-family: monospace;
+  	font-style: normal;
+  	font-size: 15px;
+}
+
+main {
+    line-height: 1.6;
+}
+
+table {
+    width: 100%;
+}
+
+hr {
+    border: 0;
+    border-top: 1px dashed;
+}
+
+img {
+    max-width: 100%;
+}
+
+code {
+    font-family: monospace;
+    padding: 2px;
+    background-color: var(--code-background-color);
+    color: var(--code-color);
+    border-radius: 3px;
+}
+
+blockquote {
+    border-left: 1px solid #999;
+    color: var(--code-color);
+    padding-left: 20px;
+    font-style: italic;
+}
+
+footer {
+    padding: 25px 0;
+    text-align: center;
+}
+
+.title:hover {
+    text-decoration: none;
+}
+
+.title h1 {
+    font-size: 1.5em;
+}
+
+.inline {
+    width: auto !important;
+}
+
+.highlight, .code {
+    padding: 1px 15px;
+    background-color: var(--code-background-color);
+    color: var(--code-color);
+    border-radius: 3px;
+    margin-block-start: 1em;
+    margin-block-end: 1em;
+    overflow-x: auto;
+}
+
+/* blog post list */
+ul.blog-posts {
+    list-style-type: none;
+    padding: unset;
+}
+
+ul.blog-posts li {
+    display: flex;
+}
+
+ul.blog-posts li span {
+    flex: 0 0 130px;
+}
+
+ul.blog-posts li a:visited {
+    color: var(--visited-color);
+}
+    .upvote-button {
+        padding: 0;
+        margin: 0;
+        border: 0;
+        background-color: inherit;
+        color: inherit;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+    .upvote-button.upvoted {
+        color: salmon;
+    }
+    .upvote-count {
+        margin-top: -3px;
+    }
+
+      
+  </style>
+</head>
+
+<body class="post " onload="(function() { document.cookie = `timezone=${Intl.DateTimeFormat().resolvedOptions().timeZone};path=/`; })()">
+  
+  <header>
+    <a class="title" href="/">
+      <h1>
+        simons blog
+      </h1>
+    </a>
+    <nav>
+      <p><a href='/'>Home</a> <a href='/blog/'>Blog</a></p>
+
+    </nav>
+  </header>
+  <main>
+    
+
+    
+
+    
+        <h1>Short introduction to the Mojo programming language</h1>
+
+        <p>
+            <i>
+                <time datetime="2025-05-22T17:26Z">
+    22 May, 2025
+</time>
+            </i>
+        </p>
+    
+
+    <h2 id=introduction>Introduction</h2><p>Mojo is a new programming language that <em>is designed to solve a variety of AI development challenges that no other language can, because Mojo is the first programming language built from the ground-up with <a href='https://mlir.llvm.org/'>MLIR</a></em>(a compiler infrastructure that's ideal for heterogeneous hardware, from CPUs and GPUs, to various AI ASICs). The syntax of the language is Python like but the performance is that of a systems level programming language like Rust or C.
+This is a brief introduction which explains the <code>Hello, world!</code> equivalent for GPU programming: vector addition.
+I will briefly demonstrate how to setup the development environment, analyse the code while drawing similarities to <code>CUDA</code>and ending with a demonstration on how to use the compiler.</p>
+<h2 id=setup>Setup</h2><p>Download and install the magic tool</p>
+<div class="highlight"><pre><span></span>curl -ssL https://magic.modular.com/e6f579fc-5f0d-4223-a91f-e031163b1bc2 | bash
+</pre></div>
+<p>If you use VSCode as your IDE you may install the mojo extension for LSP support.</p>
+<p>Initialise a project like so:</p>
+<div class="highlight"><pre><span></span>magic init gpu-intro --format mojoproject
+</pre></div>
+<p>We are now ready to develop inside the <code>gpu-intro</code> folder.</p>
+<h2 id=simple-example>Simple example</h2><div class="highlight"><pre><span></span><span class="c1"># ===----------------------------------------------------------------------=== #</span>
+<span class="c1"># Copyright (c) 2025, Modular Inc. All rights reserved.</span>
+<span class="c1">#</span>
+<span class="c1"># Licensed under the Apache License v2.0 with LLVM Exceptions:</span>
+<span class="c1"># https://llvm.org/LICENSE.txt</span>
+<span class="c1">#</span>
+<span class="c1"># Unless required by applicable law or agreed to in writing, software</span>
+<span class="c1"># distributed under the License is distributed on an &quot;AS IS&quot; BASIS,</span>
+<span class="c1"># WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.</span>
+<span class="c1"># See the License for the specific language governing permissions and</span>
+<span class="c1"># limitations under the License.</span>
+<span class="c1"># ===----------------------------------------------------------------------=== #</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">math</span><span class="w"> </span><span class="kn">import</span> <span class="n">ceildiv</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">sys</span><span class="w"> </span><span class="kn">import</span> <span class="n">has_accelerator</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">gpu.host</span><span class="w"> </span><span class="kn">import</span> <span class="n">DeviceContext</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">gpu.id</span><span class="w"> </span><span class="kn">import</span> <span class="n">block_dim</span><span class="p">,</span> <span class="n">block_idx</span><span class="p">,</span> <span class="n">thread_idx</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">layout</span><span class="w"> </span><span class="kn">import</span> <span class="n">Layout</span><span class="p">,</span> <span class="n">LayoutTensor</span>
+
+<span class="c1"># Vector data type and size</span>
+<span class="n">alias</span> <span class="n">float_dtype</span> <span class="o">=</span> <span class="n">DType</span><span class="o">.</span><span class="n">float32</span>
+<span class="n">alias</span> <span class="n">vector_size</span> <span class="o">=</span> <span class="mi">1000</span>
+<span class="n">alias</span> <span class="n">layout</span> <span class="o">=</span> <span class="n">Layout</span><span class="o">.</span><span class="n">row_major</span><span class="p">(</span><span class="n">vector_size</span><span class="p">)</span>
+
+<span class="c1"># Calculate the number of thread blocks needed by dividing the vector size</span>
+<span class="c1"># by the block size and rounding up.</span>
+<span class="n">alias</span> <span class="n">block_size</span> <span class="o">=</span> <span class="mi">256</span>
+<span class="n">alias</span> <span class="n">num_blocks</span> <span class="o">=</span> <span class="n">ceildiv</span><span class="p">(</span><span class="n">vector_size</span><span class="p">,</span> <span class="n">block_size</span><span class="p">)</span>
+
+
+<span class="n">fn</span> <span class="n">vector_addition</span><span class="p">(</span>
+    <span class="n">lhs_tensor</span><span class="p">:</span> <span class="n">LayoutTensor</span><span class="p">[</span><span class="n">float_dtype</span><span class="p">,</span> <span class="n">layout</span><span class="p">,</span> <span class="n">MutableAnyOrigin</span><span class="p">],</span>
+    <span class="n">rhs_tensor</span><span class="p">:</span> <span class="n">LayoutTensor</span><span class="p">[</span><span class="n">float_dtype</span><span class="p">,</span> <span class="n">layout</span><span class="p">,</span> <span class="n">MutableAnyOrigin</span><span class="p">],</span>
+    <span class="n">out_tensor</span><span class="p">:</span> <span class="n">LayoutTensor</span><span class="p">[</span><span class="n">float_dtype</span><span class="p">,</span> <span class="n">layout</span><span class="p">,</span> <span class="n">MutableAnyOrigin</span><span class="p">],</span>
+<span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Calculate the element-wise sum of two vectors on the GPU.&quot;&quot;&quot;</span>
+
+    <span class="c1"># Calculate the index of the vector element for the thread to process</span>
+    <span class="n">var</span> <span class="n">tid</span> <span class="o">=</span> <span class="n">block_idx</span><span class="o">.</span><span class="n">x</span> <span class="o">*</span> <span class="n">block_dim</span><span class="o">.</span><span class="n">x</span> <span class="o">+</span> <span class="n">thread_idx</span><span class="o">.</span><span class="n">x</span>
+
+    <span class="c1"># Don&#39;t process out of bounds elements</span>
+    <span class="k">if</span> <span class="n">tid</span> <span class="o">&lt;</span> <span class="n">vector_size</span><span class="p">:</span>
+        <span class="n">out_tensor</span><span class="p">[</span><span class="n">tid</span><span class="p">]</span> <span class="o">=</span> <span class="n">lhs_tensor</span><span class="p">[</span><span class="n">tid</span><span class="p">]</span> <span class="o">+</span> <span class="n">rhs_tensor</span><span class="p">[</span><span class="n">tid</span><span class="p">]</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">main</span><span class="p">():</span>
+    <span class="nd">@parameter</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">has_accelerator</span><span class="p">():</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;No compatible GPU found&quot;</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="c1"># Get the context for the attached GPU</span>
+        <span class="n">ctx</span> <span class="o">=</span> <span class="n">DeviceContext</span><span class="p">()</span>
+
+        <span class="c1"># Create HostBuffers for input vectors</span>
+        <span class="n">lhs_host_buffer</span> <span class="o">=</span> <span class="n">ctx</span><span class="o">.</span><span class="n">enqueue_create_host_buffer</span><span class="p">[</span><span class="n">float_dtype</span><span class="p">](</span>
+            <span class="n">vector_size</span>
+        <span class="p">)</span>
+        <span class="n">rhs_host_buffer</span> <span class="o">=</span> <span class="n">ctx</span><span class="o">.</span><span class="n">enqueue_create_host_buffer</span><span class="p">[</span><span class="n">float_dtype</span><span class="p">](</span>
+            <span class="n">vector_size</span>
+        <span class="p">)</span>
+        <span class="n">ctx</span><span class="o">.</span><span class="n">synchronize</span><span class="p">()</span>
+
+        <span class="c1"># Initialize the input vectors</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">vector_size</span><span class="p">):</span>
+            <span class="n">lhs_host_buffer</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">Float32</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+            <span class="n">rhs_host_buffer</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">Float32</span><span class="p">(</span><span class="n">i</span> <span class="o">*</span> <span class="mf">0.5</span><span class="p">)</span>
+
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;LHS buffer: &quot;</span><span class="p">,</span> <span class="n">lhs_host_buffer</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;RHS buffer: &quot;</span><span class="p">,</span> <span class="n">rhs_host_buffer</span><span class="p">)</span>
+
+        <span class="c1"># Create DeviceBuffers for the input vectors</span>
+        <span class="n">lhs_device_buffer</span> <span class="o">=</span> <span class="n">ctx</span><span class="o">.</span><span class="n">enqueue_create_buffer</span><span class="p">[</span><span class="n">float_dtype</span><span class="p">](</span><span class="n">vector_size</span><span class="p">)</span>
+        <span class="n">rhs_device_buffer</span> <span class="o">=</span> <span class="n">ctx</span><span class="o">.</span><span class="n">enqueue_create_buffer</span><span class="p">[</span><span class="n">float_dtype</span><span class="p">](</span><span class="n">vector_size</span><span class="p">)</span>
+
+        <span class="c1"># Copy the input vectors from the HostBuffers to the DeviceBuffers</span>
+        <span class="n">ctx</span><span class="o">.</span><span class="n">enqueue_copy</span><span class="p">(</span><span class="n">dst_buf</span><span class="o">=</span><span class="n">lhs_device_buffer</span><span class="p">,</span> <span class="n">src_buf</span><span class="o">=</span><span class="n">lhs_host_buffer</span><span class="p">)</span>
+        <span class="n">ctx</span><span class="o">.</span><span class="n">enqueue_copy</span><span class="p">(</span><span class="n">dst_buf</span><span class="o">=</span><span class="n">rhs_device_buffer</span><span class="p">,</span> <span class="n">src_buf</span><span class="o">=</span><span class="n">rhs_host_buffer</span><span class="p">)</span>
+
+        <span class="c1"># Create a DeviceBuffer for the result vector</span>
+        <span class="n">result_device_buffer</span> <span class="o">=</span> <span class="n">ctx</span><span class="o">.</span><span class="n">enqueue_create_buffer</span><span class="p">[</span><span class="n">float_dtype</span><span class="p">](</span>
+            <span class="n">vector_size</span>
+        <span class="p">)</span>
+
+        <span class="c1"># Wrap the DeviceBuffers in LayoutTensors</span>
+        <span class="n">lhs_tensor</span> <span class="o">=</span> <span class="n">LayoutTensor</span><span class="p">[</span><span class="n">float_dtype</span><span class="p">,</span> <span class="n">layout</span><span class="p">](</span><span class="n">lhs_device_buffer</span><span class="p">)</span>
+        <span class="n">rhs_tensor</span> <span class="o">=</span> <span class="n">LayoutTensor</span><span class="p">[</span><span class="n">float_dtype</span><span class="p">,</span> <span class="n">layout</span><span class="p">](</span><span class="n">rhs_device_buffer</span><span class="p">)</span>
+        <span class="n">result_tensor</span> <span class="o">=</span> <span class="n">LayoutTensor</span><span class="p">[</span><span class="n">float_dtype</span><span class="p">,</span> <span class="n">layout</span><span class="p">](</span><span class="n">result_device_buffer</span><span class="p">)</span>
+
+        <span class="c1"># Compile and enqueue the kernel</span>
+        <span class="n">ctx</span><span class="o">.</span><span class="n">enqueue_function</span><span class="p">[</span><span class="n">vector_addition</span><span class="p">](</span>
+            <span class="n">lhs_tensor</span><span class="p">,</span>
+            <span class="n">rhs_tensor</span><span class="p">,</span>
+            <span class="n">result_tensor</span><span class="p">,</span>
+            <span class="n">grid_dim</span><span class="o">=</span><span class="n">num_blocks</span><span class="p">,</span>
+            <span class="n">block_dim</span><span class="o">=</span><span class="n">block_size</span><span class="p">,</span>
+        <span class="p">)</span>
+
+        <span class="c1"># Create a HostBuffer for the result vector</span>
+        <span class="n">result_host_buffer</span> <span class="o">=</span> <span class="n">ctx</span><span class="o">.</span><span class="n">enqueue_create_host_buffer</span><span class="p">[</span><span class="n">float_dtype</span><span class="p">](</span>
+            <span class="n">vector_size</span>
+        <span class="p">)</span>
+
+        <span class="c1"># Copy the result vector from the DeviceBuffer to the HostBuffer</span>
+        <span class="n">ctx</span><span class="o">.</span><span class="n">enqueue_copy</span><span class="p">(</span>
+            <span class="n">dst_buf</span><span class="o">=</span><span class="n">result_host_buffer</span><span class="p">,</span> <span class="n">src_buf</span><span class="o">=</span><span class="n">result_device_buffer</span>
+        <span class="p">)</span>
+
+        <span class="c1"># Finally, synchronize the DeviceContext to run all enqueued operations</span>
+        <span class="n">ctx</span><span class="o">.</span><span class="n">synchronize</span><span class="p">()</span>
+
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Result vector:&quot;</span><span class="p">,</span> <span class="n">result_host_buffer</span><span class="p">)</span>
+</pre></div>
+<p>We will now explain this code step by step.</p>
+<h3 id=kernel>Kernel</h3><div class="highlight"><pre><span></span><span class="n">fn</span> <span class="n">vector_addition</span><span class="p">(</span>
+    <span class="n">lhs_tensor</span><span class="p">:</span> <span class="n">LayoutTensor</span><span class="p">[</span><span class="n">float_dtype</span><span class="p">,</span> <span class="n">layout</span><span class="p">,</span> <span class="n">MutableAnyOrigin</span><span class="p">],</span>
+    <span class="n">rhs_tensor</span><span class="p">:</span> <span class="n">LayoutTensor</span><span class="p">[</span><span class="n">float_dtype</span><span class="p">,</span> <span class="n">layout</span><span class="p">,</span> <span class="n">MutableAnyOrigin</span><span class="p">],</span>
+    <span class="n">out_tensor</span><span class="p">:</span> <span class="n">LayoutTensor</span><span class="p">[</span><span class="n">float_dtype</span><span class="p">,</span> <span class="n">layout</span><span class="p">,</span> <span class="n">MutableAnyOrigin</span><span class="p">],</span>
+<span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Calculate the element-wise sum of two vectors on the GPU.&quot;&quot;&quot;</span>
+
+    <span class="c1"># Calculate the index of the vector element for the thread to process</span>
+    <span class="n">var</span> <span class="n">tid</span> <span class="o">=</span> <span class="n">block_idx</span><span class="o">.</span><span class="n">x</span> <span class="o">*</span> <span class="n">block_dim</span><span class="o">.</span><span class="n">x</span> <span class="o">+</span> <span class="n">thread_idx</span><span class="o">.</span><span class="n">x</span>
+
+    <span class="c1"># Don&#39;t process out of bounds elements</span>
+    <span class="k">if</span> <span class="n">tid</span> <span class="o">&lt;</span> <span class="n">vector_size</span><span class="p">:</span>
+        <span class="n">out_tensor</span><span class="p">[</span><span class="n">tid</span><span class="p">]</span> <span class="o">=</span> <span class="n">lhs_tensor</span><span class="p">[</span><span class="n">tid</span><span class="p">]</span> <span class="o">+</span> <span class="n">rhs_tensor</span><span class="p">[</span><span class="n">tid</span><span class="p">]</span>
+</pre></div>
+<p>The kernel is what we expect from a <code>vector_addition</code> kernel if we are familar with <code>CUDA</code>.</p>
+<p>It takes two <a href='https://docs.modular.com/mojo/kernels/layout/layout_tensor/LayoutTensor/'>LayoutTensors</a>. By the Mojo documentation <code>LayoutTensor</code> <em>provides a powerful abstraction for multi-dimensional data with precise control over memory organization. It supports various memory layouts (row-major, column-major, tiled), hardware-specific optimizations, and efficient parallel access patterns.</em>
+The properties of the <code>LayoutTensor</code> are defined as aliases</p>
+<div class="highlight"><pre><span></span><span class="c1"># Vector data type and size</span>
+<span class="n">alias</span> <span class="n">float_dtype</span> <span class="o">=</span> <span class="n">DType</span><span class="o">.</span><span class="n">float32</span>
+<span class="n">alias</span> <span class="n">vector_size</span> <span class="o">=</span> <span class="mi">1000</span>
+<span class="n">alias</span> <span class="n">layout</span> <span class="o">=</span> <span class="n">Layout</span><span class="o">.</span><span class="n">row_major</span><span class="p">(</span><span class="n">vector_size</span><span class="p">)</span>
+</pre></div>
+<p>Inside the kernel we'll than simply index into the <code>LayoutTensor</code>s by getting the global thread id and add them up with a check of bounds.</p>
+<h3 id=host-code>Host Code</h3><p>We first check if we have a GPU available</p>
+<div class="highlight"><pre><span></span><span class="nd">@parameter</span>
+<span class="k">if</span> <span class="ow">not</span> <span class="n">has_accelerator</span><span class="p">():</span>
+	<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;No compatible GPU found&quot;</span><span class="p">)</span>
+<span class="k">else</span><span class="p">:</span>
+</pre></div>
+<p>Similar to what we do in <code>CUDA</code> we reserve memory on the host for our arrays</p>
+<div class="highlight"><pre><span></span>        <span class="c1"># Get the context for the attached GPU</span>
+        <span class="n">ctx</span> <span class="o">=</span> <span class="n">DeviceContext</span><span class="p">()</span>
+
+        <span class="c1"># Create HostBuffers for input vectors</span>
+        <span class="n">lhs_host_buffer</span> <span class="o">=</span> <span class="n">ctx</span><span class="o">.</span><span class="n">enqueue_create_host_buffer</span><span class="p">[</span><span class="n">float_dtype</span><span class="p">](</span>
+            <span class="n">vector_size</span>
+        <span class="p">)</span>
+        <span class="n">rhs_host_buffer</span> <span class="o">=</span> <span class="n">ctx</span><span class="o">.</span><span class="n">enqueue_create_host_buffer</span><span class="p">[</span><span class="n">float_dtype</span><span class="p">](</span>
+            <span class="n">vector_size</span>
+        <span class="p">)</span>
+        <span class="n">ctx</span><span class="o">.</span><span class="n">synchronize</span><span class="p">()</span>
+</pre></div>
+<p>By the Mojo documentation <code>ctx.synchronize()</code> <em>blocks until all asynchronous calls on the stream associated with this device context have completed</em>.</p>
+<p>Next we initialise the host arrays and print them out.
+Afterwards we reserve memory on the device and copy the content of the host arrays just like we would do in <code>CUDA</code>. Afterwards we reserve memory of the <code>result_device_buffer</code>. We don't need to initialise it for our task.</p>
+<div class="highlight"><pre><span></span>        <span class="c1"># Initialize the input vectors</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">vector_size</span><span class="p">):</span>
+            <span class="n">lhs_host_buffer</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">Float32</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+            <span class="n">rhs_host_buffer</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">Float32</span><span class="p">(</span><span class="n">i</span> <span class="o">*</span> <span class="mf">0.5</span><span class="p">)</span>
+
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;LHS buffer: &quot;</span><span class="p">,</span> <span class="n">lhs_host_buffer</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;RHS buffer: &quot;</span><span class="p">,</span> <span class="n">rhs_host_buffer</span><span class="p">)</span>
+
+        <span class="c1"># Create DeviceBuffers for the input vectors</span>
+        <span class="n">lhs_device_buffer</span> <span class="o">=</span> <span class="n">ctx</span><span class="o">.</span><span class="n">enqueue_create_buffer</span><span class="p">[</span><span class="n">float_dtype</span><span class="p">](</span><span class="n">vector_size</span><span class="p">)</span>
+        <span class="n">rhs_device_buffer</span> <span class="o">=</span> <span class="n">ctx</span><span class="o">.</span><span class="n">enqueue_create_buffer</span><span class="p">[</span><span class="n">float_dtype</span><span class="p">](</span><span class="n">vector_size</span><span class="p">)</span>
+
+        <span class="c1"># Copy the input vectors from the HostBuffers to the DeviceBuffers</span>
+        <span class="n">ctx</span><span class="o">.</span><span class="n">enqueue_copy</span><span class="p">(</span><span class="n">dst_buf</span><span class="o">=</span><span class="n">lhs_device_buffer</span><span class="p">,</span> <span class="n">src_buf</span><span class="o">=</span><span class="n">lhs_host_buffer</span><span class="p">)</span>
+        <span class="n">ctx</span><span class="o">.</span><span class="n">enqueue_copy</span><span class="p">(</span><span class="n">dst_buf</span><span class="o">=</span><span class="n">rhs_device_buffer</span><span class="p">,</span> <span class="n">src_buf</span><span class="o">=</span><span class="n">rhs_host_buffer</span><span class="p">)</span>
+
+        <span class="c1"># Create a DeviceBuffer for the result vector</span>
+        <span class="n">result_device_buffer</span> <span class="o">=</span> <span class="n">ctx</span><span class="o">.</span><span class="n">enqueue_create_buffer</span><span class="p">[</span><span class="n">float_dtype</span><span class="p">](</span>
+            <span class="n">vector_size</span>
+        <span class="p">)</span>
+</pre></div>
+<p>We create the <code>LayoutTensor</code>s (note we could also use <code>UnsafePointer</code> here, see the <a href='https://builds.modular.com/puzzles/introduction.html'>GPU Puzzles</a> for how to do that).
+We'll than call the kernel. Note that, just as in <code>CUDA</code>, we need to provide <code>grid</code> and <code>block</code> configuration.</p>
+<div class="highlight"><pre><span></span><span class="n">alias</span> <span class="n">block_size</span> <span class="o">=</span> <span class="mi">256</span>
+<span class="n">alias</span> <span class="n">num_blocks</span> <span class="o">=</span> <span class="n">ceildiv</span><span class="p">(</span><span class="n">vector_size</span><span class="p">,</span> <span class="n">block_size</span><span class="p">)</span>
+</pre></div>
+<div class="highlight"><pre><span></span>        <span class="c1"># Wrap the DeviceBuffers in LayoutTensors</span>
+        <span class="n">lhs_tensor</span> <span class="o">=</span> <span class="n">LayoutTensor</span><span class="p">[</span><span class="n">float_dtype</span><span class="p">,</span> <span class="n">layout</span><span class="p">](</span><span class="n">lhs_device_buffer</span><span class="p">)</span>
+        <span class="n">rhs_tensor</span> <span class="o">=</span> <span class="n">LayoutTensor</span><span class="p">[</span><span class="n">float_dtype</span><span class="p">,</span> <span class="n">layout</span><span class="p">](</span><span class="n">rhs_device_buffer</span><span class="p">)</span>
+        <span class="n">result_tensor</span> <span class="o">=</span> <span class="n">LayoutTensor</span><span class="p">[</span><span class="n">float_dtype</span><span class="p">,</span> <span class="n">layout</span><span class="p">](</span><span class="n">result_device_buffer</span><span class="p">)</span>
+
+        <span class="c1"># Compile and enqueue the kernel</span>
+        <span class="n">ctx</span><span class="o">.</span><span class="n">enqueue_function</span><span class="p">[</span><span class="n">vector_addition</span><span class="p">](</span>
+            <span class="n">lhs_tensor</span><span class="p">,</span>
+            <span class="n">rhs_tensor</span><span class="p">,</span>
+            <span class="n">result_tensor</span><span class="p">,</span>
+            <span class="n">grid_dim</span><span class="o">=</span><span class="n">num_blocks</span><span class="p">,</span>
+            <span class="n">block_dim</span><span class="o">=</span><span class="n">block_size</span><span class="p">,</span>
+        <span class="p">)</span>
+</pre></div>
+<p>After the kernel call we progress as we would do in <code>CUDA</code>. We allocate memory for the <code>result</code> array on the host side and copy it over from the device. We can than print our result and that's already it.</p>
+<div class="highlight"><pre><span></span>        <span class="c1"># Create a HostBuffer for the result vector</span>
+        <span class="n">result_host_buffer</span> <span class="o">=</span> <span class="n">ctx</span><span class="o">.</span><span class="n">enqueue_create_host_buffer</span><span class="p">[</span><span class="n">float_dtype</span><span class="p">](</span>
+            <span class="n">vector_size</span>
+        <span class="p">)</span>
+
+        <span class="c1"># Copy the result vector from the DeviceBuffer to the HostBuffer</span>
+        <span class="n">ctx</span><span class="o">.</span><span class="n">enqueue_copy</span><span class="p">(</span>
+            <span class="n">dst_buf</span><span class="o">=</span><span class="n">result_host_buffer</span><span class="p">,</span> <span class="n">src_buf</span><span class="o">=</span><span class="n">result_device_buffer</span>
+        <span class="p">)</span>
+
+        <span class="c1"># Finally, synchronize the DeviceContext to run all enqueued operations</span>
+        <span class="n">ctx</span><span class="o">.</span><span class="n">synchronize</span><span class="p">()</span>
+
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Result vector:&quot;</span><span class="p">,</span> <span class="n">result_host_buffer</span><span class="p">)</span>
+</pre></div>
+<h3 id=compile-and-run-the-kernel>Compile and run the kernel</h3><p>We can simply run and compile the kernel at once by executing <code>mojo vector_addition.mojo</code>. Note that before doing that we need to execute <code>magic shell</code> to activate the Mojo environment.</p>
+<p>After executing <code>mojo vector_addition.mojo</code> we will get the expected output</p>
+<div class="highlight"><pre><span></span>LHS buffer:  HostBuffer([0.0, 1.0, 2.0, ..., 997.0, 998.0, 999.0])
+RHS buffer:  HostBuffer([0.0, 0.5, 1.0, ..., 498.5, 499.0, 499.5])
+Result vector: HostBuffer([0.0, 1.5, 3.0, ..., 1495.5, 1497.0, 1498.5])
+</pre></div>
+<p>Note that we might want to have more control in the compilation step. That can be done by using <a href='https://docs.modular.com/mojo/cli/build/'>mojo build</a>.</p>
+<p><code>mojo build vector_addition.mojo</code> will emit a simple executable, which can than be executed via <code>./vector_addition</code> and produces the same output as above.
+Using <code>mojo build vector_addition.mojo --emit llvm</code> will create a file <code>vector_addition.ll</code> with the <code>LLVM IR</code>.
+Using <code>mojo build vector_addition.mojo --emit asm</code> will create a file <code>vector_addition.s</code> with the <code>target assembly</code>.
+This is interesting if we want to make low level optimisations.
+For further compile options please see the above doc.</p>
+<h2 id=conclusion>Conclusion</h2><p>I hope this can serve as a quick starting guide to Mojo and make understanding it easier.
+In the future I plan to implement more advanced example using Mojo.
+If you are looking for further information I recommend to check out the <a href='https://docs.modular.com/mojo/manual/'>Mojo docs</a>. Also recently about 450K lines of Mojo code for GPU programming got Open Sourced and the code is very readable in my opinion. Please check out the <a href='https://github.com/modular/modular/tree/main'>Github repo</a> to dive deeper into the code.</p>
+
+
+    
+
+    
+        
+
+        
+            <form id="upvote-form" action="/upvote/" method="post" style="display: inline">
+    <small>
+        <input hidden name="uid" value="ezijiwUJrvYujEvQDrsf" style="display:none">
+        <input hidden name="title" value="Short introduction to the Mojo programming language" style="display:none">
+
+        <button
+            class="upvote-button"
+            aria-label="Toast this post"
+            title="Toast this post"
+        >
+            <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" class="css-i6dzq1">
+                <polyline points="17 11 12 6 7 11"></polyline>
+                <polyline points="17 18 12 13 7 18"></polyline>
+            </svg>
+            <small class="upvote-count" aria-hidden="true">&nbsp;</small>
+        </button>
+    </small>        
+</form>
+
+<script>
+    const $upvoteButton = document.querySelector('.upvote-button');
+    const $upvoteCount =  document.querySelector('.upvote-count')
+
+    fetch('/upvote-info/ezijiwUJrvYujEvQDrsf/').then(response => response.json()).then(data => {
+        $upvoteCount.innerText = data.upvote_count;
+        if (data.upvoted) {
+            $upvoteButton.disabled = true
+            $upvoteButton.style.color = "salmon"
+            $upvoteButton.ariaLabel = "Toasted"
+            $upvoteButton.title = "Toasted"
+        }
+        $upvoteButton.ariaLabel += ` (${data.upvote_count})`
+    });
+
+    let moved = false;
+    let pageLoaded = Date.now();
+
+    document.addEventListener('touchmove', () => moved = true);
+    document.addEventListener('mousemove', () => moved = true);
+
+    document.querySelector('#upvote-form').addEventListener('submit', (e) => {
+        e.preventDefault();
+
+        if (moved) {
+            document.querySelector('input[name="title"]').value = "";
+        }
+        if (Date.now() - pageLoaded < 2000 || !moved) {
+            return;
+        }
+
+        fetch(e.target.action, {
+            method: 'post',
+            body: new FormData(e.target),
+        });
+        
+        $upvoteButton.disabled = true
+        $upvoteButton.style.color = "salmon"
+        $upvoteButton.ariaLabel = "Toasted"
+        $upvoteButton.title = "Toasted"
+        const newUpvoteCount = `${(parseInt($upvoteCount.innerHTML.split(" ")[0]) + 1)}`
+        $upvoteCount.innerHTML = newUpvoteCount
+        $upvoteButton.ariaLabel += ` (${newUpvoteCount})`
+    });
+</script>
+        
+
+        
+            <script>
+            window.addEventListener("load", () => {
+                if (navigator.webdriver !== true) {
+                    const sendHit = score => {
+                        const params = new URLSearchParams({
+                            blog: "veitner",
+                            token: "ezijiwUJrvYujEvQDrsf",
+                            referrer: document.referrer.includes("veitner.bearblog.dev") ? "" : document.referrer,
+                            title: "",
+                            score: score
+                        });
+                        new Image().src = `/hit/?${params.toString()}`;
+                    };
+
+                    document.addEventListener('touchmove', () => sendHit(100), { once: true });
+                    document.addEventListener('mousemove', () => sendHit(100), { once: true });
+                }
+            });
+            </script>
+        
+    
+
+
+  </main>
+  <footer>
+    
+    
+    <span>
+        Powered by <a href="https://bearblog.dev">Bear <span role="img" class="bear" aria-label="ASCII bear logo">ʕ•ᴥ•ʔ</span></a>
+    </span>
+
+  </footer>
+
+  
+  <script>
+        (() => {
+          "use strict";
+          const times = document.querySelectorAll('time');
+          const format_string = "d M, Y" || "d M, Y"
+
+          times.forEach(time => {
+              time.innerText = formatDate(time.dateTime, format_string)
+          });
+
+          function formatDate(dateStr, formatStr) {
+            const date = new Date(dateStr);
+            const day = date.getDate();
+            const month = date.getMonth();
+            const year = date.getFullYear();
+            const weekday = date.getDay();
+            const hours = date.getHours();
+            const minutes = date.getMinutes();
+            const monthsFull = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+            const monthsShort = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+            const daysFull = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+            const daysShort = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+            
+            function getOrdinal(n) {
+                const s = ['th', 'st', 'nd', 'rd'];
+                const v = n % 100;
+                return s[(v - 20) % 10] || s[v] || s[0];
+            }
+            
+            const map = {
+                'd': () => day.toString().padStart(2, '0'),
+                'm': () => (month + 1).toString().padStart(2, '0'),
+                'Y': () => year.toString(),
+                'y': () => year.toString().slice(-2),
+                'F': () => monthsFull[month],
+                'j': () => day.toString(),
+                'D': () => daysShort[weekday],
+                'l': () => daysFull[weekday],
+                'S': () => getOrdinal(day),
+                'M': () => monthsShort[month],
+                'H': () => hours.toString().padStart(2, '0'),
+                'h': () => {
+                    let h = hours % 12;
+                    h = h === 0 ? 12 : h;
+                    return h.toString().padStart(2, '0');
+                },
+                'g': () => {
+                    let h = hours % 12;
+                    return h === 0 ? '12' : h.toString();
+                },
+                'i': () => minutes.toString().padStart(2, '0'),
+                'a': () => hours < 12 ? 'am' : 'pm',
+                'A': () => hours < 12 ? 'AM' : 'PM',
+            };
+            
+            let result = '';
+            for (let char of formatStr) {
+                result += map[char] ? map[char]() : char;
+            }
+            return result;
+        }
+        })();
+    </script>
+    
+</body>
+<!-- ID: veitner -->
+<!-- 🐻 -->
+</html>

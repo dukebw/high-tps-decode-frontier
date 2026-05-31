@@ -1,0 +1,925 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!-- Powered by Bear Blog -->
+
+<head>
+  
+  
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5">
+  
+  <title>GPU L2 Cache Persistence | simons blog</title>
+  <link rel="canonical" href="https://veitner.bearblog.dev/gpu-l2-cache-persistence/">
+  
+    
+
+    <meta name="veitner" content="look-for-the-bear-necessities">
+    <meta name="token" content="QfiXaktQTBjCywYZAUAY">
+
+    
+<!-- Primary Meta Tags -->
+<meta name="title" content="GPU L2 Cache Persistence">
+<meta name="description" content="Introduction
+
+On the GPU we have L2 cache as one part of Memory Hierarchy. L2 is shared by all Streaming Multiprocessors and can be leveraged to perform da...">
+
+<!-- Open Graph / Facebook -->
+<meta property="og:site_name" content="simons blog">
+<meta property="og:title" content="GPU L2 Cache Persistence">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://veitner.bearblog.dev/gpu-l2-cache-persistence/">
+<meta property="og:description" content="Introduction
+
+On the GPU we have L2 cache as one part of Memory Hierarchy. L2 is shared by all Streaming Multiprocessors and can be leveraged to perform da...">
+<meta property="og:image" content="/static/og-image.png">
+
+
+<!-- Twitter -->
+<meta property="twitter:card" content="summary">
+<meta property="twitter:url" content="https://veitner.bearblog.dev/gpu-l2-cache-persistence/">
+<meta property="twitter:title" content="GPU L2 Cache Persistence">
+<meta property="twitter:description" content="Introduction
+
+On the GPU we have L2 cache as one part of Memory Hierarchy. L2 is shared by all Streaming Multiprocessors and can be leveraged to perform da...">
+<meta property="twitter:image" content="/static/og-image.png">
+
+
+
+<!-- Microdata -->
+<script type="application/ld+json">
+  {
+    "@context": "http://schema.org",
+    "@type": "article",
+    "name": "GPU L2 Cache Persistence",
+    "headline": "GPU L2 Cache Persistence",
+    "url": "https://veitner.bearblog.dev/gpu-l2-cache-persistence/",
+    "description": "Introduction
+
+On the GPU we have L2 cache as one part of Memory Hierarchy. L2 is shared by all Streaming Multiprocessors and can be leveraged to perform da...",
+    "image": "/static/og-image.png"
+  }
+</script>
+    <link rel="alternate" type="application/atom+xml" href="/feed/" title="simons blog">
+    <link rel="alternate" type="application/rss+xml" href="/feed/?type=rss" title="simons blog">
+
+  
+    
+
+    
+    <style>pre { line-height: 125%; }
+td.linenos .normal { color: #666666; background-color: transparent; padding-left: 5px; padding-right: 5px; }
+span.linenos { color: #666666; background-color: transparent; padding-left: 5px; padding-right: 5px; }
+td.linenos .special { color: #000000; background-color: #ffffc0; padding-left: 5px; padding-right: 5px; }
+span.linenos.special { color: #000000; background-color: #ffffc0; padding-left: 5px; padding-right: 5px; }
+.highlight .hll { background-color: #ffffcc }
+.highlight { background: #f0f0f0; }
+.highlight .c { color: #60A0B0; font-style: italic } /* Comment */
+.highlight .err { border: 1px solid #F00 } /* Error */
+.highlight .k { color: #007020; font-weight: bold } /* Keyword */
+.highlight .o { color: #666 } /* Operator */
+.highlight .ch { color: #60A0B0; font-style: italic } /* Comment.Hashbang */
+.highlight .cm { color: #60A0B0; font-style: italic } /* Comment.Multiline */
+.highlight .cp { color: #007020 } /* Comment.Preproc */
+.highlight .cpf { color: #60A0B0; font-style: italic } /* Comment.PreprocFile */
+.highlight .c1 { color: #60A0B0; font-style: italic } /* Comment.Single */
+.highlight .cs { color: #60A0B0; background-color: #FFF0F0 } /* Comment.Special */
+.highlight .gd { color: #A00000 } /* Generic.Deleted */
+.highlight .ge { font-style: italic } /* Generic.Emph */
+.highlight .ges { font-weight: bold; font-style: italic } /* Generic.EmphStrong */
+.highlight .gr { color: #F00 } /* Generic.Error */
+.highlight .gh { color: #000080; font-weight: bold } /* Generic.Heading */
+.highlight .gi { color: #00A000 } /* Generic.Inserted */
+.highlight .go { color: #888 } /* Generic.Output */
+.highlight .gp { color: #C65D09; font-weight: bold } /* Generic.Prompt */
+.highlight .gs { font-weight: bold } /* Generic.Strong */
+.highlight .gu { color: #800080; font-weight: bold } /* Generic.Subheading */
+.highlight .gt { color: #04D } /* Generic.Traceback */
+.highlight .kc { color: #007020; font-weight: bold } /* Keyword.Constant */
+.highlight .kd { color: #007020; font-weight: bold } /* Keyword.Declaration */
+.highlight .kn { color: #007020; font-weight: bold } /* Keyword.Namespace */
+.highlight .kp { color: #007020 } /* Keyword.Pseudo */
+.highlight .kr { color: #007020; font-weight: bold } /* Keyword.Reserved */
+.highlight .kt { color: #902000 } /* Keyword.Type */
+.highlight .m { color: #40A070 } /* Literal.Number */
+.highlight .s { color: #4070A0 } /* Literal.String */
+.highlight .na { color: #4070A0 } /* Name.Attribute */
+.highlight .nb { color: #007020 } /* Name.Builtin */
+.highlight .nc { color: #0E84B5; font-weight: bold } /* Name.Class */
+.highlight .no { color: #60ADD5 } /* Name.Constant */
+.highlight .nd { color: #555; font-weight: bold } /* Name.Decorator */
+.highlight .ni { color: #D55537; font-weight: bold } /* Name.Entity */
+.highlight .ne { color: #007020 } /* Name.Exception */
+.highlight .nf { color: #06287E } /* Name.Function */
+.highlight .nl { color: #002070; font-weight: bold } /* Name.Label */
+.highlight .nn { color: #0E84B5; font-weight: bold } /* Name.Namespace */
+.highlight .nt { color: #062873; font-weight: bold } /* Name.Tag */
+.highlight .nv { color: #BB60D5 } /* Name.Variable */
+.highlight .ow { color: #007020; font-weight: bold } /* Operator.Word */
+.highlight .w { color: #BBB } /* Text.Whitespace */
+.highlight .mb { color: #40A070 } /* Literal.Number.Bin */
+.highlight .mf { color: #40A070 } /* Literal.Number.Float */
+.highlight .mh { color: #40A070 } /* Literal.Number.Hex */
+.highlight .mi { color: #40A070 } /* Literal.Number.Integer */
+.highlight .mo { color: #40A070 } /* Literal.Number.Oct */
+.highlight .sa { color: #4070A0 } /* Literal.String.Affix */
+.highlight .sb { color: #4070A0 } /* Literal.String.Backtick */
+.highlight .sc { color: #4070A0 } /* Literal.String.Char */
+.highlight .dl { color: #4070A0 } /* Literal.String.Delimiter */
+.highlight .sd { color: #4070A0; font-style: italic } /* Literal.String.Doc */
+.highlight .s2 { color: #4070A0 } /* Literal.String.Double */
+.highlight .se { color: #4070A0; font-weight: bold } /* Literal.String.Escape */
+.highlight .sh { color: #4070A0 } /* Literal.String.Heredoc */
+.highlight .si { color: #70A0D0; font-style: italic } /* Literal.String.Interpol */
+.highlight .sx { color: #C65D09 } /* Literal.String.Other */
+.highlight .sr { color: #235388 } /* Literal.String.Regex */
+.highlight .s1 { color: #4070A0 } /* Literal.String.Single */
+.highlight .ss { color: #517918 } /* Literal.String.Symbol */
+.highlight .bp { color: #007020 } /* Name.Builtin.Pseudo */
+.highlight .fm { color: #06287E } /* Name.Function.Magic */
+.highlight .vc { color: #BB60D5 } /* Name.Variable.Class */
+.highlight .vg { color: #BB60D5 } /* Name.Variable.Global */
+.highlight .vi { color: #BB60D5 } /* Name.Variable.Instance */
+.highlight .vm { color: #BB60D5 } /* Name.Variable.Magic */
+.highlight .il { color: #40A070 } /* Literal.Number.Integer.Long */
+</style>
+  
+  
+  
+    
+        <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20100%20100'%3E%3Ctext%20y='.9em'%20font-size='90'%3E🐼%3C/text%3E%3C/svg%3E">
+    
+
+
+
+  <style>
+      
+      
+    
+:root {
+    --width: 720px;
+    --font-main: Verdana, sans-serif;
+    --font-secondary: Verdana, sans-serif;
+    --font-scale: 1em;
+    --background-color: #fff;
+    --heading-color: #222;
+    --text-color: #444;
+    --link-color: #3273dc;
+    --visited-color:  #8b6fcb;
+    --code-background-color: #f2f2f2;
+    --code-color: #222;
+    --blockquote-color: #222;
+}
+
+@media (prefers-color-scheme: dark) {
+    :root {
+        --background-color: #01242e;
+        --heading-color: #eee;
+        --text-color: #ddd;
+        --link-color: #8cc2dd;
+        --visited-color:  #8b6fcb;
+        --code-background-color: #000;
+        --code-color: #ddd;
+        --blockquote-color: #ccc;
+    }
+}
+
+body {
+    font-family: var(--font-secondary);
+    font-size: var(--font-scale);
+    margin: auto;
+    padding: 20px;
+    max-width: var(--width);
+    text-align: left;
+    background-color: var(--background-color);
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    line-height: 1.5;
+    color: var(--text-color);
+}
+
+h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-main);
+    color: var(--heading-color);
+}
+
+a {
+    color: var(--link-color);
+    cursor: pointer;
+    text-decoration: none;
+}
+
+a:hover {
+    text-decoration: underline; 
+}
+
+nav a {
+    margin-right: 8px;
+}
+
+strong, b {
+    color: var(--heading-color);
+}
+
+button {
+    margin: 0;
+    cursor: pointer;
+}
+
+time {
+ 	font-family: monospace;
+  	font-style: normal;
+  	font-size: 15px;
+}
+
+main {
+    line-height: 1.6;
+}
+
+table {
+    width: 100%;
+}
+
+hr {
+    border: 0;
+    border-top: 1px dashed;
+}
+
+img {
+    max-width: 100%;
+}
+
+code {
+    font-family: monospace;
+    padding: 2px;
+    background-color: var(--code-background-color);
+    color: var(--code-color);
+    border-radius: 3px;
+}
+
+blockquote {
+    border-left: 1px solid #999;
+    color: var(--code-color);
+    padding-left: 20px;
+    font-style: italic;
+}
+
+footer {
+    padding: 25px 0;
+    text-align: center;
+}
+
+.title:hover {
+    text-decoration: none;
+}
+
+.title h1 {
+    font-size: 1.5em;
+}
+
+.inline {
+    width: auto !important;
+}
+
+.highlight, .code {
+    padding: 1px 15px;
+    background-color: var(--code-background-color);
+    color: var(--code-color);
+    border-radius: 3px;
+    margin-block-start: 1em;
+    margin-block-end: 1em;
+    overflow-x: auto;
+}
+
+/* blog post list */
+ul.blog-posts {
+    list-style-type: none;
+    padding: unset;
+}
+
+ul.blog-posts li {
+    display: flex;
+}
+
+ul.blog-posts li span {
+    flex: 0 0 130px;
+}
+
+ul.blog-posts li a:visited {
+    color: var(--visited-color);
+}
+    .upvote-button {
+        padding: 0;
+        margin: 0;
+        border: 0;
+        background-color: inherit;
+        color: inherit;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+    .upvote-button.upvoted {
+        color: salmon;
+    }
+    .upvote-count {
+        margin-top: -3px;
+    }
+
+      
+  </style>
+</head>
+
+<body class="post " onload="(function() { document.cookie = `timezone=${Intl.DateTimeFormat().resolvedOptions().timeZone};path=/`; })()">
+  
+  <header>
+    <a class="title" href="/">
+      <h1>
+        simons blog
+      </h1>
+    </a>
+    <nav>
+      <p><a href='/'>Home</a> <a href='/blog/'>Blog</a></p>
+
+    </nav>
+  </header>
+  <main>
+    
+
+    
+
+    
+        <h1>GPU L2 Cache Persistence</h1>
+
+        <p>
+            <i>
+                <time datetime="2025-09-05T17:25Z">
+    05 Sep, 2025
+</time>
+            </i>
+        </p>
+    
+
+    <h2 id=introduction>Introduction</h2><p>On the GPU we have <code>L2</code> cache as one part of <code>Memory Hierarchy</code>. <code>L2</code> is shared by all <code>Streaming Multiprocessors</code> and can be leveraged to perform data sharing between warps. From <code>Ampere</code> on the <code>L2</code> cache can be also used in following way: Assume we have certain part of input data that is accessed frequently. On NVIDIA this type of data access is called persistent. The opposite of persistent is called streaming. We can reserve part of <code>L2</code> cache (on the <code>NVIDIA H100 80GB HBM3</code>, I performed the experiments on up to <code>31.25MB</code> of the total <code>50MB</code> of <code>L2</code> memory) for the persistent data accesses.</p>
+<p>This can bring good performance improvements in memory bound tasks. Below I show how to implement it and perform some benchmarks.</p>
+<h2 id=code>Code</h2><h3 id=data-reset>Data Reset</h3><p>Data Reset is the following operation.</p>
+<div class="highlight"><pre><span></span><span class="n">__global__</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="n">data_reset_kernel</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="n">float4</span><span class="w"> </span><span class="o">*</span><span class="n">d_in</span><span class="p">,</span><span class="w"> </span><span class="n">float4</span><span class="w"> </span><span class="o">*</span><span class="n">d_out</span><span class="p">,</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">n</span><span class="p">,</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">m</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="kt">int</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">blockIdx</span><span class="p">.</span><span class="n">x</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">blockDim</span><span class="p">.</span><span class="n">x</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">threadIdx</span><span class="p">.</span><span class="n">x</span><span class="p">;</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">i</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="n">n</span><span class="o">/</span><span class="mi">4</span><span class="p">)</span><span class="w"> </span><span class="n">d_out</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">d_in</span><span class="p">[</span><span class="n">i</span><span class="w"> </span><span class="o">%</span><span class="w"> </span><span class="p">(</span><span class="n">m</span><span class="o">/</span><span class="mi">4</span><span class="p">)];</span>
+<span class="p">}</span>
+</pre></div>
+<p>It can be interpreted as the task "repeat a periodic signal until you reach the maximum output size". We assume <code>m &lt;&lt; n</code>. It is obvious that this data access is persistent: We repeatedly access the elements in smaller array.</p>
+<p>We can call such a kernel as follows:</p>
+<div class="highlight"><pre><span></span><span class="kt">void</span><span class="w"> </span><span class="nf">run_data_reset</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="kt">float</span><span class="o">*</span><span class="w">  </span><span class="n">in</span><span class="p">,</span><span class="w"> </span><span class="kt">float</span><span class="o">*</span><span class="w"> </span><span class="n">out</span><span class="p">,</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">n</span><span class="p">,</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">m</span><span class="p">,</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">device_id</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="kt">size_t</span><span class="w"> </span><span class="n">size_in</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">m</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="k">sizeof</span><span class="p">(</span><span class="kt">float</span><span class="p">);</span>
+<span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="kt">size_t</span><span class="w"> </span><span class="n">size_out</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">n</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="k">sizeof</span><span class="p">(</span><span class="kt">float</span><span class="p">);</span>
+<span class="w">    </span><span class="kt">float</span><span class="w"> </span><span class="o">*</span><span class="n">d_in</span><span class="p">,</span><span class="w"> </span><span class="o">*</span><span class="n">d_out</span><span class="p">;</span>
+<span class="w">    </span><span class="n">cudaStream_t</span><span class="w"> </span><span class="n">stream</span><span class="p">;</span>
+<span class="w">    </span><span class="n">cudaDeviceProp</span><span class="w"> </span><span class="n">prop</span><span class="p">;</span>
+
+<span class="w">    </span><span class="n">CHECK_CUDA_ERROR</span><span class="p">(</span><span class="n">cudaGetDeviceProperties</span><span class="p">(</span><span class="o">&amp;</span><span class="n">prop</span><span class="p">,</span><span class="w"> </span><span class="n">device_id</span><span class="p">));</span>
+<span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="n">cout</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">fixed</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">setprecision</span><span class="p">(</span><span class="mi">2</span><span class="p">);</span>
+<span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="n">cout</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;Running on device = &quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">device_id</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span>
+<span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="n">cout</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;In data size = &quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="p">(</span><span class="n">size_in</span><span class="p">)</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="p">(</span><span class="mf">1024.0</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="mf">1024.0</span><span class="p">)</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;MB&quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span>
+<span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="n">cout</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;Out data size = &quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="p">(</span><span class="n">size_out</span><span class="p">)</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="p">(</span><span class="mf">1024.0</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="mf">1024.0</span><span class="p">)</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;MB&quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span>
+<span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="n">cout</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;L2 cache size = &quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">prop</span><span class="p">.</span><span class="n">l2CacheSize</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="p">(</span><span class="mf">1024.0</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="mf">1024.0</span><span class="p">)</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;MB&quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span>
+<span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="n">cout</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;Maximum persistent L2 cache size = &quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">prop</span><span class="p">.</span><span class="n">persistingL2CacheMaxSize</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="p">(</span><span class="mf">1024.0</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="mf">1024.0</span><span class="p">)</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;MB&quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span>
+<span class="w">    </span><span class="n">CHECK_CUDA_ERROR</span><span class="p">(</span><span class="n">cudaSetDevice</span><span class="p">(</span><span class="n">device_id</span><span class="p">));</span>
+
+<span class="w">    </span><span class="n">CHECK_CUDA_ERROR</span><span class="p">(</span><span class="n">cudaMalloc</span><span class="p">((</span><span class="kt">void</span><span class="o">**</span><span class="p">)</span><span class="o">&amp;</span><span class="n">d_in</span><span class="p">,</span><span class="w"> </span><span class="n">size_in</span><span class="p">));</span>
+<span class="w">    </span><span class="n">CHECK_CUDA_ERROR</span><span class="p">(</span><span class="n">cudaMalloc</span><span class="p">((</span><span class="kt">void</span><span class="o">**</span><span class="p">)</span><span class="o">&amp;</span><span class="n">d_out</span><span class="p">,</span><span class="w"> </span><span class="n">size_out</span><span class="p">));</span>
+
+<span class="w">    </span><span class="n">CHECK_CUDA_ERROR</span><span class="p">(</span><span class="n">cudaMemcpy</span><span class="p">(</span><span class="n">d_in</span><span class="p">,</span><span class="w"> </span><span class="n">in</span><span class="p">,</span><span class="w"> </span><span class="n">size_in</span><span class="p">,</span><span class="w"> </span><span class="n">cudaMemcpyHostToDevice</span><span class="p">));</span>
+<span class="w">    </span><span class="n">CHECK_CUDA_ERROR</span><span class="p">(</span><span class="n">cudaStreamCreate</span><span class="p">(</span><span class="o">&amp;</span><span class="n">stream</span><span class="p">));</span>
+
+<span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">threads_per_block</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">1024</span><span class="p">;</span>
+<span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">blocks_per_grid</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="n">n</span><span class="o">/</span><span class="mi">4</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">threads_per_block</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="mi">1</span><span class="p">)</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">threads_per_block</span><span class="p">;</span>
+<span class="w">    </span><span class="n">data_reset_kernel</span><span class="o">&lt;&lt;&lt;</span><span class="n">blocks_per_grid</span><span class="p">,</span><span class="w"> </span><span class="n">threads_per_block</span><span class="p">,</span><span class="w"> </span><span class="mi">0U</span><span class="p">,</span><span class="w"> </span><span class="n">stream</span><span class="o">&gt;&gt;&gt;</span><span class="p">(</span>
+<span class="w">        </span><span class="k">reinterpret_cast</span><span class="o">&lt;</span><span class="n">float4</span><span class="w"> </span><span class="o">*&gt;</span><span class="p">(</span><span class="n">d_in</span><span class="p">),</span><span class="w"> </span><span class="k">reinterpret_cast</span><span class="o">&lt;</span><span class="n">float4</span><span class="w"> </span><span class="o">*&gt;</span><span class="p">(</span><span class="n">d_out</span><span class="p">),</span><span class="w"> </span><span class="n">n</span><span class="p">,</span><span class="w"> </span><span class="n">m</span>
+<span class="w">    </span><span class="p">);</span>
+
+<span class="w">    </span><span class="n">CHECK_LAST_CUDA_ERROR</span><span class="p">();</span>
+<span class="w">    </span><span class="n">CHECK_CUDA_ERROR</span><span class="p">(</span><span class="n">cudaStreamSynchronize</span><span class="p">(</span><span class="n">stream</span><span class="p">));</span>
+
+<span class="w">    </span><span class="n">CHECK_CUDA_ERROR</span><span class="p">(</span><span class="n">cudaMemcpy</span><span class="p">(</span><span class="n">out</span><span class="p">,</span><span class="w"> </span><span class="n">d_out</span><span class="p">,</span><span class="w"> </span><span class="n">size_out</span><span class="p">,</span><span class="w"> </span><span class="n">cudaMemcpyDeviceToHost</span><span class="p">));</span>
+<span class="w">  </span>
+<span class="w">    </span><span class="n">CHECK_CUDA_ERROR</span><span class="p">(</span><span class="n">cudaFree</span><span class="p">(</span><span class="n">d_in</span><span class="p">));</span>
+<span class="w">    </span><span class="n">CHECK_CUDA_ERROR</span><span class="p">(</span><span class="n">cudaFree</span><span class="p">(</span><span class="n">d_out</span><span class="p">));</span>
+<span class="w">    </span><span class="n">CHECK_CUDA_ERROR</span><span class="p">(</span><span class="n">cudaStreamDestroy</span><span class="p">(</span><span class="n">stream</span><span class="p">));</span>
+<span class="p">}</span>
+</pre></div>
+<p>If we want to reserve part of <code>L2</code> for <code>persistent access</code> we can do that as such.</p>
+<div class="highlight"><pre><span></span><span class="kt">void</span><span class="w"> </span><span class="nf">run_data_reset_with_l2_persistence</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="kt">float</span><span class="o">*</span><span class="w">  </span><span class="n">in</span><span class="p">,</span><span class="w"> </span><span class="kt">float</span><span class="o">*</span><span class="w"> </span><span class="n">out</span><span class="p">,</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">n</span><span class="p">,</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">m</span><span class="p">,</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">device_id</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="kt">size_t</span><span class="w"> </span><span class="n">size_in</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">m</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="k">sizeof</span><span class="p">(</span><span class="kt">float</span><span class="p">);</span>
+<span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="kt">size_t</span><span class="w"> </span><span class="n">size_out</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">n</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="k">sizeof</span><span class="p">(</span><span class="kt">float</span><span class="p">);</span>
+<span class="w">    </span><span class="kt">float</span><span class="w"> </span><span class="o">*</span><span class="n">d_in</span><span class="p">,</span><span class="w"> </span><span class="o">*</span><span class="n">d_out</span><span class="p">;</span>
+<span class="w">    </span><span class="n">cudaStream_t</span><span class="w"> </span><span class="n">stream</span><span class="p">;</span>
+<span class="w">    </span><span class="n">cudaDeviceProp</span><span class="w"> </span><span class="n">prop</span><span class="p">;</span>
+
+<span class="w">    </span><span class="n">CHECK_CUDA_ERROR</span><span class="p">(</span><span class="n">cudaGetDeviceProperties</span><span class="p">(</span><span class="o">&amp;</span><span class="n">prop</span><span class="p">,</span><span class="w"> </span><span class="n">device_id</span><span class="p">));</span>
+<span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="n">cout</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">fixed</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">setprecision</span><span class="p">(</span><span class="mi">2</span><span class="p">);</span>
+<span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="n">cout</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;Running on device = &quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">device_id</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span>
+<span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="n">cout</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;In data size = &quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="p">(</span><span class="n">size_in</span><span class="p">)</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="p">(</span><span class="mf">1024.0</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="mf">1024.0</span><span class="p">)</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;MB&quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span>
+<span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="n">cout</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;Out data size = &quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="p">(</span><span class="n">size_out</span><span class="p">)</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="p">(</span><span class="mf">1024.0</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="mf">1024.0</span><span class="p">)</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;MB&quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span>
+<span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="n">cout</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;L2 cache size = &quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">prop</span><span class="p">.</span><span class="n">l2CacheSize</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="p">(</span><span class="mf">1024.0</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="mf">1024.0</span><span class="p">)</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;MB&quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span>
+<span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="n">cout</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;Maximum persistent L2 cache size = &quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">prop</span><span class="p">.</span><span class="n">persistingL2CacheMaxSize</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="p">(</span><span class="mf">1024.0</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="mf">1024.0</span><span class="p">)</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;MB&quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span>
+<span class="w">    </span><span class="n">CHECK_CUDA_ERROR</span><span class="p">(</span><span class="n">cudaSetDevice</span><span class="p">(</span><span class="n">device_id</span><span class="p">));</span>
+
+<span class="w">    </span><span class="n">CHECK_CUDA_ERROR</span><span class="p">(</span><span class="n">cudaMalloc</span><span class="p">((</span><span class="kt">void</span><span class="o">**</span><span class="p">)</span><span class="o">&amp;</span><span class="n">d_in</span><span class="p">,</span><span class="w"> </span><span class="n">size_in</span><span class="p">));</span>
+<span class="w">    </span><span class="n">CHECK_CUDA_ERROR</span><span class="p">(</span><span class="n">cudaMalloc</span><span class="p">((</span><span class="kt">void</span><span class="o">**</span><span class="p">)</span><span class="o">&amp;</span><span class="n">d_out</span><span class="p">,</span><span class="w"> </span><span class="n">size_out</span><span class="p">));</span>
+
+<span class="w">    </span><span class="n">CHECK_CUDA_ERROR</span><span class="p">(</span><span class="n">cudaMemcpy</span><span class="p">(</span><span class="n">d_in</span><span class="p">,</span><span class="w"> </span><span class="n">in</span><span class="p">,</span><span class="w"> </span><span class="n">size_in</span><span class="p">,</span><span class="w"> </span><span class="n">cudaMemcpyHostToDevice</span><span class="p">));</span>
+<span class="w">    </span><span class="n">CHECK_CUDA_ERROR</span><span class="p">(</span><span class="n">cudaStreamCreate</span><span class="p">(</span><span class="o">&amp;</span><span class="n">stream</span><span class="p">));</span>
+
+<span class="w">    </span><span class="kt">size_t</span><span class="w"> </span><span class="n">l2_max_cache_persistent</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">8</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="mi">1024</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="mi">1024</span><span class="p">;</span><span class="c1">//1 * 1024 * 1024; </span>
+<span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="n">cout</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;Set Limit for persisting L2 cache size equal to &quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">l2_max_cache_persistent</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="p">(</span><span class="mi">1024</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="mi">1024</span><span class="p">)</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;MB&quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span>
+<span class="w">    </span><span class="n">CHECK_CUDA_ERROR</span><span class="p">(</span><span class="n">cudaDeviceSetLimit</span><span class="p">(</span><span class="n">cudaLimitPersistingL2CacheSize</span><span class="p">,</span><span class="w"> </span><span class="n">l2_max_cache_persistent</span><span class="p">));</span>
+
+<span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="n">cout</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;Set stream attributes for persisting L2 cache.&quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span>
+<span class="w">    </span><span class="n">cudaStreamAttrValue</span><span class="w"> </span><span class="n">stream_attribute</span><span class="p">;</span>
+<span class="w">    </span><span class="n">stream_attribute</span><span class="p">.</span><span class="n">accessPolicyWindow</span><span class="p">.</span><span class="n">base_ptr</span><span class="w">  </span><span class="o">=</span><span class="w"> </span><span class="k">reinterpret_cast</span><span class="o">&lt;</span><span class="kt">void</span><span class="o">*&gt;</span><span class="p">(</span><span class="n">d_in</span><span class="p">);</span>
+<span class="w">    </span><span class="n">stream_attribute</span><span class="p">.</span><span class="n">accessPolicyWindow</span><span class="p">.</span><span class="n">num_bytes</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">l2_max_cache_persistent</span><span class="p">;</span>
+<span class="w">    </span><span class="c1">//stream_attribute.accessPolicyWindow.hitRatio  = 1;</span>
+<span class="w">    </span><span class="n">stream_attribute</span><span class="p">.</span><span class="n">accessPolicyWindow</span><span class="p">.</span><span class="n">hitRatio</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">min</span><span class="p">(</span><span class="n">l2_max_cache_persistent</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="p">((</span><span class="kt">float</span><span class="p">)</span><span class="w"> </span><span class="n">size_in</span><span class="p">),</span><span class="w"> </span><span class="mf">1.0f</span><span class="p">);</span>
+<span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="n">cout</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;Hit Ratio = &quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">stream_attribute</span><span class="p">.</span><span class="n">accessPolicyWindow</span><span class="p">.</span><span class="n">hitRatio</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span>
+<span class="w">    </span><span class="n">stream_attribute</span><span class="p">.</span><span class="n">accessPolicyWindow</span><span class="p">.</span><span class="n">hitProp</span><span class="w">   </span><span class="o">=</span><span class="w"> </span><span class="n">cudaAccessPropertyPersisting</span><span class="p">;</span><span class="w"> </span><span class="c1">// Type of access property on cache hit</span>
+<span class="w">    </span><span class="n">stream_attribute</span><span class="p">.</span><span class="n">accessPolicyWindow</span><span class="p">.</span><span class="n">missProp</span><span class="w">  </span><span class="o">=</span><span class="w"> </span><span class="n">cudaAccessPropertyStreaming</span><span class="p">;</span><span class="w">  </span><span class="c1">// Type of access property on cache miss.</span>
+
+<span class="w">    </span><span class="n">CHECK_CUDA_ERROR</span><span class="p">(</span><span class="n">cudaStreamSetAttribute</span><span class="p">(</span><span class="n">stream</span><span class="p">,</span><span class="w"> </span><span class="n">cudaStreamAttributeAccessPolicyWindow</span><span class="p">,</span><span class="w"> </span><span class="o">&amp;</span><span class="n">stream_attribute</span><span class="p">));</span>
+
+<span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">threads_per_block</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">1024</span><span class="p">;</span>
+<span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">blocks_per_grid</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="n">n</span><span class="o">/</span><span class="mi">4</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">threads_per_block</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="mi">1</span><span class="p">)</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">threads_per_block</span><span class="p">;</span>
+<span class="w">    </span><span class="n">data_reset_kernel</span><span class="o">&lt;&lt;&lt;</span><span class="n">blocks_per_grid</span><span class="p">,</span><span class="w"> </span><span class="n">threads_per_block</span><span class="p">,</span><span class="w"> </span><span class="mi">0U</span><span class="p">,</span><span class="w"> </span><span class="n">stream</span><span class="o">&gt;&gt;&gt;</span><span class="p">(</span>
+<span class="w">        </span><span class="k">reinterpret_cast</span><span class="o">&lt;</span><span class="n">float4</span><span class="w"> </span><span class="o">*&gt;</span><span class="p">(</span><span class="n">d_in</span><span class="p">),</span><span class="w"> </span><span class="k">reinterpret_cast</span><span class="o">&lt;</span><span class="n">float4</span><span class="w"> </span><span class="o">*&gt;</span><span class="p">(</span><span class="n">d_out</span><span class="p">),</span><span class="w"> </span><span class="n">n</span><span class="p">,</span><span class="w"> </span><span class="n">m</span>
+<span class="w">    </span><span class="p">);</span>
+
+<span class="w">    </span><span class="n">CHECK_LAST_CUDA_ERROR</span><span class="p">();</span>
+<span class="w">    </span><span class="n">CHECK_CUDA_ERROR</span><span class="p">(</span><span class="n">cudaStreamSynchronize</span><span class="p">(</span><span class="n">stream</span><span class="p">));</span>
+
+<span class="w">    </span><span class="n">CHECK_CUDA_ERROR</span><span class="p">(</span><span class="n">cudaMemcpy</span><span class="p">(</span><span class="n">out</span><span class="p">,</span><span class="w"> </span><span class="n">d_out</span><span class="p">,</span><span class="w"> </span><span class="n">size_out</span><span class="p">,</span><span class="w"> </span><span class="n">cudaMemcpyDeviceToHost</span><span class="p">));</span>
+<span class="w">  </span>
+<span class="w">    </span><span class="n">CHECK_CUDA_ERROR</span><span class="p">(</span><span class="n">cudaFree</span><span class="p">(</span><span class="n">d_in</span><span class="p">));</span>
+<span class="w">    </span><span class="n">CHECK_CUDA_ERROR</span><span class="p">(</span><span class="n">cudaFree</span><span class="p">(</span><span class="n">d_out</span><span class="p">));</span>
+<span class="w">    </span><span class="n">CHECK_CUDA_ERROR</span><span class="p">(</span><span class="n">cudaStreamDestroy</span><span class="p">(</span><span class="n">stream</span><span class="p">));</span>
+<span class="p">}</span>
+</pre></div>
+<p>The relevant part for the reservation is:</p>
+<div class="highlight"><pre><span></span><span class="w">    </span><span class="kt">size_t</span><span class="w"> </span><span class="n">l2_max_cache_persistent</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">8</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="mi">1024</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="mi">1024</span><span class="p">;</span><span class="c1">//1 * 1024 * 1024; </span>
+<span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="n">cout</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;Set Limit for persisting L2 cache size equal to &quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">l2_max_cache_persistent</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="p">(</span><span class="mi">1024</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="mi">1024</span><span class="p">)</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;MB&quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span>
+<span class="w">    </span><span class="n">CHECK_CUDA_ERROR</span><span class="p">(</span><span class="n">cudaDeviceSetLimit</span><span class="p">(</span><span class="n">cudaLimitPersistingL2CacheSize</span><span class="p">,</span><span class="w"> </span><span class="n">l2_max_cache_persistent</span><span class="p">));</span>
+
+<span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="n">cout</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;Set stream attributes for persisting L2 cache.&quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span>
+<span class="w">    </span><span class="n">cudaStreamAttrValue</span><span class="w"> </span><span class="n">stream_attribute</span><span class="p">;</span>
+<span class="w">    </span><span class="n">stream_attribute</span><span class="p">.</span><span class="n">accessPolicyWindow</span><span class="p">.</span><span class="n">base_ptr</span><span class="w">  </span><span class="o">=</span><span class="w"> </span><span class="k">reinterpret_cast</span><span class="o">&lt;</span><span class="kt">void</span><span class="o">*&gt;</span><span class="p">(</span><span class="n">d_in</span><span class="p">);</span>
+<span class="w">    </span><span class="n">stream_attribute</span><span class="p">.</span><span class="n">accessPolicyWindow</span><span class="p">.</span><span class="n">num_bytes</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">l2_max_cache_persistent</span><span class="p">;</span>
+<span class="w">    </span><span class="c1">//stream_attribute.accessPolicyWindow.hitRatio  = 1;</span>
+<span class="w">    </span><span class="n">stream_attribute</span><span class="p">.</span><span class="n">accessPolicyWindow</span><span class="p">.</span><span class="n">hitRatio</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">min</span><span class="p">(</span><span class="n">l2_max_cache_persistent</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="p">((</span><span class="kt">float</span><span class="p">)</span><span class="w"> </span><span class="n">size_in</span><span class="p">),</span><span class="w"> </span><span class="mf">1.0f</span><span class="p">);</span>
+<span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="n">cout</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;Hit Ratio = &quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">stream_attribute</span><span class="p">.</span><span class="n">accessPolicyWindow</span><span class="p">.</span><span class="n">hitRatio</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span>
+<span class="w">    </span><span class="n">stream_attribute</span><span class="p">.</span><span class="n">accessPolicyWindow</span><span class="p">.</span><span class="n">hitProp</span><span class="w">   </span><span class="o">=</span><span class="w"> </span><span class="n">cudaAccessPropertyPersisting</span><span class="p">;</span><span class="w"> </span><span class="c1">// Type of access property on cache hit</span>
+<span class="w">    </span><span class="n">stream_attribute</span><span class="p">.</span><span class="n">accessPolicyWindow</span><span class="p">.</span><span class="n">missProp</span><span class="w">  </span><span class="o">=</span><span class="w"> </span><span class="n">cudaAccessPropertyStreaming</span><span class="p">;</span><span class="w">  </span><span class="c1">// Type of access property on cache miss.</span>
+</pre></div>
+<p>We see that it is quite easy. We just set our configuration in the <code>stream_attribute</code>. Note that we dynamically adjust the <code>hitRatio</code> in case our input size exceeds the reserved persistent region in <code>L2</code>. For example if the size is double of the reserved size <code>hitRatio = 0.5</code> etc. This is needed to achieve best performance and taken from the <a href='https://docs.nvidia.com/cuda/cuda-c-best-practices-guide/#l2-cache'>CUDA best practices guide</a>.</p>
+<p>I build my project with <code>CMAKE</code> and after compiling we can use following code to benchmark performance with <code>NCU</code> in the <code>build</code> directory. Here the first argument is the device we run on, the second argument is the size of output data and the last argument is size of persistent data.</p>
+<div class="highlight"><pre><span></span># 2 MB
+ncu --set full -o ../profiles/main_data_resetting_4096_2 ./main_data_resetting 1 1073741824 524288
+ncu --set full -o ../profiles/main_data_resetting_persistence_4096_2 ./main_data_resetting 1 1073741824 524288
+
+# 4 MB  
+ncu --set full -o ../profiles/main_data_resetting_4096_3 ./main_data_resetting 1 1073741824 1048576
+ncu --set full -o ../profiles/main_data_resetting_persistence_4096_3 ./main_data_resetting 1 1073741824 1048576
+
+# 8 MB
+ncu --set full -o ../profiles/main_data_resetting_4096_4 ./main_data_resetting 1 1073741824 2097152
+ncu --set full -o ../profiles/main_data_resetting_persistence_4096_4 ./main_data_resetting 1 1073741824 2097152
+
+# 16 MB
+ncu --set full -o ../profiles/main_data_resetting_4096_5 ./main_data_resetting 1 1073741824 4194304
+ncu --set full -o ../profiles/main_data_resetting_persistence_4096_5 ./main_data_resetting 1 1073741824 4194304
+</pre></div>
+<h3 id=streaming-and-persistent>Streaming and Persistent</h3><p>The second benchmark mixes streaming and persistent data as described here:</p>
+<div class="highlight"><pre><span></span><span class="n">__global__</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="n">stream_and_persistent_kernel</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="n">float4</span><span class="o">*</span><span class="w"> </span><span class="n">__restrict__</span><span class="w"> </span><span class="n">d_in_persistent</span><span class="p">,</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="n">float4</span><span class="o">*</span><span class="w"> </span><span class="n">__restrict__</span><span class="w"> </span><span class="n">d_in_streaming</span><span class="p">,</span><span class="w"> </span><span class="n">float4</span><span class="o">*</span><span class="w"> </span><span class="n">__restrict__</span><span class="w"> </span><span class="n">d_out</span><span class="p">,</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">n</span><span class="p">,</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">m</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="kt">int</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">blockIdx</span><span class="p">.</span><span class="n">x</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">blockDim</span><span class="p">.</span><span class="n">x</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">threadIdx</span><span class="p">.</span><span class="n">x</span><span class="p">;</span>
+<span class="w">    </span>
+<span class="w">    </span><span class="c1">// Note n / 4 == n &gt;&gt; 2 and m / 4 == m &gt;&gt; 2, i % m == i &amp; (m-1) if m 2^x</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">i</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="p">(</span><span class="n">n</span><span class="w"> </span><span class="o">&gt;&gt;</span><span class="w"> </span><span class="mi">2</span><span class="p">))</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="c1">//float4 s = __ldlu(&amp;d_in_streaming[i]);</span>
+<span class="w">        </span><span class="n">float4</span><span class="w"> </span><span class="n">s</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">d_in_streaming</span><span class="p">[</span><span class="n">i</span><span class="p">];</span>
+<span class="w">        </span><span class="n">float4</span><span class="w"> </span><span class="n">p</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">__ldcg</span><span class="p">(</span><span class="o">&amp;</span><span class="n">d_in_persistent</span><span class="p">[</span><span class="n">i</span><span class="w"> </span><span class="o">&amp;</span><span class="w"> </span><span class="p">((</span><span class="n">m</span><span class="w"> </span><span class="o">&gt;&gt;</span><span class="w"> </span><span class="mi">2</span><span class="p">)</span><span class="mi">-1</span><span class="p">)]);</span>
+<span class="w">        </span><span class="n">d_out</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">make_float4</span><span class="p">(</span><span class="n">p</span><span class="p">.</span><span class="n">x</span><span class="o">+</span><span class="n">s</span><span class="p">.</span><span class="n">x</span><span class="p">,</span><span class="w"> </span><span class="n">p</span><span class="p">.</span><span class="n">y</span><span class="o">+</span><span class="n">s</span><span class="p">.</span><span class="n">y</span><span class="p">,</span><span class="w"> </span><span class="n">p</span><span class="p">.</span><span class="n">z</span><span class="o">+</span><span class="n">s</span><span class="p">.</span><span class="n">z</span><span class="p">,</span><span class="w"> </span><span class="n">p</span><span class="p">.</span><span class="n">w</span><span class="o">+</span><span class="n">s</span><span class="p">.</span><span class="n">w</span><span class="p">);</span>
+<span class="w">        </span><span class="c1">//atomicAdd(&amp;d_out[i], s);</span>
+<span class="w">        </span><span class="c1">//atomicAdd(&amp;d_out[i], p);</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+<p>This can be interpreted as one periodic signal and one continuously evolving term. One might encounter such behavior if one wants to model some data signal and add a seasonality component to it.</p>
+<p>The code is very similar to the above.</p>
+<div class="highlight"><pre><span></span><span class="kt">void</span><span class="w"> </span><span class="nf">run_stream_and_persistent</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="kt">float</span><span class="o">*</span><span class="w">  </span><span class="n">in_persistent</span><span class="p">,</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="kt">float</span><span class="o">*</span><span class="w">  </span><span class="n">in_streaming</span><span class="p">,</span><span class="w"> </span><span class="kt">float</span><span class="o">*</span><span class="w"> </span><span class="n">out</span><span class="p">,</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">n</span><span class="p">,</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">m</span><span class="p">,</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">device_id</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="kt">size_t</span><span class="w"> </span><span class="n">size_in</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">m</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="k">sizeof</span><span class="p">(</span><span class="kt">float</span><span class="p">);</span>
+<span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="kt">size_t</span><span class="w"> </span><span class="n">size_out</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">n</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="k">sizeof</span><span class="p">(</span><span class="kt">float</span><span class="p">);</span>
+<span class="w">    </span><span class="kt">float</span><span class="w"> </span><span class="o">*</span><span class="n">d_in_persistent</span><span class="p">,</span><span class="w"> </span><span class="o">*</span><span class="n">d_in_streaming</span><span class="p">,</span><span class="w"> </span><span class="o">*</span><span class="n">d_out</span><span class="p">;</span>
+<span class="w">    </span><span class="n">cudaStream_t</span><span class="w"> </span><span class="n">stream</span><span class="p">;</span>
+<span class="w">    </span><span class="n">cudaDeviceProp</span><span class="w"> </span><span class="n">prop</span><span class="p">;</span>
+
+<span class="w">    </span><span class="n">CHECK_CUDA_ERROR</span><span class="p">(</span><span class="n">cudaGetDeviceProperties</span><span class="p">(</span><span class="o">&amp;</span><span class="n">prop</span><span class="p">,</span><span class="w"> </span><span class="n">device_id</span><span class="p">));</span>
+<span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="n">cout</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">fixed</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">setprecision</span><span class="p">(</span><span class="mi">2</span><span class="p">);</span>
+<span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="n">cout</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;Running on device = &quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">device_id</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span>
+<span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="n">cout</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;Persistent data size = &quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="p">(</span><span class="n">size_in</span><span class="p">)</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="p">(</span><span class="mf">1024.0</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="mf">1024.0</span><span class="p">)</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;MB&quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span>
+<span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="n">cout</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;Streaming data size = &quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="p">(</span><span class="n">size_out</span><span class="p">)</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="p">(</span><span class="mf">1024.0</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="mf">1024.0</span><span class="p">)</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;MB&quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span>
+<span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="n">cout</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;Out data size = &quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="p">(</span><span class="n">size_out</span><span class="p">)</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="p">(</span><span class="mf">1024.0</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="mf">1024.0</span><span class="p">)</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;MB&quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span>
+<span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="n">cout</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;L2 cache size = &quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">prop</span><span class="p">.</span><span class="n">l2CacheSize</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="p">(</span><span class="mf">1024.0</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="mf">1024.0</span><span class="p">)</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;MB&quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span>
+<span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="n">cout</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;Maximum persistent L2 cache size = &quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">prop</span><span class="p">.</span><span class="n">persistingL2CacheMaxSize</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="p">(</span><span class="mf">1024.0</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="mf">1024.0</span><span class="p">)</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;MB&quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span>
+<span class="w">    </span><span class="n">CHECK_CUDA_ERROR</span><span class="p">(</span><span class="n">cudaSetDevice</span><span class="p">(</span><span class="n">device_id</span><span class="p">));</span>
+
+<span class="w">    </span><span class="n">CHECK_CUDA_ERROR</span><span class="p">(</span><span class="n">cudaMalloc</span><span class="p">((</span><span class="kt">void</span><span class="o">**</span><span class="p">)</span><span class="o">&amp;</span><span class="n">d_in_persistent</span><span class="p">,</span><span class="w"> </span><span class="n">size_in</span><span class="p">));</span>
+<span class="w">    </span><span class="n">CHECK_CUDA_ERROR</span><span class="p">(</span><span class="n">cudaMalloc</span><span class="p">((</span><span class="kt">void</span><span class="o">**</span><span class="p">)</span><span class="o">&amp;</span><span class="n">d_in_streaming</span><span class="p">,</span><span class="w"> </span><span class="n">size_out</span><span class="p">));</span>
+<span class="w">    </span><span class="n">CHECK_CUDA_ERROR</span><span class="p">(</span><span class="n">cudaMalloc</span><span class="p">((</span><span class="kt">void</span><span class="o">**</span><span class="p">)</span><span class="o">&amp;</span><span class="n">d_out</span><span class="p">,</span><span class="w"> </span><span class="n">size_out</span><span class="p">));</span>
+
+<span class="w">    </span><span class="n">CHECK_CUDA_ERROR</span><span class="p">(</span><span class="n">cudaMemcpy</span><span class="p">(</span><span class="n">d_in_persistent</span><span class="p">,</span><span class="w"> </span><span class="n">in_persistent</span><span class="p">,</span><span class="w"> </span><span class="n">size_in</span><span class="p">,</span><span class="w"> </span><span class="n">cudaMemcpyHostToDevice</span><span class="p">));</span>
+<span class="w">    </span><span class="n">CHECK_CUDA_ERROR</span><span class="p">(</span><span class="n">cudaMemcpy</span><span class="p">(</span><span class="n">d_in_streaming</span><span class="p">,</span><span class="w"> </span><span class="n">in_streaming</span><span class="p">,</span><span class="w"> </span><span class="n">size_out</span><span class="p">,</span><span class="w"> </span><span class="n">cudaMemcpyHostToDevice</span><span class="p">));</span>
+<span class="w">    </span><span class="n">CHECK_CUDA_ERROR</span><span class="p">(</span><span class="n">cudaStreamCreate</span><span class="p">(</span><span class="o">&amp;</span><span class="n">stream</span><span class="p">));</span>
+
+<span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">threads_per_block</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">256</span><span class="p">;</span>
+<span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">blocks_per_grid</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="n">n</span><span class="o">/</span><span class="mi">4</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">threads_per_block</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="mi">1</span><span class="p">)</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">threads_per_block</span><span class="p">;</span>
+<span class="w">    </span><span class="n">stream_and_persistent_kernel</span><span class="o">&lt;&lt;&lt;</span><span class="n">blocks_per_grid</span><span class="p">,</span><span class="w"> </span><span class="n">threads_per_block</span><span class="p">,</span><span class="w"> </span><span class="mi">0U</span><span class="p">,</span><span class="w"> </span><span class="n">stream</span><span class="o">&gt;&gt;&gt;</span><span class="p">(</span>
+<span class="w">        </span><span class="k">reinterpret_cast</span><span class="o">&lt;</span><span class="n">float4</span><span class="w"> </span><span class="o">*&gt;</span><span class="p">(</span><span class="n">d_in_persistent</span><span class="p">),</span><span class="w"> </span><span class="k">reinterpret_cast</span><span class="o">&lt;</span><span class="n">float4</span><span class="w"> </span><span class="o">*&gt;</span><span class="p">(</span><span class="n">d_in_streaming</span><span class="p">),</span><span class="w"> </span><span class="k">reinterpret_cast</span><span class="o">&lt;</span><span class="n">float4</span><span class="w"> </span><span class="o">*&gt;</span><span class="p">(</span><span class="n">d_out</span><span class="p">),</span><span class="w"> </span><span class="n">n</span><span class="p">,</span><span class="w"> </span><span class="n">m</span>
+<span class="w">    </span><span class="p">);</span>
+
+<span class="w">    </span><span class="n">CHECK_LAST_CUDA_ERROR</span><span class="p">();</span>
+<span class="w">    </span><span class="n">CHECK_CUDA_ERROR</span><span class="p">(</span><span class="n">cudaStreamSynchronize</span><span class="p">(</span><span class="n">stream</span><span class="p">));</span>
+
+<span class="w">    </span><span class="n">CHECK_CUDA_ERROR</span><span class="p">(</span><span class="n">cudaMemcpy</span><span class="p">(</span><span class="n">out</span><span class="p">,</span><span class="w"> </span><span class="n">d_out</span><span class="p">,</span><span class="w"> </span><span class="n">size_out</span><span class="p">,</span><span class="w"> </span><span class="n">cudaMemcpyDeviceToHost</span><span class="p">));</span>
+<span class="w">  </span>
+<span class="w">    </span><span class="n">CHECK_CUDA_ERROR</span><span class="p">(</span><span class="n">cudaFree</span><span class="p">(</span><span class="n">d_in_persistent</span><span class="p">));</span>
+<span class="w">    </span><span class="n">CHECK_CUDA_ERROR</span><span class="p">(</span><span class="n">cudaFree</span><span class="p">(</span><span class="n">d_in_streaming</span><span class="p">));</span>
+<span class="w">    </span><span class="n">CHECK_CUDA_ERROR</span><span class="p">(</span><span class="n">cudaFree</span><span class="p">(</span><span class="n">d_out</span><span class="p">));</span>
+<span class="w">    </span><span class="n">CHECK_CUDA_ERROR</span><span class="p">(</span><span class="n">cudaStreamDestroy</span><span class="p">(</span><span class="n">stream</span><span class="p">));</span>
+<span class="p">}</span>
+</pre></div>
+<p>And reserving works the same as above as well.</p>
+<div class="highlight"><pre><span></span><span class="kt">void</span><span class="w"> </span><span class="nf">run_stream_and_persistent_with_l2_persistence</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="kt">float</span><span class="o">*</span><span class="w">  </span><span class="n">in_persistent</span><span class="p">,</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="kt">float</span><span class="o">*</span><span class="w">  </span><span class="n">in_streaming</span><span class="p">,</span><span class="w"> </span><span class="kt">float</span><span class="o">*</span><span class="w"> </span><span class="n">out</span><span class="p">,</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">n</span><span class="p">,</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">m</span><span class="p">,</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">device_id</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="kt">size_t</span><span class="w"> </span><span class="n">size_in</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">m</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="k">sizeof</span><span class="p">(</span><span class="kt">float</span><span class="p">);</span>
+<span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="kt">size_t</span><span class="w"> </span><span class="n">size_out</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">n</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="k">sizeof</span><span class="p">(</span><span class="kt">float</span><span class="p">);</span>
+<span class="w">    </span><span class="kt">float</span><span class="w"> </span><span class="o">*</span><span class="n">d_in_persistent</span><span class="p">,</span><span class="w"> </span><span class="o">*</span><span class="n">d_in_streaming</span><span class="p">,</span><span class="w"> </span><span class="o">*</span><span class="n">d_out</span><span class="p">;</span>
+<span class="w">    </span><span class="n">cudaStream_t</span><span class="w"> </span><span class="n">stream</span><span class="p">;</span>
+<span class="w">    </span><span class="n">cudaDeviceProp</span><span class="w"> </span><span class="n">prop</span><span class="p">;</span>
+
+<span class="w">    </span><span class="n">CHECK_CUDA_ERROR</span><span class="p">(</span><span class="n">cudaGetDeviceProperties</span><span class="p">(</span><span class="o">&amp;</span><span class="n">prop</span><span class="p">,</span><span class="w"> </span><span class="n">device_id</span><span class="p">));</span>
+<span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="n">cout</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">fixed</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">setprecision</span><span class="p">(</span><span class="mi">2</span><span class="p">);</span>
+<span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="n">cout</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;Running on device = &quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">device_id</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span>
+<span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="n">cout</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;Persistent data size = &quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="p">(</span><span class="n">size_in</span><span class="p">)</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="p">(</span><span class="mf">1024.0</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="mf">1024.0</span><span class="p">)</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;MB&quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span>
+<span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="n">cout</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;Streaming data size = &quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="p">(</span><span class="n">size_out</span><span class="p">)</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="p">(</span><span class="mf">1024.0</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="mf">1024.0</span><span class="p">)</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;MB&quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span>
+<span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="n">cout</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;Out data size = &quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="p">(</span><span class="n">size_out</span><span class="p">)</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="p">(</span><span class="mf">1024.0</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="mf">1024.0</span><span class="p">)</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;MB&quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span>
+<span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="n">cout</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;L2 cache size = &quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">prop</span><span class="p">.</span><span class="n">l2CacheSize</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="p">(</span><span class="mf">1024.0</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="mf">1024.0</span><span class="p">)</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;MB&quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span>
+<span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="n">cout</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;Maximum persistent L2 cache size = &quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">prop</span><span class="p">.</span><span class="n">persistingL2CacheMaxSize</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="p">(</span><span class="mf">1024.0</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="mf">1024.0</span><span class="p">)</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;MB&quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span>
+<span class="w">    </span><span class="n">CHECK_CUDA_ERROR</span><span class="p">(</span><span class="n">cudaSetDevice</span><span class="p">(</span><span class="n">device_id</span><span class="p">));</span>
+
+<span class="w">    </span><span class="n">CHECK_CUDA_ERROR</span><span class="p">(</span><span class="n">cudaMalloc</span><span class="p">((</span><span class="kt">void</span><span class="o">**</span><span class="p">)</span><span class="o">&amp;</span><span class="n">d_in_persistent</span><span class="p">,</span><span class="w"> </span><span class="n">size_in</span><span class="p">));</span>
+<span class="w">    </span><span class="n">CHECK_CUDA_ERROR</span><span class="p">(</span><span class="n">cudaMalloc</span><span class="p">((</span><span class="kt">void</span><span class="o">**</span><span class="p">)</span><span class="o">&amp;</span><span class="n">d_in_streaming</span><span class="p">,</span><span class="w"> </span><span class="n">size_out</span><span class="p">));</span>
+<span class="w">    </span><span class="n">CHECK_CUDA_ERROR</span><span class="p">(</span><span class="n">cudaMalloc</span><span class="p">((</span><span class="kt">void</span><span class="o">**</span><span class="p">)</span><span class="o">&amp;</span><span class="n">d_out</span><span class="p">,</span><span class="w"> </span><span class="n">size_out</span><span class="p">));</span>
+
+<span class="w">    </span><span class="n">CHECK_CUDA_ERROR</span><span class="p">(</span><span class="n">cudaMemcpy</span><span class="p">(</span><span class="n">d_in_persistent</span><span class="p">,</span><span class="w"> </span><span class="n">in_persistent</span><span class="p">,</span><span class="w"> </span><span class="n">size_in</span><span class="p">,</span><span class="w"> </span><span class="n">cudaMemcpyHostToDevice</span><span class="p">));</span>
+<span class="w">    </span><span class="n">CHECK_CUDA_ERROR</span><span class="p">(</span><span class="n">cudaMemcpy</span><span class="p">(</span><span class="n">d_in_streaming</span><span class="p">,</span><span class="w"> </span><span class="n">in_streaming</span><span class="p">,</span><span class="w"> </span><span class="n">size_out</span><span class="p">,</span><span class="w"> </span><span class="n">cudaMemcpyHostToDevice</span><span class="p">));</span>
+<span class="w">    </span><span class="n">CHECK_CUDA_ERROR</span><span class="p">(</span><span class="n">cudaStreamCreate</span><span class="p">(</span><span class="o">&amp;</span><span class="n">stream</span><span class="p">));</span>
+
+<span class="w">    </span><span class="kt">size_t</span><span class="w"> </span><span class="n">l2_max_cache_persistent</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">8</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="mi">1024</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="mi">1024</span><span class="p">;</span><span class="c1">//1 * 1024 * 1024; </span>
+<span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="n">cout</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;Set Limit for persisting L2 cache size equal to &quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">l2_max_cache_persistent</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="p">(</span><span class="mi">1024</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="mi">1024</span><span class="p">)</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;MB&quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span>
+<span class="w">    </span><span class="n">CHECK_CUDA_ERROR</span><span class="p">(</span><span class="n">cudaDeviceSetLimit</span><span class="p">(</span><span class="n">cudaLimitPersistingL2CacheSize</span><span class="p">,</span><span class="w"> </span><span class="n">l2_max_cache_persistent</span><span class="p">));</span>
+
+<span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="n">cout</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;Set stream attributes for persisting L2 cache.&quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span>
+<span class="w">    </span><span class="n">cudaStreamAttrValue</span><span class="w"> </span><span class="n">stream_attribute</span><span class="p">;</span>
+<span class="w">    </span><span class="n">stream_attribute</span><span class="p">.</span><span class="n">accessPolicyWindow</span><span class="p">.</span><span class="n">base_ptr</span><span class="w">  </span><span class="o">=</span><span class="w"> </span><span class="k">reinterpret_cast</span><span class="o">&lt;</span><span class="kt">void</span><span class="o">*&gt;</span><span class="p">(</span><span class="n">d_in_persistent</span><span class="p">);</span>
+<span class="w">    </span><span class="n">stream_attribute</span><span class="p">.</span><span class="n">accessPolicyWindow</span><span class="p">.</span><span class="n">num_bytes</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">l2_max_cache_persistent</span><span class="p">;</span>
+<span class="w">    </span><span class="c1">//stream_attribute.accessPolicyWindow.hitRatio  = 1;</span>
+<span class="w">    </span><span class="n">stream_attribute</span><span class="p">.</span><span class="n">accessPolicyWindow</span><span class="p">.</span><span class="n">hitRatio</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">min</span><span class="p">(</span><span class="n">l2_max_cache_persistent</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="p">((</span><span class="kt">float</span><span class="p">)</span><span class="w"> </span><span class="n">size_in</span><span class="p">),</span><span class="w"> </span><span class="mf">1.0f</span><span class="p">);</span>
+<span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="n">cout</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;Hit Ratio = &quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">stream_attribute</span><span class="p">.</span><span class="n">accessPolicyWindow</span><span class="p">.</span><span class="n">hitRatio</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span>
+<span class="w">    </span><span class="n">stream_attribute</span><span class="p">.</span><span class="n">accessPolicyWindow</span><span class="p">.</span><span class="n">hitProp</span><span class="w">   </span><span class="o">=</span><span class="w"> </span><span class="n">cudaAccessPropertyPersisting</span><span class="p">;</span><span class="w"> </span><span class="c1">// Type of access property on cache hit</span>
+<span class="w">    </span><span class="n">stream_attribute</span><span class="p">.</span><span class="n">accessPolicyWindow</span><span class="p">.</span><span class="n">missProp</span><span class="w">  </span><span class="o">=</span><span class="w"> </span><span class="n">cudaAccessPropertyStreaming</span><span class="p">;</span><span class="w">  </span><span class="c1">// Type of access property on cache miss.</span>
+
+<span class="w">    </span><span class="n">CHECK_CUDA_ERROR</span><span class="p">(</span><span class="n">cudaStreamSetAttribute</span><span class="p">(</span><span class="n">stream</span><span class="p">,</span><span class="w"> </span><span class="n">cudaStreamAttributeAccessPolicyWindow</span><span class="p">,</span><span class="w"> </span><span class="o">&amp;</span><span class="n">stream_attribute</span><span class="p">));</span>
+
+<span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">threads_per_block</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">256</span><span class="p">;</span>
+<span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">blocks_per_grid</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="n">n</span><span class="o">/</span><span class="mi">4</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">threads_per_block</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="mi">1</span><span class="p">)</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">threads_per_block</span><span class="p">;</span>
+<span class="w">    </span><span class="n">stream_and_persistent_kernel</span><span class="o">&lt;&lt;&lt;</span><span class="n">blocks_per_grid</span><span class="p">,</span><span class="w"> </span><span class="n">threads_per_block</span><span class="p">,</span><span class="w"> </span><span class="mi">0U</span><span class="p">,</span><span class="w"> </span><span class="n">stream</span><span class="o">&gt;&gt;&gt;</span><span class="p">(</span>
+<span class="w">        </span><span class="k">reinterpret_cast</span><span class="o">&lt;</span><span class="n">float4</span><span class="w"> </span><span class="o">*&gt;</span><span class="p">(</span><span class="n">d_in_persistent</span><span class="p">),</span><span class="w"> </span><span class="k">reinterpret_cast</span><span class="o">&lt;</span><span class="n">float4</span><span class="w"> </span><span class="o">*&gt;</span><span class="p">(</span><span class="n">d_in_streaming</span><span class="p">),</span><span class="w"> </span><span class="k">reinterpret_cast</span><span class="o">&lt;</span><span class="n">float4</span><span class="w"> </span><span class="o">*&gt;</span><span class="p">(</span><span class="n">d_out</span><span class="p">),</span><span class="w"> </span><span class="n">n</span><span class="p">,</span><span class="w"> </span><span class="n">m</span>
+<span class="w">    </span><span class="p">);</span>
+
+<span class="w">    </span><span class="n">CHECK_LAST_CUDA_ERROR</span><span class="p">();</span>
+<span class="w">    </span><span class="n">CHECK_CUDA_ERROR</span><span class="p">(</span><span class="n">cudaStreamSynchronize</span><span class="p">(</span><span class="n">stream</span><span class="p">));</span>
+
+<span class="w">    </span><span class="n">CHECK_CUDA_ERROR</span><span class="p">(</span><span class="n">cudaMemcpy</span><span class="p">(</span><span class="n">out</span><span class="p">,</span><span class="w"> </span><span class="n">d_out</span><span class="p">,</span><span class="w"> </span><span class="n">size_out</span><span class="p">,</span><span class="w"> </span><span class="n">cudaMemcpyDeviceToHost</span><span class="p">));</span>
+<span class="w">  </span>
+<span class="w">    </span><span class="n">CHECK_CUDA_ERROR</span><span class="p">(</span><span class="n">cudaFree</span><span class="p">(</span><span class="n">d_in_persistent</span><span class="p">));</span>
+<span class="w">    </span><span class="n">CHECK_CUDA_ERROR</span><span class="p">(</span><span class="n">cudaFree</span><span class="p">(</span><span class="n">d_in_streaming</span><span class="p">));</span>
+<span class="w">    </span><span class="n">CHECK_CUDA_ERROR</span><span class="p">(</span><span class="n">cudaFree</span><span class="p">(</span><span class="n">d_out</span><span class="p">));</span>
+<span class="w">    </span><span class="n">CHECK_CUDA_ERROR</span><span class="p">(</span><span class="n">cudaStreamDestroy</span><span class="p">(</span><span class="n">stream</span><span class="p">));</span>
+<span class="p">}</span>
+</pre></div>
+<p>Benchmarking can again be done as follows from the <code>build</code> directory. Here the first argument is the device we run on, the second argument is the size of output data and streaming data and the last argument is the size of persistent data.</p>
+<div class="highlight"><pre><span></span># 2 MB
+ncu --set full -o ../profiles/main_stream_4096_2 ./main_stream 1 1073741824 524288
+ncu --set full -o ../profiles/main_stream_and_persistent_4096_2 ./main_stream_and_persistent 1 1073741824 524288
+
+# 4 MB  
+ncu --set full -o ../profiles/main_stream_4096_3 ./main_stream 1 1073741824 1048576
+ncu --set full -o ../profiles/main_stream_and_persistent_4096_3 ./main_stream_and_persistent 1 1073741824 1048576
+
+# 8 MB
+ncu --set full -o ../profiles/main_stream_4096_4 ./main_stream 1 1073741824 2097152
+ncu --set full -o ../profiles/main_stream_and_persistent_4096_4 ./main_stream_and_persistent 1 1073741824 2097152
+
+# 16 MB
+ncu --set full -o ../profiles/main_stream_4096_5 ./main_stream 1 1073741824 4194304
+ncu --set full -o ../profiles/main_stream_and_persistent_4096_5 ./main_stream_and_persistent 1 1073741824 4194304
+</pre></div>
+<h2 id=benchmark-results>Benchmark results</h2><h3 id=only-persistent-input-data>Only persistent input data</h3><p>For the kernels that reserve L2 cache for persistence we fix the reserved memory as <code>8MB</code>. First we perform an experiment with only persistent data. I.e. we perform the operation:</p>
+<div class="highlight"><pre><span></span><span class="n">__global__</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="n">data_reset_kernel</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="n">float4</span><span class="w"> </span><span class="o">*</span><span class="n">d_in</span><span class="p">,</span><span class="w"> </span><span class="n">float4</span><span class="w"> </span><span class="o">*</span><span class="n">d_out</span><span class="p">,</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">n</span><span class="p">,</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">m</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="kt">int</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">blockIdx</span><span class="p">.</span><span class="n">x</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">blockDim</span><span class="p">.</span><span class="n">x</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">threadIdx</span><span class="p">.</span><span class="n">x</span><span class="p">;</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">i</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="n">n</span><span class="o">/</span><span class="mi">4</span><span class="p">)</span><span class="w"> </span><span class="n">d_out</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">d_in</span><span class="p">[</span><span class="n">i</span><span class="w"> </span><span class="o">%</span><span class="w"> </span><span class="p">(</span><span class="n">m</span><span class="o">/</span><span class="mi">4</span><span class="p">)];</span>
+<span class="p">}</span>
+</pre></div>
+<p>We keep the output array fixed at a size of <code>4096MB</code> and vary the size of the persistent input array to be <code>2MB, 4MB, 8MB, 16MB</code>. All experiments are performed on <code>NVIDIA H100 80GB HBM3</code> which has <code>50MB</code> of <code>L2 Cache</code> of which <code>31.25MB</code> can be reserved for persistent access.</p>
+<p>The results are as follows:</p>
+<table>
+<thead>
+<tr>
+  <th>Data Size</th>
+  <th>Without L2 Cache Reservation</th>
+  <th>With L2 Cache Reservation</th>
+  <th>Speedup</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td>2MB</td>
+  <td>1.31ms</td>
+  <td>1.31ms</td>
+  <td>1.000x</td>
+</tr>
+<tr>
+  <td>4MB</td>
+  <td>1.46ms</td>
+  <td>1.46ms</td>
+  <td>1.000x</td>
+</tr>
+<tr>
+  <td>8MB</td>
+  <td>1.64ms</td>
+  <td>1.64ms</td>
+  <td>1.000x</td>
+</tr>
+<tr>
+  <td>16MB</td>
+  <td>2.44ms</td>
+  <td>2.43ms</td>
+  <td>1.004x</td>
+</tr>
+</tbody>
+</table>
+<p>I guess that is the case because there is no streaming data that can "steal" L2 cache from persistent data anyway. So the benefit from reserving it for persisting accesses is not really visible.</p>
+<p>See for example here where I compare the "with persistent cache reserve" approach to the naive approach. Both of them perform similarly in numbers and there is not a huge difference in how they leverage the L2 cache.
+<img src="https://bear-images.sfo2.cdn.digitaloceanspaces.com/veitner/persistent-only.webp" alt="Persistent Only" /></p>
+<h3 id=persistent-and-streaming-input-data>Persistent and Streaming input data</h3><p>For the kernels that reserve L2 cache for persistence we fix the reserved memory as <code>8MB</code>. Now we perform an experiment where we have streaming data (<code>4096MB</code>) and persistent data of the same varying size of input as above. We perform the following operation</p>
+<div class="highlight"><pre><span></span><span class="n">__global__</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="n">stream_and_persistent_kernel</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="n">float4</span><span class="o">*</span><span class="w"> </span><span class="n">__restrict__</span><span class="w"> </span><span class="n">d_in_persistent</span><span class="p">,</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="n">float4</span><span class="o">*</span><span class="w"> </span><span class="n">__restrict__</span><span class="w"> </span><span class="n">d_in_streaming</span><span class="p">,</span><span class="w"> </span><span class="n">float4</span><span class="o">*</span><span class="w"> </span><span class="n">__restrict__</span><span class="w"> </span><span class="n">d_out</span><span class="p">,</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">n</span><span class="p">,</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">m</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="kt">int</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">blockIdx</span><span class="p">.</span><span class="n">x</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">blockDim</span><span class="p">.</span><span class="n">x</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">threadIdx</span><span class="p">.</span><span class="n">x</span><span class="p">;</span>
+<span class="w">    </span>
+<span class="w">    </span><span class="c1">// Note n / 4 == n &gt;&gt; 2 and m / 4 == m &gt;&gt; 2, i % m == i &amp; (m-1) if m 2^x</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">i</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="p">(</span><span class="n">n</span><span class="w"> </span><span class="o">&gt;&gt;</span><span class="w"> </span><span class="mi">2</span><span class="p">))</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="c1">//float4 s = __ldlu(&amp;d_in_streaming[i]);</span>
+<span class="w">        </span><span class="n">float4</span><span class="w"> </span><span class="n">s</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">d_in_streaming</span><span class="p">[</span><span class="n">i</span><span class="p">];</span>
+<span class="w">        </span><span class="n">float4</span><span class="w"> </span><span class="n">p</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">__ldcg</span><span class="p">(</span><span class="o">&amp;</span><span class="n">d_in_persistent</span><span class="p">[</span><span class="n">i</span><span class="w"> </span><span class="o">&amp;</span><span class="w"> </span><span class="p">((</span><span class="n">m</span><span class="w"> </span><span class="o">&gt;&gt;</span><span class="w"> </span><span class="mi">2</span><span class="p">)</span><span class="mi">-1</span><span class="p">)]);</span>
+<span class="w">        </span><span class="n">d_out</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">make_float4</span><span class="p">(</span><span class="n">p</span><span class="p">.</span><span class="n">x</span><span class="o">+</span><span class="n">s</span><span class="p">.</span><span class="n">x</span><span class="p">,</span><span class="w"> </span><span class="n">p</span><span class="p">.</span><span class="n">y</span><span class="o">+</span><span class="n">s</span><span class="p">.</span><span class="n">y</span><span class="p">,</span><span class="w"> </span><span class="n">p</span><span class="p">.</span><span class="n">z</span><span class="o">+</span><span class="n">s</span><span class="p">.</span><span class="n">z</span><span class="p">,</span><span class="w"> </span><span class="n">p</span><span class="p">.</span><span class="n">w</span><span class="o">+</span><span class="n">s</span><span class="p">.</span><span class="n">w</span><span class="p">);</span>
+<span class="w">        </span><span class="c1">//atomicAdd(&amp;d_out[i], s);</span>
+<span class="w">        </span><span class="c1">//atomicAdd(&amp;d_out[i], p);</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+<p>Note that in the kernel we perform compiler hint <code>T __ldcg(const T* address);</code> in the <a href='https://docs.nvidia.com/cuda/parallel-thread-execution/index.html#cache-operators'>PTX docs</a> this is explained:</p>
+<div class="highlight"><pre><span></span>Cache at global level (cache in L2 and below, not L1).
+
+Use ld.cg to cache loads only globally, bypassing the L1 cache, and cache only in the L2 cache.
+</pre></div>
+<p>I also tried the intrinsics for streaming data. However this didn't have a positive influence on performance. Another experiment on the kernel level I tried was to use the <code>atomicAdd</code> to avoid splitting up the addition into <code>4</code> float adds and perform one add on <code>float4</code> but this had very poor performance.</p>
+<p>The results are as follows:</p>
+<table>
+<thead>
+<tr>
+  <th>Data Size</th>
+  <th>Without L2 Cache Reservation</th>
+  <th>With L2 Cache Reservation</th>
+  <th>Speedup</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td>2MB</td>
+  <td>2.86ms</td>
+  <td>2.81ms</td>
+  <td>1.018x</td>
+</tr>
+<tr>
+  <td>4MB</td>
+  <td>2.97ms</td>
+  <td>2.81ms</td>
+  <td>1.057x</td>
+</tr>
+<tr>
+  <td>8MB</td>
+  <td>3.26ms</td>
+  <td>2.81ms</td>
+  <td>1.160x</td>
+</tr>
+<tr>
+  <td>16MB</td>
+  <td>4.12ms</td>
+  <td>3.76ms</td>
+  <td>1.096x</td>
+</tr>
+</tbody>
+</table>
+<p>We see that the overall effect of the reservation is now much higher than before. That is because we can help the <code>GPU</code> to figure out where persistent data resides. The speedup is quite significant depending on the size of the persistent cache:</p>
+<div class="highlight"><pre><span></span>Speedup = Time_baseline / Time_optimized
+</pre></div>
+<p>which gives us up to <code>1.160x</code>. Even for <code>16MB</code> where we adjust the hit ratio to <code>0.5</code> because of the size of persistent input data we get a decent speedup by <code>1.096x</code>. Note that this is nice because it shows that even if we suspect our data to be persistent but exceed the maximum reservable persistent L2 cache size we should anyway reserve it and adjust hit ratio accordingly.</p>
+<p>This is also visible from the profiler (here comparing for <code>16MB</code> input).
+<img src="https://bear-images.sfo2.cdn.digitaloceanspaces.com/veitner/persistent-and-streaming.webp" alt="Persistent and Streaming" /></p>
+<p>We see that our L2 Cache Hit Rate is significantly higher.</p>
+<h2 id=conclusion>Conclusion</h2><p>We have seen that in the presence of persistent data it can bring good speedup if we reserve a dedicated part of the <code>L2</code> for the persistent accesses. We see that L2 cache persistence works best when streaming and persistent data compete for cache space. Without this competition, the benefits are minimal.</p>
+<p>The performance improvements we observed show this technique can be quite useful for memory-bound kernels with mixed access patterns.</p>
+<p>Even when persistent data exceeds available L2 cache space, partial reservation with adjusted <code>hitRatio</code> still provides benefits. This makes the technique practical for varying dataset sizes. I am curious to share further ideas on my <a href='https://www.linkedin.com/in/simon-veitner-174a681b6/'>Linkedin</a>. The whole code can be found in my <a href='https://github.com/simveit/persistent_l2_cache_cuda/tree/main'>Github repo</a>.</p>
+<p>This discussion was inspired by the discussion <a href='https://docs.nvidia.com/cuda/cuda-c-best-practices-guide/'>here</a></p>
+
+
+    
+
+    
+        
+
+        
+            <form id="upvote-form" action="/upvote/" method="post" style="display: inline">
+    <small>
+        <input hidden name="uid" value="QfiXaktQTBjCywYZAUAY" style="display:none">
+        <input hidden name="title" value="GPU L2 Cache Persistence" style="display:none">
+
+        <button
+            class="upvote-button"
+            aria-label="Toast this post"
+            title="Toast this post"
+        >
+            <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" class="css-i6dzq1">
+                <polyline points="17 11 12 6 7 11"></polyline>
+                <polyline points="17 18 12 13 7 18"></polyline>
+            </svg>
+            <small class="upvote-count" aria-hidden="true">&nbsp;</small>
+        </button>
+    </small>        
+</form>
+
+<script>
+    const $upvoteButton = document.querySelector('.upvote-button');
+    const $upvoteCount =  document.querySelector('.upvote-count')
+
+    fetch('/upvote-info/QfiXaktQTBjCywYZAUAY/').then(response => response.json()).then(data => {
+        $upvoteCount.innerText = data.upvote_count;
+        if (data.upvoted) {
+            $upvoteButton.disabled = true
+            $upvoteButton.style.color = "salmon"
+            $upvoteButton.ariaLabel = "Toasted"
+            $upvoteButton.title = "Toasted"
+        }
+        $upvoteButton.ariaLabel += ` (${data.upvote_count})`
+    });
+
+    let moved = false;
+    let pageLoaded = Date.now();
+
+    document.addEventListener('touchmove', () => moved = true);
+    document.addEventListener('mousemove', () => moved = true);
+
+    document.querySelector('#upvote-form').addEventListener('submit', (e) => {
+        e.preventDefault();
+
+        if (moved) {
+            document.querySelector('input[name="title"]').value = "";
+        }
+        if (Date.now() - pageLoaded < 2000 || !moved) {
+            return;
+        }
+
+        fetch(e.target.action, {
+            method: 'post',
+            body: new FormData(e.target),
+        });
+        
+        $upvoteButton.disabled = true
+        $upvoteButton.style.color = "salmon"
+        $upvoteButton.ariaLabel = "Toasted"
+        $upvoteButton.title = "Toasted"
+        const newUpvoteCount = `${(parseInt($upvoteCount.innerHTML.split(" ")[0]) + 1)}`
+        $upvoteCount.innerHTML = newUpvoteCount
+        $upvoteButton.ariaLabel += ` (${newUpvoteCount})`
+    });
+</script>
+        
+
+        
+            <script>
+            window.addEventListener("load", () => {
+                if (navigator.webdriver !== true) {
+                    const sendHit = score => {
+                        const params = new URLSearchParams({
+                            blog: "veitner",
+                            token: "QfiXaktQTBjCywYZAUAY",
+                            referrer: document.referrer.includes("veitner.bearblog.dev") ? "" : document.referrer,
+                            title: "",
+                            score: score
+                        });
+                        new Image().src = `/hit/?${params.toString()}`;
+                    };
+
+                    document.addEventListener('touchmove', () => sendHit(100), { once: true });
+                    document.addEventListener('mousemove', () => sendHit(100), { once: true });
+                }
+            });
+            </script>
+        
+    
+
+
+  </main>
+  <footer>
+    
+    
+    <span>
+        Powered by <a href="https://bearblog.dev">Bear <span role="img" class="bear" aria-label="ASCII bear logo">ʕ•ᴥ•ʔ</span></a>
+    </span>
+
+  </footer>
+
+  
+  <script>
+        (() => {
+          "use strict";
+          const times = document.querySelectorAll('time');
+          const format_string = "d M, Y" || "d M, Y"
+
+          times.forEach(time => {
+              time.innerText = formatDate(time.dateTime, format_string)
+          });
+
+          function formatDate(dateStr, formatStr) {
+            const date = new Date(dateStr);
+            const day = date.getDate();
+            const month = date.getMonth();
+            const year = date.getFullYear();
+            const weekday = date.getDay();
+            const hours = date.getHours();
+            const minutes = date.getMinutes();
+            const monthsFull = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+            const monthsShort = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+            const daysFull = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+            const daysShort = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+            
+            function getOrdinal(n) {
+                const s = ['th', 'st', 'nd', 'rd'];
+                const v = n % 100;
+                return s[(v - 20) % 10] || s[v] || s[0];
+            }
+            
+            const map = {
+                'd': () => day.toString().padStart(2, '0'),
+                'm': () => (month + 1).toString().padStart(2, '0'),
+                'Y': () => year.toString(),
+                'y': () => year.toString().slice(-2),
+                'F': () => monthsFull[month],
+                'j': () => day.toString(),
+                'D': () => daysShort[weekday],
+                'l': () => daysFull[weekday],
+                'S': () => getOrdinal(day),
+                'M': () => monthsShort[month],
+                'H': () => hours.toString().padStart(2, '0'),
+                'h': () => {
+                    let h = hours % 12;
+                    h = h === 0 ? 12 : h;
+                    return h.toString().padStart(2, '0');
+                },
+                'g': () => {
+                    let h = hours % 12;
+                    return h === 0 ? '12' : h.toString();
+                },
+                'i': () => minutes.toString().padStart(2, '0'),
+                'a': () => hours < 12 ? 'am' : 'pm',
+                'A': () => hours < 12 ? 'AM' : 'PM',
+            };
+            
+            let result = '';
+            for (let char of formatStr) {
+                result += map[char] ? map[char]() : char;
+            }
+            return result;
+        }
+        })();
+    </script>
+    
+</body>
+<!-- ID: veitner -->
+<!-- 🐻 -->
+</html>

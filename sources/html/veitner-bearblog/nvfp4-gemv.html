@@ -1,0 +1,664 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!-- Powered by Bear Blog -->
+
+<head>
+  
+  
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5">
+  
+  <title>NVFP4 GEMV | simons blog</title>
+  <link rel="canonical" href="https://veitner.bearblog.dev/nvfp4-gemv/">
+  
+    
+
+    <meta name="veitner" content="look-for-the-bear-necessities">
+    <meta name="token" content="UdMLUDWyAUXKDMDwuysm">
+
+    
+<!-- Primary Meta Tags -->
+<meta name="title" content="NVFP4 GEMV">
+<meta name="description" content="Introduction
+
+GPU Mode and NVIDIA host a hackathon consisting of multiple challenges around the Blackwell GPU architecture and the new float 4 datatype NVF...">
+
+<!-- Open Graph / Facebook -->
+<meta property="og:site_name" content="simons blog">
+<meta property="og:title" content="NVFP4 GEMV">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://veitner.bearblog.dev/nvfp4-gemv/">
+<meta property="og:description" content="Introduction
+
+GPU Mode and NVIDIA host a hackathon consisting of multiple challenges around the Blackwell GPU architecture and the new float 4 datatype NVF...">
+<meta property="og:image" content="/static/og-image.png">
+
+
+<!-- Twitter -->
+<meta property="twitter:card" content="summary">
+<meta property="twitter:url" content="https://veitner.bearblog.dev/nvfp4-gemv/">
+<meta property="twitter:title" content="NVFP4 GEMV">
+<meta property="twitter:description" content="Introduction
+
+GPU Mode and NVIDIA host a hackathon consisting of multiple challenges around the Blackwell GPU architecture and the new float 4 datatype NVF...">
+<meta property="twitter:image" content="/static/og-image.png">
+
+
+
+<!-- Microdata -->
+<script type="application/ld+json">
+  {
+    "@context": "http://schema.org",
+    "@type": "article",
+    "name": "NVFP4 GEMV",
+    "headline": "NVFP4 GEMV",
+    "url": "https://veitner.bearblog.dev/nvfp4-gemv/",
+    "description": "Introduction
+
+GPU Mode and NVIDIA host a hackathon consisting of multiple challenges around the Blackwell GPU architecture and the new float 4 datatype NVF...",
+    "image": "/static/og-image.png"
+  }
+</script>
+    <link rel="alternate" type="application/atom+xml" href="/feed/" title="simons blog">
+    <link rel="alternate" type="application/rss+xml" href="/feed/?type=rss" title="simons blog">
+
+  
+    
+
+    
+    <style>pre { line-height: 125%; }
+td.linenos .normal { color: #666666; background-color: transparent; padding-left: 5px; padding-right: 5px; }
+span.linenos { color: #666666; background-color: transparent; padding-left: 5px; padding-right: 5px; }
+td.linenos .special { color: #000000; background-color: #ffffc0; padding-left: 5px; padding-right: 5px; }
+span.linenos.special { color: #000000; background-color: #ffffc0; padding-left: 5px; padding-right: 5px; }
+.highlight .hll { background-color: #ffffcc }
+.highlight { background: #f0f0f0; }
+.highlight .c { color: #60A0B0; font-style: italic } /* Comment */
+.highlight .err { border: 1px solid #F00 } /* Error */
+.highlight .k { color: #007020; font-weight: bold } /* Keyword */
+.highlight .o { color: #666 } /* Operator */
+.highlight .ch { color: #60A0B0; font-style: italic } /* Comment.Hashbang */
+.highlight .cm { color: #60A0B0; font-style: italic } /* Comment.Multiline */
+.highlight .cp { color: #007020 } /* Comment.Preproc */
+.highlight .cpf { color: #60A0B0; font-style: italic } /* Comment.PreprocFile */
+.highlight .c1 { color: #60A0B0; font-style: italic } /* Comment.Single */
+.highlight .cs { color: #60A0B0; background-color: #FFF0F0 } /* Comment.Special */
+.highlight .gd { color: #A00000 } /* Generic.Deleted */
+.highlight .ge { font-style: italic } /* Generic.Emph */
+.highlight .ges { font-weight: bold; font-style: italic } /* Generic.EmphStrong */
+.highlight .gr { color: #F00 } /* Generic.Error */
+.highlight .gh { color: #000080; font-weight: bold } /* Generic.Heading */
+.highlight .gi { color: #00A000 } /* Generic.Inserted */
+.highlight .go { color: #888 } /* Generic.Output */
+.highlight .gp { color: #C65D09; font-weight: bold } /* Generic.Prompt */
+.highlight .gs { font-weight: bold } /* Generic.Strong */
+.highlight .gu { color: #800080; font-weight: bold } /* Generic.Subheading */
+.highlight .gt { color: #04D } /* Generic.Traceback */
+.highlight .kc { color: #007020; font-weight: bold } /* Keyword.Constant */
+.highlight .kd { color: #007020; font-weight: bold } /* Keyword.Declaration */
+.highlight .kn { color: #007020; font-weight: bold } /* Keyword.Namespace */
+.highlight .kp { color: #007020 } /* Keyword.Pseudo */
+.highlight .kr { color: #007020; font-weight: bold } /* Keyword.Reserved */
+.highlight .kt { color: #902000 } /* Keyword.Type */
+.highlight .m { color: #40A070 } /* Literal.Number */
+.highlight .s { color: #4070A0 } /* Literal.String */
+.highlight .na { color: #4070A0 } /* Name.Attribute */
+.highlight .nb { color: #007020 } /* Name.Builtin */
+.highlight .nc { color: #0E84B5; font-weight: bold } /* Name.Class */
+.highlight .no { color: #60ADD5 } /* Name.Constant */
+.highlight .nd { color: #555; font-weight: bold } /* Name.Decorator */
+.highlight .ni { color: #D55537; font-weight: bold } /* Name.Entity */
+.highlight .ne { color: #007020 } /* Name.Exception */
+.highlight .nf { color: #06287E } /* Name.Function */
+.highlight .nl { color: #002070; font-weight: bold } /* Name.Label */
+.highlight .nn { color: #0E84B5; font-weight: bold } /* Name.Namespace */
+.highlight .nt { color: #062873; font-weight: bold } /* Name.Tag */
+.highlight .nv { color: #BB60D5 } /* Name.Variable */
+.highlight .ow { color: #007020; font-weight: bold } /* Operator.Word */
+.highlight .w { color: #BBB } /* Text.Whitespace */
+.highlight .mb { color: #40A070 } /* Literal.Number.Bin */
+.highlight .mf { color: #40A070 } /* Literal.Number.Float */
+.highlight .mh { color: #40A070 } /* Literal.Number.Hex */
+.highlight .mi { color: #40A070 } /* Literal.Number.Integer */
+.highlight .mo { color: #40A070 } /* Literal.Number.Oct */
+.highlight .sa { color: #4070A0 } /* Literal.String.Affix */
+.highlight .sb { color: #4070A0 } /* Literal.String.Backtick */
+.highlight .sc { color: #4070A0 } /* Literal.String.Char */
+.highlight .dl { color: #4070A0 } /* Literal.String.Delimiter */
+.highlight .sd { color: #4070A0; font-style: italic } /* Literal.String.Doc */
+.highlight .s2 { color: #4070A0 } /* Literal.String.Double */
+.highlight .se { color: #4070A0; font-weight: bold } /* Literal.String.Escape */
+.highlight .sh { color: #4070A0 } /* Literal.String.Heredoc */
+.highlight .si { color: #70A0D0; font-style: italic } /* Literal.String.Interpol */
+.highlight .sx { color: #C65D09 } /* Literal.String.Other */
+.highlight .sr { color: #235388 } /* Literal.String.Regex */
+.highlight .s1 { color: #4070A0 } /* Literal.String.Single */
+.highlight .ss { color: #517918 } /* Literal.String.Symbol */
+.highlight .bp { color: #007020 } /* Name.Builtin.Pseudo */
+.highlight .fm { color: #06287E } /* Name.Function.Magic */
+.highlight .vc { color: #BB60D5 } /* Name.Variable.Class */
+.highlight .vg { color: #BB60D5 } /* Name.Variable.Global */
+.highlight .vi { color: #BB60D5 } /* Name.Variable.Instance */
+.highlight .vm { color: #BB60D5 } /* Name.Variable.Magic */
+.highlight .il { color: #40A070 } /* Literal.Number.Integer.Long */
+</style>
+  
+  
+  
+    
+        <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20100%20100'%3E%3Ctext%20y='.9em'%20font-size='90'%3E🐼%3C/text%3E%3C/svg%3E">
+    
+
+
+
+  <style>
+      
+      
+    
+:root {
+    --width: 720px;
+    --font-main: Verdana, sans-serif;
+    --font-secondary: Verdana, sans-serif;
+    --font-scale: 1em;
+    --background-color: #fff;
+    --heading-color: #222;
+    --text-color: #444;
+    --link-color: #3273dc;
+    --visited-color:  #8b6fcb;
+    --code-background-color: #f2f2f2;
+    --code-color: #222;
+    --blockquote-color: #222;
+}
+
+@media (prefers-color-scheme: dark) {
+    :root {
+        --background-color: #01242e;
+        --heading-color: #eee;
+        --text-color: #ddd;
+        --link-color: #8cc2dd;
+        --visited-color:  #8b6fcb;
+        --code-background-color: #000;
+        --code-color: #ddd;
+        --blockquote-color: #ccc;
+    }
+}
+
+body {
+    font-family: var(--font-secondary);
+    font-size: var(--font-scale);
+    margin: auto;
+    padding: 20px;
+    max-width: var(--width);
+    text-align: left;
+    background-color: var(--background-color);
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    line-height: 1.5;
+    color: var(--text-color);
+}
+
+h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-main);
+    color: var(--heading-color);
+}
+
+a {
+    color: var(--link-color);
+    cursor: pointer;
+    text-decoration: none;
+}
+
+a:hover {
+    text-decoration: underline; 
+}
+
+nav a {
+    margin-right: 8px;
+}
+
+strong, b {
+    color: var(--heading-color);
+}
+
+button {
+    margin: 0;
+    cursor: pointer;
+}
+
+time {
+ 	font-family: monospace;
+  	font-style: normal;
+  	font-size: 15px;
+}
+
+main {
+    line-height: 1.6;
+}
+
+table {
+    width: 100%;
+}
+
+hr {
+    border: 0;
+    border-top: 1px dashed;
+}
+
+img {
+    max-width: 100%;
+}
+
+code {
+    font-family: monospace;
+    padding: 2px;
+    background-color: var(--code-background-color);
+    color: var(--code-color);
+    border-radius: 3px;
+}
+
+blockquote {
+    border-left: 1px solid #999;
+    color: var(--code-color);
+    padding-left: 20px;
+    font-style: italic;
+}
+
+footer {
+    padding: 25px 0;
+    text-align: center;
+}
+
+.title:hover {
+    text-decoration: none;
+}
+
+.title h1 {
+    font-size: 1.5em;
+}
+
+.inline {
+    width: auto !important;
+}
+
+.highlight, .code {
+    padding: 1px 15px;
+    background-color: var(--code-background-color);
+    color: var(--code-color);
+    border-radius: 3px;
+    margin-block-start: 1em;
+    margin-block-end: 1em;
+    overflow-x: auto;
+}
+
+/* blog post list */
+ul.blog-posts {
+    list-style-type: none;
+    padding: unset;
+}
+
+ul.blog-posts li {
+    display: flex;
+}
+
+ul.blog-posts li span {
+    flex: 0 0 130px;
+}
+
+ul.blog-posts li a:visited {
+    color: var(--visited-color);
+}
+    .upvote-button {
+        padding: 0;
+        margin: 0;
+        border: 0;
+        background-color: inherit;
+        color: inherit;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+    .upvote-button.upvoted {
+        color: salmon;
+    }
+    .upvote-count {
+        margin-top: -3px;
+    }
+
+      
+  </style>
+</head>
+
+<body class="post " onload="(function() { document.cookie = `timezone=${Intl.DateTimeFormat().resolvedOptions().timeZone};path=/`; })()">
+  
+  <header>
+    <a class="title" href="/">
+      <h1>
+        simons blog
+      </h1>
+    </a>
+    <nav>
+      <p><a href='/'>Home</a> <a href='/blog/'>Blog</a></p>
+
+    </nav>
+  </header>
+  <main>
+    
+
+    
+
+    
+        <h1>NVFP4 GEMV</h1>
+
+        <p>
+            <i>
+                <time datetime="2025-11-13T18:06Z">
+    13 Nov, 2025
+</time>
+            </i>
+        </p>
+    
+
+    <h2 id=introduction>Introduction</h2><p>GPU Mode and NVIDIA host a hackathon consisting of multiple challenges around the Blackwell GPU architecture and the new float 4 datatype NVFP4. In this blogpost I aim to give a brief introduction to the CuTeDSL which is able to target Blackwell specific features efficiently while having high productivity for the developer. The first challenge resolves around GEMV kernel which is simply a matrix vector multiplication.</p>
+<h2 id=nvp4>NVP4</h2><p>I will keep introduction to NVFP4 brief because it's sufficiently covered in <a href='https://developer.nvidia.com/blog/introducing-nvfp4-for-efficient-and-accurate-low-precision-inference/'>this blogpost</a>.
+NVFP4 is a 4 bit floating point format introduced on Blackwell GPUs. The main thing that we are interested in for our discussion is that <code>NVFP4</code> is composed of two tensors: One in <code>FP4</code> precision and another in <code>FP8</code> precision. We call the <code>FP8</code> term a scaling factor. The scaling factor is applied to every block of <code>16</code> values. This factor is introduced to minimize quantization error while still being able to reduce memory footprint. For more details please see the above mentioned blog.</p>
+<h2 id=reference-kernel>Reference Kernel</h2><p>The reference kernel for the competition which uses <code>CuTeDSL</code> can be found <a href='https://github.com/gpu-mode/reference-kernels/blob/main/problems/nvidia/nvfp4_gemv/template_cute.py'>here</a>. We will now give a quick onboarding to the kernel and explain how it works.</p>
+<div class="highlight"><pre><span></span><span class="n">mma_tiler_mnk</span> <span class="o">=</span> <span class="p">(</span><span class="mi">128</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">64</span><span class="p">)</span>  <span class="c1"># Tile sizes for M, N, K dimensions</span>
+<span class="n">ab_dtype</span> <span class="o">=</span> <span class="n">cutlass</span><span class="o">.</span><span class="n">Float4E2M1FN</span>  <span class="c1"># FP4 data type for A and B</span>
+<span class="n">sf_dtype</span> <span class="o">=</span> <span class="n">cutlass</span><span class="o">.</span><span class="n">Float8E4M3FN</span>  <span class="c1"># FP8 data type for scale factors</span>
+<span class="n">c_dtype</span> <span class="o">=</span> <span class="n">cutlass</span><span class="o">.</span><span class="n">Float16</span>  <span class="c1"># FP16 output type</span>
+<span class="n">sf_vec_size</span> <span class="o">=</span> <span class="mi">16</span>  <span class="c1"># Scale factor block size (16 elements share one scale)</span>
+<span class="n">threads_per_cta</span> <span class="o">=</span> <span class="mi">128</span>  <span class="c1"># Number of threads per CUDA thread block</span>
+</pre></div>
+<p>This is the configuration for starters. Most of it is self explanatory, for example <code>mma_tiler_mnk</code> will define the tile size we are processing.</p>
+<p>Let's now jump into the kernel:</p>
+<div class="highlight"><pre><span></span><span class="nd">@cute</span><span class="o">.</span><span class="n">kernel</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">kernel</span><span class="p">(</span>
+    <span class="n">mA_mkl</span><span class="p">:</span> <span class="n">cute</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span>
+    <span class="n">mB_nkl</span><span class="p">:</span> <span class="n">cute</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span>
+    <span class="n">mSFA_mkl</span><span class="p">:</span> <span class="n">cute</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span>
+    <span class="n">mSFB_nkl</span><span class="p">:</span> <span class="n">cute</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span>
+    <span class="n">mC_mnl</span><span class="p">:</span> <span class="n">cute</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span>
+<span class="p">):</span>
+</pre></div>
+<p>The kernel takes <code>mA_mkl</code>, i.e. a tensor of shape <code>(m,k,l)</code> and it's accompinying scale factor. The last dimension corresponds to the batch size, i.e. our tensor describes a matrix in each plane. The other matrix is <code>mB_nkl</code> where <code>n = 1</code>, i.e. our tensor describes a batch of vectors. It contains a scale factor as well. The output matrix is <code>mC_mnl</code> which is again a batch of vectors.</p>
+<div class="highlight"><pre><span></span>    <span class="c1"># Get CUDA block and thread indices</span>
+    <span class="n">bidx</span><span class="p">,</span> <span class="n">bidy</span><span class="p">,</span> <span class="n">bidz</span> <span class="o">=</span> <span class="n">cute</span><span class="o">.</span><span class="n">arch</span><span class="o">.</span><span class="n">block_idx</span><span class="p">()</span>
+    <span class="n">tidx</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">cute</span><span class="o">.</span><span class="n">arch</span><span class="o">.</span><span class="n">thread_idx</span><span class="p">()</span>
+
+    <span class="c1"># Extract the local tile for input matrix A (shape: [block_M, block_K, rest_M, rest_K, rest_L])</span>
+    <span class="n">gA_mkl</span> <span class="o">=</span> <span class="n">cute</span><span class="o">.</span><span class="n">local_tile</span><span class="p">(</span>
+        <span class="n">mA_mkl</span><span class="p">,</span> <span class="n">cute</span><span class="o">.</span><span class="n">slice_</span><span class="p">(</span><span class="n">mma_tiler_mnk</span><span class="p">,</span> <span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="kc">None</span><span class="p">)),</span> <span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="p">)</span>
+    <span class="c1"># Extract the local tile for scale factor tensor for A (same shape as gA_mkl)</span>
+    <span class="c1"># Here, block_M = (32, 4); block_K = (16, 4)</span>
+    <span class="n">gSFA_mkl</span> <span class="o">=</span> <span class="n">cute</span><span class="o">.</span><span class="n">local_tile</span><span class="p">(</span>
+        <span class="n">mSFA_mkl</span><span class="p">,</span> <span class="n">cute</span><span class="o">.</span><span class="n">slice_</span><span class="p">(</span><span class="n">mma_tiler_mnk</span><span class="p">,</span> <span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="kc">None</span><span class="p">)),</span> <span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="p">)</span>
+    <span class="c1"># Extract the local tile for input matrix B (shape: [block_N, block_K, rest_N, rest_K, rest_L])</span>
+    <span class="n">gB_nkl</span> <span class="o">=</span> <span class="n">cute</span><span class="o">.</span><span class="n">local_tile</span><span class="p">(</span>
+        <span class="n">mB_nkl</span><span class="p">,</span> <span class="n">cute</span><span class="o">.</span><span class="n">slice_</span><span class="p">(</span><span class="n">mma_tiler_mnk</span><span class="p">,</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">)),</span> <span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="p">)</span>
+    <span class="c1"># Extract the local tile for scale factor tensor for B (same shape as gB_nkl)</span>
+    <span class="n">gSFB_nkl</span> <span class="o">=</span> <span class="n">cute</span><span class="o">.</span><span class="n">local_tile</span><span class="p">(</span>
+        <span class="n">mSFB_nkl</span><span class="p">,</span> <span class="n">cute</span><span class="o">.</span><span class="n">slice_</span><span class="p">(</span><span class="n">mma_tiler_mnk</span><span class="p">,</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">)),</span> <span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="p">)</span>
+    <span class="c1"># Extract the local tile for output matrix C (shape: [block_M, block_N, rest_M, rest_N, rest_L])</span>
+    <span class="n">gC_mnl</span> <span class="o">=</span> <span class="n">cute</span><span class="o">.</span><span class="n">local_tile</span><span class="p">(</span>
+        <span class="n">mC_mnl</span><span class="p">,</span> <span class="n">cute</span><span class="o">.</span><span class="n">slice_</span><span class="p">(</span><span class="n">mma_tiler_mnk</span><span class="p">,</span> <span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="mi">0</span><span class="p">)),</span> <span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="p">)</span>
+</pre></div>
+<p>The first step is to calculate the relevant tile for our current block configuration.
+Let us look how these look like for a certain configuration (<code>m: 128; k: 256; l: 1</code>):</p>
+<div class="highlight"><pre><span></span>gA_mkl = raw_ptr(0x000075dae100aa00: f4E2M1FN, gmem, align&lt;16&gt;) o (128,64,1,4,1):(256,1,32768,64,32768)
+gSFA_mkl = raw_ptr(0x000075dae1008200: f8E4M3FN, gmem, align&lt;32&gt;) o ((32,4),(16,4),1,4,(1,1)):((16,4),(0,1),2048,512,(0,2048))
+gB_nkl = raw_ptr(0x000075dae100ea00: f4E2M1FN, gmem, align&lt;16&gt;) o (1,64,128,4,1):(0,1,256,64,32768)
+gSFB_nkl = raw_ptr(0x000075dae1008a00: f8E4M3FN, gmem, align&lt;32&gt;) o (1,(16,4),(32,4),4,(1,1)):(0,(0,1),(16,4),512,(0,2048))
+gC_mnl = raw_ptr(0x000075dae1009200: f16, gmem, align&lt;16&gt;) o (128,1,1,1,1):(1,0,128,0,128)
+</pre></div>
+<p>We see for example that <code>gA_mkl</code> has shape of <code>(128,64,1,4,1)</code> that is we have our tile of <code>(128,64)</code> and we need one tile in <code>M</code> dimension, four tiles in <code>K</code> dimension and one tile in <code>L</code> dimension to cover the whole tensor.</p>
+<p>If we look at <code>gSFA_mkl</code> we see it has shape of <code>((32,4),(16,4),1,4,(1,1))</code>. Note that <code>32 * 4 = 128</code>, <code>16 * 4 = 64</code> and <code>1 * 1 = 1</code> so we essentially have the same size as above in each mode but the description is hierarchical. You can read about hierarchical layouts in CuTe in other blogposts I wrote. This analysis extends of course to the other tensors.</p>
+<div class="highlight"><pre><span></span>    <span class="c1"># Select output element corresponding to this thread and block indices</span>
+    <span class="n">tCgC</span> <span class="o">=</span> <span class="n">gC_mnl</span><span class="p">[</span><span class="n">tidx</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="n">bidx</span><span class="p">,</span> <span class="n">bidy</span><span class="p">,</span> <span class="n">bidz</span><span class="p">]</span>
+    <span class="n">tCgC</span> <span class="o">=</span> <span class="n">cute</span><span class="o">.</span><span class="n">make_tensor</span><span class="p">(</span><span class="n">tCgC</span><span class="o">.</span><span class="n">iterator</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="n">res</span> <span class="o">=</span> <span class="n">cute</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">tCgC</span><span class="p">,</span> <span class="n">cutlass</span><span class="o">.</span><span class="n">Float32</span><span class="p">)</span>
+</pre></div>
+<p>Here we index into our tensor. Note that this will give us the <code>N</code> tile because the second mode in the tensor <code>gC_mnl</code> corresponds to the <code>N</code> tile. Of the length of it is <code>1</code> because <code>N</code>s dimension is <code>1</code> as it corresponds to the vector of shape <code>1 x K</code>. <code>make_tensor</code> will essentially only simplify.</p>
+<p>Note that:</p>
+<div class="highlight"><pre><span></span><span class="n">gC_mnl</span> <span class="o">=</span> <span class="n">raw_ptr</span><span class="p">(</span><span class="mh">0x000076a9fd009200</span><span class="p">:</span> <span class="n">f16</span><span class="p">,</span> <span class="n">gmem</span><span class="p">,</span> <span class="n">align</span><span class="o">&lt;</span><span class="mi">16</span><span class="o">&gt;</span><span class="p">)</span> <span class="n">o</span> <span class="p">(</span><span class="mi">128</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">):(</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">128</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">128</span><span class="p">)</span>
+<span class="n">gC_mnl</span><span class="p">[</span><span class="n">tidx</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="n">bidx</span><span class="p">,</span> <span class="n">bidy</span><span class="p">,</span> <span class="n">bidz</span><span class="p">]</span> <span class="o">=</span> <span class="n">raw_ptr</span><span class="p">(</span><span class="mh">0x000076a9fd009200</span><span class="p">:</span> <span class="n">f16</span><span class="p">,</span> <span class="n">gmem</span><span class="p">,</span> <span class="n">align</span><span class="o">&lt;</span><span class="mi">2</span><span class="o">&gt;</span><span class="p">)</span> <span class="n">o</span> <span class="p">(</span><span class="mi">1</span><span class="p">):(</span><span class="mi">0</span><span class="p">)</span> <span class="o">=</span> 
+  <span class="p">(</span> <span class="o">-</span><span class="mf">0.017166</span> <span class="p">)</span>
+<span class="n">tCgC</span> <span class="o">=</span> <span class="n">raw_ptr</span><span class="p">(</span><span class="mh">0x000076a9fd009200</span><span class="p">:</span> <span class="n">f16</span><span class="p">,</span> <span class="n">gmem</span><span class="p">,</span> <span class="n">align</span><span class="o">&lt;</span><span class="mi">2</span><span class="o">&gt;</span><span class="p">)</span> <span class="n">o</span> <span class="mi">1</span><span class="p">:</span><span class="mi">0</span> <span class="o">=</span> 
+  <span class="p">(</span> <span class="o">-</span><span class="mf">0.017166</span> <span class="p">)</span>
+</pre></div>
+<p>i.e. they all point to the same location in Memory. That is because a tensor in <code>CuTe</code> is essentially only a pointer associated with a Layout that defines how to offset the pointer for each entry. Again I refer to other blogposts I wrote if you are interested in this. <code>res</code> is <code>tensor_value&lt;vector&lt;1xf32&gt; o 1&gt;</code> and used to quickly accumulate the result and transferring it to <code>tCgC</code> in <code>GMEM</code> at the end.</p>
+<div class="highlight"><pre><span></span>    <span class="c1"># Get the number of k tiles (depth dimension) for the reduction loop</span>
+    <span class="n">k_tile_cnt</span> <span class="o">=</span> <span class="n">gA_mkl</span><span class="o">.</span><span class="n">layout</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span>
+    <span class="k">for</span> <span class="n">k_tile</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">k_tile_cnt</span><span class="p">):</span>
+</pre></div>
+<p>This is our main loop. Note that above I explained that the fourth mode of <code>gA_mkl</code> Layout will give us the number of <code>K</code> tiles we need to cover the tensor. We loop over it because obviously for a GEMV we will need to cover the whole <code>K</code> dimension in order to recieve a meaningful result.</p>
+<div class="highlight"><pre><span></span>        <span class="n">tAgA</span> <span class="o">=</span> <span class="n">gA_mkl</span><span class="p">[</span><span class="n">tidx</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="n">bidx</span><span class="p">,</span> <span class="n">k_tile</span><span class="p">,</span> <span class="n">bidz</span><span class="p">]</span>
+        <span class="n">tBgB</span> <span class="o">=</span> <span class="n">gB_nkl</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="n">bidy</span><span class="p">,</span> <span class="n">k_tile</span><span class="p">,</span> <span class="n">bidz</span><span class="p">]</span>
+        <span class="n">tAgSFA</span> <span class="o">=</span> <span class="n">gSFA_mkl</span><span class="p">[</span><span class="n">tidx</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="n">bidx</span><span class="p">,</span> <span class="n">k_tile</span><span class="p">,</span> <span class="n">bidz</span><span class="p">]</span>
+        <span class="n">tBgSFB</span> <span class="o">=</span> <span class="n">gSFB_nkl</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="n">bidy</span><span class="p">,</span> <span class="n">k_tile</span><span class="p">,</span> <span class="n">bidz</span><span class="p">]</span>
+</pre></div>
+<p>We extract the current values to process. We use <code>tidx</code> to index into the position of the <code>M</code> tile we are currently in. <code>bidx</code> tells us which of the <code>M</code> tiles we currently process. <code>k_tile</code> is the index into the <code>K</code> tile we are currently processing and <code>bidz</code> gives us index into the batch dimension. For <code>B</code> and its scale factor situation is different because we only have one <code>N</code> dimension of one so we index into it by providing a <code>0</code>.</p>
+<div class="highlight"><pre><span></span>        <span class="n">tArA</span> <span class="o">=</span> <span class="n">cute</span><span class="o">.</span><span class="n">make_rmem_tensor_like</span><span class="p">(</span><span class="n">tAgA</span><span class="p">,</span> <span class="n">cutlass</span><span class="o">.</span><span class="n">Float32</span><span class="p">)</span>
+        <span class="n">tBrB</span> <span class="o">=</span> <span class="n">cute</span><span class="o">.</span><span class="n">make_rmem_tensor_like</span><span class="p">(</span><span class="n">tBgB</span><span class="p">,</span> <span class="n">cutlass</span><span class="o">.</span><span class="n">Float32</span><span class="p">)</span>
+        <span class="n">tArSFA</span> <span class="o">=</span> <span class="n">cute</span><span class="o">.</span><span class="n">make_rmem_tensor_like</span><span class="p">(</span><span class="n">tAgSFA</span><span class="p">,</span> <span class="n">cutlass</span><span class="o">.</span><span class="n">Float32</span><span class="p">)</span>
+        <span class="n">tBrSFB</span> <span class="o">=</span> <span class="n">cute</span><span class="o">.</span><span class="n">make_rmem_tensor_like</span><span class="p">(</span><span class="n">tBgSFB</span><span class="p">,</span> <span class="n">cutlass</span><span class="o">.</span><span class="n">Float32</span><span class="p">)</span>
+
+        <span class="c1"># Load NVFP4 or FP8 values from global memory</span>
+        <span class="n">a_val_nvfp4</span> <span class="o">=</span> <span class="n">tAgA</span><span class="o">.</span><span class="n">load</span><span class="p">()</span>
+        <span class="n">b_val_nvfp4</span> <span class="o">=</span> <span class="n">tBgB</span><span class="o">.</span><span class="n">load</span><span class="p">()</span>
+        <span class="n">sfa_val_fp8</span> <span class="o">=</span> <span class="n">tAgSFA</span><span class="o">.</span><span class="n">load</span><span class="p">()</span>
+        <span class="n">sfb_val_fp8</span> <span class="o">=</span> <span class="n">tBgSFB</span><span class="o">.</span><span class="n">load</span><span class="p">()</span>
+
+        <span class="c1"># Convert loaded values to float32 for computation (FFMA)</span>
+        <span class="n">a_val</span> <span class="o">=</span> <span class="n">a_val_nvfp4</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">cutlass</span><span class="o">.</span><span class="n">Float32</span><span class="p">)</span>
+        <span class="n">b_val</span> <span class="o">=</span> <span class="n">b_val_nvfp4</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">cutlass</span><span class="o">.</span><span class="n">Float32</span><span class="p">)</span>
+        <span class="n">sfa_val</span> <span class="o">=</span> <span class="n">sfa_val_fp8</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">cutlass</span><span class="o">.</span><span class="n">Float32</span><span class="p">)</span>
+        <span class="n">sfb_val</span> <span class="o">=</span> <span class="n">sfb_val_fp8</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">cutlass</span><span class="o">.</span><span class="n">Float32</span><span class="p">)</span>
+</pre></div>
+<p>We load our values into registers and convert them to higher precision for accumulation. Note this is consistent with us defining <code>res</code> in <code>Float32</code> above.</p>
+<div class="highlight"><pre><span></span>        <span class="c1"># Store the converted values to RMEM CuTe tensors</span>
+        <span class="n">tArA</span><span class="o">.</span><span class="n">store</span><span class="p">(</span><span class="n">a_val</span><span class="p">)</span>
+        <span class="n">tBrB</span><span class="o">.</span><span class="n">store</span><span class="p">(</span><span class="n">b_val</span><span class="p">)</span>
+        <span class="n">tArSFA</span><span class="o">.</span><span class="n">store</span><span class="p">(</span><span class="n">sfa_val</span><span class="p">)</span>
+        <span class="n">tBrSFB</span><span class="o">.</span><span class="n">store</span><span class="p">(</span><span class="n">sfb_val</span><span class="p">)</span>
+
+        <span class="c1"># Iterate over SF vector tiles and compute the scale&amp;matmul accumulation</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">cutlass</span><span class="o">.</span><span class="n">range_constexpr</span><span class="p">(</span><span class="n">mma_tiler_mnk</span><span class="p">[</span><span class="mi">2</span><span class="p">]):</span>
+            <span class="n">res</span> <span class="o">+=</span> <span class="n">tArA</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">*</span> <span class="n">tArSFA</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">*</span> <span class="n">tBrB</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">*</span> <span class="n">tBrSFB</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+</pre></div>
+<p>We store the converted values into registers. We'll than loop over all the values in our current <code>K</code> tile and perform multiplication. Apart from the usual multiplication we scale our <code>FP4</code> values as demanded by <code>NVFP4</code> format.</p>
+<p>Let us look at the Layouts to get little bit better understanding:</p>
+<div class="highlight"><pre><span></span><span class="n">tArA</span> <span class="o">=</span> <span class="p">(</span><span class="mi">64</span><span class="p">):(</span><span class="mi">1</span><span class="p">)</span>
+<span class="n">tBrB</span> <span class="o">=</span> <span class="p">(</span><span class="mi">64</span><span class="p">):(</span><span class="mi">1</span><span class="p">)</span>
+<span class="n">tArSFA</span> <span class="o">=</span> <span class="p">((</span><span class="mi">16</span><span class="p">,</span><span class="mi">4</span><span class="p">)):((</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">))</span>
+<span class="n">tBrSFB</span> <span class="o">=</span> <span class="p">((</span><span class="mi">16</span><span class="p">,</span><span class="mi">4</span><span class="p">)):((</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">))</span>
+</pre></div>
+<p>What does this tell us? First it is clear that the size of both tensors is <code>64</code> because that is one K tile, i.e. it contains <code>64</code> values as we defined above. The Layout of the scale factors is <code>((16,4)):((0,1))</code>. A stride of <code>0</code> corresponds to broadcast. So we really have only <code>4</code> different values in the scale factors. Each of them applied to 16 consecutive values.</p>
+<div class="highlight"><pre><span></span>    <span class="c1"># Store the final float16 result back to global memory</span>
+    <span class="n">tCgC</span><span class="o">.</span><span class="n">store</span><span class="p">(</span><span class="n">res</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">cutlass</span><span class="o">.</span><span class="n">Float16</span><span class="p">))</span>
+    <span class="k">return</span>
+</pre></div>
+<p>We finish of by converting the accumulated values to the desired precision and storing them in <code>GMEM</code>.</p>
+<h2 id=conclusion>Conclusion</h2><p>I hope this blogpost can serve as a quick onboarding for participants who have problems to understand CuTeDSL code. I am happy to connect on my <a href='https://www.linkedin.com/in/simon-veitner-174a681b6/'>Linkedin</a>. Thanks to <a href='https://datacrunch.io/'>Datacrunch</a> for providing me with B200 GPU. The experience was very good and you can check it their site out if you want to experience with B200 yourself!</p>
+
+
+    
+
+    
+        
+
+        
+            <form id="upvote-form" action="/upvote/" method="post" style="display: inline">
+    <small>
+        <input hidden name="uid" value="UdMLUDWyAUXKDMDwuysm" style="display:none">
+        <input hidden name="title" value="NVFP4 GEMV" style="display:none">
+
+        <button
+            class="upvote-button"
+            aria-label="Toast this post"
+            title="Toast this post"
+        >
+            <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" class="css-i6dzq1">
+                <polyline points="17 11 12 6 7 11"></polyline>
+                <polyline points="17 18 12 13 7 18"></polyline>
+            </svg>
+            <small class="upvote-count" aria-hidden="true">&nbsp;</small>
+        </button>
+    </small>        
+</form>
+
+<script>
+    const $upvoteButton = document.querySelector('.upvote-button');
+    const $upvoteCount =  document.querySelector('.upvote-count')
+
+    fetch('/upvote-info/UdMLUDWyAUXKDMDwuysm/').then(response => response.json()).then(data => {
+        $upvoteCount.innerText = data.upvote_count;
+        if (data.upvoted) {
+            $upvoteButton.disabled = true
+            $upvoteButton.style.color = "salmon"
+            $upvoteButton.ariaLabel = "Toasted"
+            $upvoteButton.title = "Toasted"
+        }
+        $upvoteButton.ariaLabel += ` (${data.upvote_count})`
+    });
+
+    let moved = false;
+    let pageLoaded = Date.now();
+
+    document.addEventListener('touchmove', () => moved = true);
+    document.addEventListener('mousemove', () => moved = true);
+
+    document.querySelector('#upvote-form').addEventListener('submit', (e) => {
+        e.preventDefault();
+
+        if (moved) {
+            document.querySelector('input[name="title"]').value = "";
+        }
+        if (Date.now() - pageLoaded < 2000 || !moved) {
+            return;
+        }
+
+        fetch(e.target.action, {
+            method: 'post',
+            body: new FormData(e.target),
+        });
+        
+        $upvoteButton.disabled = true
+        $upvoteButton.style.color = "salmon"
+        $upvoteButton.ariaLabel = "Toasted"
+        $upvoteButton.title = "Toasted"
+        const newUpvoteCount = `${(parseInt($upvoteCount.innerHTML.split(" ")[0]) + 1)}`
+        $upvoteCount.innerHTML = newUpvoteCount
+        $upvoteButton.ariaLabel += ` (${newUpvoteCount})`
+    });
+</script>
+        
+
+        
+            <script>
+            window.addEventListener("load", () => {
+                if (navigator.webdriver !== true) {
+                    const sendHit = score => {
+                        const params = new URLSearchParams({
+                            blog: "veitner",
+                            token: "UdMLUDWyAUXKDMDwuysm",
+                            referrer: document.referrer.includes("veitner.bearblog.dev") ? "" : document.referrer,
+                            title: "",
+                            score: score
+                        });
+                        new Image().src = `/hit/?${params.toString()}`;
+                    };
+
+                    document.addEventListener('touchmove', () => sendHit(100), { once: true });
+                    document.addEventListener('mousemove', () => sendHit(100), { once: true });
+                }
+            });
+            </script>
+        
+    
+
+
+  </main>
+  <footer>
+    
+    
+    <span>
+        Powered by <a href="https://bearblog.dev">Bear <span role="img" class="bear" aria-label="ASCII bear logo">ʕ•ᴥ•ʔ</span></a>
+    </span>
+
+  </footer>
+
+  
+  <script>
+        (() => {
+          "use strict";
+          const times = document.querySelectorAll('time');
+          const format_string = "d M, Y" || "d M, Y"
+
+          times.forEach(time => {
+              time.innerText = formatDate(time.dateTime, format_string)
+          });
+
+          function formatDate(dateStr, formatStr) {
+            const date = new Date(dateStr);
+            const day = date.getDate();
+            const month = date.getMonth();
+            const year = date.getFullYear();
+            const weekday = date.getDay();
+            const hours = date.getHours();
+            const minutes = date.getMinutes();
+            const monthsFull = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+            const monthsShort = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+            const daysFull = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+            const daysShort = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+            
+            function getOrdinal(n) {
+                const s = ['th', 'st', 'nd', 'rd'];
+                const v = n % 100;
+                return s[(v - 20) % 10] || s[v] || s[0];
+            }
+            
+            const map = {
+                'd': () => day.toString().padStart(2, '0'),
+                'm': () => (month + 1).toString().padStart(2, '0'),
+                'Y': () => year.toString(),
+                'y': () => year.toString().slice(-2),
+                'F': () => monthsFull[month],
+                'j': () => day.toString(),
+                'D': () => daysShort[weekday],
+                'l': () => daysFull[weekday],
+                'S': () => getOrdinal(day),
+                'M': () => monthsShort[month],
+                'H': () => hours.toString().padStart(2, '0'),
+                'h': () => {
+                    let h = hours % 12;
+                    h = h === 0 ? 12 : h;
+                    return h.toString().padStart(2, '0');
+                },
+                'g': () => {
+                    let h = hours % 12;
+                    return h === 0 ? '12' : h.toString();
+                },
+                'i': () => minutes.toString().padStart(2, '0'),
+                'a': () => hours < 12 ? 'am' : 'pm',
+                'A': () => hours < 12 ? 'AM' : 'PM',
+            };
+            
+            let result = '';
+            for (let char of formatStr) {
+                result += map[char] ? map[char]() : char;
+            }
+            return result;
+        }
+        })();
+    </script>
+    
+</body>
+<!-- ID: veitner -->
+<!-- 🐻 -->
+</html>
