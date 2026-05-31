@@ -1,8 +1,11 @@
 #include "flash1_cuda.cuh"
-#include <__clang_cuda_builtin_vars.h>
-#include <__clang_cuda_runtime_wrapper.h>
 #include <cfloat>
 #include <cmath>
+#ifdef __clang__
+#include <__clang_cuda_builtin_vars.h>
+#include <__clang_cuda_intrinsics.h>
+#include <__clang_cuda_runtime_wrapper.h>
+#endif // __clang__
 
 constexpr int WARP_SIZE = 32;
 constexpr int Q_TILE = 16;
@@ -161,7 +164,7 @@ flash1AttentionKernel(__nv_bfloat16 *out, const __nv_bfloat16 *q,
   __shared__ float alpha[Q_TILE];
 
   __shared__ float acc[Q_TILE][HEAD_DIM];
-  tile::fill<Q_TILE * HEAD_DIM, numThreads>(acc, /*value=*/0.0f);
+  tile::fill<Q_TILE * HEAD_DIM, numThreads>(&acc[0][0], /*value=*/0.0f);
 
   __shared__ float l[Q_TILE];
   tile::fill<Q_TILE, numThreads>(l, /*value=*/0.0f);
@@ -182,26 +185,28 @@ flash1AttentionKernel(__nv_bfloat16 *out, const __nv_bfloat16 *q,
   //   acc = alpha * acc + O_i: [Q_TILE, headDim]
   // out := acc/l
 
-  tile::loadRows<Q_TILE, HEAD_DIM, numThreads>(qTile, q, qBaseRow, qSeqLen);
+  tile::loadRows<Q_TILE, HEAD_DIM, numThreads>(&qTile[0][0], q, qBaseRow,
+                                               qSeqLen);
   // no barrier since there'll be a barrier before use
 
   int numKvBlocks = ceildiv(kvSeqLen, KV_TILE);
   for (int kvBlockIdx = 0; kvBlockIdx < numKvBlocks; ++kvBlockIdx) {
     int kvBaseRow = kvBlockIdx * KV_TILE;
     tile::loadRows<KV_TILE, HEAD_DIM, numThreads, /*isTransposed=*/true>(
-        kTile, k, kvBaseRow, kvSeqLen);
-    tile::loadRows<KV_TILE, HEAD_DIM, numThreads>(vTile, v, kvBaseRow,
+        &kTile[0][0], k, kvBaseRow, kvSeqLen);
+    tile::loadRows<KV_TILE, HEAD_DIM, numThreads>(&vTile[0][0], v, kvBaseRow,
                                                   kvSeqLen);
     __syncthreads();
 
     // S_i := Q_i @ K_i.T * scale
-    tile::mma<Q_TILE, HEAD_DIM, KV_TILE, numThreads>(scoreTile, qTile, kTile);
+    tile::mma<Q_TILE, HEAD_DIM, KV_TILE, numThreads>(&scoreTile[0][0],
+                                                     &qTile[0][0], &kTile[0][0]);
 
     // m = max(m_prev, rowmax(S_i))
     float mPrev = -FLT_MAX;
     if (threadIdx.x < Q_TILE)
       mPrev = m[threadIdx.x];
-    tile::max<Q_TILE, KV_TILE, numThreads>(m, scoreTile);
+    tile::max<Q_TILE, KV_TILE, numThreads>(m, &scoreTile[0][0]);
     __syncthreads();
 
     // in place update
@@ -212,10 +217,12 @@ flash1AttentionKernel(__nv_bfloat16 *out, const __nv_bfloat16 *q,
     __syncthreads();
 
     // O_i := P_i @ V_i
-    tile::mma<Q_TILE, KV_TILE, HEAD_DIM, numThreads>(oTile, scoreTile, vTile);
+    tile::mma<Q_TILE, KV_TILE, HEAD_DIM, numThreads>(&oTile[0][0],
+                                                     &scoreTile[0][0],
+                                                     &vTile[0][0]);
 
     // alpha := exp(m_prev - m)
-    tile::sum<Q_TILE, KV_TILE, numThreads>(rowSumP_i, scoreTile);
+    tile::sum<Q_TILE, KV_TILE, numThreads>(rowSumP_i, &scoreTile[0][0]);
     if (threadIdx.x < Q_TILE) {
       alpha[threadIdx.x] = expf(mPrev - m[threadIdx.x]);
 
@@ -244,7 +251,8 @@ flash1AttentionKernel(__nv_bfloat16 *out, const __nv_bfloat16 *q,
     int globalRow = qBaseRow + localRow;
 
     if (globalRow < qSeqLen)
-      out[globalRow * HEAD_DIM + head] = acc[localRow][head] / l[localRow];
+      out[globalRow * HEAD_DIM + head] =
+          __float2bfloat16(acc[localRow][head] / l[localRow]);
   }
 }
 
@@ -257,8 +265,11 @@ extern "C" cudaError_t flash1AttentionCudaLaunch(void *out, const void *q,
   constexpr int numThreads = Q_TILE * HEAD_DIM / elemsPerThread;
   int numBlocks = ceildiv(qSeqLen, Q_TILE);
 
-  return flash1AttentionKernel<Q_TILE, KV_TILE, HEAD_DIM, elemsPerThread,
-                               numThreads>
+  flash1AttentionKernel<Q_TILE, KV_TILE, HEAD_DIM, elemsPerThread, numThreads>
       <<<numBlocks, numThreads, /*dynSmemBytes=*/0, stream>>>(
-          out, q, k, v, qSeqLen, kvSeqLen);
+          static_cast<__nv_bfloat16 *>(out),
+          static_cast<const __nv_bfloat16 *>(q),
+          static_cast<const __nv_bfloat16 *>(k),
+          static_cast<const __nv_bfloat16 *>(v), qSeqLen, kvSeqLen);
+  return cudaGetLastError();
 }
