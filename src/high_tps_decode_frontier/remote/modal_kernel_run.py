@@ -268,6 +268,24 @@ def _print_remote_command(output_dir: Path) -> None:
     print(command)
 
 
+def _print_command_output(output_dir: Path) -> None:
+    for filename, title in [
+        ("stdout.txt", "remote stdout"),
+        ("stderr.txt", "remote stderr"),
+    ]:
+        try:
+            text = (output_dir / filename).read_text()
+        except FileNotFoundError:
+            continue
+
+        if not text.strip():
+            continue
+
+        print()
+        print(title)
+        print(text.rstrip())
+
+
 @app.local_entrypoint()
 def main(
     cmd: str = DEFAULT_COMMAND,
@@ -298,6 +316,7 @@ def main(
     _unpack_artifacts(result["artifacts_tgz"], output_dir)
     print(f"wrote {output_dir}")
     _print_remote_command(output_dir)
+    _print_command_output(output_dir)
     _print_artifact_previews(output_dir)
 
     exit_code = int(result["exit_code"])
